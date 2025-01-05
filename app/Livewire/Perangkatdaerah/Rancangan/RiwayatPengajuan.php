@@ -31,8 +31,7 @@ class RiwayatPengajuan extends Component
         $query = RancanganProdukHukum::with(['user', 'perangkatDaerah', 'revisi'])
             ->where('id_user', auth()->id())
             ->where('status_rancangan', 'Disetujui')
-            ->orderBy('tanggal_pengajuan', 'desc')
-            ->orderBy('created_at', 'desc');
+            ->orderBy('tanggal_rancangan_disetujui', 'desc'); // Urutkan berdasarkan tanggal_rancangan_disetujui terbaru
 
         // Filter pencarian
         if (!empty($this->search)) {

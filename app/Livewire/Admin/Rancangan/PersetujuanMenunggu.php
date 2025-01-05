@@ -132,7 +132,7 @@ class PersetujuanMenunggu extends Component
                 $query->where('no_rancangan', 'like', "%{$this->search}%")
                     ->orWhere('tentang', 'like', "%{$this->search}%");
             })
-            ->orderBy('created_at', 'desc') // Urutkan berdasarkan waktu terbaru
+            ->orderBy('tanggal_pengajuan', 'desc') // Urutkan berdasarkan tangal pengakuan
             ->paginate($this->perPage);
 
         return view('livewire.admin.rancangan.persetujuan-menunggu', compact('rancanganMenunggu'));

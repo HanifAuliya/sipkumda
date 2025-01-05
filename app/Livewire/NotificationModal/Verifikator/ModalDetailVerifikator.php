@@ -14,7 +14,6 @@ class ModalDetailVerifikator extends Component
     public function loadRancangan($slug)
     {
         $this->rancangan = RancanganProdukHukum::where('slug', $slug)->first();
-        dd($slug);
     }
 
     public function render()

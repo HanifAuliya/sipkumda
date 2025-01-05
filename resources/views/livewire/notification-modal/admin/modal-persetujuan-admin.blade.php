@@ -173,7 +173,7 @@
                                             <div class="custom-control custom-radio mr-4">
                                                 <input type="radio" id="setujui" name="statusBerkas"
                                                     class="custom-control-input" wire:model="statusBerkas"
-                                                    value="Disetujui">
+                                                    value="Disetujui" @disabled(in_array($statusBerkas, ['Disetujui', 'Ditolak']))>
                                                 <label class="custom-control-label" for="setujui">Setujui Berkas
                                                     Rancangan</label>
                                             </div>
@@ -182,11 +182,12 @@
                                             <div class="custom-control custom-radio">
                                                 <input type="radio" id="tolak" name="statusBerkas"
                                                     class="custom-control-input" wire:model="statusBerkas"
-                                                    value="Ditolak">
+                                                    value="Ditolak" @disabled(in_array($statusBerkas, ['Disetujui', 'Ditolak']))>
                                                 <label class="custom-control-label" for="tolak">Tolak Berkas
                                                     Rancangan</label>
                                             </div>
                                         </div>
+
                                         @error('statusBerkas')
                                             <span class="text-danger">{{ $message }}</span>
                                         @enderror

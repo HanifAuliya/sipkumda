@@ -247,22 +247,31 @@
                             <div class="card-header bg-warning text-white">
                                 <h4 class="mb-0 text-white">Verifikasi Persetujuan Rancangan</h4>
                             </div>
+                            {{-- Select  Dropdown --}}
                             <div class="card-body">
-                                <p class="info-text mb-3">Pilih status persetujuan untuk rancangan ini. Tambahkan
-                                    catatan jika diperlukan untuk memberikan masukan atau alasan penolakan.</p>
+                                <p class="info-text mb-3">
+                                    Pilih status persetujuan untuk rancangan ini. Tambahkan catatan jika diperlukan
+                                    untuk memberikan masukan atau alasan penolakan.
+                                </p>
 
                                 <div class="form-group">
-                                    <label for="statusBerkasSelect">Status Berkas</label>
+                                    @if ($statusBerkas === 'Menunggu Persetujuan')
+                                        <label for="statusBerkasSelect" class="text-danger">Berkas Perlu
+                                            Persetujuan</label>
+                                    @else
+                                        <label for="statusBerkasSelect">Status Berkas</label>
+                                    @endif
                                     <select id="statusBerkasSelect" name="statusBerkas" class="form-control"
-                                        wire:model="statusBerkas">
-                                        <option value="">-- Pilih Status --</option>
-                                        <option value="Disetujui">Setujui Berkas Rancangan</option>
-                                        <option value="Ditolak">Tolak Berkas Rancangan</option>
+                                        wire:model="statusBerkas" @disabled(in_array($statusBerkas, ['Disetujui', 'Ditolak']))>
+                                        <option value selected disabled="">Pilih Status </option>
+                                        <option value="Disetujui">Disetujui</option>
+                                        <option value="Ditolak">Ditolak</option>
                                     </select>
                                     @error('statusBerkas')
                                         <span class="text-danger">{{ $message }}</span>
                                     @enderror
                                 </div>
+
 
 
                                 <textarea wire:model.defer="catatan" class="form-control mb-3" rows="3" placeholder="Tambahkan catatan..."></textarea>

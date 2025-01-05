@@ -38,9 +38,7 @@ class SedangDiajukan extends Component
         $query = RancanganProdukHukum::with(['user', 'perangkatDaerah', 'revisi'])
             ->where('id_user', auth()->id())
             ->whereIn('status_rancangan', ['Dalam Proses', 'Ditolak'])
-            ->orderBy('tanggal_pengajuan', 'desc')
-            ->orderBy('created_at', 'desc');
-
+            ->orderBy('tanggal_pengajuan', 'desc');
         // Filter pencarian
         if (!empty($this->search)) {
             $query->where(function ($q) {
