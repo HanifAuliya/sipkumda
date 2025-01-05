@@ -1,0 +1,117 @@
+<?php
+
+namespace App\Livewire\NotificationModal\Admin;
+
+use Livewire\Component;
+use App\Models\RancanganProdukHukum;
+use Illuminate\Support\Carbon;
+use App\Notifications\PersetujuanRancanganNotification;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Gate;
+
+class ModalPersetujuanAdmin extends Component
+{
+    public $rancangan;
+    public $catatan;
+    public $statusBerkas;
+
+    protected $listeners = ['openAdminModal' => 'loadRancangan'];
+
+    public function loadRancangan($slug)
+    {
+        $this->rancangan = RancanganProdukHukum::where('slug', $slug)->with('user', 'user.perangkatDaerah')->first();
+
+        if (!$this->rancangan || Gate::denies('view', $this->rancangan)) {
+            abort(403, 'Unauthorized access to rancangan');
+        }
+        $this->statusBerkas = $this->rancangan->status_berkas ?? 'Menunggu Persetujuan';
+        $this->catatan = $this->rancangan->catatan_berkas ?? '';
+    }
+
+    public function updateStatus()
+    {
+        $this->validate([
+            'statusBerkas' => 'required|in:Disetujui,Ditolak',
+            'catatan' => 'required|string|min:5|max:255',
+        ], [
+            'statusBerkas.required' => 'Status harus dipilih.',
+            'catatan.required' => 'Catatan wajib diisi.',
+            'catatan.min' => 'Catatan minimal 5 karakter.',
+            'catatan.max' => 'Catatan maksimal 255 karakter.',
+        ]);
+
+        if ($this->rancangan) {
+            $this->rancangan->status_berkas = $this->statusBerkas;
+            $this->rancangan->catatan_berkas = $this->catatan;
+
+            // Set tanggal_berkas_disetujui jika status disetujui
+            if ($this->statusBerkas === 'Disetujui') {
+                $this->rancangan->tanggal_berkas_disetujui = Carbon::now();
+            } else {
+                $this->rancangan->tanggal_berkas_disetujui = null; // Reset jika status bukan "Disetujui"
+            }
+
+            $this->rancangan->save();
+
+            // Kirim notifikasi ke user
+            Notification::send(
+                $this->rancangan->user, // User yang mengajukan rancangan
+                new PersetujuanRancanganNotification([
+                    'title' => "Rancangan Anda {$this->statusBerkas}",
+                    'message' => "Rancangan Anda dengan nomor {$this->rancangan->no_rancangan} telah {$this->statusBerkas}.",
+                    'slug' => $this->rancangan->slug, // Slug untuk memuat modal detail
+                    'type' => $this->statusBerkas === 'Disetujui' ? 'persetujuan_diterima' : 'persetujuan_ditolak', // Tentukan tipe
+                    // 'url' => route('user.rancangan.detail', $this->rancangan->id), // URL detail rancangan
+                ])
+            );
+
+            // Emit notifikasi sukses ke pengguna
+            $this->dispatch('refreshNotifications');
+
+            $this->dispatch('swal:modalPersetujuan', [
+                'type' => 'success',
+                'title' => 'Berhasil!',
+                'message' => "Rancangan berhasil di {$this->statusBerkas}!",
+            ]);
+        }
+    }
+
+    public function resetStatus()
+    {
+        if ($this->rancangan) {
+            $this->rancangan->status_berkas = 'Menunggu Persetujuan';
+            $this->rancangan->catatan_berkas = null;
+            $this->rancangan->tanggal_berkas_disetujui = null; // Reset tanggal jika status direset
+            $this->rancangan->save();
+
+            $this->statusBerkas = 'Menunggu Persetujuan';
+            $this->catatan = null;
+
+            // Kirim notifikasi ke user
+            Notification::send(
+                $this->rancangan->user, // User yang mengajukan rancangan
+                new PersetujuanRancanganNotification([
+                    'title' => "Rancangan Anda {$this->statusBerkas}",
+                    'message' => "Rancangan Anda dengan nomor {$this->rancangan->no_rancangan} telah {$this->statusBerkas}. Silahkan Periksa !",
+                    'slug' => $this->rancangan->slug, // Slug untuk memuat modal detail
+                    'type' => 'persetujuan_menunggu', // Tipe notifikasi
+                    // 'url' => route('user.rancangan.detail', $this->rancangan->id), // URL detail rancangan
+                ])
+            );
+
+            // Emit notifikasi sukses ke pengguna
+            $this->dispatch('refreshNotifications');
+
+            $this->dispatch('swal:modalPersetujuan', [
+                'type' => 'info',
+                'title' => 'Reset Berhasil!',
+                'message' => 'Status rancangan dikembalikan ke Menunggu Persetujuan.',
+            ]);
+        }
+    }
+
+    public function render()
+    {
+        return view('livewire.notification-modal.admin.modal-persetujuan-admin');
+    }
+}

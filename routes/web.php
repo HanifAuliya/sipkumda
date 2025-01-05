@@ -1,0 +1,90 @@
+<?php
+
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\UserController;
+use Illuminate\Support\Facades\Route;
+use App\Livewire\ProfileManagement;
+use App\Livewire\Dashboard;
+
+use App\Livewire\UserManagement;
+use App\Livewire\Rancangan\DaftarRancangan;
+
+use App\Livewire\Perangkatdaerah\Rancangan\Rancanganku;
+use App\Livewire\Admin\Rancangan\PersetujuanMain;
+
+use App\Livewire\Admin\Modal\PersetujuanBerkasModal;
+use App\Livewire\Verifikator\Modal\DetailBerkasModal;
+
+Route::get('/', function () {
+    return view('welcome');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('/dashboard', Dashboard::class)
+        ->middleware(['auth', 'verified'])
+        ->name('dashboard');
+
+    Route::middleware(['password.confirm'])->group(function () {
+        Route::get('/profile', ProfileManagement::class)->name('profile.edit');
+    });
+
+    Route::middleware(['role:Admin|Verifikator'])->group(function () {
+        Route::get('/user-management', UserManagement::class)->name('user.management');
+    });
+
+    Route::get('/daftar-rancangan', DaftarRancangan::class)
+        ->middleware('role:Admin|Verifikator|Perangkat_Daerah|Peneliti')
+        ->name('daftar-rancangan');
+
+    Route::get('/rancanganku', Rancanganku::class)->name('rancanganku')
+        ->middleware('role:Perangkat_Daerah');
+
+    Route::middleware(['role:Admin'])->group(function () {
+        Route::get('/admin/persetujuan', PersetujuanMain::class)->name('admin.persetujuan');
+    });
+});
+
+
+
+Route::get('/test-500', function () {
+    abort(500); // Memaksa Laravel untuk menampilkan halaman error 500
+});
+
+
+
+
+
+require __DIR__ . '/auth.php';
+// Route::middleware(['auth', 'password.confirm'])->group(function () {
+//     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+//     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+//     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+// });
+
+// Route::middleware('auth')->group(function () {
+//     Route::get('/profile', Profile::class)->name('profile.edit');
+// });
+
+// Route::middleware(['auth', 'password.confirm'])->group(function () {
+//     Route::get('/profile', function () {
+//         return view('auth.profile'); // File utama dengan semua card Livewire
+//     })->name('profile.edit');
+// });
+
+
+// Route::middleware(['auth'])->group(function () {
+//     Route::resource('users', UserController::class)->names([
+//         'index' => 'users.index',       // Rute untuk menampilkan daftar pengguna
+//         'create' => 'users.create',     // Rute untuk form tambah pengguna
+//         'store' => 'users.store',       // Rute untuk menyimpan pengguna baru
+//         'edit' => 'users.edit',         // Rute untuk form edit pengguna
+//         'update' => 'users.update',     // Rute untuk memperbarui pengguna
+//         'destroy' => 'users.destroy',   // Rute untuk menghapus pengguna
+//     ]);
+// });
+
+// Route::middleware(['auth',])->group(function () {
+//     Route::get('/user-management', function () {
+//         return view('users.manage-user'); // File utama dengan semua card Livewire
+//     })->name('user.management');
+// });

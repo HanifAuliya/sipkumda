@@ -1,0 +1,753 @@
+:root {
+    --primary: #5e72e4;
+    --secondary: #f4f5f7;
+    --info: #11cdef;
+    --success: #2dce89;
+    --danger: #f5365c;
+    --warning: #fb6340;
+    --default: #172b4d;
+    --neutral: var(--secondary);
+    --white: #ffffff;
+    --dark: var(--default);
+}
+
+/* -----------------------------------------------
+   Sidenav - Styling
+-------------------------------------------------- */
+
+/* Sidenav default width */
+.sidenav {
+    width: 250px;
+    transition: width 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background-color: var(--default);
+    z-index: 1050; /* Tetap di atas topnav */
+    overflow-y: auto;
+}
+
+/* Efek hover dan transisi pada toggler */
+.sidenav-toggler-inner {
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+}
+
+.sidenav-toggler-line {
+    width: 25px;
+    height: 2px;
+    margin-bottom: 4px;
+    transition: all 0.3s ease;
+    background-color: #ffffff !important;
+}
+
+/* Garis terakhir tidak ada margin bottom */
+.sidenav-toggler-line:last-child {
+    margin-bottom: 2;
+}
+
+/* Saat toggler diklik */
+.sidenav-toggler-inner.toggled .sidenav-toggler-line:nth-child(1) {
+    width: 25px; /* Garis tengah tetap penuh */
+    transform: translateX(0px); /* Geser ke atas */
+}
+
+.sidenav-toggler-inner.toggled .sidenav-toggler-line:nth-child(2) {
+    width: 25px; /* Garis tengah tetap penuh */
+}
+
+.sidenav-toggler-inner.toggled .sidenav-toggler-line:nth-child(3) {
+    width: 25px; /* Garis tengah tetap penuh */
+    transform: translateX(0px); /* Geser ke atas */
+}
+
+/* Sidenav diminimalkan */
+.sidenav.minimized {
+    width: 80px;
+    transition: width 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+}
+
+/* Sembunyikan navbar heading saat diminimalkan */
+.sidenav.minimized .navbar-heading,
+.sidenav.minimized .brand-text {
+    display: none;
+}
+
+/* Main content menyesuaikan dengan lebar sidenav */
+.main-content {
+    margin-left: 250px;
+    transition: margin-left 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    overflow-x: hidden;
+    flex: 1;
+}
+
+.main-content.minimized {
+    margin-left: 80px;
+}
+
+/* Saat sidenav diminimalkan */
+.sidenav.minimized .nav-link span {
+    display: none;
+}
+
+.sidenav.minimized .nav-link i {
+    font-size: 24px;
+    text-align: center;
+    width: 100%;
+}
+
+/* Warna tetap sama */
+.sidenav .nav-link {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    color: inherit;
+    transition: width 0.4s ease-in-out;
+}
+
+.sidenav .nav-link i {
+    margin-right: 10px;
+    color: inherit;
+}
+
+/* Hover behavior untuk menu */
+.sidenav .nav-link:hover {
+    color: inherit;
+}
+
+/* Minimized by default pada layar 1200px hingga 1439px */
+@media (min-width: 1200px) {
+    .sidenav {
+        width: 80px; /* Start in minimized state */
+    }
+
+    .main-content {
+        margin-left: 80px;
+    }
+
+    .sidenav.minimized {
+        width: 80px; /* Tetap minimized saat tidak di-hover */
+    }
+
+    .main-content.minimized {
+        margin-left: 80px;
+    }
+
+    /* Hover behavior untuk memperluas sidenav sementara */
+    .sidenav.minimized:hover {
+        width: 250px;
+        transition: width 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    }
+
+    /* Tampilkan elemen yang disembunyikan saat hover */
+    .sidenav.minimized:hover .nav-link span {
+        display: inline-block;
+        transition: display 0.4s ease-in-out;
+        color: inherit;
+    }
+
+    .sidenav.minimized:hover .navbar-heading,
+    .sidenav.minimized:hover .brand-text {
+        display: block;
+        transition: display 0.4s ease-in-out;
+    }
+
+    /* Reset ukuran ikon saat hover */
+    .sidenav.minimized:hover .nav-link i {
+        width: auto;
+        text-align: left;
+        transition: width 0.4s ease-in-out;
+        color: inherit;
+    }
+}
+
+/* Untuk layar besar di atas 1440px, tampilkan sidenav penuh */
+@media (min-width: 1440px) {
+    .sidenav {
+        width: 250px;
+    }
+
+    .main-content {
+        margin-left: 250px;
+    }
+}
+
+/* Hover behavior dan transisi untuk toggle behavior pada layar kecil */
+@media (max-width: 1199px) {
+    .sidenav {
+        transform: translateX(-100%);
+        width: 100%;
+        position: fixed;
+        z-index: 9999;
+        transition: transform 0.3s ease;
+    }
+
+    .sidenav.show {
+        transform: translateX(0);
+    }
+
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+        transition: margin-left 0.3s ease, width 0.3s ease;
+    }
+}
+
+/* -----------------------------------------------
+   General Styling for Sidenav
+-------------------------------------------------- */
+.brand-text {
+    font-size: 30px;
+    font-weight: 700;
+    color: var(--dark);
+    margin-left: 15px;
+}
+
+.sidenav.minimized .brand-text {
+    display: none;
+}
+
+.navbar-brand {
+    display: flex;
+    align-items: center;
+}
+
+.navbar-brand-img {
+    height: 40px;
+    width: auto;
+}
+
+.sidenav .nav-link {
+    color: var(--default) !important;
+    background-color: transparent !important;
+    padding: 10px 15px;
+    border-radius: 5px;
+    transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.sidenav .nav-link i {
+    transition: color 0.3s ease;
+}
+
+.sidenav .nav-link:hover {
+    color: var(--default) !important;
+    transform: translateX(5px);
+}
+
+.sidenav .nav-link.active {
+    color: var(--white) !important;
+    background-color: var(--default) !important;
+    transform: none !important;
+}
+
+.sidenav .nav-link.active i {
+    color: var(--white) !important;
+}
+
+.sidenav .dropdown-menu {
+    background-color: var(--white) !important;
+    border: 1px solid var(--secondary) !important;
+}
+
+.sidenav .dropdown-menu .dropdown-item {
+    color: var(--default) !important;
+    padding: 10px 15px;
+    border-radius: 5px;
+}
+
+.sidenav .dropdown-menu .dropdown-item:hover {
+    color: var(--white) !important;
+    background-color: var(--default) !important;
+}
+
+.sidenav .dropdown-menu .list-group-item {
+    color: var(--default) !important;
+}
+
+.sidenav .dropdown-menu .list-group-item:hover {
+    background-color: transparent !important;
+}
+
+/* -----------------------------------------------
+   Top Navigation Text
+-------------------------------------------------- */
+#full-text {
+    display: block;
+}
+
+#short-text {
+    display: none;
+}
+
+@media (max-width: 600px) {
+    #full-text {
+        display: none;
+    }
+
+    #short-text {
+        display: block;
+    }
+}
+
+/* -----------------------------------------------
+   Typing Animation for Heading
+-------------------------------------------------- */
+.typing-text-heading {
+    display: inline-block;
+    overflow: hidden;
+    white-space: nowrap;
+    border-right: 3px solid rgba(255, 255, 255, 0.75);
+}
+
+.full-text-heading {
+    animation: typing-full 4s steps(40, end) 3s infinite,
+        deleting 2s steps(10, end) 2s 1 normal both,
+        blink-caret 0.75s step-end infinite;
+    animation-fill-mode: both;
+}
+
+.short-text-heading {
+    animation: typing-short 2s steps(10, end) 3s infinite,
+        blink-caret 0.75s step-end infinite;
+    animation-fill-mode: both;
+}
+
+@keyframes typing-full {
+    0% {
+        width: 0;
+    }
+    50% {
+        width: 100%;
+    }
+    100% {
+        width: 100%;
+    }
+}
+
+@keyframes typing-short {
+    0% {
+        width: 0;
+    }
+    50% {
+        width: 100%;
+    }
+    100% {
+        width: 100%;
+    }
+}
+
+@keyframes blink-caret {
+    from,
+    to {
+        border-color: transparent;
+    }
+    50% {
+        border-color: rgba(255, 255, 255, 0.75);
+    }
+}
+
+/* -----------------------------------------------
+   Loading Screen Styles
+-------------------------------------------------- */
+.loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--white);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start; /* Ubah ke flex-start untuk menempatkan elemen lebih ke atas */
+    padding-top: 100px; /* Beri jarak dari atas */
+    z-index: 9999;
+}
+
+/* Wrapper untuk logo dan teks agar tampil lebih rapi */
+.logo-text-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Rata tengah secara horizontal */
+    justify-content: center; /* Rata tengah secara vertikal */
+    padding: 20px 0; /* Tambahkan padding atas dan bawah */
+    margin: 0 auto; /* Buat wrapper rata tengah */
+}
+
+/* Aturan untuk logo */
+.logo {
+    display: flex;
+    justify-content: center; /* Buat logo berada di tengah */
+    align-items: center; /* Pastikan logo rata tengah secara vertikal */
+}
+
+.logo img {
+    max-width: 200px; /* Ukuran maksimal logo */
+    width: 100%; /* Membuat logo responsif */
+    height: auto; /* Jaga proporsi logo */
+    margin: 0; /* Hilangkan margin */
+    padding: 0; /* Hilangkan padding */
+    display: block;
+}
+.sipkumda-title {
+    font-size: 32px; /* Ukuran besar */
+    font-weight: bold; /* Atur weight lebih tebal */
+    color: #ff9900; /* Sesuaikan dengan warna logo, misalnya oranye */
+    text-align: center; /* Rata tengah */
+    margin: 0; /* Hilangkan margin default */
+    padding-top: 5px; /* Beri sedikit padding jika diperlukan untuk jarak yang minimal */
+}
+
+.typing-animation-loading {
+    font-size: 24px;
+    margin-top: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    border-right: 0.15em solid orange;
+    animation: typing-loading 2s steps(110, end),
+        blink-caret-loading 0.75s step-end infinite;
+    text-align: center; /* Pastikan teks berada di tengah */
+}
+
+@keyframes typing-loading {
+    0% {
+        width: 0;
+    }
+    100% {
+        width: 100%;
+    }
+}
+
+@keyframes blink-caret-loading {
+    from,
+    to {
+        border-color: transparent;
+    }
+    50% {
+        border-color: orange;
+    }
+}
+
+@media (max-width: 768px) {
+    .logo img {
+        width: 100%;
+    }
+
+    .typing-animation-loading {
+        font-size: calc(0.7rem + 2vw);
+        margin-top: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .logo img {
+        width: 300px;
+    }
+
+    .typing-animation-loading {
+        font-size: calc(0.6rem + 2vw);
+        margin-top: 10px;
+    }
+}
+
+#loading-screen {
+    opacity: 1;
+    transition: opacity 0.5s ease-out;
+}
+
+#loading-screen.hidden {
+    opacity: 0;
+}
+
+/* -----------------------------------------------
+   Responsive Information User Styling
+-------------------------------------------------- */
+@media (max-width: 767.98px) {
+    .card-body {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .info-department {
+        order: 2;
+        text-align: center;
+        margin-bottom: 1rem;
+    }
+
+    .info-individual {
+        order: 1;
+        text-align: center;
+        margin-bottom: 1rem;
+    }
+
+    .info-individual img {
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    .info-department h4,
+    .info-department p {
+        display: inline-block;
+        text-align: center;
+    }
+}
+
+/* -----------------------------------------------
+   Table Content - Responsiveness and Styling
+-------------------------------------------------- */
+
+/* Warna teks pada tabel */
+table thead th,
+table tbody td {
+    color: var(--default); /* Warna teks untuk header dan isi tabel */
+}
+
+/* Membuat tabel 100% lebar dan responsif */
+table {
+    width: 100%;
+    table-layout: auto; /* Memastikan tabel merespons dengan baik */
+}
+
+/* Membatasi lebar kolom dan memotong konten yang terlalu panjang dengan elipsis */
+table td {
+    max-width: 150px; /* Atur lebar maksimum kolom */
+    white-space: nowrap; /* Hindari konten turun ke baris berikutnya */
+    overflow: hidden; /* Sembunyikan konten yang melampaui batas */
+    text-overflow: ellipsis; /* Tambahkan elipsis jika konten terlalu panjang */
+}
+/* Membungkus teks tanpa memotong kata */
+table td.still-text {
+    white-space: nowrap; /* Mencegah teks turun ke baris berikutnya */
+    overflow: hidden; /* Sembunyikan teks yang meluber */
+    text-overflow: ellipsis; /* Tambahkan elipsis jika teks terlalu panjang */
+    max-width: 200px; /* Atur lebar maksimum sel sesuai kebutuhan */
+}
+
+/* Membungkus teks tanpa memotong kata */
+table td.wrap-text {
+    white-space: normal; /* Izinkan konten turun ke baris berikutnya */
+    word-wrap: break-word; /* Bungkus kata yang panjang */
+    word-break: normal; /* Pastikan kata tidak dipotong di tengah */
+    overflow-wrap: break-word; /* Bungkus kata yang panjang tanpa memotong */
+    width: 50%; /* Sesuaikan dengan kebutuhan */
+}
+
+/* Membungkus teks tanpa memotong kata */
+table td.info-text {
+    white-space: normal; /* Izinkan konten turun ke baris berikutnya */
+    word-wrap: break-word; /* Bungkus kata yang panjang */
+    word-break: normal; /* Pastikan kata tidak dipotong di tengah */
+    overflow-wrap: break-word; /* Bungkus kata yang panjang tanpa memotong */
+    width: 70%; /* Sesuaikan dengan kebutuhan */
+}
+
+/* Efek hover pada tabel */
+table tbody tr:hover {
+    background-color: var(--secondary); /* Warna latar belakang saat di-hover */
+    cursor: pointer; /* Mengubah kursor menjadi pointer saat di-hover */
+}
+
+/* Tambahkan overflow scroll pada tabel untuk ukuran kecil */
+.table-responsive {
+    overflow-x: auto; /* Scroll horizontal */
+    overflow-y: auto; /* Scroll vertikal */
+    -webkit-overflow-scrolling: touch; /* Scroll smooth di perangkat mobile */
+    max-height: 1000px; /* Batas tinggi tabel untuk memicu scroll vertikal */
+    margin-bottom: 1rem;
+    margin-top: 20px;
+}
+
+.toggle-detail {
+    cursor: pointer;
+}
+
+/* Warna latar belakang detail dan jarak antar elemen */
+.detail-row {
+    background-color: transparent; /* Menghilangkan latar belakang warna */
+    border-top: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+}
+
+.detail-row td {
+    padding: 15px;
+}
+
+/* Tampilan teks untuk memudahkan pembacaan */
+.detail-row h6 {
+    margin-top: 0;
+    font-weight: bold;
+}
+
+.detail-row p {
+    margin-bottom: 5px;
+    font-size: 14px;
+}
+
+/* Style untuk tautan */
+.detail-row a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.detail-row a:hover {
+    text-decoration: underline;
+}
+
+.sortable {
+    cursor: pointer; /* Ubah kursor menjadi tangan */
+    transition: background-color 0.2s ease; /* Animasi transisi */
+}
+
+.sortable:hover {
+    background-color: #f1f1f1; /* Ubah warna latar belakang saat hover */
+    color: #007bff; /* Warna teks berubah */
+}
+
+.sortable:active {
+    background-color: #e2e6ea; /* Warna latar belakang saat klik */
+    color: #0056b3; /* Warna teks berubah saat klik */
+}
+
+/* -----------------------------------------------
+   Modal Content - Styling
+-------------------------------------------------- */
+.no-style-modal .modal-content {
+    background-color: transparent !important; /* Hilangkan warna latar konten */
+    border: none !important; /* Hilangkan border pada konten */
+    box-shadow: none !important; /* Hilangkan bayangan pada konten */
+}
+
+.no-style-modal .modal-header {
+    border-bottom: 1px solid #dee2e6 !important; /* Pertahankan garis pembatas pada header */
+    background-color: #f8f9fa !important; /* Warna latar header */
+}
+
+.no-style-modal .modal-footer {
+    border: none !important; /* Hilangkan garis pembatas footer */
+    background-color: transparent !important; /* Tetap transparan untuk footer */
+}
+
+/* -----------------------------------------------
+   Form input Content - Styling
+-------------------------------------------------- */
+input.form-control,
+select.form-control,
+textarea.form-control {
+    color: var(--default);
+}
+
+input::placeholder,
+select::placeholder,
+textarea::placeholder {
+    color: rgba(23, 43, 77, 0.6);
+}
+
+input.form-control:focus,
+select.form-control:focus,
+textarea.form-control:focus {
+    color: var(--default);
+    border-color: var(--default);
+}
+
+.form-control[type="file"] {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: calc(1.5em + 0.75rem + 2px);
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+    font-weight: 400;
+    color: var(--default);
+    background-color: var(--white);
+    background-clip: padding-box;
+    border-radius: 0.375rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-control[type="file"]::file-selector-button {
+    padding: 0.375rem 0.75rem;
+    margin-right: 0.75rem;
+    color: var(--white);
+    background-color: var(--default);
+    border: none;
+    border-radius: 0.375rem;
+    transition: background-color 0.15s ease-in-out;
+}
+
+.form-control[type="file"]::file-selector-button:hover {
+    background-color: var(--default);
+    cursor: pointer;
+}
+
+.form-control:focus,
+.select-control:focus {
+    border-color: var(--default);
+    outline: none;
+    box-shadow: none;
+}
+
+.form-control[type="file"]:focus {
+    border-color: var(--default);
+    outline: 0;
+    box-shadow: none;
+}
+
+.pagination .page-link:hover {
+    color: #fff; /* Warna teks saat hover */
+}
+
+.pagination .page-item.disabled .page-link {
+    background-color: #e9ecef; /* Warna tombol disabled */
+    color: #6c757d; /* Warna teks tombol disabled */
+    border-color: #dee2e6;
+}
+/* Warna tombol aktif */
+.pagination .page-item.active .page-link {
+    background-color: var(--default); /* Warna latar tombol aktif (Hijau) */
+    border-color: var(--default); /* Warna border tombol aktif */
+    color: #fff; /* Warna teks tombol aktif */
+    font-weight: bold; /* Membuat teks lebih tebal */
+}
+
+/* -----------------------------------------------
+   Form input TTD - Styling
+-------------------------------------------------- */
+
+#signatureCanvas {
+    touch-action: none; /* Mencegah zoom atau scroll saat menggambar */
+    background: white;
+}
+
+/* -----------------------------------------------
+   Loading -Modal
+-------------------------------------------------- */
+.loading-spinner {
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    border-left-color: #007bff;
+    border-radius: 50%;
+    width: 3rem;
+    height: 3rem;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* -----------------------------------------------
+   Notification - Icon
+-------------------------------------------------- */
+.list-group-item .row {
+    align-items: center;
+}
+
+.list-group-item .col-auto {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 40px; /* Ukuran kolom ikon */
+}
