@@ -86,8 +86,9 @@
                                     wire:click.prevent="openModal({{ $item->id_rancangan }})">
                                     Lihat Detail
                                 </a>
-                                <a class="dropdown-item text-danger" href="#"
-                                    wire:click.prevent="resetStatus({{ $item->id_rancangan }})">
+                                <a class="dropdown-item text-danger" href="#" data-toggle="modal"
+                                    data-target="#resetStatusModal"
+                                    wire:click="setSelectedRancangan({{ $item->id_rancangan }})">
                                     Reset Status
                                 </a>
                             </div>
@@ -108,7 +109,7 @@
         {{ $riwayatRancangan->links('pagination::bootstrap-4') }}
     </div>
 
-    {{-- Modal --}}
+    {{-- Modal Detail Persetujuan --}}
     <div wire:ignore.self class="modal fade" id="modalPersetujuan" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-xl" role="document">
             <div class="modal-content">
@@ -281,6 +282,29 @@
         </div>
     </div>
 
+    <!-- Modal Konfirmasi Reset Status -->
+    <div wire:ignore.self class="modal fade" id="resetStatusModal" tabindex="-1" role="dialog"
+        aria-labelledby="resetStatusModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="resetStatusModalLabel">Konfirmasi Reset Status</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Apakah Anda yakin ingin mereset status rancangan ini ke "Menunggu Persetujuan"?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-danger" wire:click="confirmResetStatus">Reset
+                        Status</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     {{-- Script --}}
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -288,11 +312,10 @@
                 $('#modalPersetujuan').modal('show');
             });
 
-            window.Livewire.on('swal:modal', (data) => {
-                if (Array.isArray(data)) {
-                    data = data[0];
-                }
+            window.addEventListener('swal:modal', function(event) {
+                const data = event.detail[0];
 
+                $('#resetStatusModal').modal('hide');
                 Swal.fire({
                     icon: data.type || 'info',
                     title: data.title || 'Informasi',

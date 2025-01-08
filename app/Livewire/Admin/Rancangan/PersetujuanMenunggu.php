@@ -18,8 +18,6 @@ class PersetujuanMenunggu extends Component
     public $search = '';
     public $perPage = 5; // Default jumlah data per halaman
 
-    protected $queryString = ['search', 'perPage'];
-
     public $selectedRancangan;
 
     public $catatan;

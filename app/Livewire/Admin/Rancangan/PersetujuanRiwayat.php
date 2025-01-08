@@ -19,6 +19,7 @@ class PersetujuanRiwayat extends Component
 
     public $catatan;
     public $statusBerkas;
+    public $selectedRancanganId;
 
     public function openModal($id)
     {
@@ -26,39 +27,57 @@ class PersetujuanRiwayat extends Component
         $this->dispatch('openModalPersetujuan');
     }
 
-    public function resetStatus($id)
+    public function setSelectedRancangan($id)
     {
-        $rancangan = RancanganProdukHukum::findOrFail($id);
-        $rancangan->update([
-            'status_berkas' => 'Menunggu Persetujuan',
-            'catatan_berkas' => null,
-            'tanggal_berkas_disetujui' => null, // Reset tanggal jika status direset
-        ]);
-
-        $this->statusBerkas = 'Menunggu Persetujuan';
-        $this->catatan = '';
-
-        // Kirim notifikasi ke user
-        Notification::send(
-            $this->selectedRancangan->user, // User yang mengajukan rancangan
-            new PersetujuanRancanganNotification([
-                'title' => "Rancangan Anda {$this->statusBerkas}",
-                'message' => "Rancangan Anda dengan nomor {$this->selectedRancangan->no_rancangan} telah {$this->statusBerkas}.",
-                'slug' => $this->selectedRancangan->slug, // Slug untuk memuat modal detail
-                'type' => 'persetujuan_menunggu', // Tipe notifikasi
-                // 'url' => route('user.rancangan.detail', $this->rancangan->id), // URL detail rancangan
-            ])
-        );
-
-        // Emit notifikasi sukses ke pengguna
-        $this->dispatch('refreshNotifications');
-
-        $this->dispatch('swal:modal', [
-            'type' => 'info',
-            'title' => 'Status Berhasil Direset',
-            'message' => 'Status rancangan telah direset ke Menunggu Persetujuan.',
-        ]);
+        $this->selectedRancanganId = $id; // Simpan ID rancangan yang akan di-reset
     }
+    public function confirmResetStatus()
+    {
+        try {
+            // Validasi jika rancangan tidak ditemukan
+            $rancangan = RancanganProdukHukum::findOrFail($this->selectedRancanganId);
+
+            // Reset status rancangan
+            $rancangan->update([
+                'status_berkas' => 'Menunggu Persetujuan',
+                'catatan_berkas' => null,
+                'tanggal_berkas_disetujui' => null, // Reset tanggal jika status direset
+            ]);
+
+            // Perbarui properti lokal
+            $this->statusBerkas = 'Menunggu Persetujuan';
+            $this->catatan = '';
+
+            // Kirim notifikasi ke user
+            Notification::send(
+                $rancangan->user, // User yang mengajukan rancangan
+                new PersetujuanRancanganNotification([
+                    'title' => "Rancangan Anda {$this->statusBerkas}",
+                    'message' => "Rancangan Anda dengan nomor {$rancangan->no_rancangan} telah diubah menjadi {$this->statusBerkas}.",
+                    'slug' => $rancangan->slug, // Slug untuk memuat modal detail
+                    'type' => 'persetujuan_menunggu', // Tipe notifikasi
+                ])
+            );
+
+            // Emit notifikasi sukses ke pengguna
+            $this->dispatch('refreshNotifications');
+
+            // SweetAlert sukses
+            $this->dispatch('swal:modal', [
+                'type' => 'info',
+                'title' => 'Status Berhasil Direset',
+                'message' => 'Status rancangan telah direset ke Menunggu Persetujuan.',
+            ]);
+        } catch (\Exception $e) {
+            // SweetAlert error jika terjadi kesalahan
+            $this->dispatch('swal:modal', [
+                'type' => 'error',
+                'title' => 'Gagal Mereset Status',
+                'message' => 'Terjadi kesalahan saat mereset status rancangan. Silakan coba lagi.',
+            ]);
+        }
+    }
+
 
     public function render()
     {
