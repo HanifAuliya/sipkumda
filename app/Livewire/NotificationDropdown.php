@@ -4,37 +4,29 @@ namespace App\Livewire;
 
 use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
 
 class NotificationDropdown extends Component
 {
     public $notifications;
     public $unreadCount;
 
-    protected $listeners = ['refreshUnreadCount' => 'refreshUnreadCount'];
+    protected $listeners = ['refreshNotifications' => 'loadNotifications'];
 
-    public function mount()
-    {
-        $this->loadNotifications();
-    }
 
     public function loadNotifications()
     {
-        $userId = auth()->id();
+        $user = auth()->user();
 
-        // Cache notifikasi untuk mengurangi query
-        $this->notifications = Cache::remember("user_notifications_{$userId}", 60, function () use ($userId) {
-            return auth()->user()->notifications()->latest()->get()->map(function ($notification) {
-                $data = $notification->data;
-                $data['type'] = $data['type'] ?? 'default';
-                $notification->data = $data;
-                return $notification;
-            });
+        $this->notifications = $user->notifications()->latest()->get()->map(function ($notification) {
+            $data = $notification->data; // Ambil salinan data
+            $data['type'] = $data['type'] ?? 'default'; // Set default type jika tidak ada
+            $notification->data = $data; // Tetapkan kembali data yang telah dimodifikasi
+            return $notification;
         });
 
-        // Hitung ulang jumlah notifikasi belum dibaca
-        $this->unreadCount = auth()->user()->unreadNotifications()->count();
+        $this->unreadCount = $user->unreadNotifications()->count();
     }
+
 
     public function markAsRead($notificationId)
     {
@@ -48,9 +40,9 @@ class NotificationDropdown extends Component
             $typeToEventMap = [
                 'admin_persetujuan' => 'openAdminModal',
                 'verifikator_detail' => 'openVerifikatorModal',
-                'persetujuan_diterima' => 'openModalDetailUser',
-                'persetujuan_ditolak' => 'openModalDetailUser',
-                'persetujuan_menunggu' => 'openModalDetailUser',
+                'persetujuan_diterima' => 'openModalDetailUser', // Tambahan untuk User
+                'persetujuan_ditolak' => 'openModalDetailUser', // Tambahan untuk User
+                'persetujuan_menunggu' => 'openModalDetailUser', // Tambahan untuk User
             ];
 
             $type = $notification->data['type'] ?? null;
@@ -61,16 +53,13 @@ class NotificationDropdown extends Component
             }
         }
 
-        $this->refreshUnreadCount();
+        $this->loadNotifications();
     }
 
-    public function refreshUnreadCount()
-    {
-        $this->unreadCount = auth()->user()->unreadNotifications()->count();
-    }
 
     public function render()
     {
+        $this->loadNotifications();
         return view('livewire.notification-dropdown');
     }
 }

@@ -95,7 +95,7 @@ class TambahRancangan extends Component
         // Dispatch success event
         $this->dispatch('rancanganDitambahkan');
 
-        $this->resetForm(); // Reset error validasi
+        $this->reset(); // Reset error validasi
 
         $this->dispatch('swal:modal', [
             'type' => 'success',
@@ -108,20 +108,6 @@ class TambahRancangan extends Component
         $this->resetErrorBag(); // Reset error validasi
         $this->resetValidation(); // Reset tampilan error validasi
     }
-    public function resetInput()
-    {
-        $this->reset([
-            'jenisRancangan',
-            'tentang',
-            'rancangan',
-            'matrik',
-            'nota_dinas_pd',
-            'bahanPendukung',
-        ]);
-        $this->resetErrorBag(); // Reset error validasi
-        $this->resetValidation(); // Reset tampilan error validasi
-    }
-
 
     public function render()
     {
