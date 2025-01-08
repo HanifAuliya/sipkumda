@@ -197,26 +197,31 @@
                                     @error('catatan')
                                         <span class="text-danger">{{ $message }}</span>
                                     @enderror
-                                    <div class="d-flex justify-content-end">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <!-- Alert -->
                                         @if ($rancangan->status_berkas === 'Disetujui' || $rancangan->status_berkas === 'Ditolak')
-                                            <span
-                                                class="text-{{ $rancangan->status_berkas === 'Disetujui' ? 'success' : 'danger' }} mt-2">
-                                                Rancangan Telah {{ $rancangan->status_berkas }}
-                                            </span>
-                                            <button class="btn btn-danger ml-2" wire:click="resetStatus"
+                                            <div class="alert alert-{{ $rancangan->status_berkas === 'Disetujui' ? 'success' : 'danger' }} mb-0"
+                                                role="alert" style="flex: 1; text-align: center;">
+                                                <strong>{{ $rancangan->status_berkas }} !</strong> Rancangan
+                                                Telah
+                                                {{ $rancangan->status_berkas }}
+                                            </div>
+
+                                            <!-- Tombol Reset -->
+                                            <button class="btn btn-danger ml-3" wire:click="resetStatus"
                                                 wire:loading.attr="disabled">
                                                 <span wire:loading.remove>Reset Status</span>
                                                 <span wire:loading>Memproses...</span>
                                             </button>
                                         @else
-                                            <button class="btn btn-success" wire:click="updateStatus"
+                                            <!-- Tombol Verifikasi -->
+                                            <button class="btn btn-success ml-auto" wire:click="updateStatus"
                                                 wire:loading.attr="disabled">
                                                 <span wire:loading.remove>Verifikasi Rancangan</span>
                                                 <span wire:loading>Memproses...</span>
                                             </button>
                                         @endif
                                     </div>
-
                                 </div>
                             </div>
                         </div>

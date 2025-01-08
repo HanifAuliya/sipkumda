@@ -15,10 +15,14 @@ class PersetujuanMenunggu extends Component
     use WithPagination;
 
     public $search = '';
+    public $perPage = 5; // Default jumlah data per halaman
+
+    protected $queryString = ['search', 'perPage'];
+
     public $selectedRancangan;
+
     public $catatan;
     public $statusBerkas;
-    public $perPage = 5; // Default jumlah data per halaman
 
     protected $rules = [
         'statusBerkas' => 'required|in:Disetujui,Ditolak',

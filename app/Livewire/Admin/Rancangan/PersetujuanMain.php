@@ -7,11 +7,7 @@ use Livewire\Component;
 class PersetujuanMain extends Component
 {
     public $activeTab = 'menunggu'; // Default tab
-
-    public function setTab($tab)
-    {
-        $this->activeTab = $tab;
-    }
+    protected $queryString = ['activeTab']; // Masukkan 'tab' ke dalam query string
 
     public function render()
     {

@@ -145,13 +145,17 @@ class UserManagement extends Component
         if (!$this->isAdmin) {
             abort(403, 'Anda tidak memiliki izin untuk mengedit pengguna.');
         }
+        // Reset error validasi sebelumnya
+        $this->resetErrorBag();
+        $this->resetValidation();
 
         $user = User::findOrFail($id);
         $this->userIdToEdit = $user->id;
         $this->nama_user = $user->nama_user;
         $this->NIP = $user->NIP;
         $this->email = $user->email;
-        $this->role = $user->role;
+        // Mengambil nama role pertama yang terkait dengan user
+        $this->role = $user->getRoleNames()->first(); // Pastikan hanya satu role yang diambil
         $this->perangkat_daerah_id = $user->perangkat_daerah_id;
     }
 
@@ -224,6 +228,10 @@ class UserManagement extends Component
         $this->role = '';
         $this->perangkat_daerah_id = null;
         $this->userIdToEdit = null;
+
+        // Reset error validasi sebelumnya
+        $this->resetErrorBag();
+        $this->resetValidation();
     }
 
 
@@ -233,8 +241,7 @@ class UserManagement extends Component
         $users = User::with(['roles', 'perangkatDaerah']) // Eager loading relasi roles dan perangkat daerah
             ->when($this->search, function ($query) {
                 $query->where('nama_user', 'like', '%' . $this->search . '%')
-                    ->orWhere('email', 'like', '%' . $this->search . '%')
-                    ->orWhere('NIP', 'like', '%' . $this->search . '%');
+                    ->orWhere('email', 'like', '%' . $this->search . '%');
             })
             ->when($this->roleFilter, function ($query) {
                 $query->whereHas('roles', function ($q) {

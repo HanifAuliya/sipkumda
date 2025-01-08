@@ -398,7 +398,6 @@
         @endforelse
 
         {{-- pagination --}}
-        {{-- Tampilkan Pagination Hanya Jika Tidak "Semua Data" --}}
         <div class="d-flex justify-content-center w-100 w-md-auto">
             {{ $rancangan->links('pagination::bootstrap-4') }}
         </div>

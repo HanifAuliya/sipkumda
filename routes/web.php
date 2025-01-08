@@ -1,7 +1,5 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use App\Livewire\ProfileManagement;
 use App\Livewire\Dashboard;
@@ -11,9 +9,9 @@ use App\Livewire\Rancangan\DaftarRancangan;
 
 use App\Livewire\Perangkatdaerah\Rancangan\Rancanganku;
 use App\Livewire\Admin\Rancangan\PersetujuanMain;
+use App\Livewire\Verifikator\Rancangan\PilihPeneliti;
 
-use App\Livewire\Admin\Modal\PersetujuanBerkasModal;
-use App\Livewire\Verifikator\Modal\DetailBerkasModal;
+
 
 Route::get('/', function () {
     return view('welcome');
@@ -40,7 +38,11 @@ Route::middleware('auth')->group(function () {
         ->middleware('role:Perangkat_Daerah');
 
     Route::middleware(['role:Admin'])->group(function () {
-        Route::get('/admin/persetujuan', PersetujuanMain::class)->name('admin.persetujuan');
+        Route::get('/rancangan/persetujuan', PersetujuanMain::class)->name('admin.persetujuan');
+    });
+
+    Route::middleware(['role:Verifikator'])->group(function () {
+        Route::get('/rancangan/pilih-peneliti', PilihPeneliti::class)->name('verifikator.pilih-peneliti');
     });
 });
 

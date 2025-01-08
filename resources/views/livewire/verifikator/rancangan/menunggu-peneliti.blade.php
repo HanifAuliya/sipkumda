@@ -1,7 +1,7 @@
 <div>
-    {{-- Searching dan PerPage --}}
+    {{-- Pencarian dan Pilihan PerPage --}}
     <div class="d-flex justify-content-between align-items-center mb-3">
-        {{-- Searching --}}
+        {{-- Pencarian --}}
         <div class="input-group w-50">
             <div class="input-group-prepend">
                 <span class="input-group-text"><i class="bi bi-search"></i></span>
@@ -9,7 +9,6 @@
             <input type="text" class="form-control" placeholder="Cari berdasarkan No Rancangan atau Tentang"
                 wire:model.live="search">
         </div>
-
         {{-- Per Page Dropdown --}}
         <div class="col-md-3">
             <div class="input-group">
@@ -25,102 +24,62 @@
             </div>
         </div>
     </div>
-    {{-- Daftar Rancangan --}}
-    <div class="list-group">
-        @forelse ($riwayatRancangan as $item)
-            <div class="list-group-item d-flex justify-content-between bg-light align-items-center">
-                {{-- Informasi Utama --}}
-                <div class="d-flex flex-column">
-                    <h4 class="mb-1 font-weight-bold">{{ $item->no_rancangan }}</h4>
-                    <p class="mb-1 mt-2 font-weight-bold">{{ $item->tentang }}</p>
-                    <p class="mb-0 info-text small">
-                        <i class="bi bi-person"></i>
-                        {{ $item->user->nama_user ?? 'N/A' }}
-                        <span class="badge badge-secondary">
-                            Pemohon
-                        </span>
-                    </p>
-                    <p class="info-text small mb-0">
-                        <i class="bi bi-calendar"></i> Tanggal Pengajuan:
-                        {{ \Carbon\Carbon::parse($item->tanggal_pengajuan)->translatedFormat('d F Y') }}
-                    </p>
-                    <p class="info-text small mb-0">
-                        <i class="bi bi-calendar"></i> Tanggal Berkas Disetujui:
-                        {{ $item->tanggal_berkas_disetujui
-                            ? \Carbon\Carbon::parse($item->tanggal_berkas_disetujui)->translatedFormat('d F Y')
-                            : 'N/A' }}
-                    </p>
-                    <p class="mb-0 info-text small">
-                        <i class="bi bi-houses"></i>
-                        {{ $item->user->perangkatDaerah->nama_perangkat_daerah ?? '-' }}
-                    </p>
 
+    {{-- Tabel --}}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>No</th>
+                <th>Nomor</th>
+                <th>Tentang</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach ($rancangans as $rancangan)
+                <tr>
+                    <td>{{ $loop->iteration }}</td>
+                    <td>{{ $rancangan->no_rancangan }}</td>
+                    <td>{{ $rancangan->tentang }}</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" wire:click="openModal({{ $rancangan->id_rancangan }})">
+                            Pilih Peneliti
+                        </button>
+                    </td>
+                </tr>
+            @endforeach
+        </tbody>
+    </table>
 
-                </div>
-
-                {{-- Bagian Kanan --}}
-                <div class="text-right">
-                    {{-- Status Berkas --}}
-                    <h4 class="mb-2">
-                        <mark
-                            class="badge-{{ $item->status_berkas === 'Disetujui' ? 'success' : ($item->status_berkas === 'Ditolak' ? 'danger' : 'warning') }} badge-pill">
-                            <i
-                                class="{{ $item->status_berkas === 'Disetujui' ? 'bi bi-check-circle' : ($item->status_berkas === 'Ditolak' ? 'bi bi-x-circle-fill' : 'bi bi-gear-fill') }}"></i>
-                            <span>Berkas</span> {{ $item->status_berkas }}
-                        </mark>
-                    </h4>
-
-                    <p class="info-text mb-1 small">
-                        Pengajuan Rancangan Tahun {{ now()->year }}
-                    </p>
-                    <div class="mt-2">
-
-                        {{-- Tombol Tindakan --}}
-                        <div class="btn-group">
-                            <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown"
-                                aria-expanded="false">
-                                Aksi
-                            </button>
-                            <div class="dropdown-menu dropdown-menu-right">
-                                <a class="dropdown-item" href="#"
-                                    wire:click.prevent="openModal({{ $item->id_rancangan }})">
-                                    Lihat Detail
-                                </a>
-                                <a class="dropdown-item text-danger" href="#"
-                                    wire:click.prevent="resetStatus({{ $item->id_rancangan }})">
-                                    Reset Status
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        @empty
-            <div class="list-group-item text-center info-text">
-                Tidak ada rancangan dalam riwayat.
-            </div>
-        @endforelse
+    <div class="d-flex justify-content-between align-items-center flex-wrap">
+        <div class="mb-2 mb-md-0">
+            Menampilkan {{ $rancangans->firstItem() }} hingga
+            {{ $rancangans->lastItem() }} dari
+            {{ $rancangans->total() }}
+            data
+        </div>
+        <div class="d-flex justify-content-center w-100 w-md-auto">
+            {{ $rancangans->links('pagination::bootstrap-4') }}
+        </div>
     </div>
 
-    {{-- Pagination --}}
-    <div class="d-flex justify-content-center mt-3">
-        {{ $riwayatRancangan->links('pagination::bootstrap-4') }}
-    </div>
 
     {{-- Modal --}}
-    <div wire:ignore.self class="modal fade" id="modalPersetujuan" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog modal-xl" role="document">
+    <div wire:ignore.self class="modal fade" id="modalPilihPeneliti" tabindex="-1">
+        <div class="modal-dialog modal-xl">
             <div class="modal-content">
-                {{--  Header Modal  --}}
-                <div class="modal-header">
-                    <h5 class="modal-title">Detail Rancangan</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <div class="modal-header flex-column align-items-start" style="border-bottom: 2px solid #dee2e6;">
+                    <h4 class="modal-title w-100 mb-2">Persetujuan Rancangan</h4>
+                    <p class="mb-0 w-100 info-text">
+                        Silakan cek informasi rancangan di bawah ini, termasuk file yang diajukan, lalu pilih status
+                        persetujuan.
+                    </p>
+                    <button type="button" class="close position-absolute" style="top: 10px; right: 10px;"
+                        data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
 
-                {{--  Body Modal  --}}
                 <div class="modal-body">
                     @if ($selectedRancangan)
                         <div class="row">
@@ -261,6 +220,28 @@
                                 </div>
                             </div>
                         </div>
+
+                        {{--  Verifikasi Persetujuan  --}}
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-warning text-white">
+                                <h4 class="mb-0 text-white">Verifikasi Persetujuan Rancangan</h4>
+                            </div>
+                            {{-- Select  Dropdown --}}
+                            <div class="card-body">
+                                <div class="form-group">
+                                    <label for="peneliti">Pilih Peneliti</label>
+                                    <select id="peneliti" class="form-control" wire:model="selectedPeneliti">
+                                        <option value="" selected>Pilih...</option>
+                                        @foreach ($penelitis as $peneliti)
+                                            <option value="{{ $peneliti->id }}">{{ $peneliti->nama_user }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('selectedPeneliti')
+                                        <span class="text-danger">{{ $message }}</span>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
                     @else
                         <div class="d-flex justify-content-center align-items-start"
                             style="min-height: 200px; padding-top: 50px;">
@@ -273,9 +254,9 @@
                         </div>
                     @endif
                 </div>
-                {{-- Footer Modal --}}
-                <div class="modal-footer justify-content-center">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                    <button class="btn btn-primary" wire:click="assignPeneliti">Simpan</button>
                 </div>
             </div>
         </div>
@@ -284,11 +265,18 @@
     {{-- Script --}}
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            window.Livewire.on('openModalPersetujuan', () => {
-                $('#modalPersetujuan').modal('show');
+            window.Livewire.on('openModalPilihPeneliti', () => {
+                $('#modalPilihPeneliti').modal('show');
             });
 
+            window.Livewire.on('closeModalPilihPeneliti', () => {
+                $('#modalPilihPeneliti').modal('hide');
+            });
+
+            // Sweeet Alert 2
             window.Livewire.on('swal:modal', (data) => {
+
+                // Jika data adalah array, akses elemen pertama
                 if (Array.isArray(data)) {
                     data = data[0];
                 }
@@ -300,6 +288,7 @@
                     showConfirmButton: true,
                 });
             });
+
         });
     </script>
 </div>

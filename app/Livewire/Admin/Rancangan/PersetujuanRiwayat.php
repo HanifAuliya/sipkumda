@@ -17,6 +17,9 @@ class PersetujuanRiwayat extends Component
     public $selectedRancangan;
     public $perPage = 5; // Default perPage
 
+    public $catatan;
+    public $statusBerkas;
+
     public function openModal($id)
     {
         $this->selectedRancangan = RancanganProdukHukum::with(['user', 'perangkatDaerah'])->find($id);
@@ -31,6 +34,9 @@ class PersetujuanRiwayat extends Component
             'catatan_berkas' => null,
             'tanggal_berkas_disetujui' => null, // Reset tanggal jika status direset
         ]);
+
+        $this->statusBerkas = 'Menunggu Persetujuan';
+        $this->catatan = '';
 
         // Kirim notifikasi ke user
         Notification::send(

@@ -18,7 +18,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <meta name="description" content="Start your development with a Dashboard for Bootstrap 4." />
     <meta name="SIPKUMDA" content="Creative Tim" />
-    <title>@yield('title', 'Default Title')</title>
+    <title>@yield('title', 'Default Title') | Sistem Informasi Produk Hukum Daerah Hulu Sungai Tengah</title>
     {{-- Favicon --}}
     <link rel="icon" href="{{ asset('assets/img/brand/favicon.ico') }}" type="image/png" />
 
@@ -81,12 +81,12 @@
                     <div class="row align-items-center py-4">
                         <div class="col-lg-6 col-7">
                             <h6 class="h2 d-inline-block mb-0">
-                                @yield('header', '')
+                                @yield('header', 'Default Header') <!-- Placeholder untuk judul -->
                             </h6>
+                            @yield('breadcrumb') <!-- Placeholder untuk breadcrumb -->
                         </div>
                         <div class="col-lg-6 col-5 text-right">
-                            <a href="#" class="btn btn-sm btn-neutral">New</a>
-                            <a href="#" class="btn btn-sm btn-neutral">Filters</a>
+                            @yield('actions') <!-- Placeholder untuk tombol aksi -->
                         </div>
                     </div>
                 </div>

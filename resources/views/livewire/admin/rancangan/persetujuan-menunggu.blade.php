@@ -261,43 +261,49 @@
                                     @else
                                         <label for="statusBerkasSelect">Status Berkas</label>
                                     @endif
-                                    <select id="statusBerkasSelect" name="statusBerkas" class="form-control"
-                                        wire:model="statusBerkas" @disabled(in_array($statusBerkas, ['Disetujui', 'Ditolak']))>
-                                        <option value selected disabled="">Pilih Status </option>
-                                        <option value="Disetujui">Disetujui</option>
-                                        <option value="Ditolak">Ditolak</option>
-                                    </select>
+
+                                    <div class="w-auto" style="max-width: 300px;"> <!-- Batasi lebar dropdown -->
+                                        <select id="statusBerkasSelect" name="statusBerkas" class="form-control"
+                                            wire:model="statusBerkas" @disabled(in_array($statusBerkas, ['Disetujui', 'Ditolak']))>
+                                            <option hidden>Pilih Status</option>
+                                            <option value="Disetujui">Disetujui</option>
+                                            <option value="Ditolak">Ditolak</option>
+                                        </select>
+                                    </div>
+
                                     @error('statusBerkas')
                                         <span class="text-danger">{{ $message }}</span>
                                     @enderror
                                 </div>
 
-
-
                                 <textarea wire:model.defer="catatan" class="form-control mb-3" rows="3" placeholder="Tambahkan catatan..."></textarea>
                                 @error('catatan')
                                     <span class="text-danger">{{ $message }}</span>
                                 @enderror
-                                <div class="d-flex justify-content-end">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <!-- Alert -->
                                     @if ($selectedRancangan->status_berkas === 'Disetujui' || $selectedRancangan->status_berkas === 'Ditolak')
-                                        <span
-                                            class="text-{{ $selectedRancangan->status_berkas === 'Disetujui' ? 'success' : 'danger' }} mt-2">
-                                            Rancangan Telah {{ $selectedRancangan->status_berkas }}
-                                        </span>
-                                        <button class="btn btn-danger ml-2" wire:click="resetStatus"
+                                        <div class="alert alert-{{ $selectedRancangan->status_berkas === 'Disetujui' ? 'success' : 'danger' }} mb-0"
+                                            role="alert" style="flex: 1; text-align: center;">
+                                            <strong>{{ $selectedRancangan->status_berkas }} !</strong> Rancangan Telah
+                                            {{ $selectedRancangan->status_berkas }}
+                                        </div>
+
+                                        <!-- Tombol Reset -->
+                                        <button class="btn btn-danger ml-3" wire:click="resetStatus"
                                             wire:loading.attr="disabled">
                                             <span wire:loading.remove>Reset Status</span>
                                             <span wire:loading>Memproses...</span>
                                         </button>
                                     @else
-                                        <button class="btn btn-success" wire:click="updateStatus"
+                                        <!-- Tombol Verifikasi -->
+                                        <button class="btn btn-success ml-auto" wire:click="updateStatus"
                                             wire:loading.attr="disabled">
                                             <span wire:loading.remove>Verifikasi Rancangan</span>
                                             <span wire:loading>Memproses...</span>
                                         </button>
                                     @endif
                                 </div>
-
                             </div>
                         </div>
                     @else

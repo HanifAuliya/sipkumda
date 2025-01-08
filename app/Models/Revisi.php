@@ -14,10 +14,10 @@ class Revisi extends Model
 
     protected $fillable = [
         'id_rancangan',
+        'id_user',
         'revisi_rancangan',
         'revisi_matrik',
         'catatan_revisi',
-        'id_peneliti',
         'status_revisi',
         'tanggal_revisi',
     ];
@@ -32,5 +32,10 @@ class Revisi extends Model
     public function rancangan()
     {
         return $this->belongsTo(RancanganProdukHukum::class, 'id_rancangan');
+    }
+
+    public function peneliti()
+    {
+        return $this->belongsTo(User::class, 'id_user');
     }
 }

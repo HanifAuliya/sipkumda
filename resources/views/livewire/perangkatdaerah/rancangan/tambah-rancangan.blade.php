@@ -2,7 +2,7 @@
     {{-- Modal Ajukan Rancangan --}}
     <div wire:ignore.self class="modal fade" id="ajukanRancanganModal" tabindex="-1" role="dialog"
         aria-labelledby="ajukanRancanganModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
+        <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <form wire:submit.prevent="submit">
                     <div class="modal-header">
@@ -18,7 +18,7 @@
                                 Jenis Rancangan
                             </label>
                             <select class="form-control" wire:model="jenisRancangan" required>
-                                <option value=""selected>Pilih Jenis Rancangan</option>
+                                <option hidden>Pilih Jenis Rancangan</option>
                                 <option value="Peraturan Bupati">Peraturan Bupati</option>
                                 <option value="Surat Keputusan">Surat Keputusan</option>
                             </select>
@@ -72,24 +72,45 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-outline-warning" data-dismiss="modal">Batal</button>
+                        <button type="reset" class="btn btn-outline-info" wire:click="resetInput">
+                            Reset Inputan
+                        </button>
+                        <button type="button" class="btn btn-outline-warning" data-dismiss="modal"
+                            wire:click="resetForm">
+                            Batal
+                        </button>
+
                         <button class="btn btn-outline-default" wire:click="submit" wire:loading.attr="disabled">
                             <span wire:loading.remove>Ajukan</span>
-                            <span wire:loading>Memproses...</span>
+                            <span wire:loading>Tunggu Sebentar Lagi Memproses...</span>
                         </button>
                     </div>
-
                 </form>
             </div>
         </div>
     </div>
     <script>
+        // Berhasil
         window.addEventListener('swal:modal', function(event) {
             // Ambil elemen pertama dari array
             const data = event.detail[0];
 
             $('#ajukanRancanganModal').modal('hide'); // Tutup modal
             // $('.modal-backdrop').remove(); // Hapus backdrop modal
+
+            // Tampilkan SweetAlert
+            Swal.fire({
+                icon: data.type,
+                title: data.title,
+                text: data.message,
+                showConfirmButton: true,
+            });
+        });
+
+        // Gagal
+        window.addEventListener('swal:error', function(event) {
+            // Ambil elemen pertama dari array
+            const data = event.detail[0];
 
             // Tampilkan SweetAlert
             Swal.fire({

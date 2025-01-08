@@ -1,5 +1,27 @@
 @section('title', 'Verifikasi Berkas')
+
+{{-- Header --}}
 @section('header', 'Menu Verifikasi Berkas')
+@section('breadcrumb')
+    <nav aria-label="breadcrumb" class="d-none d-md-inline-block ml-md-4">
+        <ol class="breadcrumb breadcrumb-links bg-gradient-orange">
+            <li class="breadcrumb-item">
+                <a href="{{ route('admin.persetujuan') }}" class="text-white">
+                    <i class="fas fa-home"></i>
+                </a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="{{ route('user.management') }}" class="text-white">Daftar Pengguna</a>
+            </li>
+            <li class="breadcrumb-item active text-white" aria-current="page">Tables</li>
+        </ol>
+    </nav>
+@endsection
+
+@section('actions')
+    <a href="#" class="btn btn-sm btn-neutral">New</a>
+    <a href="#" class="btn btn-sm btn-neutral">Filters</a>
+@endsection
 <div class="card shadow-sm">
     {{-- Header --}}
     <div class="card-header d-flex justify-content-between align-items-center">

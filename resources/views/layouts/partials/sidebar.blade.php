@@ -91,16 +91,19 @@
                                 </a>
                             </li>
                         @endif
+                        @if (Auth::user()->hasRole('Verifikator'))
+                            <li class="nav-item">
+                                <a class="nav-link  {{ Route::currentRouteName() == 'verifikator.pilih-peneliti' ? 'active' : '' }}"
+                                    href="{{ route('verifikator.pilih-peneliti') }}">
+                                    <i class="bi bi-person-check"></i>
+                                    <span class="nav-link-text">Pilih Peneliti</span>
+                                </a>
+                            </li>
+                        @endif
                         <li class="nav-item">
                             <a class="nav-link" href="addRevisi.html">
                                 <i class="bi bi-pencil-square"></i>
                                 <span class="nav-link-text">Upload Revisi</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="addpeneliti.html">
-                                <i class="bi bi-person-check"></i>
-                                <span class="nav-link-text">Pilih Peneliti</span>
                             </a>
                         </li>
                     </ul>

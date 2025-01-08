@@ -32,6 +32,7 @@ class TambahRancangan extends Component
         'bahanPendukung' => 'nullable|mimes:pdf|max:2048', // Maks 2MB
     ];
 
+
     public function submit()
     {
         $this->validate();
@@ -88,14 +89,13 @@ class TambahRancangan extends Component
             ])
         );
 
-        // Reset form dan tutup modal
-        $this->reset();
-
         // Emit notifikasi sukses ke pengguna
         $this->dispatch('refreshNotifications');
 
         // Dispatch success event
         $this->dispatch('rancanganDitambahkan');
+
+        $this->resetForm(); // Reset error validasi
 
         $this->dispatch('swal:modal', [
             'type' => 'success',
@@ -103,6 +103,25 @@ class TambahRancangan extends Component
             'message' => 'Rancangan berhasil ditambahkan!',
         ]);
     }
+    public function resetForm()
+    {
+        $this->resetErrorBag(); // Reset error validasi
+        $this->resetValidation(); // Reset tampilan error validasi
+    }
+    public function resetInput()
+    {
+        $this->reset([
+            'jenisRancangan',
+            'tentang',
+            'rancangan',
+            'matrik',
+            'nota_dinas_pd',
+            'bahanPendukung',
+        ]);
+        $this->resetErrorBag(); // Reset error validasi
+        $this->resetValidation(); // Reset tampilan error validasi
+    }
+
 
     public function render()
     {

@@ -1,5 +1,27 @@
 @section('header', 'Daftar Rancangan')
 @section('title', 'Rancangan')
+
+@section('breadcrumb')
+    <nav aria-label="breadcrumb" class="d-none d-md-inline-block ml-md-4">
+        <ol class="breadcrumb breadcrumb-links bg-gradient-orange">
+
+            <li class="breadcrumb-item">
+                <a href="{{ route('dashboard') }}" class="text-white">
+                    <i class="fas fa-home"></i>
+                </a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="{{ route('daftar-rancangan') }}" class="text-white">Daftar Rancangan</a>
+            </li>
+            <li class="breadcrumb-item active text-white" aria-current="page">Tables</li>
+        </ol>
+    </nav>
+@endsection
+
+@section('actions')
+    <a href="#" class="btn btn-sm btn-neutral">New</a>
+    <a href="#" class="btn btn-sm btn-neutral">Filters</a>
+@endsection
 <div>
     <div class="row mb-1">
         <div class="col-12">

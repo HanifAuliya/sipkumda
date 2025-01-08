@@ -243,4 +243,13 @@
             </div>
         </div>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            Livewire.on('openModalPeneliti', function() {
+                const modal = new bootstrap.Modal(document.getElementById('penelitiModal'));
+                modal.show();
+            });
+        });
+    </script>
+
 </div>
