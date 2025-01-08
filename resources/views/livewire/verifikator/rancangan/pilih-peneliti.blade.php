@@ -30,17 +30,23 @@
         </div>
         <div class="card-body">
             {{-- Tabs --}}
-            <ul class="nav nav-tabs">
+            <ul class="nav nav-pills nav-fill flex-column flex-md-row" role="tablist">
                 <li class="nav-item">
-                    <a class="nav-link {{ $activeTab === 'menunggu-peneliti' ? 'active' : '' }}" href="#"
-                        wire:click.prevent="switchTab('menunggu-peneliti')">
-                        Menunggu Peneliti
+                    <a class="nav-link {{ $activeTab == 'menunggu-peneliti' ? 'active' : '' }}" href="#"
+                        wire:click.prevent="$set('activeTab', 'menunggu-peneliti')">
+                        <i class="ni ni-send mr-2"></i> Sedang Diajukan
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {{ $activeTab === 'peneliti-ditugaskan' ? 'active' : '' }}" href="#"
-                        wire:click.prevent="switchTab('peneliti-ditugaskan')">
-                        Peneliti Ditugaskan
+                    <a class="nav-link {{ $activeTab == 'peneliti-ditugaskan' ? 'active' : '' }}" href="#"
+                        wire:click.prevent="$set('activeTab', 'peneliti-ditugaskan')">
+                        <i class="ni ni-check-bold mr-2"></i> Riwayat Pengajuan
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ $activeTab == 'daftar-peneliti' ? 'active' : '' }}" href="#"
+                        wire:click.prevent="$set('activeTab', 'daftar-peneliti')">
+                        <i class="ni ni-single-02 mr-2"></i> Daftar Peneliti
                     </a>
                 </li>
             </ul>
@@ -50,6 +56,9 @@
                 @if ($activeTab === 'menunggu-peneliti')
                     @livewire('verifikator.rancangan.menunggu-peneliti')
                 @elseif ($activeTab === 'peneliti-ditugaskan')
+                    @livewire('verifikator.rancangan.peneliti-ditugaskan')
+                @elseif ($activeTab === 'daftar-peneliti')
+                    @livewire('verifikator.rancangan.daftar-peneliti')
                 @endif
             </div>
         </div>

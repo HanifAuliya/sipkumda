@@ -5,10 +5,11 @@ namespace App\Livewire\Perangkatdaerah\Rancangan;
 use Livewire\Component;
 use App\Models\RancanganProdukHukum;
 use Livewire\WithPagination;
+use Livewire\WithoutUrlPagination;
 
 class SedangDiajukan extends Component
 {
-    use WithPagination; // Tambahkan trait ini
+    use WithPagination, WithoutUrlPagination;
 
     public $search = '';
     public $perPage = 3; // Default: 3 data per halaman

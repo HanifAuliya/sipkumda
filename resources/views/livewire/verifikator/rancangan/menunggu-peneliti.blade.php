@@ -25,41 +25,129 @@
         </div>
     </div>
 
-    {{-- Tabel --}}
-    <table class="table">
-        <thead>
-            <tr>
-                <th>No</th>
-                <th>Nomor</th>
-                <th>Tentang</th>
-                <th>Aksi</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach ($rancangans as $rancangan)
-                <tr>
-                    <td>{{ $loop->iteration }}</td>
-                    <td>{{ $rancangan->no_rancangan }}</td>
-                    <td>{{ $rancangan->tentang }}</td>
-                    <td>
-                        <button class="btn btn-primary btn-sm" wire:click="openModal({{ $rancangan->id_rancangan }})">
-                            Pilih Peneliti
-                        </button>
-                    </td>
-                </tr>
-            @endforeach
-        </tbody>
-    </table>
+    <div>
+        @forelse ($rancangan as $item)
+            {{-- Card Tab Sedang Diajukan --}}
+            <div class="card p-3 shadow-sm border mb-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    {{-- Bagian Kiri --}}
+                    <div class="d-flex align-items-start">
+                        <div>
+                            <div class="d-flex align-items-center">
+                                <h4 class="mb-1 font-weight-bold">
+                                    {{ $item->no_rancangan }}
+                                </h4>
+                                <h5 class="ml-2">
+                                    <mark
+                                        class="badge-{{ $item->jenis_rancangan === 'Peraturan Bupati' ? 'primary' : '' }} badge-pill">
+                                        {{ $item->jenis_rancangan }}
+                                    </mark>
+                                </h5>
+                            </div>
 
-    <div class="d-flex justify-content-between align-items-center flex-wrap">
-        <div class="mb-2 mb-md-0">
-            Menampilkan {{ $rancangans->firstItem() }} hingga
-            {{ $rancangans->lastItem() }} dari
-            {{ $rancangans->total() }}
-            data
-        </div>
-        <div class="d-flex justify-content-center w-100 w-md-auto">
-            {{ $rancangans->links('pagination::bootstrap-4') }}
+                            <p class="mb-1 mt-2 font-weight-bold">
+                                {{ $item->tentang }}
+                            </p>
+                            <p class="mb-0 info-text small">
+                                <i class="bi bi-houses"></i>
+                                {{ $item->user->perangkatDaerah->nama_perangkat_daerah ?? '-' }}
+                            </p>
+                            <p class="mb-0 info-text small">
+                                <i class="bi bi-calendar"></i>
+                                Tanggal Pengajuan:
+                                {{ \Carbon\Carbon::parse($item->tanggal_pengajuan)->translatedFormat('d F Y') }}
+                            </p>
+                            <p class="mb-0 info-text small">
+                                <i class="bi bi-person-gear"></i>
+                                <span
+                                    class="{{ $item->revisi->first()->peneliti->nama_user ?? false ? 'info-text' : 'text-danger' }} text-primary">
+                                    {{ $item->revisi->first()->peneliti->nama_user ?? 'Belum Ditentukan' }}
+                                </span>
+                                <span class="badge badge-secondary">
+                                    Peneliti
+                                </span>
+                            </p>
+                            <p class="mb-1 info-text small">
+                                <i class="bi bi-file-check"></i>
+                                Persetujuan Berkas:
+                                <mark
+                                    class="badge-{{ $item->status_berkas === 'Disetujui' ? 'success' : ($item->status_berkas === 'Ditolak' ? 'danger' : 'warning') }} badge-pill">
+                                    {{ $item->status_berkas }}
+                                </mark>
+                            </p>
+                            <p class="mb-0 info-text small">
+                                <i class="bi bi-file-earmark-text"></i>
+                                Status Revisi:
+                                <mark
+                                    class="badge-{{ $item->revisi->first()->status_revisi === 'Direvisi' ? 'success' : ($item->revisi->first()->status_revisi === 'Menunggu Revisi' ? 'warning' : 'danger') }} badge-pill">
+                                    {{ $item->revisi->first()->status_revisi ?? 'N/A' }}
+                                </mark>
+                            </p>
+                        </div>
+                    </div>
+
+                    {{-- Bagian Kanan --}}
+                    <div class="text-right">
+                        {{-- Status Rancangan --}}
+                        <h4>
+                            <mark
+                                class="badge-{{ $item->status_rancangan === 'Disetujui' ? 'success' : ($item->status_rancangan === 'Ditolak' ? 'danger' : 'warning') }} badge-pill">
+                                @if ($item->status_rancangan === 'Disetujui')
+                                    <i class="bi bi-check-circle"></i>
+                                @elseif ($item->status_rancangan === 'Ditolak')
+                                    <i class="bi bi-x-circle-fill"></i>
+                                @else
+                                    <i class="bi bi-gear-fill"></i>
+                                @endif
+                                Rancangan {{ $item->status_rancangan }}
+                            </mark>
+                        </h4>
+
+                        <p class="info-text mb-1 small">
+                            Pengajuan Rancangan Tahun {{ \Carbon\Carbon::parse($item->tanggal_pengajuan)->year }}
+                        </p>
+
+                        <div class="mt-2">
+                            <div class="dropdown">
+                                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton"
+                                    data-toggle="dropdown">
+                                    Kelola Rancangan
+                                </button>
+                                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                    {{-- Button untuk membuka modal --}}
+                                    <a href="#" class="dropdown-item" data-toggle="modal"
+                                        data-target="#detailModalPengajuan-{{ $item->id_rancangan }}">
+                                        <i class="bi bi-folder"></i>
+                                        Detail Pengajuan
+                                    </a>
+                                    <a class="btn btn-primary btn-sm"
+                                        wire:click="openModal({{ $item->id_rancangan }})">
+                                        Pilih Peneliti
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @empty
+            <p class="text-center info-text">Tidak ada data rancangan sedang diajukan.</p>
+        @endforelse
+
+        <div class="d-flex justify-content-between align-items-center flex-wrap">
+            <div class="mb-2 mb-md-0">
+                @if ($rancangan->total() > 0)
+                    Menampilkan {{ $rancangan->firstItem() }} hingga
+                    {{ $rancangan->lastItem() }} dari
+                    {{ $rancangan->total() }}
+                    data
+                @else
+                    Tidak ada data yang tersedia.
+                @endif
+            </div>
+            <div class="d-flex justify-content-center w-100 w-md-auto">
+                {{ $rancangan->links('pagination::bootstrap-4') }}
+            </div>
         </div>
     </div>
 
@@ -71,7 +159,8 @@
                 <div class="modal-header flex-column align-items-start" style="border-bottom: 2px solid #dee2e6;">
                     <h4 class="modal-title w-100 mb-2">Persetujuan Rancangan</h4>
                     <p class="mb-0 w-100 info-text">
-                        Silakan cek informasi rancangan di bawah ini, termasuk file yang diajukan, lalu pilih status
+                        Silakan cek informasi rancangan di bawah ini, termasuk file yang diajukan, lalu pilih
+                        status
                         persetujuan.
                     </p>
                     <button type="button" class="close position-absolute" style="top: 10px; right: 10px;"
@@ -90,7 +179,8 @@
                                         <h4 class="mb-0">Informasi Utama</h4>
                                     </div>
                                     <div class="card-body">
-                                        <p class="info-text mb-3">Berikut adalah informasi dasar dari rancangan yang
+                                        <p class="info-text mb-3">Berikut adalah informasi dasar dari rancangan
+                                            yang
                                             diajukan. Pastikan semua informasi sudah sesuai.</p>
                                         <table class="table table-sm table-borderless">
                                             <tbody>
@@ -147,7 +237,8 @@
                                         <h4 class="mb-0">File Persetujuan</h4>
                                     </div>
                                     <div class="card-body">
-                                        <p class="info-text mb-3">Pastikan file yang diajukan sudah lengkap dan sesuai.
+                                        <p class="info-text mb-3">Pastikan file yang diajukan sudah lengkap dan
+                                            sesuai.
                                             Anda dapat mengunduh file untuk memverifikasinya.</p>
                                         <table class="table table-sm table-borderless">
                                             <tbody>
@@ -233,7 +324,8 @@
                                     <select id="peneliti" class="form-control" wire:model="selectedPeneliti">
                                         <option value="" selected>Pilih...</option>
                                         @foreach ($penelitis as $peneliti)
-                                            <option value="{{ $peneliti->id }}">{{ $peneliti->nama_user }}</option>
+                                            <option value="{{ $peneliti->id }}">{{ $peneliti->nama_user }}
+                                            </option>
                                         @endforeach
                                     </select>
                                     @error('selectedPeneliti')

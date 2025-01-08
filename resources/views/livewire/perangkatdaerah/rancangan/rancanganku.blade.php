@@ -39,6 +39,21 @@
 
         {{-- Tabs --}}
         <div class="card-body">
+            <ul class="info-text ">
+                <li>
+                    <p class="description">
+                        <strong>Sedang Diajukan:</strong>
+                        Menampilkan daftar rancangan yang anda ajukan.
+                        Anda dapat memeriksa berkas dan memantau sampai tahapan mana rancangan anda.
+                    </p>
+                </li>
+                <li>
+                    <p class="description mt--2">
+                        <strong>Riwayat Pengajuan:</strong>
+                        Menampilkan riwayat rancangan yang sudah diproses, yang telah disetujui
+                    </p>
+                </li>
+            </ul>
             <ul class="nav nav-pills flex-row" role="tablist">
                 <li class="nav-item">
                     <a class="nav-link {{ $tab == 'sedang_diajukan' ? 'active' : '' }}" href="#"
@@ -65,7 +80,6 @@
         </div>
     </div>
 
-    {{-- Modal Ajukan Rancangan --}}
     {{-- Modal Ajukan Rancangan --}}
     <div wire:ignore.self class="modal fade" id="ajukanRancanganModal" tabindex="-1" role="dialog"
         aria-labelledby="ajukanRancanganModalLabel" aria-hidden="true">
@@ -139,9 +153,6 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="reset" class="btn btn-outline-info" wire:click="resetInput">
-                            Reset Inputan
-                        </button>
                         <button type="button" class="btn btn-outline-warning" data-dismiss="modal"
                             wire:click="resetForm">
                             Batal

@@ -3,6 +3,7 @@
 namespace App\Livewire\Verifikator\Rancangan;
 
 use Livewire\Component;
+use Livewire\WithoutUrlPagination;
 use Livewire\WithPagination;
 use App\Models\RancanganProdukHukum;
 use App\Models\User;
@@ -12,13 +13,14 @@ use App\Notifications\PilihPenelitiNotification;
 
 class MenungguPeneliti extends Component
 {
-    use WithPagination;
+    use WithPagination, WithoutUrlPagination;
 
     public $search = '';
     public $perPage = 5;
 
     public $selectedRancangan;
     public $selectedPeneliti;
+
 
     protected $rules = [
         'selectedPeneliti' => 'required|exists:users,id',
@@ -72,7 +74,8 @@ class MenungguPeneliti extends Component
     public function render()
     {
         // Query Rancangan dengan Status Berkas "Disetujui" dan Status Revisi "Belum Tahap Revisi"
-        $rancangans = RancanganProdukHukum::where('status_berkas', 'Disetujui')
+        $rancangan = RancanganProdukHukum::with('revisi') // Eager loading revisi
+            ->where('status_berkas', 'Disetujui')
             ->whereHas('revisi', function ($query) {
                 $query->where('status_revisi', 'Belum Tahap Direvisi');
             })
@@ -82,9 +85,10 @@ class MenungguPeneliti extends Component
             })
             ->paginate($this->perPage);
 
-        // Dapatkan daftar user dengan role "peneliti"
-        $penelitis = User::role('peneliti')->get();
 
-        return view('livewire.verifikator.rancangan.menunggu-peneliti', compact('rancangans', 'penelitis'));
+        // Dapatkan daftar user dengan role "peneliti"
+        $listPeneliti = User::role('peneliti')->get();
+
+        return view('livewire.verifikator.rancangan.menunggu-peneliti', compact('rancangan', 'listPeneliti'));
     }
 }

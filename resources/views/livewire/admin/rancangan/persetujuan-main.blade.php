@@ -22,6 +22,7 @@
     <a href="#" class="btn btn-sm btn-neutral">New</a>
     <a href="#" class="btn btn-sm btn-neutral">Filters</a>
 @endsection
+
 <div class="card shadow-sm">
     {{-- Header --}}
     <div class="card-header d-flex justify-content-between align-items-center">
@@ -51,12 +52,17 @@
 
         <ul class="info-text mt-3">
             <li>
-                <strong>Menunggu Persetujuan:</strong> Menampilkan daftar rancangan yang masih dalam proses verifikasi.
-                Anda dapat memeriksa berkas dan memberikan persetujuan atau penolakan.
+                <p class="description">
+                    <strong>Menunggu Persetujuan:</strong>
+                    Menampilkan daftar rancangan yang masihdalam proses verifikasi.
+                    Anda dapat memeriksa berkas dan memberikan persetujuan atau penolakan.
+                </p>
             </li>
             <li>
-                <strong>Riwayat Persetujuan:</strong> Menampilkan riwayat rancangan yang sudah diproses, baik yang telah
-                disetujui
+                <p class="description mt--2">
+                    <strong>Riwayat Persetujuan:</strong>
+                    Menampilkan riwayat rancangan yang sudah diproses, baik yang telah disetujui
+                </p>
             </li>
         </ul>
 

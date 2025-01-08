@@ -60,16 +60,9 @@
                                 {{ \Carbon\Carbon::parse($item->tanggal_pengajuan)->translatedFormat('d F Y') }}
                             </p>
                             <p class="mb-0 info-text small">
-                                <i class="bi bi-person"></i>
-                                {{ $item->user->nama_user ?? 'N/A' }}
-                                <span class="badge badge-secondary">
-                                    Pemohon
-                                </span>
-                            </p>
-                            <p class="mb-0 info-text small">
                                 <i class="bi bi-person-gear"></i>
                                 <span
-                                    class="{{ $item->revisi->first()->peneliti->nama_user ?? false ? 'info-text' : 'text-danger' }}">
+                                    class="{{ $item->revisi->first()->peneliti->nama_user ?? false ? 'info-text' : 'text-danger' }} text-primary">
                                     {{ $item->revisi->first()->peneliti->nama_user ?? 'Belum Ditentukan' }}
                                 </span>
                                 <span class="badge badge-secondary">
@@ -113,8 +106,9 @@
                         </h4>
 
                         <p class="info-text mb-1 small">
-                            Pengajuan Rancangan Tahun {{ now()->year }}
+                            Pengajuan Rancangan Tahun {{ \Carbon\Carbon::parse($item->tanggal_pengajuan)->year }}
                         </p>
+
                         <div class="mt-2">
                             <div class="dropdown">
                                 <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton"

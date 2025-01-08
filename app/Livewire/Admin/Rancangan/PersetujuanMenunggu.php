@@ -4,6 +4,7 @@ namespace App\Livewire\Admin\Rancangan;
 
 use Livewire\Component;
 use Livewire\WithPagination;
+use Livewire\WithoutUrlPagination;
 use App\Models\RancanganProdukHukum;
 use Illuminate\Support\Carbon;
 use App\Notifications\PersetujuanRancanganNotification;
@@ -12,7 +13,7 @@ use Illuminate\Support\Facades\Gate;
 
 class PersetujuanMenunggu extends Component
 {
-    use WithPagination;
+    use WithPagination, WithoutUrlPagination;
 
     public $search = '';
     public $perPage = 5; // Default jumlah data per halaman

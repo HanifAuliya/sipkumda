@@ -66,8 +66,9 @@
                     </h4>
 
                     <p class="info-text mb-1 small">
-                        Pengajuan Rancangan Tahun {{ now()->year }}
+                        Pengajuan Rancangan Tahun {{ \Carbon\Carbon::parse($item->tanggal_pengajuan)->year }}
                     </p>
+
                     <div class="mt-2">
                         {{-- Tombol Tindakan --}}
                         <button class="btn btn-secondary" wire:click="openModal({{ $item->id_rancangan }})">
