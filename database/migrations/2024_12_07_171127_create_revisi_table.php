@@ -19,7 +19,7 @@ return new class extends Migration
             $table->text('catatan_revisi')->nullable();
             $table->unsignedBigInteger('id_user')->nullable();
             $table->enum('status_revisi', ['Direvisi', 'Belum Tahap Direvisi', 'Menunggu Revisi']);
-            $table->date('tanggal_revisi')->nullable();
+            $table->timestamp('tanggal_revisi')->nullable();
             $table->timestamps();
 
             $table->foreign('id_rancangan')->references('id_rancangan')->on('rancangan_produk_hukum')->onDelete('cascade');

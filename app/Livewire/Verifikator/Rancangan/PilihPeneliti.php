@@ -8,7 +8,7 @@ class PilihPeneliti extends Component
 {
     public $activeTab = 'menunggu-peneliti'; // Default tab
 
-    protected $queryString = ['activeTab']; // Masukkan 'tab' ke dalam query string
+    protected $queryString = ['activeTab']; // Masukkan 'tab' ke dalam query string\
 
     public function render()
     {

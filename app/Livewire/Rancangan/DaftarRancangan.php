@@ -5,6 +5,7 @@ namespace App\Livewire\Rancangan;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\RancanganProdukHukum;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Gate;
 
 class DaftarRancangan extends Component
@@ -26,6 +27,11 @@ class DaftarRancangan extends Component
     ];
 
 
+    public function mount()
+    {
+        // Pastikan Carbon menggunakan bahasa Indonesia
+        Carbon::setLocale('id');
+    }
 
     public function updatingSearch()
     {

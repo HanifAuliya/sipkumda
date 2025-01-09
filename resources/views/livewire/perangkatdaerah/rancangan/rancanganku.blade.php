@@ -107,7 +107,6 @@
                                 <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
-
                         {{-- Tentang --}}
                         <div class="mb-3">
                             <label for="tentang" class="form-label font-weight-bold">Tentang</label>
@@ -117,36 +116,55 @@
                                 <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
-
                         {{-- File Inputs --}}
+                        {{-- Rancangan Inputs --}}
                         <div class="mb-3">
                             <label for="rancangan" class="form-label font-weight-bold">File Rancangan</label>
-                            <input type="file" class="form-control" wire:model="rancangan" />
+                            <input type="file" class="form-control" wire:model="rancangan"
+                                accept="application/pdf" />
+                            {{-- Indikator Loading untuk Rancangan --}}
+                            <div wire:loading wire:target="rancangan" class="text-info">
+                                <i class="spinner-border spinner-border-sm"></i> Mengunggah File Rancangan...
+                            </div>
                             @error('rancangan')
                                 <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
-
+                        {{-- Matrik  Input --}}
                         <div class="mb-3">
                             <label for="matrik" class="form-label font-weight-bold">Matrik Rancangan</label>
-                            <input type="file" class="form-control" wire:model="matrik" />
+                            <input type="file" class="form-control" wire:model="matrik" accept="application/pdf" />
+                            {{-- Indikator Loading untuk Matrik --}}
+                            <div wire:loading wire:target="matrik" class="text-info">
+                                <i class="spinner-border spinner-border-sm"></i> Mengunggah Matrik Rancangan...
+                            </div>
                             @error('matrik')
                                 <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
-
+                        {{-- Nota Dinas input --}}
                         <div class="mb-3">
                             <label for="nota_dinas_pd" class="form-label font-weight-bold">Nota Dinas</label>
-                            <input type="file" class="form-control" wire:model="nota_dinas_pd" />
+                            <input type="file" class="form-control" wire:model="nota_dinas_pd"
+                                accept="application/pdf" />
+                            {{-- Indikator Loading untuk Nota Dinas --}}
+                            <div wire:loading wire:target="nota_dinas_pd" class="text-info">
+                                <i class="spinner-border spinner-border-sm"></i> Mengunggah Nota Dinas...
+                            </div>
                             @error('nota_dinas_pd')
                                 <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
-
+                        {{-- Bahan Pendukung Input --}}
                         <div class="mb-3">
                             <label for="bahanPendukung" class="form-label font-weight-bold">Bahan Pendukung
                                 (Opsional)</label>
-                            <input type="file" class="form-control" wire:model="bahanPendukung" />
+                            <input type="file" class="form-control" wire:model="bahanPendukung"
+                                accept="application/pdf" />
+                            {{-- Indikator Loading untuk Bahan Pendukung --}}
+                            <div wire:loading wire:target="bahanPendukung" class="text-info">
+                                <i class="spinner-border spinner-border-sm"></i> Mengunggah Bahan Pendukung...
+                            </div>
                             @error('bahanPendukung')
                                 <span class="text-danger">{{ $message }}</span>
                             @enderror
@@ -157,10 +175,10 @@
                             wire:click="resetForm">
                             Batal
                         </button>
-
-                        <button class="btn btn-outline-default" wire:click="submit" wire:loading.attr="disabled">
-                            <span wire:loading.remove>Ajukan</span>
-                            <span wire:loading>Tunggu Sebentar Lagi Memproses...</span>
+                        <button class="btn btn-outline-default" wire:click="submit" wire:loading.attr="disabled"
+                            wire:target="submit">
+                            <span wire:loading.remove wire:target="submit">Ajukan</span>
+                            <span wire:loading wire:target="submit">Tunggu Sebentar Lagi Memproses...</span>
                         </button>
                     </div>
                 </form>

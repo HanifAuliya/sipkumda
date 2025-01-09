@@ -91,15 +91,14 @@
                         {{-- Status Rancangan --}}
                         <h4>
                             <mark
-                                class="badge-{{ $item->status_rancangan === 'Disetujui' ? 'success' : ($item->status_rancangan === 'Ditolak' ? 'danger' : 'warning') }} badge-pill">
-                                @if ($item->status_rancangan === 'Disetujui')
-                                    <i class="bi bi-check-circle"></i>
-                                @elseif ($item->status_rancangan === 'Ditolak')
-                                    <i class="bi bi-x-circle-fill"></i>
+                                class="badge-{{ $item->revisi->first()?->peneliti ? 'success' : 'danger' }} badge-pill">
+                                @if ($item->revisi->first()?->peneliti)
+                                    <i class="bi bi-person-check"></i>
+                                    {{ $item->revisi->first()?->peneliti->name }}
                                 @else
-                                    <i class="bi bi-gear-fill"></i>
+                                    <i class="bi bi-person-dash"></i>
+                                    Menunggu Pemilihan Peneliti
                                 @endif
-                                Rancangan {{ $item->status_rancangan }}
                             </mark>
                         </h4>
 
@@ -157,8 +156,8 @@
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header flex-column align-items-start" style="border-bottom: 2px solid #dee2e6;">
-                    <h4 class="modal-title w-100 mb-2">Persetujuan Rancangan</h4>
-                    <p class="mb-0 w-100 info-text">
+                    <h4 class="modal-title w-100 mb-2">Pilih Peneliti</h4>
+                    <p class=" description mb-0 w-100 info-text">
                         Silakan cek informasi rancangan di bawah ini, termasuk file yang diajukan, lalu pilih
                         status
                         persetujuan.
@@ -179,7 +178,8 @@
                                         <h4 class="mb-0">Informasi Utama</h4>
                                     </div>
                                     <div class="card-body">
-                                        <p class="info-text mb-3">Berikut adalah informasi dasar dari rancangan
+                                        <p class="description info-text mb-3">Berikut adalah informasi dasar dari
+                                            rancangan
                                             yang
                                             diajukan. Pastikan semua informasi sudah sesuai.</p>
                                         <table class="table table-sm table-borderless">
@@ -224,24 +224,6 @@
                                                         </mark>
                                                     </td>
                                                 </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {{--  File Persetujuan --}}
-                            <div class="col-md-6 mb-4">
-                                <div class="card shadow-sm">
-                                    <div class="card-header">
-                                        <h4 class="mb-0">File Persetujuan</h4>
-                                    </div>
-                                    <div class="card-body">
-                                        <p class="info-text mb-3">Pastikan file yang diajukan sudah lengkap dan
-                                            sesuai.
-                                            Anda dapat mengunduh file untuk memverifikasinya.</p>
-                                        <table class="table table-sm table-borderless">
-                                            <tbody>
                                                 <tr>
                                                     <th class="info-text">Nota Dinas</th>
                                                     <td>
@@ -302,7 +284,8 @@
                                                 </tr>
                                                 <tr>
                                                     <th>Catatan Berkas</th>
-                                                    <td>{{ $selectedRancangan->catatan_berkas ?? 'Tidak Ada Catatan' }}
+                                                    <td class="wrap-text">
+                                                        {{ $selectedRancangan->catatan_berkas ?? 'Tidak Ada Catatan' }}
                                                     </td>
                                                 </tr>
                                             </tbody>
@@ -310,27 +293,120 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        {{--  Verifikasi Persetujuan  --}}
-                        <div class="card shadow-sm">
-                            <div class="card-header bg-warning text-white">
-                                <h4 class="mb-0 text-white">Verifikasi Persetujuan Rancangan</h4>
-                            </div>
-                            {{-- Select  Dropdown --}}
-                            <div class="card-body">
-                                <div class="form-group">
-                                    <label for="peneliti">Pilih Peneliti</label>
-                                    <select id="peneliti" class="form-control" wire:model="selectedPeneliti">
-                                        <option value="" selected>Pilih...</option>
-                                        @foreach ($penelitis as $peneliti)
-                                            <option value="{{ $peneliti->id }}">{{ $peneliti->nama_user }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    @error('selectedPeneliti')
-                                        <span class="text-danger">{{ $message }}</span>
-                                    @enderror
+                            {{--  File Persetujuan --}}
+                            <div class="col-md-6 mb-4">
+                                <div class="card shadow-sm">
+                                    <div class="card-header">
+                                        <h4 class="mb-0">File Persetujuan</h4>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="description info-text mb-3">Pastikan file yang diajukan sudah lengkap
+                                            dan
+                                            sesuai.
+                                            Anda dapat mengunduh file untuk memverifikasinya.</p>
+                                        <table class="table table-sm table-borderless">
+                                            <tbody>
+                                                @foreach ($item->revisi as $revisi)
+                                                    <tr>
+                                                        <th>Status Revisi</th>
+                                                        <td class="info-text">
+                                                            <mark
+                                                                class="badge-{{ $revisi->status_revisi === 'Direvisi' ? 'success' : ($revisi->status_revisi === 'Menunggu Revisi' ? 'warning' : 'danger') }} badge-pill">
+                                                                {{ $revisi->status_revisi }}
+                                                            </mark>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Tanggal Revisi</th>
+                                                        <td class="info-text">
+                                                            {{ $revisi->tanggal_revisi ? \Carbon\Carbon::parse($revisi->tanggal_revisi)->translatedFormat('d F Y') : 'N/A' }}
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Peneliti</th>
+                                                        <td class="info-text">
+                                                            {{ $revisi->peneliti->nama_user ?? 'Belum Ditentukan' }}
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Revisi Rancangan</th>
+                                                        <td class="info-text">
+                                                            <a href="{{ asset('storage/' . $revisi->revisi_rancangan) }}"
+                                                                target="_blank" class="d-flex align-items-center">
+                                                                <i
+                                                                    class="bi bi-file-earmark-text mr-2 text-primary"></i>
+
+                                                                <span>Download Revisi</span>
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Revisi Matrik</th>
+                                                        <td class="info-text">
+                                                            <a href="{{ asset('storage/' . $revisi->revisi_matrik) }}"
+                                                                target="_blank" class="d-flex align-items-center">
+                                                                <i
+                                                                    class="bi bi-file-earmark-spreadsheet mr-2 text-success"></i>
+                                                                <span>Download Matrik Revisi</span>
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+
+                                                    <tr>
+                                                        <th>Catatan Revisi</th>
+                                                        <td class="wrap-text">
+                                                            {{ $revisi->catatan_revisi ?? 'Tidak Ada Catatan' }}
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    {{-- Select Dropdown dengan Select2 --}}
+                                    <div class="card-body">
+                                        {{-- Penjelasan Pilihan Peneliti --}}
+                                        <p class="info-text description">
+                                            Silakan pilih peneliti dari daftar di bawah ini untuk menugaskan rancangan
+                                            yang sedang diproses.
+                                        </p>
+
+                                        <div class="form-group">
+                                            <label for="peneliti">
+                                                <h4>Pilih Peneliti</h4>
+                                            </label>
+                                            {{-- Dropdown dengan Select2 --}}
+                                            <select id="peneliti" class="form-control select2"
+                                                wire:model="selectedPeneliti">
+                                                <option value="" selected>Pilih Peneliti...</option>
+                                                @foreach ($listPeneliti as $peneliti)
+                                                    <option value="{{ $peneliti->id }}">{{ $peneliti->nama_user }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            {{-- Error Handling --}}
+                                            @error('selectedPeneliti')
+                                                <span class="text-danger">{{ $message }}</span>
+                                            @enderror
+                                        </div>
+                                    </div>
+
+                                    <div class="modal-footer">
+                                        {{-- Tombol Batal --}}
+                                        <button class="btn btn-secondary" data-dismiss="modal">
+                                            <i class="bi bi-x-circle"></i> Batal
+                                        </button>
+
+                                        {{-- Tombol Simpan dengan wire:loading --}}
+                                        <button class="btn btn-primary" wire:click="assignPeneliti"
+                                            wire:loading.attr="disabled">
+                                            <i class="bi bi-check-circle" wire:loading.remove></i>
+                                            <span wire:loading.remove>Simpan</span>
+                                            <i class="spinner-border spinner-border-sm text-light" wire:loading></i>
+                                            <span wire:loading>Memproses...</span>
+                                        </button>
+                                    </div>
+
                                 </div>
                             </div>
                         </div>
@@ -345,10 +421,6 @@
                             </div>
                         </div>
                     @endif
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                    <button class="btn btn-primary" wire:click="assignPeneliti">Simpan</button>
                 </div>
             </div>
         </div>

@@ -10,6 +10,7 @@
                     <p class="description">Raw denim you probably haven't heard of them jean shorts Austin. Nesciunt tofu
                         stumptown aliqua, retro synth master cleanse.</p>
                 </div>
+                {{ Carbon\Carbon::parse('2019-03-01')->translatedFormat('d F Y') }}
                 <div class="tab-pane fade" id="tabs-icons-text-2" role="tabpanel"
                     aria-labelledby="tabs-icons-text-2-tab">
                     <p class="description">Cosby sweater eu banh mi, qui irure terry richardson ex squid. Aliquip

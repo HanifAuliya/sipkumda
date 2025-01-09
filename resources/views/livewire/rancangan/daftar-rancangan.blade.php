@@ -82,7 +82,6 @@
                                     <th>Jenis Rancangan </th>
                                     <th>Tanggal Pengajuan
                                     </th>
-
                                     <th>Status Berkas</th>
                                     <th>Status Revisi</th>
                                     <th>Aksi</th>
@@ -92,7 +91,7 @@
                                 @forelse ($rancanganProdukHukum as $rancangan)
                                     <tr>
                                         <td>{{ $rancangan->no_rancangan }}</td>
-                                        <td class="wrap-text">{{ $rancangan->tentang }}</td>
+                                        <td class="wrap-text-td-50">{{ $rancangan->tentang }}</td>
                                         <td class="still-text">
                                             <mark
                                                 class="badge-{{ $rancangan->jenis_rancangan === 'Peraturan Bupati' ? 'primary' : '' }} badge-pill">
@@ -201,7 +200,6 @@
                                                 @else
                                                     <span class="text-danger">Data tidak tersedia</span>
                                                 @endif
-
                                         </tr>
                                         <tr>
                                             <th>Tentang</th>

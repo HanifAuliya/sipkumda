@@ -533,9 +533,17 @@ table td.wrap-text {
     overflow-wrap: break-word; /* Bungkus kata yang panjang tanpa memotong */
     width: 50%; /* Sesuaikan dengan kebutuhan */
 }
+/* Membungkus teks tanpa memotong kata */
+table td.wrap-text-td-50 {
+    white-space: normal; /* Izinkan konten turun ke baris berikutnya */
+    word-wrap: break-word; /* Bungkus kata yang panjang */
+    word-break: normal; /* Pastikan kata tidak dipotong di tengah */
+    overflow-wrap: break-word; /* Bungkus kata yang panjang tanpa memotong */
+    width: 50%; /* Sesuaikan dengan kebutuhan */
+}
 
 /* Membungkus teks tanpa memotong kata */
-table td.info-text {
+table td.wrap-text-td-70 {
     white-space: normal; /* Izinkan konten turun ke baris berikutnya */
     word-wrap: break-word; /* Bungkus kata yang panjang */
     word-break: normal; /* Pastikan kata tidak dipotong di tengah */
