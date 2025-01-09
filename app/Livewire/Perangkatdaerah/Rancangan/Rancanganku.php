@@ -107,7 +107,13 @@ class Rancanganku extends Component
         ]);
     }
     public function resetForm()
-    {
+    { // Atur ulang semua properti ke nilai default
+        $this->jenisRancangan = null;
+        $this->tentang = null;
+        $this->rancangan = null;
+        $this->matrik = null;
+        $this->nota_dinas_pd = null;
+        $this->bahanPendukung = null;
         $this->resetErrorBag(); // Reset error validasi
         $this->resetValidation(); // Reset tampilan error validasi
     }

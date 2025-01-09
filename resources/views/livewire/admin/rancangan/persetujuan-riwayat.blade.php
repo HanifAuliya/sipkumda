@@ -298,8 +298,16 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                    <button type="button" class="btn btn-danger" wire:click="confirmResetStatus">Reset
-                        Status</button>
+                    <button type="button" class="btn btn-danger" wire:click="confirmResetStatus"
+                        wire:loading.attr="disabled" data-dismiss="modal">
+                        <span wire:loading.remove wire:target="confirmResetStatus">
+                            <i class="bi bi-arrow-counterclockwise"></i> Reset Status
+                        </span>
+                        <span wire:loading wire:target="confirmResetStatus">
+                            <i class="spinner-border spinner-border-sm"></i> Memproses...
+                        </span>
+                    </button>
+
                 </div>
             </div>
         </div>

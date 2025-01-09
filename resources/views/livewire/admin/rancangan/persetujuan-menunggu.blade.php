@@ -245,16 +245,29 @@
 
                         {{--  Verifikasi Persetujuan  --}}
                         <div class="card shadow-sm">
-                            <div class="card-header bg-warning text-white">
-                                <h4 class="mb-0 text-white">Verifikasi Persetujuan Rancangan</h4>
-                            </div>
-                            {{-- Select  Dropdown --}}
+                            @if ($selectedRancangan->status_berkas === 'Disetujui' || $selectedRancangan->status_berkas === 'Ditolak')
+                                <div class="alert alert-{{ $selectedRancangan->status_berkas === 'Disetujui' ? 'success' : 'danger' }} mb-0"
+                                    role="alert" style="flex: 1; text-align: center;">
+                                    <strong>{{ $selectedRancangan->status_berkas }} !</strong> Rancangan
+                                    Telah
+                                    {{ $selectedRancangan->status_berkas }}
+                                </div>
+                            @else
+                                <div class="alert alert-info mb-0" role="alert"
+                                    style="flex: 1; text-align: center;">
+                                    <strong>{{ $selectedRancangan->status_berkas }} !</strong> Rancangan
+                                    Telah
+                                    {{ $selectedRancangan->status_berkas }}
+                                </div>
+                            @endif
                             <div class="card-body">
-                                <p class="info-text mb-3">
-                                    Pilih status persetujuan untuk rancangan ini. Tambahkan catatan jika diperlukan
+                                {{-- Informasi --}}
+                                <p class="description info-text mb-3 text-muted">
+                                    Pilih status persetujuan untuk rancangan ini. Tambahkan catatan
                                     untuk memberikan masukan atau alasan penolakan.
                                 </p>
 
+                                {{-- Pilihan Persetujuan Berkas --}}
                                 <div class="form-group">
                                     @if ($statusBerkas === 'Menunggu Persetujuan')
                                         <label for="statusBerkasSelect" class="text-danger">Berkas Perlu
@@ -277,31 +290,40 @@
                                     @enderror
                                 </div>
 
-                                <textarea wire:model.defer="catatan" class="form-control mb-3" rows="3" placeholder="Tambahkan catatan..."></textarea>
-                                @error('catatan')
-                                    <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <!-- Alert -->
-                                    @if ($selectedRancangan->status_berkas === 'Disetujui' || $selectedRancangan->status_berkas === 'Ditolak')
-                                        <div class="alert alert-{{ $selectedRancangan->status_berkas === 'Disetujui' ? 'success' : 'danger' }} mb-0"
-                                            role="alert" style="flex: 1; text-align: center;">
-                                            <strong>{{ $selectedRancangan->status_berkas }} !</strong> Rancangan Telah
-                                            {{ $selectedRancangan->status_berkas }}
-                                        </div>
+                                {{-- Catatan --}}
+                                <div class="form-group">
+                                    <textarea wire:model.defer="catatan" class="form-control mb-3" rows="3" placeholder="Tambahkan catatan..."
+                                        @disabled(in_array($statusBerkas, ['Disetujui', 'Ditolak']))></textarea>
+                                    @error('catatan')
+                                        <span class="text-danger mt-2 d-block">{{ $message }}</span>
+                                    @enderror
+                                </div>
 
-                                        <!-- Tombol Reset -->
-                                        <button class="btn btn-danger ml-3" wire:click="resetStatus"
+                                {{-- Tombol --}}
+                                <div class="d-flex justify-content-end">
+                                    {{-- Tombol Tutup --}}
+                                    <button type="button" class="btn btn-secondary mr-3" data-dismiss="modal"
+                                        wire:click="resetForm">
+                                        <i class="bi bi-x-lg"></i> Tutup
+                                    </button>
+
+                                    @if ($selectedRancangan->status_berkas === 'Disetujui' || $selectedRancangan->status_berkas === 'Ditolak')
+                                        {{-- Tombol Reset --}}
+                                        <button class="btn btn-danger" wire:click="resetStatus"
                                             wire:loading.attr="disabled">
-                                            <span wire:loading.remove>Reset Status</span>
-                                            <span wire:loading>Memproses...</span>
+                                            <span wire:loading.remove><i class="bi bi-arrow-counterclockwise"></i>
+                                                Reset Status</span>
+                                            <span wire:loading><i class="bi bi-hourglass-split"></i>
+                                                Memproses...</span>
                                         </button>
                                     @else
-                                        <!-- Tombol Verifikasi -->
-                                        <button class="btn btn-success ml-auto" wire:click="updateStatus"
+                                        {{-- Tombol Verifikasi --}}
+                                        <button class="btn btn-success" wire:click="updateStatus"
                                             wire:loading.attr="disabled">
-                                            <span wire:loading.remove>Verifikasi Rancangan</span>
-                                            <span wire:loading>Memproses...</span>
+                                            <span wire:loading.remove><i class="bi bi-check-circle"></i> Verifikasi
+                                                Rancangan</span>
+                                            <span wire:loading><i class="bi bi-hourglass-split"></i>
+                                                Memproses...</span>
                                         </button>
                                     @endif
                                 </div>
@@ -339,12 +361,9 @@
                 $('#modalPersetujuan').modal('hide');
             });
             // Sweeet Alert 2
-            window.Livewire.on('swal:modal', (data) => {
+            window.addEventListener('swal:modal', function(event) {
 
-                // Jika data adalah array, akses elemen pertama
-                if (Array.isArray(data)) {
-                    data = data[0];
-                }
+                const data = event.detail[0];
 
                 Swal.fire({
                     icon: data.type || 'info',

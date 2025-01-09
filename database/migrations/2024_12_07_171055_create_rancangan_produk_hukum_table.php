@@ -21,13 +21,13 @@ return new class extends Migration
             $table->string('rancangan', 255);
             $table->string('matrik', 255)->nullable();
             $table->string('bahan_pendukung', 255)->nullable();
-            $table->date('tanggal_pengajuan');
+            $table->dateTime('tanggal_pengajuan');
             $table->foreignId('id_user')->constrained('users')->onDelete('cascade');
             $table->enum('status_berkas', ['Disetujui', 'Ditolak', 'Menunggu Persetujuan']);
             $table->enum('status_rancangan', ['Disetujui', 'Ditolak', 'Dalam Proses'])->nullable();
             $table->text('catatan_berkas')->nullable();
-            $table->timestamp('tanggal_berkas_disetujui')->nullable(); // Kolom tanggal disetujui
-            $table->timestamp('tanggal_rancangan_disetujui')->nullable(); // Kolom tanggal peneliti dipilih
+            $table->dateTime('tanggal_berkas_disetujui')->nullable(); // Kolom tanggal disetujui
+            $table->dateTime('tanggal_rancangan_disetujui')->nullable(); // Kolom tanggal peneliti dipilih
             $table->timestamps();
         });
     }

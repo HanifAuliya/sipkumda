@@ -126,7 +126,12 @@ class PersetujuanMenunggu extends Component
             ]);
         }
     }
+    public function resetForm()
+    { // Atur ulang semua properti ke nilai default
 
+        $this->resetErrorBag(); // Reset error validasi
+        $this->resetValidation(); // Reset tampilan error validasi
+    }
     public function render()
     {
         $rancanganMenunggu = RancanganProdukHukum::with(['user', 'perangkatDaerah'])

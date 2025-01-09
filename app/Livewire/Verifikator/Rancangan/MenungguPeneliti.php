@@ -8,6 +8,7 @@ use Livewire\WithPagination;
 use App\Models\RancanganProdukHukum;
 use App\Models\User;
 use App\Models\Revisi;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Notification;
 use App\Notifications\PilihPenelitiNotification;
 
@@ -49,13 +50,14 @@ class MenungguPeneliti extends Component
             ],
             [
                 'id_user' => $this->selectedPeneliti, // ID Peneliti yang dipilih
-                'status_revisi' => 'Menunggu Revisi'
+                'status_revisi' => 'Menunggu Revisi',
+                'tanggal_peneliti_ditunjuk' => Carbon::now(),
             ]
         );
 
         // Kirim notifikasi ke peneliti
         $peneliti = User::find($this->selectedPeneliti);
-        Notification::send($peneliti, new \App\Notifications\PilihPenelitiNotification([
+        Notification::send($peneliti, new PilihPenelitiNotification([
             'title' => 'Penugasan Baru',
             'message' => "Anda telah ditugaskan untuk meneliti rancangan: {$this->selectedRancangan->tentang}",
             'slug' => $this->selectedRancangan->slug,

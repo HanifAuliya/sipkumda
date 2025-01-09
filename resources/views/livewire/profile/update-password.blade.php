@@ -25,6 +25,11 @@
                 <input type="password" id="password" wire:model.defer="password" class="form-control"
                     autocomplete="new-password" required>
             </div>
+            {{-- Penjelasan Persyaratan Password --}}
+            <small class="form-text text-muted">
+                Password harus memiliki minimal 8 karakter, mengandung huruf, angka, dan satu karakter spesial (@, $, !,
+                %, *, ?, &, #).
+            </small>
             @error('password')
                 <span class="text-danger text-sm mt-2">{{ $message }}</span>
             @enderror
@@ -40,6 +45,10 @@
                 <input type="password" id="password_confirmation" wire:model.defer="password_confirmation"
                     class="form-control" autocomplete="new-password" required>
             </div>
+            {{-- Penjelasan untuk Konfirmasi Password --}}
+            <small class="form-text text-muted">
+                Pastikan password yang dimasukkan sesuai dengan password di atas.
+            </small>
             @error('password_confirmation')
                 <span class="text-danger text-sm mt-2">{{ $message }}</span>
             @enderror
@@ -47,7 +56,12 @@
 
         {{-- Save Button --}}
         <div class="form-group text-right">
-            <button type="submit" class="btn btn-default">{{ __('Save') }}</button>
+            <button type="submit" class="btn btn-default" wire:loading.attr="disabled" wire:target="updatePassword">
+                <span wire:loading wire:target="updatePassword">
+                    <i class="fa fa-spinner fa-spin"></i>
+                </span>
+                {{ __('Save') }}
+            </button>
         </div>
     </form>
 </div>

@@ -127,7 +127,6 @@
                                             @else
                                                 <small class="text-danger">Perlu Izin!</small>
                                             @endcan
-
                                         </td>
                                     </tr>
                                 @empty
@@ -187,11 +186,12 @@
                                     <tbody>
                                         <tr>
                                             <th>Nomor</th>
-                                            <td class="info-text">{{ $selectedRancangan->no_rancangan ?? 'N/A' }}</td>
+                                            <td class="wrap-text-td-70">
+                                                {{ $selectedRancangan->no_rancangan ?? 'N/A' }}</td>
                                         </tr>
                                         <tr>
                                             <th>Jenis</th>
-                                            <td class="info-text">
+                                            <td class="wrap-text-td-70 ">
                                                 @if ($selectedRancangan && $selectedRancangan->jenis_rancangan)
                                                     <mark
                                                         class="badge-{{ $selectedRancangan->jenis_rancangan === 'Peraturan Bupati' ? 'primary' : '' }} badge-pill">
@@ -203,30 +203,34 @@
                                         </tr>
                                         <tr>
                                             <th>Tentang</th>
-                                            <td class="info-text">{{ $selectedRancangan->tentang ?? 'N/A' }}</td>
+                                            <td class="wrap-text-td-70 ">{{ $selectedRancangan->tentang ?? 'N/A' }}
+                                            </td>
                                         </tr>
                                         <tr>
                                             <th>Tanggal Pengajuan</th>
-                                            <td class="info-text">{{ $selectedRancangan->tanggal_pengajuan ?? 'N/A' }}
+                                            <td>
+                                                {{ $selectedRancangan->tanggal_pengajuan
+                                                    ? \Carbon\Carbon::parse($selectedRancangan->tanggal_pengajuan)->translatedFormat('d F Y, H:i')
+                                                    : 'N/A' }}
                                             </td>
                                         </tr>
                                         <tr>
                                             <th>User Pengaju</th>
-                                            <td class="info-text">
+                                            <td class="wrap-text-td-70 ">
                                                 {{ $selectedRancangan->user->nama_user ?? 'N/A' }}
                                             </td>
                                         </tr>
 
                                         <tr>
                                             <th>Perangkat Daerah</th>
-                                            <td class="info-text">
+                                            <td class="wrap-text-td-70 ">
                                                 {{ $selectedRancangan->user->perangkatDaerah->nama_perangkat_daerah ?? 'N/A' }}
                                             </td>
                                         </tr>
                                         <tr>
                                             <th>Status Rancangan</th>
                                             @if ($selectedRancangan && $selectedRancangan->status_rancangan)
-                                                <td class="info-text">
+                                                <td class="wrap-text-td-70 ">
                                                     <mark
                                                         class="badge-{{ $selectedRancangan->status_rancangan === 'Disetujui'
                                                             ? 'success'
@@ -237,7 +241,7 @@
                                                     </mark>
                                                 </td>
                                             @else
-                                                <td class="info-text">
+                                                <td class="wrap-text-td-70 ">
                                                     <span class="badge badge-secondary">N/A</span>
                                                 </td>
                                             @endif
@@ -258,21 +262,31 @@
                                         <tr>
                                             <th>Status Berkas</th>
                                             @if ($selectedRancangan && $selectedRancangan->status_berkas)
-                                                <td class="info-text">
+                                                <td class="wrap-text-td-70 ">
                                                     <mark
                                                         class="badge-{{ $selectedRancangan->status_berkas === 'Disetujui' ? 'success' : ($selectedRancangan->status_berkas === 'Ditolak' ? 'danger' : 'warning') }} badge-pill">
                                                         {{ $selectedRancangan->status_berkas }}
                                                     </mark>
                                                 </td>
                                             @else
-                                                <td class="info-text">
+                                                <td class="wrap-text-td-70 ">
                                                     <span class="badge badge-secondary">N/A</span>
                                                 </td>
                                             @endif
                                         </tr>
                                         <tr>
+                                            <th>
+                                                Tanggal Berkas Disetujui
+                                            </th>
+                                            <td>
+                                                {{ $selectedRancangan->tanggal_berkas_disetujui
+                                                    ? \Carbon\Carbon::parse($selectedRancangan->tanggal_berkas_disetujui)->translatedFormat('d F Y H:i')
+                                                    : 'N/A' }}
+                                            </td>
+                                        </tr>
+                                        <tr>
                                             <th>Nota Dinas</th>
-                                            <td class="info-text">
+                                            <td class="wrap-text-td-70 ">
                                                 <a href="{{ isset($selectedRancangan->nota_dinas_pd) ? asset('storage/' . $selectedRancangan->nota_dinas_pd) : '#' }}"
                                                     target="_blank" class="d-flex align-items-center">
                                                     <i class="bi bi-file-earmark-text mr-2"
@@ -283,7 +297,7 @@
                                         </tr>
                                         <tr>
                                             <th>File Rancangan</th>
-                                            <td class="info-text">
+                                            <td class="wrap-text-td-70 ">
                                                 <a href="{{ isset($selectedRancangan->rancangan) ? asset('storage/' . $selectedRancangan->rancangan) : '#' }}"
                                                     target="_blank" class="d-flex align-items-center">
                                                     <i class="bi bi-file-earmark-text mr-2"
@@ -294,7 +308,7 @@
                                         </tr>
                                         <tr>
                                             <th>Matrik</th>
-                                            <td class="info-text">
+                                            <td class="wrap-text-td-70 ">
                                                 <a href="{{ isset($selectedRancangan->matrik) ? asset('storage/' . $selectedRancangan->matrik) : '#' }}"
                                                     target="_blank" class="d-flex align-items-center">
                                                     <i class="bi bi-file-earmark-spreadsheet mr-2"
@@ -305,7 +319,7 @@
                                         </tr>
                                         <tr>
                                             <th>Bahan Pendukung</th>
-                                            <td class="info-text">
+                                            <td class="wrap-text-td-70 ">
                                                 <a href="{{ isset($selectedRancangan->bahan_pendukung) ? asset('storage/' . $selectedRancangan->bahan_pendukung) : '#' }}"
                                                     target="_blank" class="d-flex align-items-center">
                                                     <i class="bi bi-file-earmark-pdf mr-2"
@@ -317,7 +331,7 @@
 
                                         <tr>
                                             <th>Catatan Berkas</th>
-                                            <td class="info-text">
+                                            <td class="wrap-text-td-70 ">
                                                 {{ $selectedRancangan->catatan_berkas ?? 'Tidak Ada Catatan' }}</td>
                                         </tr>
                                     </tbody>
@@ -337,7 +351,7 @@
                                             <tbody>
                                                 <tr>
                                                     <th>Status Revisi</th>
-                                                    <td class="info-text">
+                                                    <td class="wrap-text-td-70 ">
                                                         <mark
                                                             class="badge-{{ $revisi->status_revisi === 'Direvisi' ? 'success' : ($revisi->status_revisi === 'Menunggu Revisi' ? 'warning' : 'danger') }} badge-pill">
                                                             {{ $revisi->status_revisi }}
@@ -346,20 +360,28 @@
                                                 </tr>
                                                 <tr>
                                                     <th>Tanggal Revisi</th>
-                                                    <td class="info-text">
+                                                    <td class="wrap-text-td-70 ">
                                                         {{ $revisi->tanggal_revisi ? \Carbon\Carbon::parse($revisi->tanggal_revisi)->translatedFormat('d F Y') : 'N/A' }}
                                                     </td>
                                                 </tr>
 
                                                 <tr>
                                                     <th>Peneliti</th>
-                                                    <td class="info-text">
+                                                    <td class="wrap-text-td-70 ">
                                                         {{ $revisi->peneliti->nama_user ?? 'Belum Ditentukan' }}
                                                     </td>
                                                 </tr>
+                                                <th>
+                                                    Tanggal Peneliti Ditunjuk
+                                                </th>
+                                                <td>
+                                                    {{ $revisi->tanggal_peneliti_ditunjuk
+                                                        ? \Carbon\Carbon::parse($revisi->tanggal_peneliti_ditunjuk)->translatedFormat('d F Y H:i')
+                                                        : 'N/A' }}
+                                                </td>
                                                 <tr>
                                                     <th>Revisi Rancangan</th>
-                                                    <td class="info-text">
+                                                    <td class="wrap-text-td-70 ">
                                                         <a href="{{ asset('storage/' . $revisi->revisi_rancangan) }}"
                                                             target="_blank" class="d-flex align-items-center">
                                                             <i class="bi bi-file-earmark-text mr-2"
@@ -370,7 +392,7 @@
                                                 </tr>
                                                 <tr>
                                                     <th>Revisi Matrik</th>
-                                                    <td class="info-text">
+                                                    <td class="wrap-text-td-70 ">
                                                         <a href="{{ asset('storage/' . $revisi->revisi_matrik) }}"
                                                             target="_blank" class="d-flex align-items-center">
                                                             <i class="bi bi-file-earmark-spreadsheet mr-2"
@@ -382,7 +404,7 @@
 
                                                 <tr>
                                                     <th>Catatan Revisi</th>
-                                                    <td class="info-text">
+                                                    <td class="wrap-text-td-70 ">
                                                         {{ $revisi->catatan_revisi ?? 'Tidak Ada Catatan' }}</td>
                                                 </tr>
                                             </tbody>

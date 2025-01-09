@@ -14,12 +14,14 @@ class Revisi extends Model
 
     protected $fillable = [
         'id_rancangan',
-        'id_user',
         'revisi_rancangan',
         'revisi_matrik',
         'catatan_revisi',
+        'id_user',
         'status_revisi',
+        'tanggal_peneliti_ditunjuk',
         'tanggal_revisi',
+
     ];
 
     // Relasi ke User (Peneliti)

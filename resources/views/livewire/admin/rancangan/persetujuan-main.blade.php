@@ -27,8 +27,12 @@
     {{-- Header --}}
     <div class="card-header d-flex justify-content-between align-items-center">
         <div>
-            <h3 class="mb-0">Daftar Berkas untuk Verifikasi</h3>
-            <small>Gunakan tab di bawah ini untuk memantau status berkas dan melakukan tindakan persetujuan.</small>
+            <h3 class="mb-2">Daftar Berkas untuk Verifikasi</h3>
+            <p class="description"><strong>Menunggu Persetujuan</strong>,
+                Menampilkan daftar rancangan yang masihdalam proses verifikasi.
+                Anda dapat memeriksa berkas dan memberikan persetujuan atau penolakan. <strong>Riwayat
+                    Persetujuan</strong>,
+                Menampilkan riwayat rancangan yang sudah diproses, baik yang telah disetujui</p>
         </div>
     </div>
 
@@ -47,22 +51,6 @@
                     wire:click.prevent="set('activeTab','riwayat')">
                     <i class="ni ni-check-bold mr-2"></i>Riwayat Persetujuan
                 </a>
-            </li>
-        </ul>
-
-        <ul class="info-text mt-3">
-            <li>
-                <p class="description">
-                    <strong>Menunggu Persetujuan:</strong>
-                    Menampilkan daftar rancangan yang masihdalam proses verifikasi.
-                    Anda dapat memeriksa berkas dan memberikan persetujuan atau penolakan.
-                </p>
-            </li>
-            <li>
-                <p class="description mt--2">
-                    <strong>Riwayat Persetujuan:</strong>
-                    Menampilkan riwayat rancangan yang sudah diproses, baik yang telah disetujui
-                </p>
             </li>
         </ul>
 

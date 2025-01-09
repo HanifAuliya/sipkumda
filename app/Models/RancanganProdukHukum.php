@@ -23,6 +23,7 @@ class RancanganProdukHukum extends Model
         'matrik',
         'bahan_pendukung',
         'tanggal_pengajuan',
+        'tanggal_berkas_disetujui',
         'id_user',
         'status_berkas',
         'status_rancangan',

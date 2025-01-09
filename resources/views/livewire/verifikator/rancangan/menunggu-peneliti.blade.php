@@ -307,7 +307,7 @@
                                             Anda dapat mengunduh file untuk memverifikasinya.</p>
                                         <table class="table table-sm table-borderless">
                                             <tbody>
-                                                @foreach ($item->revisi as $revisi)
+                                                @foreach ($selectedRancangan->revisi as $revisi)
                                                     <tr>
                                                         <th>Status Revisi</th>
                                                         <td class="info-text">

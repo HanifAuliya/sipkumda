@@ -19,7 +19,15 @@ class UpdatePassword extends Component
             // Validasi input
             $this->validate([
                 'current_password' => ['required', 'current_password'], // Password lama harus sesuai
-                'password' => ['required', Password::defaults(), 'confirmed'], // Password baru harus valid
+                'password' => [
+                    'required',                     // Password harus diisi
+                    'confirmed',                    // Harus sesuai dengan password_confirmation
+                    Password::defaults(),     // Validasi password bawaan Laravel
+                    'min:8',                        // Minimal panjang 8 karakter
+                    'regex:/[A-Za-z]/',             // Harus mengandung huruf
+                    'regex:/[0-9]/',                // Harus mengandung angka
+                    'regex:/[@$!%*?&#]/',           // Harus mengandung karakter spesial
+                ], // Password baru harus valid
             ]);
 
             // Perbarui password pengguna

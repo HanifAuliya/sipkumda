@@ -62,6 +62,8 @@ class PersetujuanRiwayat extends Component
             // Emit notifikasi sukses ke pengguna
             $this->dispatch('refreshNotifications');
 
+            $this->reset();
+
             // SweetAlert sukses
             $this->dispatch('swal:modal', [
                 'type' => 'info',

@@ -175,10 +175,12 @@
                             wire:click="resetForm">
                             Batal
                         </button>
-                        <button class="btn btn-outline-default" wire:click="submit" wire:loading.attr="disabled"
+                        <button class="btn btn-outline-default" type="submit" wire:loading.attr="disabled"
                             wire:target="submit">
                             <span wire:loading.remove wire:target="submit">Ajukan</span>
-                            <span wire:loading wire:target="submit">Tunggu Sebentar Lagi Memproses...</span>
+                            <span wire:loading wire:target="submit">
+                                <i class="spinner-border spinner-border-sm"></i> Tunggu Sebentar Lagi Memproses...
+                            </span>
                         </button>
                     </div>
                 </form>

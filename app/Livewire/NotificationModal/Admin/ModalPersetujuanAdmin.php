@@ -70,7 +70,6 @@ class ModalPersetujuanAdmin extends Component
 
             $this->dispatch('swal:modalPersetujuan', [
                 'type' => 'success',
-                'title' => 'Berhasil!',
                 'message' => "Rancangan berhasil di {$this->statusBerkas}!",
             ]);
         }
@@ -104,10 +103,16 @@ class ModalPersetujuanAdmin extends Component
 
             $this->dispatch('swal:modalPersetujuan', [
                 'type' => 'info',
-                'title' => 'Reset Berhasil!',
                 'message' => 'Status rancangan dikembalikan ke Menunggu Persetujuan.',
             ]);
         }
+    }
+
+    public function resetForm()
+    { // Atur ulang semua properti ke nilai default
+
+        $this->resetErrorBag(); // Reset error validasi
+        $this->resetValidation(); // Reset tampilan error validasi
     }
 
     public function render()
