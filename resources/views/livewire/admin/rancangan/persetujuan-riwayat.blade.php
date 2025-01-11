@@ -79,20 +79,25 @@
                         <div class="btn-group">
                             <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown"
                                 aria-expanded="false">
-                                Aksi
+                                <i class="bi bi-list"></i> Pilihan Aksi
                             </button>
-                            <div class="dropdown-menu dropdown-menu-right">
-                                <a class="dropdown-item" href="#"
+                            <div class="dropdown-menu dropdown-menu-right shadow">
+                                {{-- Lihat Detail --}}
+                                <a class="dropdown-item d-flex align-items-center" href="#"
                                     wire:click.prevent="openModal({{ $item->id_rancangan }})">
-                                    Lihat Detail
+                                    <i class="bi bi-eye mr-2 text-default"></i>
+                                    <span>Lihat Detail</span>
                                 </a>
-                                <a class="dropdown-item text-danger" href="#" data-toggle="modal"
-                                    data-target="#resetStatusModal"
+                                {{-- Reset Status --}}
+                                <a class="dropdown-item d-flex align-items-center text-danger" href="#"
+                                    data-toggle="modal" data-target="#resetStatusModal"
                                     wire:click="setSelectedRancangan({{ $item->id_rancangan }})">
-                                    Reset Status
+                                    <i class="bi bi-arrow-counterclockwise mr-2"></i>
+                                    <span>Reset Status</span>
                                 </a>
                             </div>
                         </div>
+
                     </div>
                 </div>
 
@@ -282,32 +287,43 @@
         </div>
     </div>
 
-    <!-- Modal Konfirmasi Reset Status -->
+    {{-- Modal Konfirmasi Reset Status --}}
     <div wire:ignore.self class="modal fade" id="resetStatusModal" tabindex="-1" role="dialog"
         aria-labelledby="resetStatusModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
+                {{-- Header --}}
                 <div class="modal-header">
-                    <h5 class="modal-title" id="resetStatusModalLabel">Konfirmasi Reset Status</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <h5 class="modal-title d-flex align-items-center" id="resetStatusModalLabel">
+                        <i class="bi bi-exclamation-triangle-fill mr-2"></i> Konfirmasi Reset Status
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body">
-                    Apakah Anda yakin ingin mereset status rancangan ini ke "Menunggu Persetujuan"?
+
+                {{-- Body --}}
+                <div class="modal-body text-center">
+                    <p class="mb-3 text-muted">
+                        Apakah Anda yakin ingin mereset status rancangan ini ke <strong>"Menunggu Persetujuan"</strong>?
+                    </p>
+                    <i class="bi bi-arrow-counterclockwise text-danger" style="font-size: 3rem;"></i>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                    <button type="button" class="btn btn-danger" wire:click="confirmResetStatus"
-                        wire:loading.attr="disabled" data-dismiss="modal">
+
+                {{-- Footer --}}
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-secondary d-flex align-items-center" data-dismiss="modal">
+                        <i class="bi bi-x-circle mr-2"></i> Batal
+                    </button>
+                    <button type="button" class="btn btn-danger d-flex align-items-center"
+                        wire:click="confirmResetStatus" wire:loading.attr="disabled" data-dismiss="modal">
                         <span wire:loading.remove wire:target="confirmResetStatus">
-                            <i class="bi bi-arrow-counterclockwise"></i> Reset Status
+                            <i class="bi bi-check-circle mr-2"></i> Reset Status
                         </span>
                         <span wire:loading wire:target="confirmResetStatus">
-                            <i class="spinner-border spinner-border-sm"></i> Memproses...
+                            <i class="spinner-border spinner-border-sm mr-2"></i> Memproses...
                         </span>
                     </button>
-
                 </div>
             </div>
         </div>

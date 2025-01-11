@@ -17,10 +17,13 @@ class Revisi extends Model
         'revisi_rancangan',
         'revisi_matrik',
         'catatan_revisi',
+        'catatan_validasi',
         'id_user',
         'status_revisi',
+        'status_validasi',
         'tanggal_peneliti_ditunjuk',
         'tanggal_revisi',
+        'tanggal_validasi',
 
     ];
 

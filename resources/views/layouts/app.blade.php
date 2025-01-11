@@ -49,6 +49,8 @@
 
 <body>
     {{-- Loading Screen --}}
+
+    <!--
     <div class="loading-screen" id="loading-screen" style="{{ session('loading', true) ? '' : 'display:none;' }}">
         <div class="loading-content">
             {{-- Logo and SIPKUMDA Text in Row --}}
@@ -64,6 +66,7 @@
             </p>
         </div>
     </div>
+-->
 
     {{-- Sidebar --}}
     @include('layouts.partials.sidebar')
@@ -80,15 +83,15 @@
             <div class="container-fluid">
                 <div class="header-body">
                     <div class="row align-items-center py-4">
-                        <div class="col-lg-6 col-7">
+                        <div class="col-lg-12">
                             <h6 class="h2 d-inline-block mb-0">
-                                @yield('header', 'Default Header') <!-- Placeholder untuk judul -->
+                                @yield('header') <!-- Placeholder untuk judul -->
                             </h6>
-                            @yield('breadcrumb') <!-- Placeholder untuk breadcrumb -->
+                            @yield('manual') <!-- Placeholder untuk breadcrumb -->
                         </div>
-                        <div class="col-lg-6 col-5 text-right">
+                        {{-- <div class="col-lg-6 col-5 text-right">
                             @yield('actions') <!-- Placeholder untuk tombol aksi -->
-                        </div>
+                        </div> --}}
                     </div>
                 </div>
             </div>

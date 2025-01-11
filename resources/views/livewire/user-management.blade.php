@@ -120,7 +120,7 @@
                                     </th>
                                     <th>Perangkat Daerah</th>
                                     <th>
-                                        Role
+                                        Role User Sebagai
                                     </th>
                                     <th>Aksi</th>
                                 </tr>
@@ -129,10 +129,10 @@
                                 @forelse ($users as $index => $user)
                                     <tr>
                                         <td>{{ $users->firstItem() + $index }}</td>
-                                        <td class="wrap-text">{{ $user->nama_user }}</td>
+                                        <td class="wrap-text-td-50">{{ $user->nama_user }}</td>
                                         <td>{{ $user->NIP }}</td>
                                         <td class="still-text">{{ $user->email }}</td>
-                                        <td class="wrap-text">
+                                        <td class="wrap-text-td-50">
                                             {{ $user->perangkatDaerah->nama_perangkat_daerah ?? 'N/A' }}</td>
                                         <td class="wrap-text">{{ $user->getRoleNames()->implode(', ') }}</td>
                                         <td>

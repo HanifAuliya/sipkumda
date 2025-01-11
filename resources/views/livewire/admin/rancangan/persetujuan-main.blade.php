@@ -28,11 +28,6 @@
     <div class="card-header d-flex justify-content-between align-items-center">
         <div>
             <h3 class="mb-2">Daftar Berkas untuk Verifikasi</h3>
-            <p class="description"><strong>Menunggu Persetujuan</strong>,
-                Menampilkan daftar rancangan yang masihdalam proses verifikasi.
-                Anda dapat memeriksa berkas dan memberikan persetujuan atau penolakan. <strong>Riwayat
-                    Persetujuan</strong>,
-                Menampilkan riwayat rancangan yang sudah diproses, baik yang telah disetujui</p>
         </div>
     </div>
 
@@ -43,13 +38,19 @@
             <li class="nav-item">
                 <a href="#" class="nav-link {{ $activeTab === 'menunggu' ? 'active' : '' }}"
                     wire:click.prevent="set('activeTab','menunggu')">
-                    <i class="ni ni-send mr-2"></i>Menunggu Persetujuan
+                    <i class="ni ni-send mr-2"></i>Berkas Menunggu Persetujuan
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link {{ $activeTab === 'ditolak' ? 'active' : '' }}"
+                    wire:click.prevent="set('activeTab','ditolak')">
+                    <i class="ni ni-fat-remove mr-2"></i>Berkas Rancangan Ditolak
                 </a>
             </li>
             <li class="nav-item">
                 <a href="#" class="nav-link {{ $activeTab === 'riwayat' ? 'active' : '' }}"
                     wire:click.prevent="set('activeTab','riwayat')">
-                    <i class="ni ni-check-bold mr-2"></i>Riwayat Persetujuan
+                    <i class="ni ni-check-bold mr-2"></i>Berkas Rancangan Disetujui
                 </a>
             </li>
         </ul>
@@ -58,6 +59,8 @@
         <div class="tab-content mt-3">
             @if ($activeTab === 'menunggu')
                 @livewire('admin.rancangan.persetujuan-menunggu')
+            @elseif ($activeTab === 'ditolak')
+                @livewire('admin.rancangan.persetujuan-ditolak')
             @elseif ($activeTab === 'riwayat')
                 @livewire('admin.rancangan.persetujuan-riwayat')
             @endif

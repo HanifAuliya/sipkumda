@@ -20,18 +20,23 @@ class RancanganProdukHukumFactory extends Factory
     public function definition(): array
     {
         return [
-            'tentang' => $this->faker->sentence(),
-            'jenis_rancangan' => $this->faker->randomElement(['Peraturan Bupati', 'Surat Keputusan']), // Jenis rancangan
-            'nota_dinas_pd' => $this->faker->word() . '.pdf',
-            'rancangan' => $this->faker->word() . '.docx',
-            'matrik' => $this->faker->word() . '.xlsx',
-            'bahan_pendukung' => $this->faker->word() . '.zip',
-            'tanggal_pengajuan' => $this->faker->date(),
-            'id_user' => \App\Models\User::factory(), // User ID
-            'status_berkas' => $this->faker->randomElement(['Disetujui', 'Ditolak', 'Menunggu Persetujuan']),
-            'status_rancangan' => $this->faker->randomElement(['Disetujui', 'Ditolak', 'Dalam Proses']),
-            'catatan_berkas' => $this->faker->paragraph(),
             'slug' => Str::uuid(), // Generate UUID sebagai slug
+            'no_rancangan' => $this->faker->unique()->numerify('RANC-#####'), // Nomor rancangan unik
+            'jenis_rancangan' => $this->faker->randomElement(['Peraturan Bupati', 'Surat Keputusan']), // Jenis rancangan
+            'tentang' => $this->faker->sentence(), // Deskripsi tentang rancangan
+            'nota_dinas_pd' => $this->faker->word() . '.pdf', // File Nota Dinas
+            'rancangan' => $this->faker->word() . '.docx', // File Rancangan
+            'matrik' => $this->faker->word() . '.xlsx', // File Matrik
+            'bahan_pendukung' => $this->faker->word() . '.zip', // File Bahan Pendukung
+            'tanggal_pengajuan' => $this->faker->dateTimeBetween('-1 year', 'now'), // Tanggal pengajuan dalam 1 tahun terakhir
+            'id_user' => User::factory(), // ID User, relasi dengan User
+            'status_berkas' => $this->faker->randomElement(['Disetujui', 'Ditolak', 'Menunggu Persetujuan']), // Status berkas
+            'status_rancangan' => $this->faker->randomElement(['Disetujui', 'Ditolak', 'Dalam Proses']), // Status rancangan
+            'catatan_berkas' => $this->faker->paragraph(), // Catatan Berkas
+            'tanggal_berkas_disetujui' => $this->faker->optional()->dateTimeBetween('-6 months', 'now'), // Opsional tanggal disetujui
+            'tanggal_rancangan_disetujui' => $this->faker->optional()->dateTimeBetween('-3 months', 'now'), // Opsional tanggal peneliti dipilih
+            'created_at' => now(), // Tanggal dibuat
+            'updated_at' => now(), // Tanggal diperbarui
         ];
     }
 }

@@ -25,7 +25,7 @@ class PersetujuanMenunggu extends Component
 
     protected $rules = [
         'statusBerkas' => 'required|in:Disetujui,Ditolak',
-        'catatan' => 'required|string|min:5|max:255',
+        'catatan' => 'required|string|min:5',
     ];
 
     protected $messages = [
@@ -92,40 +92,41 @@ class PersetujuanMenunggu extends Component
         }
     }
 
-    public function resetStatus()
-    {
-        if ($this->selectedRancangan) {
-            $this->selectedRancangan->update([
-                'status_berkas' => 'Menunggu Persetujuan',
-                'catatan_berkas' => null,
-                'tanggal_berkas_disetujui' => null, // Reset tanggal jika status direset
-            ]);
+    // public function resetStatus()
+    // {
+    //     if ($this->selectedRancangan) {
+    //         $this->selectedRancangan->update([
+    //             'status_berkas' => 'Menunggu Persetujuan',
+    //             'catatan_berkas' => null,
+    //             'tanggal_berkas_disetujui' => null, // Reset tanggal jika status direset
+    //         ]);
 
-            $this->statusBerkas = 'Menunggu Persetujuan';
-            $this->catatan = '';
+    //         $this->statusBerkas = 'Menunggu Persetujuan';
+    //         $this->catatan = '';
 
-            // Kirim notifikasi ke user
-            Notification::send(
-                $this->selectedRancangan->user, // User yang mengajukan rancangan
-                new PersetujuanRancanganNotification([
-                    'title' => "Rancangan Anda {$this->statusBerkas}",
-                    'message' => "Rancangan Anda dengan nomor {$this->selectedRancangan->no_rancangan} telah {$this->statusBerkas}.",
-                    'slug' => $this->selectedRancangan->slug, // Slug untuk memuat modal detail
-                    'type' => 'persetujuan_menunggu', // Tipe notifikasi
-                    // 'url' => route('user.rancangan.detail', $this->rancangan->id), // URL detail rancangan
-                ])
-            );
+    //         // Kirim notifikasi ke user
+    //         Notification::send(
+    //             $this->selectedRancangan->user, // User yang mengajukan rancangan
+    //             new PersetujuanRancanganNotification([
+    //                 'title' => "Rancangan Anda {$this->statusBerkas}",
+    //                 'message' => "Rancangan Anda dengan nomor {$this->selectedRancangan->no_rancangan} telah {$this->statusBerkas}.",
+    //                 'slug' => $this->selectedRancangan->slug, // Slug untuk memuat modal detail
+    //                 'type' => 'persetujuan_menunggu', // Tipe notifikasi
+    //                 // 'url' => route('user.rancangan.detail', $this->rancangan->id), // URL detail rancangan
+    //             ])
+    //         );
 
-            // Emit notifikasi sukses ke pengguna
-            $this->dispatch('refreshNotifications');
+    //         // Emit notifikasi sukses ke pengguna
+    //         $this->dispatch('refreshNotifications');
 
-            $this->dispatch('swal:modal', [
-                'type' => 'info',
-                'title' => 'Reset Berhasil!',
-                'message' => 'Status rancangan telah direset ke Menunggu Persetujuan.',
-            ]);
-        }
-    }
+    //         $this->dispatch('swal:modal', [
+    //             'type' => 'info',
+    //             'title' => 'Reset Berhasil!',
+    //             'message' => 'Status rancangan telah direset ke Menunggu Persetujuan.',
+    //         ]);
+    //     }
+    // }
+
     public function resetForm()
     { // Atur ulang semua properti ke nilai default
 
@@ -135,7 +136,7 @@ class PersetujuanMenunggu extends Component
     public function render()
     {
         $rancanganMenunggu = RancanganProdukHukum::with(['user', 'perangkatDaerah'])
-            ->whereIn('status_berkas', ['Menunggu Persetujuan', 'Ditolak'])
+            ->whereIn('status_berkas', ['Menunggu Persetujuan'])
             ->where(function ($query) {
                 $query->where('no_rancangan', 'like', "%{$this->search}%")
                     ->orWhere('tentang', 'like', "%{$this->search}%");

@@ -25,11 +25,10 @@
             </div>
         </div>
     </div>
-
     {{-- Daftar Rancangan --}}
     <div class="list-group">
-        @forelse ($rancanganMenunggu as $item)
-            <div class="list-group-item d-flex justify-content-between align-items-center">
+        @forelse ($berkasRancanganDitolak as $item)
+            <div class="list-group-item d-flex justify-content-between bg-light align-items-center">
                 {{-- Informasi Utama --}}
                 <div class="d-flex flex-column">
                     <h4 class="mb-1 font-weight-bold">{{ $item->no_rancangan }}</h4>
@@ -44,6 +43,12 @@
                     <p class="info-text small mb-0">
                         <i class="bi bi-calendar"></i> Tanggal Pengajuan:
                         {{ \Carbon\Carbon::parse($item->tanggal_pengajuan)->translatedFormat('d F Y') }}
+                    </p>
+                    <p class="info-text small mb-0">
+                        <i class="bi bi-calendar"></i> Tanggal Berkas Disetujui:
+                        {{ $item->tanggal_berkas_disetujui
+                            ? \Carbon\Carbon::parse($item->tanggal_berkas_disetujui)->translatedFormat('d F Y')
+                            : 'N/A' }}
                     </p>
                     <p class="mb-0 info-text small">
                         <i class="bi bi-houses"></i>
@@ -66,42 +71,56 @@
                     </h4>
 
                     <p class="info-text mb-1 small">
-                        Pengajuan Rancangan Tahun {{ \Carbon\Carbon::parse($item->tanggal_pengajuan)->year }}
+                        Pengajuan Rancangan Tahun {{ now()->year }}
                     </p>
-
                     <div class="mt-2">
+
                         {{-- Tombol Tindakan --}}
-                        <button class="btn btn-secondary" wire:click="openModal({{ $item->id_rancangan }})">
-                            Verifikasi Berkas <i class="bi bi-question-circle"></i>
-                        </button>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown"
+                                aria-expanded="false">
+                                <i class="bi bi-list"></i> Pilihan Aksi
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-right shadow">
+                                {{-- Lihat Detail --}}
+                                <a class="dropdown-item d-flex align-items-center" href="#"
+                                    wire:click.prevent="openModal({{ $item->id_rancangan }})">
+                                    <i class="bi bi-eye mr-2 text-default"></i>
+                                    <span>Lihat Detail</span>
+                                </a>
+                                {{-- Reset Status --}}
+                                <a class="dropdown-item d-flex align-items-center text-danger" href="#"
+                                    data-toggle="modal" data-target="#resetStatusModal"
+                                    wire:click="setSelectedRancangan({{ $item->id_rancangan }})">
+                                    <i class="bi bi-arrow-counterclockwise mr-2"></i>
+                                    <span>Reset Status</span>
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
+
             </div>
         @empty
             <div class="list-group-item text-center info-text">
-                Tidak ada rancangan yang ditemukan.
+                Tidak ada rancangan dalam riwayat.
             </div>
         @endforelse
     </div>
 
-
+    {{-- Pagination --}}
     <div class="d-flex justify-content-center mt-3">
-        {{ $rancanganMenunggu->links('pagination::bootstrap-4') }}
+        {{ $berkasRancanganDitolak->links('pagination::bootstrap-4') }}
     </div>
 
-    {{--  Modal Tindakan  --}}
+    {{-- Modal Detail Persetujuan --}}
     <div wire:ignore.self class="modal fade" id="modalPersetujuan" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-xl" role="document">
             <div class="modal-content">
                 {{--  Header Modal  --}}
-                <div class="modal-header flex-column align-items-start" style="border-bottom: 2px solid #dee2e6;">
-                    <h4 class="modal-title w-100 mb-2">Persetujuan Rancangan</h4>
-                    <p class="description mb-0 w-100 info-text">
-                        Silakan cek informasi rancangan di bawah ini, termasuk file yang diajukan, lalu pilih status
-                        persetujuan.
-                    </p>
-                    <button type="button" class="close position-absolute" style="top: 10px; right: 10px;"
-                        data-dismiss="modal" aria-label="Close">
+                <div class="modal-header">
+                    <h5 class="modal-title">Detail Rancangan</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -117,7 +136,7 @@
                                         <h4 class="mb-0">Informasi Utama</h4>
                                     </div>
                                     <div class="card-body">
-                                        <p class="description">Berikut adalah informasi dasar dari rancangan yang
+                                        <p class="info-text mb-3">Berikut adalah informasi dasar dari rancangan yang
                                             diajukan. Pastikan semua informasi sudah sesuai.</p>
                                         <table class="table table-sm table-borderless">
                                             <tbody>
@@ -174,7 +193,7 @@
                                         <h4 class="mb-0">File Persetujuan</h4>
                                     </div>
                                     <div class="card-body">
-                                        <p class="description">Pastikan file yang diajukan sudah lengkap dan sesuai.
+                                        <p class="info-text mb-3">Pastikan file yang diajukan sudah lengkap dan sesuai.
                                             Anda dapat mengunduh file untuk memverifikasinya.</p>
                                         <table class="table table-sm table-borderless">
                                             <tbody>
@@ -247,70 +266,6 @@
                                 </div>
                             </div>
                         </div>
-
-                        {{--  Verifikasi Persetujuan  --}}
-                        <div class="card shadow-sm">
-                            <div class="alert alert-warning mb-0" role="alert"
-                                style="flex: 1; text-align: center;">
-                                <strong> Berkas Rancangan {{ $selectedRancangan->status_berkas }}!</strong>
-                                Periksa dan Lakuka Verifikasi
-                            </div>
-                            {{-- Persetujuan --}}
-                            <div class="card-body">
-                                {{-- Informasi --}}
-                                <p class="description info-text mb-3 text-muted">
-                                    Pilih status persetujuan untuk rancangan ini. Tambahkan catatan
-                                    untuk memberikan masukan atau alasan penolakan.
-                                </p>
-
-                                {{-- Pilihan Persetujuan Berkas --}}
-                                <div class="form-group">
-                                    <label class="font-weight-bold form-control-label">
-                                        Pilih Persetujuan Berkas dibawah ini:
-                                    </label>
-
-                                    <div class="w-auto" style="max-width: 300px;">
-                                        {{-- Batasi lebar dropdown --}}
-                                        <select id="statusBerkasSelect" name="statusBerkas" class="form-control"
-                                            wire:model="statusBerkas">
-                                            <option hidden>Pilih Status</option>
-                                            <option value="Disetujui">Disetujui</option>
-                                            <option value="Ditolak">Ditolak</option>
-                                        </select>
-                                    </div>
-                                    @error('statusBerkas')
-                                        <span class="text-danger">{{ $message }}</span>
-                                    @enderror
-                                </div>
-
-                                {{-- Catatan --}}
-                                <div class="form-group">
-                                    <label class="font-weight-bold form-control-label">Tambahkan Catatan <small
-                                            class="text-danger"> wajib</small></label>
-                                    <textarea wire:model.defer="catatan" class="form-control mb-3" rows="3" placeholder="Tambahkan catatan..."></textarea>
-                                    @error('catatan')
-                                        <span class="text-danger mt-2 d-block">{{ $message }}</span>
-                                    @enderror
-                                </div>
-
-                                {{-- Tombol --}}
-                                <div class="d-flex justify-content-end">
-                                    {{-- Tombol Tutup --}}
-                                    <button type="button" class="btn btn-secondary mr-3" data-dismiss="modal"
-                                        wire:click="resetForm">
-                                        <i class="bi bi-x-lg"></i> Tutup
-                                    </button>
-                                    {{-- Tombol Verifikasi --}}
-                                    <button class="btn btn-success" wire:click="updateStatus"
-                                        wire:loading.attr="disabled">
-                                        <span wire:loading.remove><i class="bi bi-check-circle"></i> Verifikasi
-                                            Rancangan</span>
-                                        <span wire:loading><i class="bi bi-hourglass-split"></i>
-                                            Memproses...</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
                     @else
                         <div class="d-flex justify-content-center align-items-start"
                             style="min-height: 200px; padding-top: 50px;">
@@ -323,26 +278,68 @@
                         </div>
                     @endif
                 </div>
+                {{-- Footer Modal --}}
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+                </div>
             </div>
         </div>
     </div>
 
-    {{--  Script  --}}
+    {{-- Modal Konfirmasi Reset Status --}}
+    <div wire:ignore.self class="modal fade" id="resetStatusModal" tabindex="-1" role="dialog"
+        aria-labelledby="resetStatusModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                {{-- Header --}}
+                <div class="modal-header">
+                    <h5 class="modal-title d-flex align-items-center" id="resetStatusModalLabel">
+                        <i class="bi bi-exclamation-triangle-fill mr-2"></i> Konfirmasi Reset Status
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                {{-- Body --}}
+                <div class="modal-body text-center">
+                    <p class="mb-3 text-muted">
+                        Apakah Anda yakin ingin mereset status rancangan ini ke <strong>"Menunggu Persetujuan"</strong>?
+                    </p>
+                    <i class="bi bi-arrow-counterclockwise text-danger" style="font-size: 3rem;"></i>
+                </div>
+
+                {{-- Footer --}}
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-secondary d-flex align-items-center" data-dismiss="modal">
+                        <i class="bi bi-x-circle mr-2"></i> Batal
+                    </button>
+                    <button type="button" class="btn btn-danger d-flex align-items-center"
+                        wire:click="confirmResetStatus" wire:loading.attr="disabled" data-dismiss="modal">
+                        <span wire:loading.remove wire:target="confirmResetStatus">
+                            <i class="bi bi-check-circle mr-2"></i> Reset Status
+                        </span>
+                        <span wire:loading wire:target="confirmResetStatus">
+                            <i class="spinner-border spinner-border-sm mr-2"></i> Memproses...
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    {{-- Script --}}
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Membuka Modal
             window.Livewire.on('openModalPersetujuan', () => {
                 $('#modalPersetujuan').modal('show');
             });
-            // Menmutup Modal
-            window.Livewire.on('closeModalPersetujuan', () => {
-                $('#modalPersetujuan').modal('hide');
-            });
-            // Sweeet Alert 2
-            window.addEventListener('swal:modal', function(event) {
 
+            window.addEventListener('swal:modal', function(event) {
                 const data = event.detail[0];
 
+                $('#resetStatusModal').modal('hide');
                 Swal.fire({
                     icon: data.type || 'info',
                     title: data.title || 'Informasi',
@@ -350,7 +347,6 @@
                     showConfirmButton: true,
                 });
             });
-
         });
     </script>
 </div>

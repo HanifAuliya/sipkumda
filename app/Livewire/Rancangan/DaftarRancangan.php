@@ -5,6 +5,7 @@ namespace App\Livewire\Rancangan;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\RancanganProdukHukum;
+use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Gate;
 
@@ -19,6 +20,9 @@ class DaftarRancangan extends Component
     public $sortDirection = 'asc';
     public $selectedRancangan;
 
+    public $isAdmin = false; // Menandai apakah user adalah Admin
+    public $isVerifier = false; // Menandai apakah user adalah Verifikator
+
     protected $queryString = [
         'search' => ['except' => ''],
         'jenisFilter' => ['except' => ''],
@@ -29,8 +33,8 @@ class DaftarRancangan extends Component
 
     public function mount()
     {
-        // Pastikan Carbon menggunakan bahasa Indonesia
-        Carbon::setLocale('id');
+        $this->isAdmin = Auth::user()->hasRole('Admin');
+        $this->isVerifier = Auth::user()->hasRole('Verifikator');
     }
 
     public function updatingSearch()

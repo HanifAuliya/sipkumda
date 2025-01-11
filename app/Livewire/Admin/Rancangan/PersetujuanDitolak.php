@@ -4,13 +4,13 @@ namespace App\Livewire\Admin\Rancangan;
 
 use Livewire\Component;
 use Livewire\WithPagination;
-use Livewire\WithoutUrlPagination;
 use App\Models\RancanganProdukHukum;
+use Livewire\WithoutUrlPagination;
 
 use App\Notifications\PersetujuanRancanganNotification;
 use Illuminate\Support\Facades\Notification;
 
-class PersetujuanRiwayat extends Component
+class PersetujuanDitolak extends Component
 {
     use WithPagination, WithoutUrlPagination;
 
@@ -84,14 +84,14 @@ class PersetujuanRiwayat extends Component
 
     public function render()
     {
-        $riwayatRancangan = RancanganProdukHukum::where('status_berkas', 'Disetujui')
+        $berkasRancanganDitolak = RancanganProdukHukum::where('status_berkas', 'Ditolak')
             ->where(function ($query) {
                 $query->where('no_rancangan', 'like', "%{$this->search}%")
                     ->orWhere('tentang', 'like', "%{$this->search}%");
             })
-            ->orderBy('tanggal_berkas_disetujui', 'desc') // Urutkan berdasarkan tanggal_berkas_disetujui terbaru
+            ->orderBy('tanggal_pengajuan', 'desc') // Urutkan berdasarkan tangal pengakuan
             ->paginate($this->perPage);
 
-        return view('livewire.admin.rancangan.persetujuan-riwayat', compact('riwayatRancangan'));
+        return view('livewire.admin.rancangan.persetujuan-ditolak', compact('berkasRancanganDitolak'));
     }
 }

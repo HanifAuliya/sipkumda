@@ -32,7 +32,7 @@ class ModalPersetujuanAdmin extends Component
     {
         $this->validate([
             'statusBerkas' => 'required|in:Disetujui,Ditolak',
-            'catatan' => 'required|string|min:5|max:255',
+            'catatan' => 'required|string',
         ], [
             'statusBerkas.required' => 'Status harus dipilih.',
             'catatan.required' => 'Catatan wajib diisi.',

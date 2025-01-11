@@ -65,7 +65,8 @@ class Rancanganku extends Component
         // Tambahkan status revisi ke tabel revisi
         Revisi::create([
             'id_rancangan' => $rancangan->id_rancangan, // Hubungkan ke rancangan
-            'status_revisi' => 'Belum Tahap Direvisi', // Status awal
+            'status_revisi' => 'Belum Tahap Revisi', // Status awal
+            'status_validasi' => 'Belum Tahap Validasi', // Status awal
             'catatan_revisi' => null, // Catatan awal
         ]);
 

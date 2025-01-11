@@ -1,33 +1,41 @@
-@section('header', 'Daftar Rancangan')
-@section('title', 'Rancangan')
-
-@section('breadcrumb')
-    <nav aria-label="breadcrumb" class="d-none d-md-inline-block ml-md-4">
-        <ol class="breadcrumb breadcrumb-links bg-gradient-orange">
-
-            <li class="breadcrumb-item">
-                <a href="{{ route('dashboard') }}" class="text-white">
-                    <i class="fas fa-home"></i>
-                </a>
-            </li>
-            <li class="breadcrumb-item">
-                <a href="{{ route('daftar-rancangan') }}" class="text-white">Daftar Rancangan</a>
-            </li>
-            <li class="breadcrumb-item active text-white" aria-current="page">Tables</li>
-        </ol>
-    </nav>
+@section('title', 'Daftar Pengajuan Rancangan')
+@section('manual')
+    <div class="card  mb--2">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div class="d-flex flex-column">
+                <h3 class="mb-0">Panduan Daftar Isi</h3>
+                <p class="description">
+                    © Hak Cipta Bagian Hukum Sekretariat Daerah Kabupaten Hulu
+                    Sungai Tengah.
+                </p>
+            </div>
+            @if ($isAdmin)
+                {{-- Tombol untuk Admin --}}
+                <button class="btn btn-outline-default">
+                    <i class="bi bi-info-circle"></i> Panduan
+                </button>
+            @elseif ($isVerifier)
+                {{-- Tombol untuk Verifikator --}}
+                <button class="btn btn-outline-info">
+                    <i class="bi bi-info-circle"></i> Panduan
+                </button>
+            @else
+                {{-- Tombol untuk Verifikator --}}
+                <button class="btn btn-outline-warning">
+                    <i class="bi bi-info-circle"></i> Panduan
+                </button>
+            @endif
+        </div>
+    </div>
 @endsection
 
-@section('actions')
-    <a href="#" class="btn btn-sm btn-neutral">New</a>
-    <a href="#" class="btn btn-sm btn-neutral">Filters</a>
-@endsection
+
 <div>
     <div class="row mb-1">
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="mb-0">Daftar Rancangan Produk Hukum</h3>
+                    <h3 class="mb-0">Tabel Rancangan Produk Hukum</h3>
                 </div>
                 <div class="card-body">
                     <div class="row align-items-center">
@@ -82,7 +90,7 @@
                                     <th>Jenis Rancangan </th>
                                     <th>Tanggal Pengajuan
                                     </th>
-                                    <th>Status Berkas</th>
+                                    <th>Status Persetujuan Berkas</th>
                                     <th>Status Revisi</th>
                                     <th>Aksi</th>
                                 </tr>
@@ -110,7 +118,17 @@
                                         <td class="still-text">
                                             @foreach ($rancangan->revisi as $revisi)
                                                 <mark
-                                                    class="badge-{{ $revisi->status_revisi === 'Direvisi' ? 'success' : ($revisi->status_revisi === 'Menunggu Revisi' ? 'warning' : 'danger') }} badge-pill">
+                                                    class="badge-{{ $revisi->status_revisi === 'Direvisi'
+                                                        ? 'success'
+                                                        : ($revisi->status_revisi === 'Menunggu Peneliti'
+                                                            ? 'info text-default'
+                                                            : ($revisi->status_revisi === 'Menunggu Revisi'
+                                                                ? 'warning'
+                                                                : ($revisi->status_revisi === 'Menunggu Validasi'
+                                                                    ? 'dark text-white'
+                                                                    : ($revisi->status_revisi === 'Belum Tahap Revisi'
+                                                                        ? 'danger'
+                                                                        : 'secondary')))) }} badge-pill">
                                                     {{ $revisi->status_revisi }}
                                                 </mark>
                                             @endforeach
@@ -246,6 +264,14 @@
                                                 </td>
                                             @endif
                                         </tr>
+                                        <tr>
+                                            <th>Tanggal Rancangan disetujui</th>
+                                            <td>
+                                                {{ $selectedRancangan->tanggal_rancangan_disetujui
+                                                    ? \Carbon\Carbon::parse($selectedRancangan->tanggal_rancangan_disetujui)->translatedFormat('d F Y, H:i')
+                                                    : 'N/A' }}
+                                            </td>
+                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -280,54 +306,71 @@
                                             </th>
                                             <td>
                                                 {{ $selectedRancangan->tanggal_berkas_disetujui
-                                                    ? \Carbon\Carbon::parse($selectedRancangan->tanggal_berkas_disetujui)->translatedFormat('d F Y H:i')
+                                                    ? \Carbon\Carbon::parse($selectedRancangan->tanggal_berkas_disetujui)->translatedFormat('d F Y, H:i')
                                                     : 'N/A' }}
                                             </td>
                                         </tr>
                                         <tr>
                                             <th>Nota Dinas</th>
-                                            <td class="wrap-text-td-70 ">
-                                                <a href="{{ isset($selectedRancangan->nota_dinas_pd) ? asset('storage/' . $selectedRancangan->nota_dinas_pd) : '#' }}"
-                                                    target="_blank" class="d-flex align-items-center">
-                                                    <i class="bi bi-file-earmark-text mr-2"
-                                                        style="font-size: 1.5rem; color: #ffc107;"></i>
-                                                    <span>{{ isset($selectedRancangan->nota_dinas_pd) ? 'Download Nota' : 'Tidak Ada Nota' }}</span>
-                                                </a>
+                                            <td class="wrap-text-td-70">
+                                                @if (isset($selectedRancangan->nota_dinas_pd))
+                                                    <a href="{{ asset('storage/' . $selectedRancangan->nota_dinas_pd) }}"
+                                                        target="_blank" class="d-flex align-items-center">
+                                                        <i class="bi bi-file-earmark-text mr-2"
+                                                            style="font-size: 1.5rem; color: #ffc107;"></i>
+                                                        <span>Download Nota</span>
+                                                    </a>
+                                                @else
+                                                    <span style="color: #6c757d;">Data Tidak Ada</span>
+                                                @endif
                                             </td>
                                         </tr>
                                         <tr>
                                             <th>File Rancangan</th>
-                                            <td class="wrap-text-td-70 ">
-                                                <a href="{{ isset($selectedRancangan->rancangan) ? asset('storage/' . $selectedRancangan->rancangan) : '#' }}"
-                                                    target="_blank" class="d-flex align-items-center">
-                                                    <i class="bi bi-file-earmark-text mr-2"
-                                                        style="font-size: 1.5rem; color: #007bff;"></i>
-                                                    <span>{{ isset($selectedRancangan->rancangan) ? 'Download Rancangan' : 'Tidak Ada Rancangan' }}</span>
-                                                </a>
+                                            <td class="wrap-text-td-70">
+                                                @if (isset($selectedRancangan->rancangan))
+                                                    <a href="{{ asset('storage/' . $selectedRancangan->rancangan) }}"
+                                                        target="_blank" class="d-flex align-items-center">
+                                                        <i class="bi bi-file-earmark-text mr-2"
+                                                            style="font-size: 1.5rem; color: #007bff;"></i>
+                                                        <span>Download Rancangan</span>
+                                                    </a>
+                                                @else
+                                                    <span style="color: #6c757d;">Data Tidak Ada</span>
+                                                @endif
                                             </td>
                                         </tr>
                                         <tr>
                                             <th>Matrik</th>
-                                            <td class="wrap-text-td-70 ">
-                                                <a href="{{ isset($selectedRancangan->matrik) ? asset('storage/' . $selectedRancangan->matrik) : '#' }}"
-                                                    target="_blank" class="d-flex align-items-center">
-                                                    <i class="bi bi-file-earmark-spreadsheet mr-2"
-                                                        style="font-size: 1.5rem; color: #28a745;"></i>
-                                                    <span>{{ isset($selectedRancangan->matrik) ? 'Download Matrik' : 'Tidak Ada Matrik' }}</span>
-                                                </a>
+                                            <td class="wrap-text-td-70">
+                                                @if (isset($selectedRancangan->matrik))
+                                                    <a href="{{ asset('storage/' . $selectedRancangan->matrik) }}"
+                                                        target="_blank" class="d-flex align-items-center">
+                                                        <i class="bi bi-file-earmark-spreadsheet mr-2"
+                                                            style="font-size: 1.5rem; color: #28a745;"></i>
+                                                        <span>Download Matrik</span>
+                                                    </a>
+                                                @else
+                                                    <span style="color: #6c757d;">Data Tidak Ada</span>
+                                                @endif
                                             </td>
                                         </tr>
                                         <tr>
                                             <th>Bahan Pendukung</th>
-                                            <td class="wrap-text-td-70 ">
-                                                <a href="{{ isset($selectedRancangan->bahan_pendukung) ? asset('storage/' . $selectedRancangan->bahan_pendukung) : '#' }}"
-                                                    target="_blank" class="d-flex align-items-center">
-                                                    <i class="bi bi-file-earmark-pdf mr-2"
-                                                        style="font-size: 1.5rem; color: #dc3545;"></i>
-                                                    <span>{{ isset($selectedRancangan->bahan_pendukung) ? 'Download Bahan' : 'Tidak Ada Bahan Pendukung' }}</span>
-                                                </a>
+                                            <td class="wrap-text-td-70">
+                                                @if (isset($selectedRancangan->bahan_pendukung))
+                                                    <a href="{{ asset('storage/' . $selectedRancangan->bahan_pendukung) }}"
+                                                        target="_blank" class="d-flex align-items-center">
+                                                        <i class="bi bi-file-earmark-pdf mr-2"
+                                                            style="font-size: 1.5rem; color: #dc3545;"></i>
+                                                        <span>Download Bahan</span>
+                                                    </a>
+                                                @else
+                                                    <span style="color: #6c757d;">Data Tidak Ada</span>
+                                                @endif
                                             </td>
                                         </tr>
+
 
                                         <tr>
                                             <th>Catatan Berkas</th>
@@ -353,14 +396,40 @@
                                                     <th>Status Revisi</th>
                                                     <td class="wrap-text-td-70 ">
                                                         <mark
-                                                            class="badge-{{ $revisi->status_revisi === 'Direvisi' ? 'success' : ($revisi->status_revisi === 'Menunggu Revisi' ? 'warning' : 'danger') }} badge-pill">
+                                                            class="badge-{{ $revisi->status_revisi === 'Direvisi'
+                                                                ? 'success'
+                                                                : ($revisi->status_revisi === 'Menunggu Peneliti'
+                                                                    ? 'info text-default'
+                                                                    : ($revisi->status_revisi === 'Menunggu Revisi'
+                                                                        ? 'warning'
+                                                                        : ($revisi->status_revisi === 'Menunggu Validasi'
+                                                                            ? 'dark text-white'
+                                                                            : ($revisi->status_revisi === 'Belum Tahap Revisi'
+                                                                                ? 'danger'
+                                                                                : 'secondary')))) }} badge-pill">
                                                             {{ $revisi->status_revisi }}
+                                                        </mark>
+                                                    </td>
+
+                                                </tr>
+                                                <tr>
+                                                    <th>Status Validasi Revisi</th>
+                                                    <td class="wrap-text-td-70">
+                                                        <mark
+                                                            class="badge-{{ $revisi->status_validasi === 'Diterima'
+                                                                ? 'success'
+                                                                : ($revisi->status_validasi === 'Ditolak'
+                                                                    ? 'danger'
+                                                                    : ($revisi->status_validasi === 'Belum Tahap Validasi'
+                                                                        ? 'warning'
+                                                                        : 'secondary')) }} badge-pill">
+                                                            {{ $revisi->status_validasi }}
                                                         </mark>
                                                     </td>
                                                 </tr>
                                                 <tr>
                                                     <th>Tanggal Revisi</th>
-                                                    <td class="wrap-text-td-70 ">
+                                                    <td class="wrap-text-td-70">
                                                         {{ $revisi->tanggal_revisi ? \Carbon\Carbon::parse($revisi->tanggal_revisi)->translatedFormat('d F Y') : 'N/A' }}
                                                     </td>
                                                 </tr>
@@ -381,26 +450,35 @@
                                                 </td>
                                                 <tr>
                                                     <th>Revisi Rancangan</th>
-                                                    <td class="wrap-text-td-70 ">
-                                                        <a href="{{ asset('storage/' . $revisi->revisi_rancangan) }}"
-                                                            target="_blank" class="d-flex align-items-center">
-                                                            <i class="bi bi-file-earmark-text mr-2"
-                                                                style="font-size: 1.5rem; color: #007bff;"></i>
-                                                            <span>Download Revisi</span>
-                                                        </a>
+                                                    <td class="wrap-text-td-70">
+                                                        @if (isset($revisi->revisi_rancangan))
+                                                            <a href="{{ asset('storage/' . $revisi->revisi_rancangan) }}"
+                                                                target="_blank" class="d-flex align-items-center">
+                                                                <i class="bi bi-file-earmark-text mr-2"
+                                                                    style="font-size: 1.5rem; color: #007bff;"></i>
+                                                                <span>Download Revisi</span>
+                                                            </a>
+                                                        @else
+                                                            <span style="color: #6c757d;">Data Tidak Ada</span>
+                                                        @endif
                                                     </td>
                                                 </tr>
                                                 <tr>
                                                     <th>Revisi Matrik</th>
-                                                    <td class="wrap-text-td-70 ">
-                                                        <a href="{{ asset('storage/' . $revisi->revisi_matrik) }}"
-                                                            target="_blank" class="d-flex align-items-center">
-                                                            <i class="bi bi-file-earmark-spreadsheet mr-2"
-                                                                style="font-size: 1.5rem; color: #28a745;"></i>
-                                                            <span>Download Matrik Revisi</span>
-                                                        </a>
+                                                    <td class="wrap-text-td-70">
+                                                        @if (isset($revisi->revisi_matrik))
+                                                            <a href="{{ asset('storage/' . $revisi->revisi_matrik) }}"
+                                                                target="_blank" class="d-flex align-items-center">
+                                                                <i class="bi bi-file-earmark-spreadsheet mr-2"
+                                                                    style="font-size: 1.5rem; color: #28a745;"></i>
+                                                                <span>Download Matrik Revisi</span>
+                                                            </a>
+                                                        @else
+                                                            <span style="color: #6c757d;">Data Tidak Ada</span>
+                                                        @endif
                                                     </td>
                                                 </tr>
+
 
                                                 <tr>
                                                     <th>Catatan Revisi</th>

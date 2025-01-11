@@ -43,7 +43,7 @@
                     {{-- Informasi Utama --}}
                     <div class="d-flex flex-column align-items-xs-center">
                         <h2 class="card-title mb-1">Manual Pengguna</h2>
-                        <p class="text-sm mb-0 font-weight-300">
+                        <p class="description">
                             © Hak Cipta Bagian Hukum Sekretariat Daerah Kabupaten Hulu
                             Sungai Tengah.
                         </p>
