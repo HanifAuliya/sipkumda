@@ -109,27 +109,19 @@
         {{-- Modal Admin --}}
         <livewire:notification-modal.admin.modal-persetujuan-admin />
 
-        {{-- Modal Verifikator --}}
-        <livewire:notification-modal.verifikator.modal-detail-verifikator />
-
-        {{-- Modal User --}}
-        <livewire:notification-modal.user.modal-detail-user />
+        {{-- Modal Detail Rancangan --}}
+        <livewire:notification-modal.detail-rancangan />
 
         {{-- Notification Modal Script --}}
         <script>
             document.addEventListener('DOMContentLoaded', () => {
-                Livewire.on('openAdminModal', () => {
-                    const modal = new bootstrap.Modal(document.getElementById('adminModal'));
+                Livewire.on('openAdminPersetujuanModal', () => {
+                    const modal = new bootstrap.Modal(document.getElementById('adminPersetujuanModal'));
                     modal.show();
                 });
 
-                Livewire.on('openVerifikatorModal', () => {
-                    const modal = new bootstrap.Modal(document.getElementById('verifikatorModal'));
-                    modal.show();
-                });
-
-                Livewire.on('openModalDetailUser', () => {
-                    const modal = new bootstrap.Modal(document.getElementById('ModalDetailUser'));
+                Livewire.on('openModalDetailRancangan', () => {
+                    const modal = new bootstrap.Modal(document.getElementById('ModalDetailRancangan'));
                     modal.show();
                 });
             });

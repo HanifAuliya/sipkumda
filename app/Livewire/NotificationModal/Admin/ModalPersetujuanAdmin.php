@@ -15,7 +15,7 @@ class ModalPersetujuanAdmin extends Component
     public $catatan;
     public $statusBerkas;
 
-    protected $listeners = ['openAdminModal' => 'loadRancangan'];
+    protected $listeners = ['openAdminPersetujuanModal' => 'loadRancangan'];
 
     public function loadRancangan($slug)
     {
@@ -93,7 +93,7 @@ class ModalPersetujuanAdmin extends Component
                     'title' => "Rancangan Anda {$this->statusBerkas}",
                     'message' => "Rancangan Anda dengan nomor {$this->rancangan->no_rancangan} telah {$this->statusBerkas}. Silahkan Periksa !",
                     'slug' => $this->rancangan->slug, // Slug untuk memuat modal detail
-                    'type' => 'persetujuan_menunggu', // Tipe notifikasi
+                    'type' => 'detail_rancangan', // Tipe notifikasi
                     // 'url' => route('user.rancangan.detail', $this->rancangan->id), // URL detail rancangan
                 ])
             );

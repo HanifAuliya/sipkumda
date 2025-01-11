@@ -1,4 +1,4 @@
-<div wire:ignore.self class="modal fade" id="adminModal" tabindex="-1" role="dialog">
+<div wire:ignore.self class="modal fade" id="adminPersetujuanModal" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             {{-- Header Modal --}}
@@ -49,7 +49,7 @@
                                             </tr>
                                             <tr>
                                                 <th class="info-text">Tanggal Pengajuan</th>
-                                                <td>{{ $rancangan->tanggal_pengajuan ? \Carbon\Carbon::parse($rancangan->tanggal_pengajuan)->translatedFormat('d F Y') : 'N/A' }}
+                                                <td>{{ $rancangan->tanggal_pengajuan ? \Carbon\Carbon::parse($rancangan->tanggal_pengajuan)->translatedFormat('d F Y, H:i') : 'N/A' }}
                                                 </td>
                                             </tr>
                                             <tr>
@@ -141,8 +141,8 @@
                                                 <th>Tanggal Berkas Disetujui</th>
                                                 <td class="info-text">
                                                     {{ $rancangan->tanggal_berkas_disetujui
-                                                        ? \Carbon\Carbon::parse($rancangan->tanggal_berkas_disetujui)->translatedFormat('d F Y')
-                                                        : 'N/A' }}
+                                                        ? \Carbon\Carbon::parse($rancangan->tanggal_berkas_disetujui)->translatedFormat('d F Y, H:i')
+                                                        : 'Belum disetujui' }}
                                                 </td>
                                             </tr>
                                             <tr>

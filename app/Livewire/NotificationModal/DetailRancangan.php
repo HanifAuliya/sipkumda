@@ -1,23 +1,22 @@
 <?php
 
-namespace App\Livewire\NotificationModal\Verifikator;
+namespace App\Livewire\NotificationModal;
 
 use Livewire\Component;
 use App\Models\RancanganProdukHukum;
 
-class ModalDetailVerifikator extends Component
+class DetailRancangan extends Component
 {
     public $rancangan;
 
-    protected $listeners = ['openVerifikatorModal' => 'loadRancangan'];
+    protected $listeners = ['openModalDetailRancangan' => 'loadRancangan'];
 
     public function loadRancangan($slug)
     {
         $this->rancangan = RancanganProdukHukum::where('slug', $slug)->first();
     }
-
     public function render()
     {
-        return view('livewire.notification-modal.verifikator.modal-detail-verifikator');
+        return view('livewire.notification-modal.detail-rancangan');
     }
 }

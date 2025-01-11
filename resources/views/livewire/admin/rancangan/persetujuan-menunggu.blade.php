@@ -43,7 +43,7 @@
                     </p>
                     <p class="info-text small mb-0">
                         <i class="bi bi-calendar"></i> Tanggal Pengajuan:
-                        {{ \Carbon\Carbon::parse($item->tanggal_pengajuan)->translatedFormat('d F Y') }}
+                        {{ \Carbon\Carbon::parse($item->tanggal_pengajuan)->translatedFormat('d F Y, H:i') }}
                     </p>
                     <p class="mb-0 info-text small">
                         <i class="bi bi-houses"></i>
@@ -140,7 +140,7 @@
                                                 </tr>
                                                 <tr>
                                                     <th class="info-text">Tanggal Pengajuan</th>
-                                                    <td>{{ $selectedRancangan->tanggal_pengajuan ? \Carbon\Carbon::parse($selectedRancangan->tanggal_pengajuan)->translatedFormat('d F Y') : 'N/A' }}
+                                                    <td>{{ $selectedRancangan->tanggal_pengajuan ? \Carbon\Carbon::parse($selectedRancangan->tanggal_pengajuan)->translatedFormat('d F Y, H:i') : 'N/A' }}
                                                     </td>
                                                 </tr>
                                                 <tr>
@@ -232,8 +232,8 @@
                                                     <th>Tanggal Berkas Disetujui</th>
                                                     <td class="info-text">
                                                         {{ $selectedRancangan->tanggal_berkas_disetujui
-                                                            ? \Carbon\Carbon::parse($selectedRancangan->tanggal_berkas_disetujui)->translatedFormat('d F Y')
-                                                            : 'N/A' }}
+                                                            ? \Carbon\Carbon::parse($selectedRancangan->tanggal_berkas_disetujui)->translatedFormat('d F Y, H:i')
+                                                            : 'Belum disetujui' }}
                                                     </td>
                                                 </tr>
                                                 <tr>
