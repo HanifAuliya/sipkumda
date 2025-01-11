@@ -89,7 +89,7 @@ class Rancanganku extends Component
                 'title' => 'Rancangan Baru Telah Ditambahkan',
                 'message' => auth()->user()->nama_user . ' telah menambahkan rancangan baru dengan nomor ' . $rancangan->no_rancangan . '.',
                 'slug' => $rancangan->slug, // Data slug untuk memuat modal
-                'type' => 'detail_rancangan', // Tipe notifikasi
+                'type' => 'verifikator_detail', // Tipe notifikasi
             ])
         );
 

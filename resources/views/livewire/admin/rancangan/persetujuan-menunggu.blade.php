@@ -250,66 +250,76 @@
 
                         {{--  Verifikasi Persetujuan  --}}
                         <div class="card shadow-sm">
-                            <div class="alert alert-warning mb-0" role="alert"
-                                style="flex: 1; text-align: center;">
-                                <strong> Berkas Rancangan {{ $selectedRancangan->status_berkas }}!</strong>
-                                Periksa dan Lakuka Verifikasi
-                            </div>
-                            {{-- Persetujuan --}}
-                            <div class="card-body">
-                                {{-- Informasi --}}
-                                <p class="description info-text mb-3 text-muted">
-                                    Pilih status persetujuan untuk rancangan ini. Tambahkan catatan
-                                    untuk memberikan masukan atau alasan penolakan.
-                                </p>
+                            @if ($selectedRancangan->status_berkas === 'Disetujui' || $selectedRancangan->status_berkas === 'Ditolak')
+                                <div class="alert alert-{{ $selectedRancangan->status_berkas === 'Disetujui' ? 'success' : 'danger' }} mb-0"
+                                    role="alert" style="flex: 1; text-align: center;">
+                                    <strong>{{ $selectedRancangan->status_berkas }} !</strong> Rancangan
+                                    Telah
+                                    {{ $selectedRancangan->status_berkas }} Silahkan Cek diHalaman Persetujuan sesuai
+                                    dengan tab statusnya
+                                </div>
+                            @else
+                                <div class="alert alert-warning mb-0" role="alert"
+                                    style="flex: 1; text-align: center;">
+                                    <strong> Berkas Rancangan {{ $selectedRancangan->status_berkas }}!</strong>
+                                    Periksa dan Lakuka Verifikasi
+                                </div>
+                                {{-- Persetujuan --}}
+                                <div class="card-body">
+                                    {{-- Informasi --}}
+                                    <p class="description info-text mb-3 text-muted">
+                                        Pilih status persetujuan untuk rancangan ini. Tambahkan catatan
+                                        untuk memberikan masukan atau alasan penolakan.
+                                    </p>
 
-                                {{-- Pilihan Persetujuan Berkas --}}
-                                <div class="form-group">
-                                    <label class="font-weight-bold form-control-label">
-                                        Pilih Persetujuan Berkas dibawah ini:
-                                    </label>
+                                    {{-- Pilihan Persetujuan Berkas --}}
+                                    <div class="form-group">
+                                        <label class="font-weight-bold form-control-label">
+                                            Pilih Persetujuan Berkas dibawah ini:
+                                        </label>
 
-                                    <div class="w-auto" style="max-width: 300px;">
-                                        {{-- Batasi lebar dropdown --}}
-                                        <select id="statusBerkasSelect" name="statusBerkas" class="form-control"
-                                            wire:model="statusBerkas">
-                                            <option hidden>Pilih Status</option>
-                                            <option value="Disetujui">Disetujui</option>
-                                            <option value="Ditolak">Ditolak</option>
-                                        </select>
+                                        <div class="w-auto" style="max-width: 300px;">
+                                            {{-- Batasi lebar dropdown --}}
+                                            <select id="statusBerkasSelect" name="statusBerkas" class="form-control"
+                                                wire:model="statusBerkas">
+                                                <option hidden>Pilih Status</option>
+                                                <option value="Disetujui">Disetujui</option>
+                                                <option value="Ditolak">Ditolak</option>
+                                            </select>
+                                        </div>
+                                        @error('statusBerkas')
+                                            <span class="text-danger">{{ $message }}</span>
+                                        @enderror
                                     </div>
-                                    @error('statusBerkas')
-                                        <span class="text-danger">{{ $message }}</span>
-                                    @enderror
-                                </div>
 
-                                {{-- Catatan --}}
-                                <div class="form-group">
-                                    <label class="font-weight-bold form-control-label">Tambahkan Catatan <small
-                                            class="text-danger"> wajib</small></label>
-                                    <textarea wire:model.defer="catatan" class="form-control mb-3" rows="3" placeholder="Tambahkan catatan..."></textarea>
-                                    @error('catatan')
-                                        <span class="text-danger mt-2 d-block">{{ $message }}</span>
-                                    @enderror
-                                </div>
+                                    {{-- Catatan --}}
+                                    <div class="form-group">
+                                        <label class="font-weight-bold form-control-label">Tambahkan Catatan <small
+                                                class="text-danger"> wajib</small></label>
+                                        <textarea wire:model.defer="catatan" class="form-control mb-3" rows="3" placeholder="Tambahkan catatan..."></textarea>
+                                        @error('catatan')
+                                            <span class="text-danger mt-2 d-block">{{ $message }}</span>
+                                        @enderror
+                                    </div>
 
-                                {{-- Tombol --}}
-                                <div class="d-flex justify-content-end">
-                                    {{-- Tombol Tutup --}}
-                                    <button type="button" class="btn btn-secondary mr-3" data-dismiss="modal"
-                                        wire:click="resetForm">
-                                        <i class="bi bi-x-lg"></i> Tutup
-                                    </button>
-                                    {{-- Tombol Verifikasi --}}
-                                    <button class="btn btn-success" wire:click="updateStatus"
-                                        wire:loading.attr="disabled">
-                                        <span wire:loading.remove><i class="bi bi-check-circle"></i> Verifikasi
-                                            Rancangan</span>
-                                        <span wire:loading><i class="bi bi-hourglass-split"></i>
-                                            Memproses...</span>
-                                    </button>
+                                    {{-- Tombol --}}
+                                    <div class="d-flex justify-content-end">
+                                        {{-- Tombol Tutup --}}
+                                        <button type="button" class="btn btn-secondary mr-3" data-dismiss="modal"
+                                            wire:click="resetForm">
+                                            <i class="bi bi-x-lg"></i> Tutup
+                                        </button>
+                                        {{-- Tombol Verifikasi --}}
+                                        <button class="btn btn-success" wire:click="updateStatus"
+                                            wire:loading.attr="disabled">
+                                            <span wire:loading.remove><i class="bi bi-check-circle"></i> Verifikasi
+                                                Rancangan</span>
+                                            <span wire:loading><i class="bi bi-hourglass-split"></i>
+                                                Memproses...</span>
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
+                            @endif
                         </div>
                     @else
                         <div class="d-flex justify-content-center align-items-start"
@@ -342,6 +352,7 @@
             window.addEventListener('swal:modal', function(event) {
 
                 const data = event.detail[0];
+                $('#modalPersetujuan').modal('hide');
 
                 Swal.fire({
                     icon: data.type || 'info',

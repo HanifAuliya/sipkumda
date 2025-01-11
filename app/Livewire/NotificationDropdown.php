@@ -39,7 +39,10 @@ class NotificationDropdown extends Component
             // Emit event berdasarkan tipe notifikasi
             $typeToEventMap = [
                 'admin_persetujuan' => 'openAdminPersetujuanModal',
-                'detail_rancangan' => 'openModalDetailRancangan'
+                'verifikator_detail' => 'openModalDetailRancangan',
+                'persetujuan_diterima' => 'openModalDetailRancangan', // Tambahan untuk User
+                'persetujuan_ditolak' => 'openModalDetailRancangan', // Tambahan untuk User
+                'persetujuan_menunggu' => 'openModalDetailRancangan', // Tambahan untuk User
             ];
 
             $type = $notification->data['type'] ?? null;

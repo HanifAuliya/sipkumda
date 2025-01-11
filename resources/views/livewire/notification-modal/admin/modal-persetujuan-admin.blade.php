@@ -160,7 +160,7 @@
                     {{-- Pilihan Status dan Catatan Persetujuan --}}
                     <div class="row">
                         <div class="col-md-12">
-                            <div class="card shadow-sm">
+                            <div class="card shadow-sm mt--3">
                                 @if ($rancangan->status_berkas === 'Disetujui' || $rancangan->status_berkas === 'Ditolak')
                                     <div class="alert alert-{{ $rancangan->status_berkas === 'Disetujui' ? 'success' : 'danger' }} mb-0"
                                         role="alert" style="flex: 1; text-align: center;">
@@ -275,6 +275,10 @@
                         </div>
                     </div>
                 @endif
+            </div>
+            {{-- Footer Modal --}}
+            <div class="modal-footer mt--5">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
             </div>
         </div>
     </div>

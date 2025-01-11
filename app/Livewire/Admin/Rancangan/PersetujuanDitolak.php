@@ -56,7 +56,7 @@ class PersetujuanDitolak extends Component
                     'title' => "Rancangan Anda {$this->statusBerkas}",
                     'message' => "Rancangan Anda dengan nomor {$rancangan->no_rancangan} telah diubah menjadi {$this->statusBerkas}.",
                     'slug' => $rancangan->slug, // Slug untuk memuat modal detail
-                    'type' => 'detail_rancangan', // Tipe notifikasi
+                    'type' => 'persetujuan_menunggu', // Tipe notifikasi
                 ])
             );
 

@@ -76,7 +76,7 @@ class PersetujuanMenunggu extends Component
                     'title' => "Rancangan Anda {$this->statusBerkas}",
                     'message' => "Rancangan Anda dengan nomor {$this->selectedRancangan->no_rancangan} telah {$this->statusBerkas}. Silahkan Periksa !",
                     'slug' => $this->selectedRancangan->slug, // Slug untuk memuat modal detail
-                    'type' => $this->statusBerkas === 'Disetujui' ? 'detail_rancangan' : 'detail_rancangan', // Tentukan tipe
+                    'type' => $this->statusBerkas === 'Disetujui' ? 'persetujuan_diterima' : 'persetujuan_ditolak', // Tentukan tipe
                     // 'url' => route('user.rancangan.detail', $this->rancangan->id), // URL detail rancangan
                 ])
             );
