@@ -40,12 +40,12 @@ class Rancanganku extends Component
     {
         $this->validate();
 
-        // Simpan file ke storage
-        $rancanganPath = $this->rancangan->store('rancangan');
-        $matrikPath = $this->matrik->store('matrik');
-        $notaDinasPath = $this->nota_dinas_pd->store('nota_dinas_pd');
+        // Simpan file ke storage dengan disk public
+        $rancanganPath = $this->rancangan->store('rancangan', 'public');
+        $matrikPath = $this->matrik->store('matrik', 'public');
+        $notaDinasPath = $this->nota_dinas_pd->store('nota_dinas_pd', 'public');
         $bahanPendukungPath = $this->bahanPendukung
-            ? $this->bahanPendukung->store('bahan_pendukung')
+            ? $this->bahanPendukung->store('bahan_pendukung', 'public')
             : null;
 
         // Simpan data ke database

@@ -74,18 +74,17 @@
                         Pengajuan Rancangan Tahun {{ now()->year }}
                     </p>
                     <div class="mt-2">
-
                         {{-- Tombol Tindakan --}}
-                        <div class="btn-group">
-                            <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown"
+                        <div class="dropdown">
+                            <button type="button" class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown"
                                 aria-expanded="false">
-                                <i class="bi bi-list"></i> Pilihan Aksi
+                                <i class="bi bi-gear"></i> Kelola Persetujuan
                             </button>
-                            <div class="dropdown-menu dropdown-menu-right shadow">
+                            <div class="dropdown-menu shadow-lg">
                                 {{-- Lihat Detail --}}
                                 <a class="dropdown-item d-flex align-items-center" href="#"
                                     wire:click.prevent="openModal({{ $item->id_rancangan }})">
-                                    <i class="bi bi-eye mr-2 text-default"></i>
+                                    <i class="bi bi-eye mr-2 text-info"></i>
                                     <span>Lihat Detail</span>
                                 </a>
                                 {{-- Reset Status --}}
@@ -95,8 +94,14 @@
                                     <i class="bi bi-arrow-counterclockwise mr-2"></i>
                                     <span>Reset Status</span>
                                 </a>
+                                {{-- Tambahkan Aksi Baru (Opsional) --}}
+                                <a class="dropdown-item d-flex align-items-center" href="#">
+                                    <i class="bi bi-pencil-square mr-2 text-primary"></i>
+                                    <span>Edit Rancangan</span>
+                                </a>
                             </div>
                         </div>
+
                     </div>
                 </div>
 

@@ -121,24 +121,33 @@
 
                         <div class="mt-2">
                             <div class="dropdown">
-                                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton"
-                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    Kelola Rancangan
+                                <button class="btn btn-outline-primary dropdown-toggle" type="button"
+                                    id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true"
+                                    aria-expanded="false">
+                                    <i class="bi bi-gear"></i> Kelola Rancangan
                                 </button>
-                                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                    {{-- Button untuk membuka modal --}}
-                                    <a href="#" class="dropdown-item" data-toggle="modal"
+                                <div class="dropdown-menu shadow-lg" aria-labelledby="dropdownMenuButton">
+                                    {{-- Item 1 --}}
+                                    <a href="#" class="dropdown-item d-flex align-items-center"
+                                        data-toggle="modal"
                                         data-target="#detailModalPengajuan-{{ $item->id_rancangan }}">
-                                        <i class="bi bi-folder"></i>
-                                        Detail Pengajuan
+                                        <i class="bi bi-folder mr-2 text-warning"></i>
+                                        <span>Detail Pengajuan</span>
                                     </a>
-                                    <a href="#" class="dropdown-item" data-toggle="modal"
-                                        data-target="#uploadRevisiModal-{{ $item->id_rancangan }}">
-                                        <i class="bi bi-upload"></i>
-                                        Upload Revisi
+                                    {{-- Item 2 --}}
+                                    <a href="#" class="dropdown-item d-flex align-items-center"
+                                        data-toggle="modal" data-target="#uploadRevisiModal-{{ $item->id_rancangan }}">
+                                        <i class="bi bi-upload mr-2 text-success"></i>
+                                        <span>Upload Ulang Berkas</span>
+                                    </a>
+                                    {{-- Item Tambahan --}}
+                                    <a href="#" class="dropdown-item d-flex align-items-center">
+                                        <i class="bi bi-file-earmark-text mr-2 text-primary"></i>
+                                        <span>Preview Dokumen</span>
                                     </a>
                                 </div>
                             </div>
+
                         </div>
                     </div>
                 </div>

@@ -16,7 +16,7 @@
                 </button>
             @elseif ($isVerifier)
                 {{-- Tombol untuk Verifikator --}}
-                <button class="btn btn-outline-info">
+                <button class="btn btn-outline-default">
                     <i class="bi bi-info-circle"></i> Panduan
                 </button>
             @else

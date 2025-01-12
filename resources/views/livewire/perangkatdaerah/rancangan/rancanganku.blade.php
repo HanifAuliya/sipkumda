@@ -86,7 +86,7 @@
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <form wire:submit.prevent="submit">
-                    <div class="modal-header">
+                    <div class="modal-header border-bottom">
                         <h5 class="modal-title" id="ajukanRancanganModalLabel">Ajukan Rancangan Baru</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
@@ -109,66 +109,87 @@
                         </div>
                         {{-- Tentang --}}
                         <div class="mb-3">
-                            <label for="tentang" class="form-label font-weight-bold">Tentang</label>
+                            <label for="tentang" class="form-label font-weight-bold">Tentang
+                            </label>
                             <input type="text" class="form-control" wire:model="tentang"
-                                placeholder="Masukkan Judul/Tentang Rancangan" required />
+                                placeholder="Tentang Rancangan misal (Pemberian Insentif Pemungutan Pajak Daerah)"
+                                required />
                             @error('tentang')
                                 <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
                         {{-- File Inputs --}}
-                        {{-- Rancangan Inputs --}}
-                        <div class="mb-3">
-                            <label for="rancangan" class="form-label font-weight-bold">File Rancangan</label>
+                        {{-- Input File Rancangan --}}
+                        <div class="mb-4">
+                            <label for="rancangan" class="font-weight-bold form-control-label">
+                                <i class="bi bi-file-earmark-pdf text-primary"></i> File Rancangan
+                                <small class="text-muted d-block">Unggah dokumen rancangan dalam format PDF (max:
+                                    2MB).</small>
+                            </label>
                             <input type="file" class="form-control" wire:model="rancangan"
                                 accept="application/pdf" />
-                            {{-- Indikator Loading untuk Rancangan --}}
-                            <div wire:loading wire:target="rancangan" class="text-info">
+                            {{-- Indikator Loading --}}
+                            <div wire:loading wire:target="rancangan" class="text-info mt-2">
                                 <i class="spinner-border spinner-border-sm"></i> Mengunggah File Rancangan...
                             </div>
                             @error('rancangan')
                                 <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
-                        {{-- Matrik  Input --}}
-                        <div class="mb-3">
-                            <label for="matrik" class="form-label font-weight-bold">Matrik Rancangan</label>
+
+                        {{-- Input File Matrik --}}
+                        <div class="mb-4">
+                            <label for="matrik" class="font-weight-bold form-control-label">
+                                <i class="bi bi-file-earmark-pdf text-primary"></i> Matrik Rancangan
+                                <small class="text-muted d-block">Unggah matrik dokumen dalam format PDF (max:
+                                    2MB).</small>
+                            </label>
                             <input type="file" class="form-control" wire:model="matrik" accept="application/pdf" />
-                            {{-- Indikator Loading untuk Matrik --}}
-                            <div wire:loading wire:target="matrik" class="text-info">
+                            {{-- Indikator Loading --}}
+                            <div wire:loading wire:target="matrik" class="text-info mt-2">
                                 <i class="spinner-border spinner-border-sm"></i> Mengunggah Matrik Rancangan...
                             </div>
                             @error('matrik')
                                 <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
-                        {{-- Nota Dinas input --}}
-                        <div class="mb-3">
-                            <label for="nota_dinas_pd" class="form-label font-weight-bold">Nota Dinas</label>
+
+                        {{-- Input Nota Dinas --}}
+                        <div class="mb-4">
+                            <label for="nota_dinas_pd" class="font-weight-bold form-control-label">
+                                <i class="bi bi-file-earmark-pdf text-primary"></i> Nota Dinas
+                                <small class="text-muted d-block">Unggah dokumen nota dinas dalam format PDF (max:
+                                    2MB).</small>
+                            </label>
                             <input type="file" class="form-control" wire:model="nota_dinas_pd"
                                 accept="application/pdf" />
-                            {{-- Indikator Loading untuk Nota Dinas --}}
-                            <div wire:loading wire:target="nota_dinas_pd" class="text-info">
+                            {{-- Indikator Loading --}}
+                            <div wire:loading wire:target="nota_dinas_pd" class="text-info mt-2">
                                 <i class="spinner-border spinner-border-sm"></i> Mengunggah Nota Dinas...
                             </div>
                             @error('nota_dinas_pd')
                                 <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
-                        {{-- Bahan Pendukung Input --}}
-                        <div class="mb-3">
-                            <label for="bahanPendukung" class="form-label font-weight-bold">Bahan Pendukung
-                                (Opsional)</label>
+
+                        {{-- Input Bahan Pendukung --}}
+                        <div class="mb-4">
+                            <label for="bahanPendukung" class="font-weight-bold form-control-label">
+                                <i class="bi bi-file-earmark-pdf text-primary"></i> Bahan Pendukung (Opsional)
+                                <small class="text-muted d-block">Unggah dokumen bahan pendukung dalam format PDF (max:
+                                    2MB).</small>
+                            </label>
                             <input type="file" class="form-control" wire:model="bahanPendukung"
                                 accept="application/pdf" />
-                            {{-- Indikator Loading untuk Bahan Pendukung --}}
-                            <div wire:loading wire:target="bahanPendukung" class="text-info">
+                            {{-- Indikator Loading --}}
+                            <div wire:loading wire:target="bahanPendukung" class="text-info mt-2">
                                 <i class="spinner-border spinner-border-sm"></i> Mengunggah Bahan Pendukung...
                             </div>
                             @error('bahanPendukung')
                                 <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
+
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline-warning" data-dismiss="modal"

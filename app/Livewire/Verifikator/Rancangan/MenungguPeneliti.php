@@ -79,7 +79,7 @@ class MenungguPeneliti extends Component
         $rancangan = RancanganProdukHukum::with('revisi') // Eager loading revisi
             ->where('status_berkas', 'Disetujui')
             ->whereHas('revisi', function ($query) {
-                $query->where('status_revisi', 'Belum Tahap Direvisi');
+                $query->where('status_revisi', 'Belum Tahap Revisi');
             })
             ->where(function ($query) {
                 $query->where('tentang', 'like', "%{$this->search}%")
