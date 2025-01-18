@@ -53,4 +53,33 @@
         </div>
 
     </div>
+    {{-- Script --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            window.Livewire.on('openModalPilihPeneliti', () => {
+                $('#modalPilihPeneliti').modal('show');
+            });
+
+            window.Livewire.on('closeModalPilihPeneliti', () => {
+                $('#modalPilihPeneliti').modal('hide');
+            });
+
+            // Sweeet Alert 2
+            window.Livewire.on('swal:modal', (data) => {
+
+                // Jika data adalah array, akses elemen pertama
+                if (Array.isArray(data)) {
+                    data = data[0];
+                }
+
+                Swal.fire({
+                    icon: data.type || 'info',
+                    title: data.title || 'Informasi',
+                    text: data.message || 'Tidak ada pesan yang diterima.',
+                    showConfirmButton: true,
+                });
+            });
+
+        });
+    </script>
 </div>

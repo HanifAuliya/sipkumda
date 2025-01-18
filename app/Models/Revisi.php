@@ -41,8 +41,6 @@ class Revisi extends Model
 
     public function peneliti()
     {
-        return $this->belongsTo(User::class, 'id_user')->whereHas('roles', function ($query) {
-            $query->where('name', 'peneliti');
-        });
+        return $this->belongsTo(User::class, 'id_user');
     }
 }

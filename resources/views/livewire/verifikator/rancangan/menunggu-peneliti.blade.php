@@ -55,7 +55,7 @@
                             <p class="mb-0 info-text small">
                                 <i class="bi bi-calendar"></i>
                                 Tanggal Pengajuan:
-                                {{ \Carbon\Carbon::parse($item->tanggal_pengajuan)->translatedFormat('d F Y') }}
+                                {{ \Carbon\Carbon::parse($item->tanggal_pengajuan)->translatedFormat('d F Y, H:i') }}
                             </p>
                             <p class="mb-0 info-text small">
                                 <i class="bi bi-person-gear"></i>
@@ -107,24 +107,10 @@
                         </p>
 
                         <div class="mt-2">
-                            <div class="dropdown">
-                                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton"
-                                    data-toggle="dropdown">
-                                    Kelola Rancangan
-                                </button>
-                                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                    {{-- Button untuk membuka modal --}}
-                                    <a href="#" class="dropdown-item" data-toggle="modal"
-                                        data-target="#detailModalPengajuan-{{ $item->id_rancangan }}">
-                                        <i class="bi bi-folder"></i>
-                                        Detail Pengajuan
-                                    </a>
-                                    <a class="btn btn-primary btn-sm"
-                                        wire:click="openModal({{ $item->id_rancangan }})">
-                                        Pilih Peneliti
-                                    </a>
-                                </div>
-                            </div>
+                            <a href="#" class="btn btn-neutral" data-toggle="modal"
+                                wire:click="openModal({{ $item->id_rancangan }})" data-target="#modalPilihPeneliti">
+                                Pilih Peneliti <i class="bi bi-question-circle"></i>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -203,7 +189,7 @@
                                                 </tr>
                                                 <tr>
                                                     <th class="info-text">Tanggal Pengajuan</th>
-                                                    <td>{{ $selectedRancangan->tanggal_pengajuan ? \Carbon\Carbon::parse($selectedRancangan->tanggal_pengajuan)->translatedFormat('d F Y') : 'N/A' }}
+                                                    <td>{{ $selectedRancangan->tanggal_pengajuan ? \Carbon\Carbon::parse($selectedRancangan->tanggal_pengajuan)->translatedFormat('d F Y, H:i') : 'N/A' }}
                                                     </td>
                                                 </tr>
                                                 <tr>
@@ -258,11 +244,18 @@
                                                 <tr>
                                                     <th class="info-text">Bahan Pendukung</th>
                                                     <td>
-                                                        <a href="{{ $selectedRancangan->bahan_pendukung ? asset('storage/' . $selectedRancangan->bahan_pendukung) : '#' }}"
-                                                            target="_blank">
-                                                            <i class="bi bi-file-earmark-pdf mr-2 text-danger"></i>
-                                                            {{ $selectedRancangan->bahan_pendukung ? 'Download Bahan' : 'Tidak Ada Bahan' }}
-                                                        </a>
+                                                        @if ($selectedRancangan->bahan_pendukung)
+                                                            <a href="{{ asset('storage/' . $selectedRancangan->bahan_pendukung) }}"
+                                                                target="_blank" class="d-flex align-items-center">
+                                                                <i class="bi bi-file-earmark-pdf mr-2 text-danger"></i>
+                                                                <span>Download Bahan</span>
+                                                            </a>
+                                                        @else
+                                                            <span class="text-muted d-flex align-items-center">
+                                                                <i class="bi bi-file-earmark-x mr-2 text-danger"></i>
+                                                                <span>File Tidak Tersedia</span>
+                                                            </span>
+                                                        @endif
                                                     </td>
                                                 </tr>
                                                 <tr>
@@ -278,7 +271,7 @@
                                                     <th>Tanggal Berkas Disetujui</th>
                                                     <td class="info-text">
                                                         {{ $selectedRancangan->tanggal_berkas_disetujui
-                                                            ? \Carbon\Carbon::parse($selectedRancangan->tanggal_berkas_disetujui)->translatedFormat('d F Y')
+                                                            ? \Carbon\Carbon::parse($selectedRancangan->tanggal_berkas_disetujui)->translatedFormat('d F Y, H:i')
                                                             : 'N/A' }}
                                                     </td>
                                                 </tr>
@@ -294,11 +287,11 @@
                                 </div>
                             </div>
 
-                            {{--  File Persetujuan --}}
+                            {{--  Detail Revisi --}}
                             <div class="col-md-6 mb-4">
                                 <div class="card shadow-sm">
                                     <div class="card-header">
-                                        <h4 class="mb-0">File Persetujuan</h4>
+                                        <h4 class="mb-0">Detail Revisi</h4>
                                     </div>
                                     <div class="card-body">
                                         <p class="description info-text mb-3">Pastikan file yang diajukan sudah lengkap
@@ -320,39 +313,59 @@
                                                     <tr>
                                                         <th>Tanggal Revisi</th>
                                                         <td class="info-text">
-                                                            {{ $revisi->tanggal_revisi ? \Carbon\Carbon::parse($revisi->tanggal_revisi)->translatedFormat('d F Y') : 'N/A' }}
+                                                            {{ $revisi->tanggal_revisi ? \Carbon\Carbon::parse($revisi->tanggal_revisi)->translatedFormat('d F Y, H:i') : 'N/A' }}
                                                         </td>
                                                     </tr>
                                                     <tr>
                                                         <th>Peneliti</th>
-                                                        <td class="info-text">
+                                                        <td class="info-text ">
                                                             {{ $revisi->peneliti->nama_user ?? 'Belum Ditentukan' }}
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Tanggal Peneliti Ditunjuk</th>
+                                                        <td class="info-text">
+                                                            {{ $revisi->tanggal_peneliti_ditunjuk ? \Carbon\Carbon::parse($revisi->tanggal_peneliti_ditunjuk)->translatedFormat('d F Y, H:i') : 'Belum Ditentukan' }}
                                                         </td>
                                                     </tr>
                                                     <tr>
                                                         <th>Revisi Rancangan</th>
                                                         <td class="info-text">
-                                                            <a href="{{ asset('storage/' . $revisi->revisi_rancangan) }}"
-                                                                target="_blank" class="d-flex align-items-center">
-                                                                <i
-                                                                    class="bi bi-file-earmark-text mr-2 text-primary"></i>
-
-                                                                <span>Download Revisi</span>
-                                                            </a>
+                                                            @if ($revisi->revisi_rancangan)
+                                                                <a href="{{ asset('storage/' . $revisi->revisi_rancangan) }}"
+                                                                    target="_blank" class="d-flex align-items-center">
+                                                                    <i
+                                                                        class="bi bi-file-earmark-text mr-2 text-primary"></i>
+                                                                    <span>Download Revisi</span>
+                                                                </a>
+                                                            @else
+                                                                <span class="text-muted d-flex align-items-center">
+                                                                    <i
+                                                                        class="bi bi-file-earmark-x mr-2 text-danger"></i>
+                                                                    <span>Revisi Tidak Tersedia</span>
+                                                                </span>
+                                                            @endif
                                                         </td>
                                                     </tr>
                                                     <tr>
                                                         <th>Revisi Matrik</th>
                                                         <td class="info-text">
-                                                            <a href="{{ asset('storage/' . $revisi->revisi_matrik) }}"
-                                                                target="_blank" class="d-flex align-items-center">
-                                                                <i
-                                                                    class="bi bi-file-earmark-spreadsheet mr-2 text-success"></i>
-                                                                <span>Download Matrik Revisi</span>
-                                                            </a>
+                                                            @if ($revisi->revisi_matrik)
+                                                                <a href="{{ asset('storage/' . $revisi->revisi_matrik) }}"
+                                                                    target="_blank" class="d-flex align-items-center">
+                                                                    <i
+                                                                        class="bi bi-file-earmark-spreadsheet mr-2 text-success"></i>
+                                                                    <span>Download Matrik Revisi</span>
+                                                                </a>
+                                                            @else
+                                                                <span class="text-muted d-flex align-items-center">
+                                                                    <i
+                                                                        class="bi bi-file-earmark-x mr-2 text-danger"></i>
+                                                                    <span>Matrik Tidak Tersedia</span>
+                                                                </span>
+                                                            @endif
                                                         </td>
                                                     </tr>
-
                                                     <tr>
                                                         <th>Catatan Revisi</th>
                                                         <td class="wrap-text">
@@ -366,30 +379,43 @@
                                     {{-- Select Dropdown dengan Select2 --}}
                                     <div class="card-body">
                                         {{-- Penjelasan Pilihan Peneliti --}}
-                                        <p class="info-text description">
-                                            Silakan pilih peneliti dari daftar di bawah ini untuk menugaskan rancangan
-                                            yang sedang diproses.
-                                        </p>
+                                        @if ($selectedRancangan && $selectedRancangan->revisi->first()?->id_user)
+                                            {{-- Alert Peneliti Sudah Dipilih --}}
+                                            <div class="alert alert-info" role="alert">
+                                                <i class="bi bi-info-circle"></i>
+                                                Peneliti
+                                                <strong>{{ $selectedRancangan->revisi->first()?->peneliti->nama_user }}</strong>
+                                                telah ditetapkan sebagai peneliti.
+                                                Silahkan cek menu <strong>Peneliti Ditugaskan</strong> untuk informasi
+                                                lebih lanjut.
+                                            </div>
+                                        @else
+                                            {{-- Form Pilih Peneliti --}}
+                                            <p class="info-text description">
+                                                Silahkan pilih peneliti dari daftar di bawah ini untuk menugaskan
+                                                rancangan yang sedang diproses.
+                                            </p>
+                                            <div class="form-group">
+                                                <label for="peneliti">
+                                                    <h4>Pilih Peneliti</h4>
+                                                </label>
+                                                {{-- Dropdown dengan Select2 --}}
+                                                <select id="peneliti" class="form-control select2"
+                                                    wire:model="selectedPeneliti">
+                                                    <option hidden>Pilih Peneliti...</option>
+                                                    @foreach ($listPeneliti as $peneliti)
+                                                        <option value="{{ $peneliti->id }}">
+                                                            {{ $peneliti->nama_user }}</option>
+                                                    @endforeach
+                                                </select>
+                                                @error('selectedPeneliti')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+                                        @endif
 
-                                        <div class="form-group">
-                                            <label for="peneliti">
-                                                <h4>Pilih Peneliti</h4>
-                                            </label>
-                                            {{-- Dropdown dengan Select2 --}}
-                                            <select id="peneliti" class="form-control select2"
-                                                wire:model="selectedPeneliti">
-                                                <option value="" selected>Pilih Peneliti...</option>
-                                                @foreach ($listPeneliti as $peneliti)
-                                                    <option value="{{ $peneliti->id }}">{{ $peneliti->nama_user }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                            {{-- Error Handling --}}
-                                            @error('selectedPeneliti')
-                                                <span class="text-danger">{{ $message }}</span>
-                                            @enderror
-                                        </div>
                                     </div>
+
 
                                     <div class="modal-footer">
                                         {{-- Tombol Batal --}}
@@ -426,33 +452,4 @@
         </div>
     </div>
 
-    {{-- Script --}}
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            window.Livewire.on('openModalPilihPeneliti', () => {
-                $('#modalPilihPeneliti').modal('show');
-            });
-
-            window.Livewire.on('closeModalPilihPeneliti', () => {
-                $('#modalPilihPeneliti').modal('hide');
-            });
-
-            // Sweeet Alert 2
-            window.Livewire.on('swal:modal', (data) => {
-
-                // Jika data adalah array, akses elemen pertama
-                if (Array.isArray(data)) {
-                    data = data[0];
-                }
-
-                Swal.fire({
-                    icon: data.type || 'info',
-                    title: data.title || 'Informasi',
-                    text: data.message || 'Tidak ada pesan yang diterima.',
-                    showConfirmButton: true,
-                });
-            });
-
-        });
-    </script>
 </div>

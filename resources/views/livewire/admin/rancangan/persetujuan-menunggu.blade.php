@@ -32,7 +32,17 @@
             <div class="list-group-item d-flex justify-content-between align-items-center">
                 {{-- Informasi Utama --}}
                 <div class="d-flex flex-column">
-                    <h4 class="mb-1 font-weight-bold">{{ $item->no_rancangan }}</h4>
+                    <div class="d-flex align-items-center">
+                        <h4 class="mb-1 font-weight-bold">
+                            {{ $item->no_rancangan }}
+                        </h4>
+                        <h5 class="ml-2">
+                            <mark
+                                class="badge-{{ $item->jenis_rancangan === 'Peraturan Bupati' ? 'primary' : '' }} badge-pill">
+                                {{ $item->jenis_rancangan }}
+                            </mark>
+                        </h5>
+                    </div>
                     <p class="mb-1 mt-2 font-weight-bold">{{ $item->tentang }}</p>
                     <p class="mb-0 info-text small">
                         <i class="bi bi-person"></i>
@@ -71,7 +81,7 @@
 
                     <div class="mt-2">
                         {{-- Tombol Tindakan --}}
-                        <button class="btn btn-secondary" wire:click="openModal({{ $item->id_rancangan }})">
+                        <button class="btn btn-neutral" wire:click="openModal({{ $item->id_rancangan }})">
                             Verifikasi Berkas <i class="bi bi-question-circle"></i>
                         </button>
                     </div>

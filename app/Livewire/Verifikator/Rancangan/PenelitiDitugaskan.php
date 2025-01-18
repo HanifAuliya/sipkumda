@@ -6,55 +6,78 @@ use Livewire\Component;
 use Livewire\WithoutUrlPagination;
 use Livewire\WithPagination;
 use App\Models\RancanganProdukHukum;
+use App\Models\User;
 use App\Models\Revisi;
-
+use Carbon\Carbon;
 
 class PenelitiDitugaskan extends Component
 {
     use WithPagination, WithoutUrlPagination;
 
-    public $search = ''; // Pencarian
-    public $perPage = 5; // Jumlah data per halaman
-    public $selectedRevisi = null; // Untuk melihat detail revisi
+    public $search = '';
+    public $perPage = 5;
 
-    protected $listeners = [
-        'refreshPenelitiDitugaskan' => '$refresh', // Listener untuk refresh data
-    ];
+    public $selectedRevisi; // Untuk menyimpan data revisi yang dipilih
+    public $revisiId; // ID revisi yang dipilih
+
+    protected $listeners = ['refreshPage' => '$refresh'];
 
     public function updatedSearch()
     {
-        $this->resetPage(); // Reset halaman saat pencarian diubah
+        $this->resetPage();
     }
 
-    public function openModal($id)
+    public function openModal($idRevisi)
     {
-        // Ambil data revisi berdasarkan ID
-        $this->selectedRevisi = Revisi::with(['peneliti', 'rancangan'])->find($id);
+        // Cari revisi dengan eager loading
+        $this->selectedRevisi = Revisi::with(['rancangan', 'peneliti'])->findOrFail($idRevisi);
+
+        // Dispatch untuk membuka modal
         $this->dispatch('openModalPilihPeneliti');
+    }
+
+
+    public function resetPeneliti($id)
+    {
+        $revisi = Revisi::where('id_rancangan', $id)->first();
+
+        if ($revisi) {
+            $revisi->update([
+                'id_user' => null,
+                'status_revisi' => 'Belum Tahap Revisi',
+                'tanggal_peneliti_ditunjuk' => null,
+            ]);
+
+            $this->dispatch('swal:modal', [
+                'type' => 'success',
+                'title' => 'Peneliti Direset',
+                'message' => 'Peneliti berhasil direset dan status revisi kembali ke "Menunggu Peneliti".',
+            ]);
+        } else {
+            $this->dispatch('swal:modal', [
+                'type' => 'error',
+                'title' => 'Gagal!',
+                'message' => 'Revisi tidak ditemukan.',
+            ]);
+        }
+
+        $this->dispatch('refreshPage');
     }
 
     public function render()
     {
-        // Query Rancangan dengan Filter Revisi
-        $rancangans = RancanganProdukHukum::where('status_berkas', 'Disetujui')
+        // Query untuk rancangan dengan status revisi "Menunggu Revisi"
+        $rancangan = RancanganProdukHukum::where('status_berkas', 'Disetujui')
             ->whereHas('revisi', function ($query) {
-                $query->where('status_revisi', 'Menunggu Revisi')
-                    ->whereHas('peneliti', function ($subQuery) {
-                        $subQuery->role('peneliti'); // Filter hanya user dengan role "peneliti"
-                    });
+                $query->where('status_revisi', 'Menunggu Revisi');
             })
-            ->with(['revisi' => function ($query) {
-                $query->where('status_revisi', 'Menunggu Revisi')
-                    ->with(['peneliti' => function ($subQuery) {
-                        $subQuery->role('peneliti'); // Pastikan hanya user dengan role "peneliti"
-                    }]);
-            }])
+            ->with(['revisi.peneliti']) // Eager loading revisi dan peneliti
             ->where(function ($query) {
                 $query->where('tentang', 'like', "%{$this->search}%")
                     ->orWhere('no_rancangan', 'like', "%{$this->search}%");
             })
             ->paginate($this->perPage);
 
-        return view('livewire.verifikator.rancangan.peneliti-ditugaskan', compact('rancangans'));
+        return view('livewire.verifikator.rancangan.peneliti-ditugaskan', compact('rancangan'));
     }
 }

@@ -160,20 +160,6 @@
 
     @livewireScripts
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            @if (session('sweetalert'))
-                Swal.fire({
-                    icon: "{{ session('sweetalert.type') }}",
-                    title: "{{ session('sweetalert.title') }}",
-                    text: "{{ session('sweetalert.message') }}",
-                    showConfirmButton: true,
-                    timer: 12000,
-                    timerProgressBar: true
-                });
-            @endif
-        });
-    </script>
 
 </body>
 

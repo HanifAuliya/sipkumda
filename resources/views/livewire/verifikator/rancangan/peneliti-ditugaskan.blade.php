@@ -25,114 +25,371 @@
         </div>
     </div>
 
-    {{-- Tabel Rancangan --}}
-    <div class="table-responsive">
-        <table class="table text-sm">
-            <thead>
-                <tr>
-                    <th>Nomor Rancangan</th>
-                    <th>Jenis Rancangan</th>
-                    <th>Tentang</th>
-                    <th>Peneliti</th>
-                    <th>Aksi</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse ($rancangans as $rancangan)
-                    @foreach ($rancangan->revisi as $revisi)
-                        <tr>
-                            <td>{{ $rancangan->no_rancangan }}</td>
-                            <td>
-                                @if ($rancangan && $rancangan->jenis_rancangan)
-                                    <mark
-                                        class="badge-{{ $rancangan->jenis_rancangan === 'Peraturan Bupati' ? 'primary' : '' }} badge-pill">
-                                        {{ $rancangan->jenis_rancangan }}
-                                    </mark>
-                                @else
-                                    <span class="text-danger">Data tidak tersedia</span>
-                                @endif
-                            <td class="wrap-text">{{ $rancangan->tentang }}</td>
-                            <td>
-                                <i class="bi bi-person-gear"></i>
-                                {{ $revisi->peneliti?->nama_user ?? 'Belum Ditentukan' }}
-                            </td>
-                            <td>
-                                {{-- Tombol Lihat Detail --}}
-                                <button class="btn btn-info btn-sm" wire:click="openModal({{ $revisi->id_revisi }})">
-                                    <i class="bi bi-eye"></i> Lihat Detail
-                                </button>
-                                {{-- Tombol Reset Peneliti --}}
-                                <button class="btn btn-warning btn-sm"
-                                    wire:click="resetPeneliti({{ $revisi->id_revisi }})" wire:loading.attr="disabled">
-                                    <i class="bi bi-arrow-counterclockwise"></i> Reset Peneliti
-                                </button>
-                            </td>
+    @forelse ($rancangan as $item)
+        {{-- Card Rancangan --}}
+        <div class="card p-3 shadow-sm border mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+                {{-- Bagian Kiri --}}
+                <div class="d-flex align-items-start">
+                    <div>
+                        <div class="d-flex align-items-center">
+                            <h4 class="mb-1 font-weight-bold">
+                                {{ $item->no_rancangan }}
+                            </h4>
+                            <h5 class="ml-2">
+                                <mark
+                                    class="badge-{{ $item->jenis_rancangan === 'Peraturan Bupati' ? 'primary' : '' }} badge-pill">
+                                    {{ $item->jenis_rancangan }}
+                                </mark>
+                            </h5>
+                        </div>
 
-                        </tr>
-                    @endforeach
-                @empty
-                    <tr>
-                        <td colspan="5" class="text-center">Tidak ada data tersedia</td>
-                    </tr>
-                @endforelse
-            </tbody>
-
-        </table>
-
-        <div class="d-flex justify-content-center w-100 w-md-auto">
-            {{ $rancangans->links('pagination::bootstrap-4') }}
-        </div>
-
-        {{-- Modal Detail Revisi --}}
-        <div wire:ignore.self class="modal fade" id="modalPilihPeneliti" tabindex="-1">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Detail Revisi</h5>
-                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <p class="mb-1 mt-2 font-weight-bold">
+                            {{ $item->tentang }}
+                        </p>
+                        <p class="mb-0 info-text small">
+                            <i class="bi bi-houses"></i>
+                            {{ $item->user->perangkatDaerah->nama_perangkat_daerah ?? '-' }}
+                        </p>
+                        <p class="mb-0 info-text small">
+                            <i class="bi bi-calendar"></i>
+                            Tanggal Pengajuan:
+                            {{ \Carbon\Carbon::parse($item->tanggal_pengajuan)->translatedFormat('d F Y, H:i') }}
+                        </p>
+                        <p class="mb-0 info-text small">
+                            <i class="bi bi-person-gear"></i>
+                            <span
+                                class="{{ $item->revisi->first()?->peneliti?->nama_user ? 'info-text' : 'text-danger' }} text-primary">
+                                {{ $item->revisi->first()?->peneliti?->nama_user ?? 'Belum Ditentukan' }}
+                            </span>
+                            <span class="badge badge-secondary">
+                                Peneliti
+                            </span>
+                        </p>
+                        <p class="mb-1 info-text small">
+                            <i class="bi bi-file-check"></i>
+                            Persetujuan Berkas:
+                            <mark
+                                class="badge-{{ $item->status_berkas === 'Disetujui' ? 'success' : ($item->status_berkas === 'Ditolak' ? 'danger' : 'warning') }} badge-pill">
+                                {{ $item->status_berkas }}
+                            </mark>
+                        </p>
+                        <p class="mb-0 info-text small">
+                            <i class="bi bi-file-earmark-text"></i>
+                            Status Revisi:
+                            <mark
+                                class="badge-{{ $item->revisi->first()?->status_revisi === 'Direvisi' ? 'success' : ($item->revisi->first()?->status_revisi === 'Menunggu Revisi' ? 'warning' : 'danger') }} badge-pill">
+                                {{ $item->revisi->first()?->status_revisi ?? 'N/A' }}
+                            </mark>
+                        </p>
                     </div>
-                    <div class="modal-body">
-                        @if ($selectedRevisi)
-                            <table class="table table-borderless">
-                                <tr>
-                                    <th>Nomor Rancangan:</th>
-                                    <td>{{ $selectedRevisi->rancangan->no_rancangan }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Tentang:</th>
-                                    <td>{{ $selectedRevisi->rancangan->tentang }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Peneliti:</th>
-                                    <td>{{ $selectedRevisi->peneliti?->name ?? 'Belum Ditentukan' }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Status Revisi:</th>
-                                    <td>{{ $selectedRevisi->status_revisi }}</td>
-                                </tr>
-                            </table>
-                        @else
-                            <p class="text-center">Tidak ada data tersedia.</p>
-                        @endif
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+                </div>
+
+                {{-- Bagian Kanan --}}
+                <div class="text-right">
+                    {{-- Status Peneliti --}}
+                    <h4>
+                        <mark class="badge-{{ $item->revisi->first()?->peneliti ? 'success' : 'danger' }} badge-pill">
+                            @if ($item->revisi->first()?->peneliti)
+                                <i class="bi bi-person-check"></i>
+                                {{ $item->revisi->first()?->peneliti->nama_user }}
+                            @else
+                                <i class="bi bi-person-dash"></i>
+                                Menunggu Pemilihan Peneliti
+                            @endif
+                        </mark>
+                    </h4>
+
+                    <p class="info-text mb-1 small">
+                        Pengajuan Rancangan Tahun {{ \Carbon\Carbon::parse($item->tanggal_pengajuan)->year }}
+                    </p>
+
+                    <div class="btn-group">
+                        <button type="button" class="btn btn btn-neutral dropdown-toggle" data-toggle="dropdown"
+                            aria-expanded="false">
+                            <i class="bi bi-list"></i> Pilihan Aksi
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-right shadow">
+                            <a class="dropdown-item d-flex align-items-center" href="#"
+                                wire:click.prevent="openModal({{ $item->id_rancangan }})" data-toggle="modal"
+                                data-target="#modalPilihPeneliti">
+                                <i class="bi bi-eye"></i> Lihat Detail
+                            </a>
+                            {{-- Tombol Reset Peneliti --}}
+                            <a class="dropdown-item d-flex align-items-center" href="#"
+                                wire:click.prevent="resetPeneliti({{ $item->id_rancangan }})">
+                                <i class="bi bi-arrow-counterclockwise"></i> Reset Peneliti
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+    @empty
+        <p class="text-center info-text">Tidak ada data rancangan sedang diajukan.</p>
+    @endforelse
 
-        {{-- Script Modal --}}
-        <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                window.Livewire.on('openModalPilihPeneliti', () => {
-                    $('#modalPilihPeneliti').modal('show');
-                });
+    {{-- Modal Detail Revisi --}}
+    <div wire:ignore.self class="modal fade" id="modalPilihPeneliti" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Detail Revisi</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    @if ($selectedRevisi)
+                        <div class="row">
+                            {{--  Informasi Utama  --}}
+                            <div class="col-md-6 mb-4">
+                                <div class="card shadow-sm">
+                                    <div class="card-header">
+                                        <h4 class="mb-0">Informasi Utama</h4>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="description info-text mb-3">Berikut adalah informasi dasar dari
+                                            rancangan
+                                            yang
+                                            diajukan. Pastikan semua informasi sudah sesuai.</p>
+                                        <table class="table table-sm table-borderless">
+                                            <tbody>
+                                                <tr>
+                                                    <th class="info-text">Nomor</th>
+                                                    <td>{{ $selectedRevisi->rancangan->no_rancangan ?? 'N/A' }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Jenis</th>
+                                                    <td>
+                                                        <mark
+                                                            class="badge-{{ $selectedRevisi->rancangan->jenis_rancangan === 'Peraturan Bupati' ? 'primary' : '' }} badge-pill">
+                                                            {{ $selectedRevisi->rancangan->jenis_rancangan ?? 'N/A' }}
+                                                        </mark>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th class="info-text">Tentang</th>
+                                                    <td>{{ $selectedRevisi->rancangan->tentang ?? 'N/A' }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th class="info-text">Tanggal Pengajuan</th>
+                                                    <td>{{ $selectedRevisi->rancangan->tanggal_pengajuan ? \Carbon\Carbon::parse($selectedRevisi->rancangan->tanggal_pengajuan)->translatedFormat('d F Y, H:i') : 'N/A' }}
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th class="info-text">User Pengaju</th>
+                                                    <td>{{ $selectedRevisi->rancangan->user->nama_user ?? 'N/A' }}
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th class="info-text">Perangkat Daerah</th>
+                                                    <td>{{ $selectedRevisi->rancangan->user->perangkatDaerah->nama_perangkat_daerah ?? 'N/A' }}
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th class="info-text">Status Rancangan</th>
+                                                    <td>
+                                                        <mark
+                                                            class="badge-{{ $selectedRevisi->rancangan->status_rancangan === 'Disetujui' ? 'success' : ($selectedRevisi->rancangan->status_rancangan === 'Ditolak' ? 'danger' : 'warning') }} badge-pill">
+                                                            {{ $selectedRevisi->rancangan->status_rancangan ?? 'N/A' }}
+                                                        </mark>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th class="info-text">Nota Dinas</th>
+                                                    <td>
+                                                        <a href="{{ $selectedRevisi->rancangan->nota_dinas_pd ? asset('storage/' . $selectedRevisi->rancangan->nota_dinas_pd) : '#' }}"
+                                                            target="_blank">
+                                                            <i class="bi bi-file-earmark-text mr-2 text-warning"></i>
+                                                            {{ $selectedRevisi->rancangan->nota_dinas_pd ? 'Download Nota' : 'Tidak Ada Nota' }}
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th class="info-text">File Rancangan</th>
+                                                    <td>
+                                                        <a href="{{ $selectedRevisi->rancangan->rancangan ? asset('storage/' . $selectedRevisi->rancangan->rancangan) : '#' }}"
+                                                            target="_blank">
+                                                            <i class="bi bi-file-earmark-text mr-2 text-primary"></i>
+                                                            {{ $selectedRevisi->rancangan->rancangan ? 'Download Rancangan' : 'Tidak Ada Rancangan' }}
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th class="info-text">Matrik</th>
+                                                    <td>
+                                                        <a href="{{ $selectedRevisi->rancangan->matrik ? asset('storage/' . $selectedRevisi->rancangan->matrik) : '#' }}"
+                                                            target="_blank">
+                                                            <i
+                                                                class="bi bi-file-earmark-spreadsheet mr-2 text-success"></i>
+                                                            {{ $selectedRevisi->rancangan->matrik ? 'Download Matrik' : 'Tidak Ada Matrik' }}
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th class="info-text">Bahan Pendukung</th>
+                                                    <td>
+                                                        @if ($selectedRevisi->rancangan->bahan_pendukung)
+                                                            <a href="{{ asset('storage/' . $selectedRevisi->rancangan->bahan_pendukung) }}"
+                                                                target="_blank">
+                                                                <i class="bi bi-file-earmark-pdf mr-2 text-danger"></i>
+                                                                Download Bahan
+                                                            </a>
+                                                        @else
+                                                            <span class="text-muted">
+                                                                <i class="bi bi-file-earmark-pdf mr-2 text-danger"></i>
+                                                                Tidak Ada Bahan
+                                                            </span>
+                                                        @endif
+                                                    </td>
 
-                window.Livewire.on('closeModalPilihPeneliti', () => {
-                    $('#modalPilihPeneliti').modal('hide');
-                });
-            });
-        </script>
+                                                </tr>
+                                                <tr>
+                                                    <th>Status Berkas</th>
+                                                    <td>
+                                                        <mark
+                                                            class="badge-{{ $selectedRevisi->rancangan->status_berkas === 'Disetujui' ? 'success' : ($selectedRevisi->rancangan->status_berkas === 'Ditolak' ? 'danger' : 'warning') }} badge-pill">
+                                                            {{ $selectedRevisi->rancangan->status_berkas ?? 'N/A' }}
+                                                        </mark>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Tanggal Berkas Disetujui</th>
+                                                    <td class="info-text">
+                                                        {{ $selectedRevisi->rancangan->tanggal_berkas_disetujui
+                                                            ? \Carbon\Carbon::parse($selectedRevisi->rancangan->tanggal_berkas_disetujui)->translatedFormat('d F Y, H:i')
+                                                            : 'N/A' }}
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Catatan Berkas</th>
+                                                    <td class="wrap-text">
+                                                        {{ $selectedRevisi->rancangan->catatan_berkas ?? 'Tidak Ada Catatan' }}
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{--  Detail Revisi --}}
+                            <div class="col-md-6 mb-4">
+                                <div class="card shadow-sm">
+                                    <div class="card-header">
+                                        <h4 class="mb-0">Detail Revisi</h4>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="description info-text mb-3">Pastikan file yang diajukan sudah
+                                            lengkap
+                                            dan
+                                            sesuai.
+                                            Anda dapat mengunduh file untuk memverifikasinya.</p>
+                                        <table class="table table-sm table-borderless">
+                                            <tbody>
+                                                <tr>
+                                                    <th>Status Revisi</th>
+                                                    <td class="info-text">
+                                                        <mark
+                                                            class="badge-{{ $selectedRevisi->status_revisi === 'Direvisi' ? 'success' : ($selectedRevisi->status_revisi === 'Menunggu Revisi' ? 'warning' : 'danger') }} badge-pill">
+                                                            {{ $selectedRevisi->status_revisi }}
+                                                        </mark>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Tanggal Revisi</th>
+                                                    <td class="info-text">
+                                                        {{ $selectedRevisi->tanggal_revisi ? \Carbon\Carbon::parse($selectedRevisi->tanggal_revisi)->translatedFormat('d F Y, H:i') : 'N/A' }}
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Peneliti</th>
+                                                    <td class="info-text">
+                                                        {{ $selectedRevisi->peneliti->nama_user ?? 'Belum Ditentukan' }}
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Tanggal Peneliti Ditunjuk</th>
+                                                    <td class="info-text">
+                                                        {{ $selectedRevisi->tanggal_peneliti_ditunjuk ? \Carbon\Carbon::parse($selectedRevisi->tanggal_peneliti_ditunjuk)->translatedFormat('d F Y, H:i') : 'Belum Ditentukan' }}
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Revisi Rancangan</th>
+                                                    <td class="info-text">
+                                                        <a href="{{ asset('storage/' . $selectedRevisi->revisi_rancangan) }}"
+                                                            target="_blank" class="d-flex align-items-center">
+                                                            <i class="bi bi-file-earmark-text mr-2 text-primary"></i>
+
+                                                            <span>Download Revisi</span>
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Revisi Matrik</th>
+                                                    <td class="info-text">
+                                                        <a href="{{ asset('storage/' . $selectedRevisi->revisi_matrik) }}"
+                                                            target="_blank" class="d-flex align-items-center">
+                                                            <i
+                                                                class="bi bi-file-earmark-spreadsheet mr-2 text-success"></i>
+                                                            <span>Download Matrik Revisi</span>
+                                                        </a>
+                                                    </td>
+                                                </tr>
+
+                                                <tr>
+                                                    <th>Catatan Revisi</th>
+                                                    <td class="wrap-text">
+                                                        {{ $selectedRevisi->catatan_revisi ?? 'Tidak Ada Catatan' }}
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="card-body">
+                                        {{-- Alert Peneliti Sudah Dipilih --}}
+                                        <div class="alert alert-default" role="alert">
+                                            <i class="bi bi-info-circle"></i>
+                                            Peneliti
+                                            <strong>{{ $selectedRevisi->first()?->peneliti->nama_user }}</strong>
+                                            telah ditetapkan sebagai peneliti.
+                                            Jika anda ingin memilih ulang <strong>Pilih Aksi Reset</strong> untuk
+                                            mereset ulang peneliti !
+                                        </div>
+                                    </div>
+
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary"
+                                            data-dismiss="modal">Tutup</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @else
+                        <div class="d-flex justify-content-center align-items-start"
+                            style="min-height: 200px; padding-top: 50px;">
+                            <div class="text-center">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="sr-only">Loading...</span>
+                                </div>
+                                <p class="mt-3 info-text">Sedang memuat data, harap tunggu...</p>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
     </div>
+
+    {{-- Script Modal --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            window.Livewire.on('openModalPilihPeneliti', () => {
+                $('#modalPilihPeneliti').modal('show');
+            });
+
+            window.Livewire.on('closeModalPilihPeneliti', () => {
+                $('#modalPilihPeneliti').modal('hide');
+            });
+        });
+    </script>
 </div>

@@ -49,10 +49,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(RancanganProdukHukum::class, 'id_user');
     }
 
-    public function revisiSebagaiPeneliti()
+    public function revisi()
     {
-        return $this->hasMany(Revisi::class, 'id_user');
+        return $this->hasMany(Revisi::class, 'id_user', 'id');
     }
+
 
 
     /**

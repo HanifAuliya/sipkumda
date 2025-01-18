@@ -31,7 +31,17 @@
             <div class="list-group-item d-flex justify-content-between bg-light align-items-center">
                 {{-- Informasi Utama --}}
                 <div class="d-flex flex-column">
-                    <h4 class="mb-1 font-weight-bold">{{ $item->no_rancangan }}</h4>
+                    <div class="d-flex align-items-center">
+                        <h4 class="mb-1 font-weight-bold">
+                            {{ $item->no_rancangan }}
+                        </h4>
+                        <h5 class="ml-2">
+                            <mark
+                                class="badge-{{ $item->jenis_rancangan === 'Peraturan Bupati' ? 'primary' : '' }} badge-pill">
+                                {{ $item->jenis_rancangan }}
+                            </mark>
+                        </h5>
+                    </div>
                     <p class="mb-1 mt-2 font-weight-bold">{{ $item->tentang }}</p>
                     <p class="mb-0 info-text small">
                         <i class="bi bi-person"></i>
@@ -77,8 +87,8 @@
 
                         {{-- Tombol Tindakan --}}
                         <div class="btn-group">
-                            <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown"
-                                aria-expanded="false">
+                            <button type="button" class="btn btn-outline-default dropdown-toggle"
+                                data-toggle="dropdown" aria-expanded="false">
                                 <i class="bi bi-list"></i> Pilihan Aksi
                             </button>
                             <div class="dropdown-menu dropdown-menu-right shadow">
