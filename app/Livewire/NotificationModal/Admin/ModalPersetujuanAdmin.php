@@ -47,6 +47,14 @@ class ModalPersetujuanAdmin extends Component
             // Set tanggal_berkas_disetujui jika status disetujui
             if ($this->statusBerkas === 'Disetujui') {
                 $this->rancangan->tanggal_berkas_disetujui = Carbon::now();
+
+                // Perbarui status_revisi di tabel Revisi
+                $revisi = $this->rancangan->revisi()->first(); // Ambil revisi terkait
+                if ($revisi) {
+                    $revisi->update([
+                        'status_revisi' => 'Menunggu Peneliti',
+                    ]);
+                }
             } else {
                 $this->rancangan->tanggal_berkas_disetujui = null; // Reset jika status bukan "Disetujui"
             }

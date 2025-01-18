@@ -45,9 +45,18 @@ class PersetujuanDitolak extends Component
                 'tanggal_berkas_disetujui' => null, // Reset tanggal jika status direset
             ]);
 
+            // Reset status revisi terkait rancangan
+            $revisi = $rancangan->revisi()->first();
+            if ($revisi) {
+                $revisi->update([
+                    'status_revisi' => 'Belum Tahap Revisi', // Reset status revisi
+                ]);
+            }
+
             // Perbarui properti lokal
             $this->statusBerkas = 'Menunggu Persetujuan';
             $this->catatan = '';
+
 
             // Kirim notifikasi ke user
             Notification::send(

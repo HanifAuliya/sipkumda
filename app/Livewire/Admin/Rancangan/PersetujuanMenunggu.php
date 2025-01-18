@@ -56,18 +56,26 @@ class PersetujuanMenunggu extends Component
     {
         $this->validate();
 
-        if ($this->selectedRancangan) {
-            $this->selectedRancangan->status_berkas = $this->statusBerkas;
-            $this->selectedRancangan->catatan_berkas = $this->catatan;
+        if ($this->rancangan) {
+            $this->rancangan->status_berkas = $this->statusBerkas;
+            $this->rancangan->catatan_berkas = $this->catatan;
 
             // Set tanggal_berkas_disetujui jika status disetujui
             if ($this->statusBerkas === 'Disetujui') {
-                $this->selectedRancangan->tanggal_berkas_disetujui = Carbon::now();
+                $this->rancangan->tanggal_berkas_disetujui = Carbon::now();
+
+                // Perbarui status_revisi di tabel Revisi
+                $revisi = $this->rancangan->revisi()->first(); // Ambil revisi terkait
+                if ($revisi) {
+                    $revisi->update([
+                        'status_revisi' => 'Menunggu Peneliti',
+                    ]);
+                }
             } else {
-                $this->selectedRancangan->tanggal_berkas_disetujui = null; // Reset jika bukan "Disetujui"
+                $this->rancangan->tanggal_berkas_disetujui = null; // Reset jika status bukan "Disetujui"
             }
 
-            $this->selectedRancangan->save();
+            $this->rancangan->save();
 
             // Kirim notifikasi ke user
             Notification::send(
