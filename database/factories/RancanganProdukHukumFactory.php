@@ -24,19 +24,19 @@ class RancanganProdukHukumFactory extends Factory
             'no_rancangan' => $this->faker->unique()->numerify('RANC-#####'), // Nomor rancangan unik
             'jenis_rancangan' => $this->faker->randomElement(['Peraturan Bupati', 'Surat Keputusan']), // Jenis rancangan
             'tentang' => $this->faker->sentence(), // Deskripsi tentang rancangan
-            'nota_dinas_pd' => $this->faker->word() . '.pdf', // File Nota Dinas
-            'rancangan' => $this->faker->word() . '.docx', // File Rancangan
-            'matrik' => $this->faker->word() . '.xlsx', // File Matrik
-            'bahan_pendukung' => $this->faker->word() . '.zip', // File Bahan Pendukung
+            'nota_dinas_pd' =>  $this->faker->optional()->word() . '.pdf', // Default kosong, akan terisi saat rancangan disetujui
+            'rancangan' => $this->faker->optional()->word() . '.pdf', // Opsional file rancangan
+            'matrik' => $this->faker->optional()->word() . '.pdf', // Opsional file matrik
+            'bahan_pendukung' => $this->faker->optional()->word() . '.pdf', // Opsional bahan pendukung
             'tanggal_pengajuan' => $this->faker->dateTimeBetween('-1 year', 'now'), // Tanggal pengajuan dalam 1 tahun terakhir
-            'id_user' => User::factory(), // ID User, relasi dengan User
-            'status_berkas' => $this->faker->randomElement(['Disetujui', 'Ditolak', 'Menunggu Persetujuan']), // Status berkas
-            'status_rancangan' => $this->faker->randomElement(['Disetujui', 'Ditolak', 'Dalam Proses']), // Status rancangan
-            'catatan_berkas' => $this->faker->paragraph(), // Catatan Berkas
-            'tanggal_berkas_disetujui' => $this->faker->optional()->dateTimeBetween('-6 months', 'now'), // Opsional tanggal disetujui
-            'tanggal_rancangan_disetujui' => $this->faker->optional()->dateTimeBetween('-3 months', 'now'), // Opsional tanggal peneliti dipilih
-            'created_at' => now(), // Tanggal dibuat
-            'updated_at' => now(), // Tanggal diperbarui
+            'id_user' => User::factory(), // Relasi ke User
+            'status_berkas' => 'Menunggu Persetujuan', // Default status
+            'status_rancangan' => 'Dalam Proses', // Default status rancangan
+            'catatan_berkas' => null, // Default kosong
+            'tanggal_berkas_disetujui' => null, // Akan terisi jika disetujui
+            'tanggal_rancangan_disetujui' => null, // Akan terisi jika status rancangan disetujui
+            'created_at' => now(),
+            'updated_at' => now(),
         ];
     }
 }

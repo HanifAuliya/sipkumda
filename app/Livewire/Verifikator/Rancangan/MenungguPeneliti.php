@@ -55,6 +55,20 @@ class MenungguPeneliti extends Component
             ]
         );
 
+        // Emit notifikasi sukses ke pengguna
+        $this->dispatch('refreshNotifications');
+
+        // Kirim notifikasi ke user yang mengajukan rancangan
+        Notification::send(
+            $this->selectedRancangan->user,
+            new PilihPenelitiNotification([
+                'title' => "Peneliti Telah Ditugaskan untuk Rancangan Nomor {$this->selectedRancangan->no_rancangan}",
+                'message' => "Rancangan Anda dengan nomor {$this->selectedRancangan->no_rancangan} telah disetujui, dan peneliti telah ditetapkan untuk melaksanakan revisi. Mohon menunggu proses revisi oleh peneliti yang ditugaskan.",
+                'slug' => $this->selectedRancangan->slug,
+                'type' => 'peneliti_dipilih',
+            ])
+        );
+
         // Kirim notifikasi ke peneliti
         $peneliti = User::find($this->selectedPeneliti);
         Notification::send($peneliti, new PilihPenelitiNotification([
@@ -79,12 +93,13 @@ class MenungguPeneliti extends Component
         $rancangan = RancanganProdukHukum::with('revisi') // Eager loading revisi
             ->where('status_berkas', 'Disetujui')
             ->whereHas('revisi', function ($query) {
-                $query->where('status_revisi', 'Belum Tahap Revisi');
+                $query->where('status_revisi', 'Menunggu Peneliti');
             })
             ->where(function ($query) {
                 $query->where('tentang', 'like', "%{$this->search}%")
                     ->orWhere('no_rancangan', 'like', "%{$this->search}%");
             })
+            ->orderBy('tanggal_berkas_disetujui', 'desc') // Urutkan berdasarkan tangal pengakuan
             ->paginate($this->perPage);
 
 

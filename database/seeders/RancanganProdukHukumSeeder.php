@@ -13,6 +13,6 @@ class RancanganProdukHukumSeeder extends Seeder
      */
     public function run(): void
     {
-        RancanganProdukHukum::factory(10)->create();
+        RancanganProdukHukum::factory(30)->create();
     }
 }

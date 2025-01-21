@@ -1,29 +1,25 @@
-@section('header', 'Rancangan Pengajuan')
-
 {{-- Header --}}
 @section('title', 'Rancanganku')
 
-@section('breadcrumb')
-    <nav aria-label="breadcrumb" class="d-none d-md-inline-block ml-md-4">
-        <ol class="breadcrumb breadcrumb-links bg-gradient-orange">
+@section('manual')
+    <div class="card  mb--2">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div class="d-flex flex-column">
+                <h3 class="mb-0">Panduan Rancanganku</h3>
+                <p class="description">
+                    © Hak Cipta Bagian Hukum Sekretariat Daerah Kabupaten Hulu
+                    Sungai Tengah.
+                </p>
+            </div>
 
-            <li class="breadcrumb-item">
-                <a href="{{ route('rancanganku') }}" class="text-white">
-                    <i class="fas fa-home"></i>
-                </a>
-            </li>
-            <li class="breadcrumb-item">
-                <a href="{{ route('rancanganku') }}" class="text-white">Rancanganku</a>
-            </li>
-            <li class="breadcrumb-item active text-white" aria-current="page">List</li>
-        </ol>
-    </nav>
+            {{-- Tombol untuk Verifikator --}}
+            <button class="btn btn-outline-warning">
+                <i class="bi bi-info-circle"></i> Panduan
+            </button>
+        </div>
+    </div>
 @endsection
 
-@section('actions')
-    <a href="#" class="btn btn-sm btn-neutral">New</a>
-    <a href="#" class="btn btn-sm btn-neutral">Filters</a>
-@endsection
 <div>
     <div class="card shadow-sm">
         {{-- Header --}}
@@ -39,21 +35,6 @@
 
         {{-- Tabs --}}
         <div class="card-body">
-            <ul class="info-text ">
-                <li>
-                    <p class="description">
-                        <strong>Sedang Diajukan:</strong>
-                        Menampilkan daftar rancangan yang anda ajukan.
-                        Anda dapat memeriksa berkas dan memantau sampai tahapan mana rancangan anda.
-                    </p>
-                </li>
-                <li>
-                    <p class="description mt--2">
-                        <strong>Riwayat Pengajuan:</strong>
-                        Menampilkan riwayat rancangan yang sudah diproses, yang telah disetujui
-                    </p>
-                </li>
-            </ul>
             <ul class="nav nav-pills flex-row" role="tablist">
                 <li class="nav-item">
                     <a class="nav-link {{ $tab == 'sedang_diajukan' ? 'active' : '' }}" href="#"

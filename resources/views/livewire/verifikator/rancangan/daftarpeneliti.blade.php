@@ -17,11 +17,19 @@
                         <td>
                             <ul class="list-group">
                                 @forelse ($user->revisi as $revisi)
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        <span>Rancangan Nomor: {{ $revisi->rancangan->no_rancangan ?? 'N/A' }}</span>
-                                        <span class="badge badge-primary">
-                                            {{ $revisi->rancangan->jenis_rancangan ?? 'N/A' }}
-                                        </span>
+                                    <li
+                                        class="list-group-item d-flex justify-content-between align-items-start flex-column">
+                                        <div class="d-flex justify-content-between align-items-center w-100">
+                                            <span>Rancangan Nomor:
+                                                {{ $revisi->rancangan->no_rancangan ?? 'N/A' }}</span>
+                                            <mark
+                                                class="badge-{{ $revisi->rancangan->jenis_rancangan === 'Peraturan Bupati' ? 'primary' : '' }} badge-pill">
+                                                {{ $revisi->rancangan->jenis_rancangan ?? 'N/A' }}
+                                            </mark>
+                                        </div>
+                                        <small class="mt-2 text-muted">
+                                            Tentang: {{ $revisi->rancangan->tentang ?? 'N/A' }}
+                                        </small>
                                     </li>
                                 @empty
                                     <li class="list-group-item text-muted">Tidak ada penelitian berlangsung.</li>
@@ -35,6 +43,7 @@
                     </tr>
                 @endforelse
             </tbody>
+
         </table>
     </div>
 

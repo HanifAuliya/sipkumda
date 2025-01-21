@@ -31,12 +31,12 @@
                                     <table class="table table-sm table-borderless">
                                         <tbody>
                                             <tr>
-                                                <th class="info-text">Nomor</th>
-                                                <td>{{ $rancangan->no_rancangan ?? 'N/A' }}</td>
+                                                <th class="info-text w-25">Nomor</th>
+                                                <td class="wrap-text w-75">{{ $rancangan->no_rancangan ?? 'N/A' }}</td>
                                             </tr>
                                             <tr>
-                                                <th>Jenis</th>
-                                                <td>
+                                                <th class="info-text w-25">Jenis</th>
+                                                <td class="wrap-text w-75">
                                                     <mark
                                                         class="info-text badge-{{ $rancangan->jenis_rancangan === 'Peraturan Bupati' ? 'primary' : '' }} badge-pill">
                                                         {{ $rancangan->jenis_rancangan ?? 'N/A' }}
@@ -44,26 +44,29 @@
                                                 </td>
                                             </tr>
                                             <tr>
-                                                <th class="info-text">Tentang</th>
-                                                <td>{{ $rancangan->tentang ?? 'N/A' }}</td>
+                                                <th class="info-text w-25">Tentang</th>
+                                                <td class="wrap-text w-75">{{ $rancangan->tentang ?? 'N/A' }} </td>
                                             </tr>
                                             <tr>
-                                                <th class="info-text">Tanggal Pengajuan</th>
-                                                <td>{{ $rancangan->tanggal_pengajuan ? \Carbon\Carbon::parse($rancangan->tanggal_pengajuan)->translatedFormat('d F Y, H:i') : 'N/A' }}
+                                                <th class="info-text w-25">Tanggal Pengajuan</th>
+                                                <td class="wrap-text w-75">
+                                                    {{ $rancangan->tanggal_pengajuan ? \Carbon\Carbon::parse($rancangan->tanggal_pengajuan)->translatedFormat('d F Y, H:i') : 'N/A' }}
                                                 </td>
                                             </tr>
                                             <tr>
-                                                <th class="info-text">User Pengaju</th>
-                                                <td>{{ $rancangan->user->nama_user ?? 'N/A' }}</td>
-                                            </tr>
-                                            <tr>
-                                                <th class="info-text">Perangkat Daerah</th>
-                                                <td>{{ $rancangan->user->perangkatDaerah->nama_perangkat_daerah ?? 'N/A' }}
+                                                <th class="info-text w-25">User Pengaju</th>
+                                                <td class="wrap-text w-75">{{ $rancangan->user->nama_user ?? 'N/A' }}
                                                 </td>
                                             </tr>
                                             <tr>
-                                                <th class="info-text">Status Rancangan</th>
-                                                <td>
+                                                <th class="info-text w-25">Perangkat Daerah</th>
+                                                <td class="wrap-text w-75">
+                                                    {{ $rancangan->user->perangkatDaerah->nama_perangkat_daerah ?? 'N/A' }}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th class="info-text w-25">Status Rancangan</th>
+                                                <td class="wrap-text w-75">
                                                     <span
                                                         class="badge badge-{{ $rancangan->status_rancangan === 'Disetujui' ? 'success' : ($rancangan->status_rancangan === 'Ditolak' ? 'danger' : 'warning') }} badge-pill">
                                                         {{ $rancangan->status_rancangan ?? 'N/A' }}
@@ -89,48 +92,65 @@
                                     <table class="table table-sm table-borderless">
                                         <tbody>
                                             <tr>
-                                                <th class="info-text">Nota Dinas</th>
-                                                <td>
-                                                    <a href="{{ $rancangan->nota_dinas_pd ? asset('storage/' . $rancangan->nota_dinas_pd) : '#' }}"
-                                                        target="_blank">
-                                                        <i class="bi bi-file-earmark-text mr-2 text-warning"></i>
-                                                        {{ $rancangan->nota_dinas_pd ? 'Download Nota' : 'Tidak Ada Nota' }}
-                                                    </a>
+                                                <th class="info-text w-25">Nota Dinas</th>
+                                                <td class="wrap-text w-75">
+                                                    @if ($rancangan->nota_dinas_pd)
+                                                        <a href="{{ asset('storage/' . $rancangan->nota_dinas_pd) }}"
+                                                            target="_blank">
+                                                            <i class="bi bi-file-earmark-text mr-2 text-warning"></i>
+                                                            Download Nota
+                                                        </a>
+                                                    @else
+                                                        <span class="text-muted">Tidak Ada Nota</span>
+                                                    @endif
                                                 </td>
                                             </tr>
                                             <tr>
-                                                <th class="info-text">File Rancangan</th>
-                                                <td>
-                                                    <a href="{{ $rancangan->rancangan ? asset('storage/' . $rancangan->rancangan) : '#' }}"
-                                                        target="_blank">
-                                                        <i class="bi bi-file-earmark-text mr-2 text-primary"></i>
-                                                        {{ $rancangan->rancangan ? 'Download Rancangan' : 'Tidak Ada Rancangan' }}
-                                                    </a>
+                                                <th class="info-text w-25">File Rancangan</th>
+                                                <td class="wrap-text w-75">
+                                                    @if ($rancangan->rancangan)
+                                                        <a href="{{ asset('storage/' . $rancangan->rancangan) }}"
+                                                            target="_blank">
+                                                            <i class="bi bi-file-earmark-text mr-2 text-primary"></i>
+                                                            Download Rancangan
+                                                        </a>
+                                                    @else
+                                                        <span class="text-muted">Tidak Ada Rancangan</span>
+                                                    @endif
                                                 </td>
                                             </tr>
                                             <tr>
-                                                <th class="info-text">Matrik</th>
-                                                <td>
-                                                    <a href="{{ $rancangan->matrik ? asset('storage/' . $rancangan->matrik) : '#' }}"
-                                                        target="_blank">
-                                                        <i class="bi bi-file-earmark-spreadsheet mr-2 text-success"></i>
-                                                        {{ $rancangan->matrik ? 'Download Matrik' : 'Tidak Ada Matrik' }}
-                                                    </a>
+                                                <th class="info-text w-25">Matrik</th>
+                                                <td class="wrap-text w-75">
+                                                    @if ($rancangan->matrik)
+                                                        <a href="{{ asset('storage/' . $rancangan->matrik) }}"
+                                                            target="_blank">
+                                                            <i
+                                                                class="bi bi-file-earmark-spreadsheet mr-2 text-success"></i>
+                                                            Download Matrik
+                                                        </a>
+                                                    @else
+                                                        <span class="text-muted">Tidak Ada Matrik</span>
+                                                    @endif
                                                 </td>
                                             </tr>
                                             <tr>
-                                                <th class="info-text">Bahan Pendukung</th>
-                                                <td>
-                                                    <a href="{{ $rancangan->bahan_pendukung ? asset('storage/' . $rancangan->bahan_pendukung) : '#' }}"
-                                                        target="_blank">
-                                                        <i class="bi bi-file-earmark-pdf mr-2 text-danger"></i>
-                                                        {{ $rancangan->bahan_pendukung ? 'Download Bahan' : 'Tidak Ada Bahan' }}
-                                                    </a>
+                                                <th class="info-text w-25">Bahan Pendukung</th>
+                                                <td class="wrap-text w-75">
+                                                    @if ($rancangan->bahan_pendukung)
+                                                        <a href="{{ asset('storage/' . $rancangan->bahan_pendukung) }}"
+                                                            target="_blank">
+                                                            <i class="bi bi-file-earmark-pdf mr-2 text-danger"></i>
+                                                            Download Bahan
+                                                        </a>
+                                                    @else
+                                                        <span class="text-muted">Tidak Ada Bahan</span>
+                                                    @endif
                                                 </td>
                                             </tr>
                                             <tr>
-                                                <th>Status Berkas</th>
-                                                <td class="info-text">
+                                                <th class="info-text w-25">Status Berkas</th>
+                                                <td class="wrap-text w-75">
                                                     <span
                                                         class="badge badge-{{ $rancangan->status_berkas === 'Disetujui' ? 'success' : ($rancangan->status_berkas === 'Ditolak' ? 'danger' : 'warning') }} badge-pill">
                                                         {{ $rancangan->status_berkas ?? 'N/A' }}
@@ -138,19 +158,21 @@
                                                 </td>
                                             </tr>
                                             <tr>
-                                                <th>Tanggal Berkas Disetujui</th>
-                                                <td class="info-text">
+                                                <th class="info-text w-25">Tanggal Berkas Disetujui</th>
+                                                <td class="wrap-text w-75">
                                                     {{ $rancangan->tanggal_berkas_disetujui
                                                         ? \Carbon\Carbon::parse($rancangan->tanggal_berkas_disetujui)->translatedFormat('d F Y, H:i')
                                                         : 'Belum disetujui' }}
                                                 </td>
                                             </tr>
                                             <tr>
-                                                <th>Catatan Berkas</th>
-                                                <td class="info-text">
-                                                    {{ $rancangan->catatan_berkas ?? 'Tidak Ada Catatan' }}</td>
+                                                <th class="info-text w-25">Catatan Berkas</th>
+                                                <td class="wrap-text w-75">
+                                                    {{ $rancangan->catatan_berkas ?? 'Tidak Ada Catatan' }}
+                                                </td>
                                             </tr>
                                         </tbody>
+
                                     </table>
                                 </div>
                             </div>
@@ -169,11 +191,17 @@
                                         {{ $rancangan->status_berkas }} Silahkan Cek diHalaman Persetujuan sesuai
                                         dengan tab statusnya
                                     </div>
+
+                                    {{-- Footer Modal --}}
+                                    <div class="modal-footer mt-2">
+                                        <button type="button" class="btn btn-neutral"
+                                            data-dismiss="modal">Tutup</button>
+                                    </div>
                                 @else
                                     <div class="alert alert-warning mb-0" role="alert"
                                         style="flex: 1; text-align: center;">
                                         <strong> Berkas Rancangan {{ $rancangan->status_berkas }}!</strong>
-                                        Periksa dan Lakuka Verifikasi
+                                        Periksa dan Lakukan Verifikasi
                                     </div>
 
                                     <div class="card-body">
@@ -231,32 +259,20 @@
                                         {{-- Tombol --}}
                                         <div class="d-flex justify-content-end">
                                             {{-- Tombol Tutup --}}
-                                            <button type="button" class="btn btn-secondary mr-3"
-                                                data-dismiss="modal" wire:click="resetForm">
+                                            <button type="button" class="btn btn-neutral mr-3" data-dismiss="modal"
+                                                wire:click="resetForm">
                                                 <i class="bi bi-x-circle-lg"></i> Batal
                                             </button>
 
-                                            @if ($rancangan->status_berkas === 'Disetujui' || $rancangan->status_berkas === 'Ditolak')
-                                                {{-- Tombol Reset --}}
-                                                <button class="btn btn-danger" wire:click="resetStatus"
-                                                    wire:loading.attr="disabled">
-                                                    <span wire:loading.remove><i
-                                                            class="bi bi-arrow-counterclockwise"></i>
-                                                        Reset Status</span>
-                                                    <span wire:loading><i class="bi bi-hourglass-split"></i>
-                                                        Memproses...</span>
-                                                </button>
-                                            @else
-                                                {{-- Tombol Verifikasi --}}
-                                                <button class="btn btn-success" wire:click="updateStatus"
-                                                    wire:loading.attr="disabled">
-                                                    <span wire:loading.remove><i class="bi bi-check-circle"></i>
-                                                        Verifikasi
-                                                        Rancangan</span>
-                                                    <span wire:loading><i class="bi bi-hourglass-split"></i>
-                                                        Memproses...</span>
-                                                </button>
-                                            @endif
+                                            {{-- Tombol Verifikasi --}}
+                                            <button class="btn btn-success" wire:click="updateStatus"
+                                                wire:loading.attr="disabled">
+                                                <span wire:loading.remove><i class="bi bi-check-circle"></i>
+                                                    Verifikasi
+                                                    Rancangan</span>
+                                                <span wire:loading><i class="bi bi-hourglass-split"></i>
+                                                    Memproses...</span>
+                                            </button>
                                         </div>
                                     </div>
                                 @endif
@@ -276,10 +292,7 @@
                     </div>
                 @endif
             </div>
-            {{-- Footer Modal --}}
-            <div class="modal-footer mt--5">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
-            </div>
+
         </div>
     </div>
 

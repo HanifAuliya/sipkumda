@@ -107,7 +107,7 @@
                     <div class="btn-group">
                         <button type="button" class="btn btn btn-neutral dropdown-toggle" data-toggle="dropdown"
                             aria-expanded="false">
-                            <i class="bi bi-list"></i> Pilihan Aksi
+                            <i class="bi bi-gear"></i> Kelola Peneliti
                         </button>
                         <div class="dropdown-menu dropdown-menu-right shadow">
                             <a class="dropdown-item d-flex align-items-center" href="#"
@@ -350,7 +350,7 @@
                                         <div class="alert alert-default" role="alert">
                                             <i class="bi bi-info-circle"></i>
                                             Peneliti
-                                            <strong>{{ $selectedRevisi->first()?->peneliti->nama_user }}</strong>
+                                            <strong>{{ $selectedRevisi->peneliti->nama_user }}</strong>
                                             telah ditetapkan sebagai peneliti.
                                             Jika anda ingin memilih ulang <strong>Pilih Aksi Reset</strong> untuk
                                             mereset ulang peneliti !

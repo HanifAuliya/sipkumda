@@ -57,7 +57,7 @@
                             <p class="mb-0 info-text small">
                                 <i class="bi bi-calendar"></i>
                                 Tanggal Pengajuan:
-                                {{ \Carbon\Carbon::parse($item->tanggal_pengajuan)->translatedFormat('d F Y') }}
+                                {{ \Carbon\Carbon::parse($item->tanggal_pengajuan)->translatedFormat('d F Y, H:i') }}
                             </p>
                             <p class="info-text small mb-0">
                                 <i class="bi bi-calendar"></i> Tanggal Berkas Disetujui:

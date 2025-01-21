@@ -44,7 +44,7 @@ class PenelitiDitugaskan extends Component
         if ($revisi) {
             $revisi->update([
                 'id_user' => null,
-                'status_revisi' => 'Belum Tahap Revisi',
+                'status_revisi' => 'Menunggu Peneliti',
                 'tanggal_peneliti_ditunjuk' => null,
             ]);
 
@@ -76,6 +76,7 @@ class PenelitiDitugaskan extends Component
                 $query->where('tentang', 'like', "%{$this->search}%")
                     ->orWhere('no_rancangan', 'like', "%{$this->search}%");
             })
+            ->orderBy('tanggal_berkas_disetujui', 'desc') // Urutkan berdasarkan tangal pengakuan
             ->paginate($this->perPage);
 
         return view('livewire.verifikator.rancangan.peneliti-ditugaskan', compact('rancangan'));

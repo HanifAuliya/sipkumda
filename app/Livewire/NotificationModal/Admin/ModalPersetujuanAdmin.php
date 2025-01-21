@@ -4,6 +4,7 @@ namespace App\Livewire\NotificationModal\Admin;
 
 use Livewire\Component;
 use App\Models\RancanganProdukHukum;
+use App\Models\User;
 use Illuminate\Support\Carbon;
 use App\Notifications\PersetujuanRancanganNotification;
 use Illuminate\Support\Facades\Notification;
@@ -55,6 +56,17 @@ class ModalPersetujuanAdmin extends Component
                         'status_revisi' => 'Menunggu Peneliti',
                     ]);
                 }
+                // Kirim notifikasi ke verifikator
+                $verifikator = User::role('Verifikator')->get(); // Ambil semua user dengan role Verifikator
+                Notification::send(
+                    $verifikator, // Semua verifikator
+                    new PersetujuanRancanganNotification([
+                        'title' => "Berkas Rancangan nomor {$this->rancangan->no_rancangan} Disetujui, Silahkan Pilih Peneliti !",
+                        'message' => "Berkas Rancangan dengan nomor {$this->rancangan->no_rancangan} telah berhasil disetujui. Harap segera memilih peneliti untuk melanjutkan proses berikutnya.",
+                        'slug' => $this->rancangan->slug, // Slug untuk memuat modal detail
+                        'type' => 'pilih_peneliti', // Tipe notifikasi untuk verifikator
+                    ])
+                );
             } else {
                 $this->rancangan->tanggal_berkas_disetujui = null; // Reset jika status bukan "Disetujui"
             }
@@ -65,8 +77,10 @@ class ModalPersetujuanAdmin extends Component
             Notification::send(
                 $this->rancangan->user, // User yang mengajukan rancangan
                 new PersetujuanRancanganNotification([
-                    'title' => "Rancangan Anda {$this->statusBerkas}",
-                    'message' => "Rancangan Anda dengan nomor {$this->rancangan->no_rancangan} telah {$this->statusBerkas}.",
+                    'title' => "Berkas Rancangan Anda {$this->statusBerkas}",
+                    'message' => $this->statusBerkas === 'Disetujui'
+                        ? "Selamat! Berkas Rancangan Anda dengan nomor {$this->rancangan->no_rancangan} telah disetujui. Proses selanjutnya adalah penugasan Peneliti. Mohon menunggu pemelihan peneliti."
+                        : "Mohon maaf, Berkas Rancangan Anda dengan nomor {$this->rancangan->no_rancangan} Di Tolak. Silakan periksa catatan yang diberikan untuk melakukan perbaikan dan ajukan kembali jika diperlukan.",
                     'slug' => $this->rancangan->slug, // Slug untuk memuat modal detail
                     'type' => $this->statusBerkas === 'Disetujui' ? 'persetujuan_diterima' : 'persetujuan_ditolak', // Tentukan tipe
                     // 'url' => route('user.rancangan.detail', $this->rancangan->id), // URL detail rancangan

@@ -38,6 +38,8 @@ class PilihPenelitiNotification extends Notification
             'title' => $this->data['title'],
             'message' => $this->data['message'],
             'slug' => $this->data['slug'],
+            'type' => $this->data['type'] ?? null,
+
         ];
     }
 

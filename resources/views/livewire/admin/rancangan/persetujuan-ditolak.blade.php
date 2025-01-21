@@ -50,6 +50,11 @@
                             Pemohon
                         </span>
                     </p>
+                    <p class="mb-0 info-text small">
+                        <i class="bi bi-houses"></i>
+                        {{ $item->user->perangkatDaerah->nama_perangkat_daerah ?? '-' }}
+                    </p>
+
                     <p class="info-text small mb-0">
                         <i class="bi bi-calendar"></i> Tanggal Pengajuan:
                         {{ \Carbon\Carbon::parse($item->tanggal_pengajuan)->translatedFormat('d F Y, H:i') }}
@@ -59,10 +64,6 @@
                         {{ $item->tanggal_berkas_disetujui
                             ? \Carbon\Carbon::parse($item->tanggal_berkas_disetujui)->translatedFormat('d F Y, H:i')
                             : 'Belum Disetujui' }}
-                    </p>
-                    <p class="mb-0 info-text small">
-                        <i class="bi bi-houses"></i>
-                        {{ $item->user->perangkatDaerah->nama_perangkat_daerah ?? '-' }}
                     </p>
 
 
@@ -86,7 +87,7 @@
                     <div class="mt-2">
                         {{-- Tombol Tindakan --}}
                         <div class="dropdown">
-                            <button type="button" class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown"
+                            <button type="button" class="btn btn-neutral dropdown-toggle" data-toggle="dropdown"
                                 aria-expanded="false">
                                 <i class="bi bi-gear"></i> Kelola Persetujuan
                             </button>
@@ -151,12 +152,13 @@
                                         <table class="table table-sm table-borderless">
                                             <tbody>
                                                 <tr>
-                                                    <th class="info-text">Nomor</th>
-                                                    <td>{{ $selectedRancangan->no_rancangan ?? 'N/A' }}</td>
+                                                    <th class="info-text w-25">Nomor</th>
+                                                    <td class="wrap-text w-75">
+                                                        {{ $selectedRancangan->no_rancangan ?? 'N/A' }}</td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Jenis</th>
-                                                    <td>
+                                                    <th class="info-text w-25">Jenis</th>
+                                                    <td class="wrap-text w-75">
                                                         <mark
                                                             class="badge-{{ $selectedRancangan->jenis_rancangan === 'Peraturan Bupati' ? 'primary' : '' }} badge-pill">
                                                             {{ $selectedRancangan->jenis_rancangan ?? 'N/A' }}
@@ -164,26 +166,30 @@
                                                     </td>
                                                 </tr>
                                                 <tr>
-                                                    <th class="info-text">Tentang</th>
-                                                    <td>{{ $selectedRancangan->tentang ?? 'N/A' }}</td>
+                                                    <th class="info-text w-25">Tentang</th>
+                                                    <td class="wrap-text w-75">
+                                                        {{ $selectedRancangan->tentang ?? 'N/A' }}</td>
                                                 </tr>
                                                 <tr>
-                                                    <th class="info-text">Tanggal Pengajuan</th>
-                                                    <td>{{ $selectedRancangan->tanggal_pengajuan ? \Carbon\Carbon::parse($selectedRancangan->tanggal_pengajuan)->translatedFormat('d F Y, H:i') : 'N/A' }}
+                                                    <th class="info-text w-25">Tanggal Pengajuan</th>
+                                                    <td class="wrap-text w-75">
+                                                        {{ $selectedRancangan->tanggal_pengajuan ? \Carbon\Carbon::parse($selectedRancangan->tanggal_pengajuan)->translatedFormat('d F Y, H:i') : 'N/A' }}
                                                     </td>
                                                 </tr>
                                                 <tr>
-                                                    <th class="info-text">User Pengaju</th>
-                                                    <td>{{ $selectedRancangan->user->nama_user ?? 'N/A' }}</td>
+                                                    <th class="info-text w-25">User Pengaju</th>
+                                                    <td class="wrap-text w-75">
+                                                        {{ $selectedRancangan->user->nama_user ?? 'N/A' }}</td>
                                                 </tr>
                                                 <tr>
-                                                    <th class="info-text">Perangkat Daerah</th>
-                                                    <td>{{ $selectedRancangan->user->perangkatDaerah->nama_perangkat_daerah ?? 'N/A' }}
+                                                    <th class="info-text w-25">Perangkat Daerah</th>
+                                                    <td class="wrap-text w-75">
+                                                        {{ $selectedRancangan->user->perangkatDaerah->nama_perangkat_daerah ?? 'N/A' }}
                                                     </td>
                                                 </tr>
                                                 <tr>
-                                                    <th class="info-text">Status Rancangan</th>
-                                                    <td>
+                                                    <th class="info-text w-25">Status Rancangan</th>
+                                                    <td class="wrap-text w-75">
                                                         <mark
                                                             class="badge-{{ $selectedRancangan->status_rancangan === 'Disetujui' ? 'success' : ($selectedRancangan->status_rancangan === 'Ditolak' ? 'danger' : 'warning') }} badge-pill">
                                                             {{ $selectedRancangan->status_rancangan ?? 'N/A' }}
@@ -191,6 +197,7 @@
                                                     </td>
                                                 </tr>
                                             </tbody>
+
                                         </table>
                                     </div>
                                 </div>
@@ -208,69 +215,89 @@
                                         <table class="table table-sm table-borderless">
                                             <tbody>
                                                 <tr>
-                                                    <th class="info-text">Nota Dinas</th>
-                                                    <td>
-                                                        <a href="{{ $selectedRancangan->nota_dinas_pd ? asset('storage/' . $selectedRancangan->nota_dinas_pd) : '#' }}"
-                                                            target="_blank">
-                                                            <i class="bi bi-file-earmark-text mr-2 text-warning"></i>
-                                                            {{ $selectedRancangan->nota_dinas_pd ? 'Download Nota' : 'Tidak Ada Nota' }}
-                                                        </a>
+                                                    <th class="info-text w-25">Nota Dinas</th>
+                                                    <td class="wrap-text w-75">
+                                                        @if ($selectedRancangan->nota_dinas_pd)
+                                                            <a href="{{ asset('storage/' . $selectedRancangan->nota_dinas_pd) }}"
+                                                                target="_blank">
+                                                                <i
+                                                                    class="bi bi-file-earmark-text mr-2 text-warning"></i>
+                                                                Download Nota
+                                                            </a>
+                                                        @else
+                                                            <span class="text-muted">Tidak Ada Nota</span>
+                                                        @endif
                                                     </td>
                                                 </tr>
                                                 <tr>
-                                                    <th class="info-text">File Rancangan</th>
-                                                    <td>
-                                                        <a href="{{ $selectedRancangan->rancangan ? asset('storage/' . $selectedRancangan->rancangan) : '#' }}"
-                                                            target="_blank">
-                                                            <i class="bi bi-file-earmark-text mr-2 text-primary"></i>
-                                                            {{ $selectedRancangan->rancangan ? 'Download Rancangan' : 'Tidak Ada Rancangan' }}
-                                                        </a>
+                                                    <th class="info-text w-25">File Rancangan</th>
+                                                    <td class="wrap-text w-75">
+                                                        @if ($selectedRancangan->rancangan)
+                                                            <a href="{{ asset('storage/' . $selectedRancangan->rancangan) }}"
+                                                                target="_blank">
+                                                                <i
+                                                                    class="bi bi-file-earmark-text mr-2 text-primary"></i>
+                                                                Download Rancangan
+                                                            </a>
+                                                        @else
+                                                            <span class="text-muted">Tidak Ada Rancangan</span>
+                                                        @endif
                                                     </td>
                                                 </tr>
                                                 <tr>
-                                                    <th class="info-text">Matrik</th>
-                                                    <td>
-                                                        <a href="{{ $selectedRancangan->matrik ? asset('storage/' . $selectedRancangan->matrik) : '#' }}"
-                                                            target="_blank">
-                                                            <i
-                                                                class="bi bi-file-earmark-spreadsheet mr-2 text-success"></i>
-                                                            {{ $selectedRancangan->matrik ? 'Download Matrik' : 'Tidak Ada Matrik' }}
-                                                        </a>
+                                                    <th class="info-text w-25">Matrik</th>
+                                                    <td class="wrap-text w-75">
+                                                        @if ($selectedRancangan->matrik)
+                                                            <a href="{{ asset('storage/' . $selectedRancangan->matrik) }}"
+                                                                target="_blank">
+                                                                <i
+                                                                    class="bi bi-file-earmark-spreadsheet mr-2 text-success"></i>
+                                                                Download Matrik
+                                                            </a>
+                                                        @else
+                                                            <span class="text-muted">Tidak Ada Matrik</span>
+                                                        @endif
                                                     </td>
                                                 </tr>
                                                 <tr>
-                                                    <th class="info-text">Bahan Pendukung</th>
-                                                    <td>
-                                                        <a href="{{ $selectedRancangan->bahan_pendukung ? asset('storage/' . $selectedRancangan->bahan_pendukung) : '#' }}"
-                                                            target="_blank">
-                                                            <i class="bi bi-file-earmark-pdf mr-2 text-danger"></i>
-                                                            {{ $selectedRancangan->bahan_pendukung ? 'Download Bahan' : 'Tidak Ada Bahan' }}
-                                                        </a>
+                                                    <th class="info-text w-25">Bahan Pendukung</th>
+                                                    <td class="wrap-text w-75">
+                                                        @if ($selectedRancangan->bahan_pendukung)
+                                                            <a href="{{ asset('storage/' . $selectedRancangan->bahan_pendukung) }}"
+                                                                target="_blank">
+                                                                <i class="bi bi-file-earmark-pdf mr-2 text-danger"></i>
+                                                                Download Bahan
+                                                            </a>
+                                                        @else
+                                                            <span class="text-muted">Tidak Ada Bahan</span>
+                                                        @endif
                                                     </td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Status Berkas</th>
-                                                    <td>
+                                                    <th class="info-text w-25">Status Berkas</th>
+                                                    <td class="wrap-text w-75">
                                                         <mark
-                                                            class="badge-{{ $selectedRancangan->status_berkas === 'Disetujui' ? 'success' : ($selectedRancangan->status_berkas === 'Ditolak' ? 'danger' : 'warning') }} badge-pill">
+                                                            class="badge badge-{{ $selectedRancangan->status_berkas === 'Disetujui' ? 'success' : ($selectedRancangan->status_berkas === 'Ditolak' ? 'danger' : 'warning') }} badge-pill">
                                                             {{ $selectedRancangan->status_berkas ?? 'N/A' }}
                                                         </mark>
                                                     </td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Tanggal Berkas Disetujui</th>
-                                                    <td class="info-text">
+                                                    <th class="info-text w-25">Tanggal Berkas Disetujui</th>
+                                                    <td class="wrap-text w-75">
                                                         {{ $selectedRancangan->tanggal_berkas_disetujui
                                                             ? \Carbon\Carbon::parse($selectedRancangan->tanggal_berkas_disetujui)->translatedFormat('d F Y, H:i')
                                                             : 'Belum disetujui' }}
                                                     </td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Catatan Berkas</th>
-                                                    <td>{{ $selectedRancangan->catatan_berkas ?? 'Tidak Ada Catatan' }}
+                                                    <th class="info-text w-25">Catatan Berkas</th>
+                                                    <td class="wrap-text w-75">
+                                                        {{ $selectedRancangan->catatan_berkas ?? 'Tidak Ada Catatan' }}
                                                     </td>
                                                 </tr>
                                             </tbody>
+
                                         </table>
                                     </div>
                                 </div>
@@ -290,7 +317,7 @@
                 </div>
                 {{-- Footer Modal --}}
                 <div class="modal-footer justify-content-center">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+                    <button type="button" class="btn btn-neutral" data-dismiss="modal">Tutup</button>
                 </div>
             </div>
         </div>
@@ -321,7 +348,7 @@
 
                 {{-- Footer --}}
                 <div class="modal-footer justify-content-center">
-                    <button type="button" class="btn btn-secondary d-flex align-items-center" data-dismiss="modal">
+                    <button type="button" class="btn btn-neutral d-flex align-items-center" data-dismiss="modal">
                         <i class="bi bi-x-circle mr-2"></i> Batal
                     </button>
                     <button type="button" class="btn btn-danger d-flex align-items-center"
@@ -338,25 +365,4 @@
         </div>
     </div>
 
-
-    {{-- Script --}}
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            window.Livewire.on('openModalPersetujuan', () => {
-                $('#modalPersetujuan').modal('show');
-            });
-
-            window.addEventListener('swal:modal', function(event) {
-                const data = event.detail[0];
-
-                $('#resetStatusModal').modal('hide');
-                Swal.fire({
-                    icon: data.type || 'info',
-                    title: data.title || 'Informasi',
-                    text: data.message || 'Tidak ada pesan yang diterima.',
-                    showConfirmButton: true,
-                });
-            });
-        });
-    </script>
 </div>

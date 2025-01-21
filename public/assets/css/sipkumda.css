@@ -523,13 +523,16 @@ table td.still-text {
     overflow: hidden; /* Sembunyikan teks yang meluber */
     text-overflow: ellipsis; /* Tambahkan elipsis jika teks terlalu panjang */
     max-width: 200px; /* Atur lebar maksimum sel sesuai kebutuhan */
+    text-align: justify; /* Rata kanan-kiri */
 }
 
 /* Membungkus teks tanpa memotong kata */
 table td.wrap-text {
+    white-space: normal; /* Izinkan konten turun ke baris berikutnya */
     word-wrap: break-word; /* Bungkus kata yang panjang */
     word-break: normal; /* Pastikan kata tidak dipotong di tengah */
     overflow-wrap: break-word; /* Bungkus kata yang panjang tanpa memotong */
+    text-align: justify; /* Rata kanan-kiri */
 }
 /* Membungkus teks tanpa memotong kata */
 table td.wrap-text-td-20 {
@@ -538,6 +541,7 @@ table td.wrap-text-td-20 {
     word-break: normal; /* Pastikan kata tidak dipotong di tengah */
     overflow-wrap: break-word; /* Bungkus kata yang panjang tanpa memotong */
     width: 20%; /* Sesuaikan dengan kebutuhan */
+    text-align: justify; /* Rata kanan-kiri */
 }
 /* Membungkus teks tanpa memotong kata */
 table td.wrap-text-td-50 {
@@ -546,6 +550,7 @@ table td.wrap-text-td-50 {
     word-break: normal; /* Pastikan kata tidak dipotong di tengah */
     overflow-wrap: break-word; /* Bungkus kata yang panjang tanpa memotong */
     width: 50%; /* Sesuaikan dengan kebutuhan */
+    text-align: justify; /* Rata kanan-kiri */
 }
 
 /* Membungkus teks tanpa memotong kata */
@@ -555,6 +560,7 @@ table td.wrap-text-td-70 {
     word-break: normal; /* Pastikan kata tidak dipotong di tengah */
     overflow-wrap: break-word; /* Bungkus kata yang panjang tanpa memotong */
     width: 70%; /* Sesuaikan dengan kebutuhan */
+    text-align: justify; /* Rata kanan-kiri */
 }
 
 /* Efek hover pada tabel */

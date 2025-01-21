@@ -43,6 +43,8 @@ class NotificationDropdown extends Component
                 'persetujuan_diterima' => 'openModalDetailRancangan', // Tambahan untuk User
                 'persetujuan_ditolak' => 'openModalDetailRancangan', // Tambahan untuk User
                 'persetujuan_menunggu' => 'openModalDetailRancangan', // Tambahan untuk User
+                'pilih_peneliti' => 'openNotificationPilihPeneliti',
+                'peneliti_dipilih' => 'openModalDetailRancangan'
             ];
 
             $type = $notification->data['type'] ?? null;

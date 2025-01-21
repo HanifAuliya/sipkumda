@@ -1,3 +1,6 @@
+{{-- Header --}}
+@section('title', 'Pilih Peneliti')
+
 <div>
     {{-- Header --}}
     <div class="card">
@@ -33,7 +36,7 @@
                 <li class="nav-item">
                     <a class="nav-link {{ $activeTab == 'daftar-peneliti' ? 'active' : '' }}" href="#"
                         wire:click.prevent="$set('activeTab', 'daftar-peneliti')">
-                        <i class="ni ni-single-02 mr-2"></i> Daftar Peneliti
+                        <i class="ni ni-single-02 mr-2"></i> Daftar Penelitian Berlangsung
                     </a>
                 </li>
             </ul>

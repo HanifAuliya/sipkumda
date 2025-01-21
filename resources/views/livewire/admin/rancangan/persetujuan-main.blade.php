@@ -66,4 +66,49 @@
             @endif
         </div>
     </div>
+
+    {{-- Script --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Membuka Modal
+            window.Livewire.on('openModalPersetujuan', () => {
+                $('#modalPersetujuan').modal('show');
+            });
+            // Menmutup Modal
+            window.Livewire.on('closeModalPersetujuan', () => {
+                $('#modalPersetujuan').modal('hide');
+            });
+
+            // Sweeet Alert 2
+            window.addEventListener('swal:modal', function(event) {
+
+                const data = event.detail[0];
+                $('#modalPersetujuan').modal('hide');
+
+                // Tampilkan SweetAlert
+                Swal.fire({
+                    icon: data.type, // Bisa 'success', 'error', 'warning', 'info', atau 'question'
+                    title: data.title, // Judul dari toast
+                    text: data.message, // Pesan tambahan (opsional)
+                    toast: true, // Mengaktifkan toast
+                    position: 'top-end', // Posisi toast ('top', 'top-start', 'top-end', 'center', 'bottom', dll.)
+                    showConfirmButton: false, // Tidak menampilkan tombol konfirmasi
+                    timer: 3000, // Waktu toast tampil (dalam milidetik)
+                    timerProgressBar: true, // Menampilkan progress bar pada timer
+                });
+            });
+
+            window.addEventListener('swal:reset', function(event) {
+                const data = event.detail[0];
+
+                $('#resetStatusModal').modal('hide');
+                Swal.fire({
+                    icon: data.type || 'info',
+                    title: data.title || 'Informasi',
+                    text: data.message || 'Tidak ada pesan yang diterima.',
+                    showConfirmButton: true,
+                });
+            });
+        });
+    </script>
 </div>

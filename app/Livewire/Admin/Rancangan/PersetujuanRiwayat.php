@@ -74,14 +74,14 @@ class PersetujuanRiwayat extends Component
             $this->reset();
 
             // SweetAlert sukses
-            $this->dispatch('swal:modal', [
-                'type' => 'info',
+            $this->dispatch('swal:reset', [
+                'type' => 'success',
                 'title' => 'Status Berhasil Direset',
                 'message' => 'Status rancangan telah direset ke Menunggu Persetujuan.',
             ]);
         } catch (\Exception $e) {
             // SweetAlert error jika terjadi kesalahan
-            $this->dispatch('swal:modal', [
+            $this->dispatch('swal:reset', [
                 'type' => 'error',
                 'title' => 'Gagal Mereset Status',
                 'message' => 'Terjadi kesalahan saat mereset status rancangan. Silakan coba lagi.',
