@@ -1,4 +1,5 @@
-<div wire:ignore.self class="modal fade" id="adminPersetujuanModal" tabindex="-1" role="dialog">
+<div wire:ignore.self class="modal fade" id="adminPersetujuanModal" tabindex="-1" role="dialog" data-backdrop="static"
+    data-keyboard="false" data-keyboard="false">
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             {{-- Header Modal --}}
@@ -95,10 +96,10 @@
                                                 <th class="info-text w-25">Nota Dinas</th>
                                                 <td class="wrap-text w-75">
                                                     @if ($rancangan->nota_dinas_pd)
-                                                        <a href="{{ asset('storage/' . $rancangan->nota_dinas_pd) }}"
+                                                        <a href="{{ url('/view-private/rancangan/nota_dinas/' . basename($rancangan->nota_dinas_pd)) }}"
                                                             target="_blank">
                                                             <i class="bi bi-file-earmark-text mr-2 text-warning"></i>
-                                                            Download Nota
+                                                            Lihat Nota
                                                         </a>
                                                     @else
                                                         <span class="text-muted">Tidak Ada Nota</span>
@@ -109,10 +110,10 @@
                                                 <th class="info-text w-25">File Rancangan</th>
                                                 <td class="wrap-text w-75">
                                                     @if ($rancangan->rancangan)
-                                                        <a href="{{ asset('storage/' . $rancangan->rancangan) }}"
+                                                        <a href="{{ url('/view-private/rancangan/rancangan/' . basename($rancangan->rancangan)) }}"
                                                             target="_blank">
                                                             <i class="bi bi-file-earmark-text mr-2 text-primary"></i>
-                                                            Download Rancangan
+                                                            Lihat Rancangan
                                                         </a>
                                                     @else
                                                         <span class="text-muted">Tidak Ada Rancangan</span>
@@ -123,11 +124,11 @@
                                                 <th class="info-text w-25">Matrik</th>
                                                 <td class="wrap-text w-75">
                                                     @if ($rancangan->matrik)
-                                                        <a href="{{ asset('storage/' . $rancangan->matrik) }}"
+                                                        <a href="{{ url('/view-private/rancangan/matrik/' . basename($rancangan->matrik)) }}"
                                                             target="_blank">
                                                             <i
                                                                 class="bi bi-file-earmark-spreadsheet mr-2 text-success"></i>
-                                                            Download Matrik
+                                                            Lihat Matrik
                                                         </a>
                                                     @else
                                                         <span class="text-muted">Tidak Ada Matrik</span>
@@ -138,16 +139,17 @@
                                                 <th class="info-text w-25">Bahan Pendukung</th>
                                                 <td class="wrap-text w-75">
                                                     @if ($rancangan->bahan_pendukung)
-                                                        <a href="{{ asset('storage/' . $rancangan->bahan_pendukung) }}"
+                                                        <a href="{{ url('/view-private/rancangan/bahan_pendukung/' . basename($rancangan->bahan_pendukung)) }}"
                                                             target="_blank">
                                                             <i class="bi bi-file-earmark-pdf mr-2 text-danger"></i>
-                                                            Download Bahan
+                                                            Lihat Bahan
                                                         </a>
                                                     @else
                                                         <span class="text-muted">Tidak Ada Bahan</span>
                                                     @endif
                                                 </td>
                                             </tr>
+
                                             <tr>
                                                 <th class="info-text w-25">Status Berkas</th>
                                                 <td class="wrap-text w-75">
@@ -267,10 +269,12 @@
                                             {{-- Tombol Verifikasi --}}
                                             <button class="btn btn-success" wire:click="updateStatus"
                                                 wire:loading.attr="disabled">
-                                                <span wire:loading.remove><i class="bi bi-check-circle"></i>
+                                                <span wire:loading.remove wire:target="updateStatus"><i
+                                                        class="bi bi-check-circle"></i>
                                                     Verifikasi
                                                     Rancangan</span>
-                                                <span wire:loading><i class="bi bi-hourglass-split"></i>
+                                                <span wire:loading wire:target="updateStatus"><i
+                                                        class="bi bi-hourglass-split"></i>
                                                     Memproses...</span>
                                             </button>
                                         </div>

@@ -93,6 +93,7 @@ class PersetujuanRiwayat extends Component
     public function render()
     {
         $riwayatRancangan = RancanganProdukHukum::where('status_berkas', 'Disetujui')
+            ->where('status_rancangan', 'Dalam Proses')
             ->where(function ($query) {
                 $query->where('no_rancangan', 'like', "%{$this->search}%")
                     ->orWhere('tentang', 'like', "%{$this->search}%");

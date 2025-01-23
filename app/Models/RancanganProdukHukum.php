@@ -80,6 +80,6 @@ class RancanganProdukHukum extends Model
 
     public function revisi()
     {
-        return $this->hasMany(Revisi::class, 'id_rancangan');
+        return $this->hasMany(Revisi::class, 'id_rancangan', 'id_rancangan');
     }
 }

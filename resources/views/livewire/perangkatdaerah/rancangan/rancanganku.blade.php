@@ -28,14 +28,13 @@
                 <h3 class="mb-0">Daftar Rancanganku</h3>
                 <small>Pastikan perhatikan tab di bawah!</small>
             </div>
-            <button class="btn btn-outline-default" data-toggle="modal" data-target="#ajukanRancanganModal"
-                wire:click="resetForm">Ajukan
+            <button class="btn btn-outline-default" data-toggle="modal" data-target="#ajukanRancanganModal">Ajukan
                 Rancangan Baru</button>
         </div>
 
         {{-- Tabs --}}
         <div class="card-body">
-            <ul class="nav nav-pills flex-row" role="tablist">
+            <ul class="nav nav-pills nav-fill flex-column flex-md-row" role="tablist">
                 <li class="nav-item">
                     <a class="nav-link {{ $tab == 'sedang_diajukan' ? 'active' : '' }}" href="#"
                         wire:click.prevent="$set('tab', 'sedang_diajukan')">
@@ -63,13 +62,14 @@
 
     {{-- Modal Ajukan Rancangan --}}
     <div wire:ignore.self class="modal fade" id="ajukanRancanganModal" tabindex="-1" role="dialog"
-        aria-labelledby="ajukanRancanganModalLabel" aria-hidden="true">
+        aria-labelledby="ajukanRancanganModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <form wire:submit.prevent="submit">
                     <div class="modal-header border-bottom">
                         <h5 class="modal-title" id="ajukanRancanganModalLabel">Ajukan Rancangan Baru</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                            wire:click="resetForm">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
@@ -179,9 +179,9 @@
                         </button>
                         <button class="btn btn-outline-default" type="submit" wire:loading.attr="disabled"
                             wire:target="submit">
-                            <span wire:loading.remove wire:target="submit">Ajukan</span>
+                            <span wire:loading.remove wire:target="submit"><i class="bi bi-save2"></i> Ajukan</span>
                             <span wire:loading wire:target="submit">
-                                <i class="spinner-border spinner-border-sm"></i> Tunggu Sebentar Lagi Memproses...
+                                <i class="spinner-border spinner-border-sm"></i> Memproses...
                             </span>
                         </button>
                     </div>

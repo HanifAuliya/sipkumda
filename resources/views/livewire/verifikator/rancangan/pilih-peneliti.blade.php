@@ -1,5 +1,23 @@
 {{-- Header --}}
 @section('title', 'Pilih Peneliti')
+@section('manual')
+    <div class="card  mb--2">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div class="d-flex flex-column">
+                <h3 class="mb-0">Panduan Pilih Peneliti</h3>
+                <p class="description">
+                    © Hak Cipta Bagian Hukum Sekretariat Daerah Kabupaten Hulu
+                    Sungai Tengah.
+                </p>
+            </div>
+
+            {{-- Tombol untuk Verifikator --}}
+            <button class="btn btn-outline-warning">
+                <i class="bi bi-info-circle"></i> Panduan
+            </button>
+        </div>
+    </div>
+@endsection
 
 <div>
     {{-- Header --}}
@@ -17,7 +35,6 @@
             </p>
         </div>
         <div class="card-body">
-
 
             {{-- Tabs --}}
             <ul class="nav nav-pills nav-fill flex-column flex-md-row" role="tablist">

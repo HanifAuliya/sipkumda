@@ -30,11 +30,16 @@ class PenelitiDitugaskan extends Component
     public function openModal($idRevisi)
     {
         // Cari revisi dengan eager loading
-        $this->selectedRevisi = Revisi::with(['rancangan', 'peneliti'])->findOrFail($idRevisi);
+        $this->selectedRevisi = Revisi::with([
+            'rancangan.user', // Jika relasi rancangan memiliki user
+            'rancangan.perangkatDaerah', // Jika rancangan memiliki perangkat daerah
+            'peneliti', // Peneliti yang terkait dengan revisi
+        ])->findOrFail($idRevisi);
 
         // Dispatch untuk membuka modal
         $this->dispatch('openModalPilihPeneliti');
     }
+
 
 
     public function resetPeneliti($id)
@@ -68,8 +73,13 @@ class PenelitiDitugaskan extends Component
     {
         // Query untuk rancangan dengan status revisi "Menunggu Revisi"
         $rancangan = RancanganProdukHukum::where('status_berkas', 'Disetujui')
+            ->where('status_rancangan', 'Dalam Proses')
             ->whereHas('revisi', function ($query) {
-                $query->where('status_revisi', 'Menunggu Revisi');
+                $query->whereIn('status_revisi', [
+                    'Proses Revisi',
+                    'Menunggu Validasi',
+                    'Direvisi'
+                ]);
             })
             ->with(['revisi.peneliti']) // Eager loading revisi dan peneliti
             ->where(function ($query) {

@@ -100,12 +100,15 @@
                                 </a>
                             </li>
                         @endif
-                        <li class="nav-item">
-                            <a class="nav-link" href="addRevisi.html">
-                                <i class="bi bi-pencil-square"></i>
-                                <span class="nav-link-text">Upload Revisi</span>
-                            </a>
-                        </li>
+                        @if (Auth::user()->hasRole('Peneliti'))
+                            <li class="nav-item">
+                                <a class="nav-link {{ Route::currentRouteName() == 'revisi.rancangan' ? 'active' : '' }}"
+                                    href="{{ route('revisi.rancangan') }}">
+                                    <i class="bi bi-pencil-square"></i>
+                                    <span class="nav-link-text">Upload Revisi</span>
+                                </a>
+                            </li>
+                        @endif
                     </ul>
 
                     {{-- Divider --}}

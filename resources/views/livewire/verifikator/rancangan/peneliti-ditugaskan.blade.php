@@ -78,7 +78,7 @@
                             <i class="bi bi-file-earmark-text"></i>
                             Status Revisi:
                             <mark
-                                class="badge-{{ $item->revisi->first()?->status_revisi === 'Direvisi' ? 'success' : ($item->revisi->first()?->status_revisi === 'Menunggu Revisi' ? 'warning' : 'danger') }} badge-pill">
+                                class="badge-{{ $item->revisi->first()?->status_revisi === 'Direvisi' ? 'success' : ($item->revisi->first()?->status_revisi === 'Proses Revisi' ? 'warning' : 'danger') }} badge-pill">
                                 {{ $item->revisi->first()?->status_revisi ?? 'N/A' }}
                             </mark>
                         </p>

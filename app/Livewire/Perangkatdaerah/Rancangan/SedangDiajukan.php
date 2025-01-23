@@ -14,9 +14,6 @@ class SedangDiajukan extends Component
     public $search = '';
     public $perPage = 3; // Default: 3 data per halaman
 
-    protected $queryString = ['search', 'perPage'];
-
-
     protected $listeners = ['rancanganDitambahkan' => 'refreshRancangan'];
 
     public function refreshRancangan()

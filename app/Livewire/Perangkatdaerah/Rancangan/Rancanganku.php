@@ -40,12 +40,15 @@ class Rancanganku extends Component
     {
         $this->validate();
 
-        // Simpan file ke storage dengan disk public
-        $rancanganPath = $this->rancangan->store('rancangan', 'public');
-        $matrikPath = $this->matrik->store('matrik', 'public');
-        $notaDinasPath = $this->nota_dinas_pd->store('nota_dinas_pd', 'public');
+        // Folder utama
+        $mainFolder = 'rancangan';
+
+        // Simpan file ke dalam subfolder masing-masing di storage private
+        $rancanganPath = $this->rancangan->store("$mainFolder/rancangan", 'local');
+        $matrikPath = $this->matrik->store("$mainFolder/matrik", 'local');
+        $notaDinasPath = $this->nota_dinas_pd->store("$mainFolder/nota_dinas", 'local');
         $bahanPendukungPath = $this->bahanPendukung
-            ? $this->bahanPendukung->store('bahan_pendukung', 'public')
+            ? $this->bahanPendukung->store("$mainFolder/bahan_pendukung", 'local')
             : null;
 
         // Simpan data ke database
@@ -53,13 +56,15 @@ class Rancanganku extends Component
             'id_user' => auth()->id(),
             'jenis_rancangan' => $this->jenisRancangan,
             'tentang' => $this->tentang,
-            'rancangan' => $rancanganPath,
-            'matrik' => $matrikPath,
-            'nota_dinas_pd' => $notaDinasPath,
-            'bahan_pendukung' => $bahanPendukungPath,
+            'rancangan' => $this->rancangan->store('rancangan/rancangan', 'local'),
+            'matrik' => $this->matrik->store('rancangan/matrik', 'local'),
+            'nota_dinas_pd' => $this->nota_dinas_pd->store('rancangan/nota_dinas', 'local'),
+            'bahan_pendukung' => $this->bahanPendukung
+                ? $this->bahanPendukung->store('rancangan/bahan_pendukung', 'local')
+                : null,
             'status_berkas' => 'Menunggu Persetujuan',
             'status_rancangan' => 'Dalam Proses',
-            'tanggal_pengajuan' => now(), // Tambahkan tanggal pengajuan
+            'tanggal_pengajuan' => now(),
         ]);
 
         // Tambahkan status revisi ke tabel revisi
@@ -108,16 +113,34 @@ class Rancanganku extends Component
         ]);
     }
     public function resetForm()
-    { // Atur ulang semua properti ke nilai default
+    {
+        // Hapus file sementara Livewire
+        if ($this->rancangan) {
+            $this->rancangan->delete();
+        }
+        if ($this->matrik) {
+            $this->matrik->delete();
+        }
+        if ($this->nota_dinas_pd) {
+            $this->nota_dinas_pd->delete();
+        }
+        if ($this->bahanPendukung) {
+            $this->bahanPendukung->delete();
+        }
+
+        // Atur ulang semua properti ke nilai default
         $this->jenisRancangan = null;
         $this->tentang = null;
         $this->rancangan = null;
         $this->matrik = null;
         $this->nota_dinas_pd = null;
         $this->bahanPendukung = null;
-        $this->resetErrorBag(); // Reset error validasi
-        $this->resetValidation(); // Reset tampilan error validasi
+
+        // Reset error validasi
+        $this->resetErrorBag();
+        $this->resetValidation();
     }
+
 
     public function render()
     {

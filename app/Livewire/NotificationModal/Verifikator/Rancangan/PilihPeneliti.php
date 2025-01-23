@@ -45,7 +45,7 @@ class PilihPeneliti extends Component
         $revisi = $this->selectedRancangan->revisi->first();
         $revisi->update([
             'id_user' => $this->selectedPeneliti,
-            'status_revisi' => 'Menunggu Revisi',
+            'status_revisi' => 'Proses Revisi',
             'tanggal_peneliti_ditunjuk' => now(),
         ]);
 

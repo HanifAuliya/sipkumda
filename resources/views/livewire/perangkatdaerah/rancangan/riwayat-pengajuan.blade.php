@@ -59,12 +59,6 @@
                                 Tanggal Pengajuan:
                                 {{ \Carbon\Carbon::parse($item->tanggal_pengajuan)->translatedFormat('d F Y, H:i') }}
                             </p>
-                            <p class="info-text small mb-0">
-                                <i class="bi bi-calendar"></i> Tanggal Berkas Disetujui:
-                                {{ $item->tanggal_berkas_disetujui
-                                    ? \Carbon\Carbon::parse($item->tanggal_berkas_disetujui)->translatedFormat('d F Y')
-                                    : 'N/A' }}
-                            </p>
                             <p class="mb-0 info-text small">
                                 <i class="bi bi-person"></i>
                                 {{ $item->user->nama_user ?? 'N/A' }}
@@ -98,13 +92,11 @@
                                         ? 'success'
                                         : ($item->revisi->first()->status_revisi === 'Menunggu Peneliti'
                                             ? 'info text-default'
-                                            : ($item->revisi->first()->status_revisi === 'Menunggu Revisi'
+                                            : ($item->revisi->first()->status_revisi === 'Proses Revisi'
                                                 ? 'warning'
-                                                : ($item->revisi->first()->status_revisi === 'Menunggu Validasi'
-                                                    ? 'dark text-white'
-                                                    : ($item->revisi->first()->status_revisi === 'Belum Tahap Revisi'
-                                                        ? 'danger'
-                                                        : 'secondary')))) }} badge-pill">
+                                                : ($item->revisi->first()->status_revisi === 'Belum Tahap Revisi'
+                                                    ? 'danger'
+                                                    : 'secondary'))) }} badge-pill">
                                     {{ $item->revisi->first()->status_revisi }}
                                 </mark>
                             </p>
@@ -127,8 +119,14 @@
                                 Rancangan {{ $item->status_rancangan }}
                             </mark>
                         </h4>
-                        <button class="btn btn-secondary mt-3" data-toggle="modal"
+
+                        <p class="info-text mb-1 small">
+                            Pengajuan Rancangan Tahun {{ \Carbon\Carbon::parse($item->tanggal_pengajuan)->year }}
+                        </p>
+
+                        <button class="btn btn-neutral mt-3" data-toggle="modal"
                             data-target="#detailModalRiwayat-{{ $item->id_rancangan }}">
+                            <i class="bi bi-info-circle"></i>
                             Lihat Detail
                         </button>
                     </div>
@@ -137,7 +135,8 @@
 
             {{-- Modal Detail Riwayat --}}
             <div wire:ignore.self class="modal fade" id="detailModalRiwayat-{{ $item->id_rancangan }}" tabindex="-1"
-                role="dialog" aria-labelledby="detailModalLabelRiwayat" aria-hidden="true">
+                role="dialog" aria-labelledby="detailModalLabelRiwayat" aria-hidden="true" data-backdrop="static"
+                data-keyboard="false">
                 <div class="modal-dialog  no-style-modal modal-xl" role="document">
                     <div class="modal-content">
                         {{-- Body Modal --}}
@@ -279,11 +278,11 @@
                                                     <th>Nota Dinas</th>
                                                     <td class="wrap-text-td-70">
                                                         @if (isset($item->nota_dinas_pd))
-                                                            <a href="{{ asset('storage/' . $item->nota_dinas_pd) }}"
+                                                            <a href="{{ url('/view-private/rancangan/nota_dinas/' . basename($item->nota_dinas_pd)) }}"
                                                                 target="_blank" class="d-flex align-items-center">
-                                                                <i class="bi bi-file-earmark-text mr-2"
+                                                                <i class="bi bi-file-earmark-pdf mr-2"
                                                                     style="font-size: 1.5rem; color: #ffc107;"></i>
-                                                                <span>Download Nota</span>
+                                                                <span>lihat Nota</span>
                                                             </a>
                                                         @else
                                                             <span style="color: #6c757d;">Data Tidak Ada</span>
@@ -294,11 +293,11 @@
                                                     <th>File Rancangan</th>
                                                     <td class="wrap-text-td-70">
                                                         @if (isset($item->rancangan))
-                                                            <a href="{{ asset('storage/' . $item->rancangan) }}"
+                                                            <a href="{{ url('/view-private/rancangan/rancangan/' . basename($item->rancangan)) }}"
                                                                 target="_blank" class="d-flex align-items-center">
-                                                                <i class="bi bi-file-earmark-text mr-2"
+                                                                <i class="bi bi-file-earmark-pdf mr-2"
                                                                     style="font-size: 1.5rem; color: #007bff;"></i>
-                                                                <span>Download Rancangan</span>
+                                                                <span>lihat Rancangan</span>
                                                             </a>
                                                         @else
                                                             <span style="color: #6c757d;">Data Tidak Ada</span>
@@ -309,11 +308,11 @@
                                                     <th>Matrik</th>
                                                     <td class="wrap-text-td-70">
                                                         @if (isset($item->matrik))
-                                                            <a href="{{ asset('storage/' . $item->matrik) }}"
+                                                            <a href="{{ url('/view-private/rancangan/matrik/' . basename($item->matrik)) }}"
                                                                 target="_blank" class="d-flex align-items-center">
-                                                                <i class="bi bi-file-earmark-spreadsheet mr-2"
+                                                                <i class="bi bi-file-earmark-pdf mr-2"
                                                                     style="font-size: 1.5rem; color: #28a745;"></i>
-                                                                <span>Download Matrik</span>
+                                                                <span>lihat Matrik</span>
                                                             </a>
                                                         @else
                                                             <span style="color: #6c757d;">Data Tidak Ada</span>
@@ -324,11 +323,11 @@
                                                     <th>Bahan Pendukung</th>
                                                     <td class="wrap-text-td-70">
                                                         @if (isset($item->bahan_pendukung))
-                                                            <a href="{{ asset('storage/' . $item->bahan_pendukung) }}"
+                                                            <a href="{{ url('/view-private/rancangan/bahan_pendukung/' . basename($item->bahan_pendukung)) }}"
                                                                 target="_blank" class="d-flex align-items-center">
                                                                 <i class="bi bi-file-earmark-pdf mr-2"
                                                                     style="font-size: 1.5rem; color: #dc3545;"></i>
-                                                                <span>Download Bahan</span>
+                                                                <span>lihat Bahan</span>
                                                             </a>
                                                         @else
                                                             <span style="color: #6c757d;">Data Tidak Ada</span>
@@ -366,13 +365,11 @@
                                                                         ? 'success'
                                                                         : ($revisi->status_revisi === 'Menunggu Peneliti'
                                                                             ? 'info text-default'
-                                                                            : ($revisi->status_revisi === 'Menunggu Revisi'
+                                                                            : ($revisi->status_revisi === 'Proses Revisi'
                                                                                 ? 'warning'
-                                                                                : ($revisi->status_revisi === 'Menunggu Validasi'
-                                                                                    ? 'dark text-white'
-                                                                                    : ($revisi->status_revisi === 'Belum Tahap Revisi'
-                                                                                        ? 'danger'
-                                                                                        : 'secondary')))) }} badge-pill">
+                                                                                : ($revisi->status_revisi === 'Belum Tahap Revisi'
+                                                                                    ? 'danger'
+                                                                                    : 'secondary'))) }} badge-pill">
                                                                     {{ $revisi->status_revisi }}
                                                                 </mark>
                                                             </td>
@@ -387,8 +384,8 @@
                                                                         : ($revisi->status_validasi === 'Ditolak'
                                                                             ? 'danger'
                                                                             : ($revisi->status_validasi === 'Belum Tahap Validasi'
-                                                                                ? 'warning'
-                                                                                : 'secondary')) }} badge-pill">
+                                                                                ? 'danger'
+                                                                                : 'warning')) }} badge-pill">
                                                                     {{ $revisi->status_validasi }}
                                                                 </mark>
                                                             </td>
@@ -396,7 +393,13 @@
                                                         <tr>
                                                             <th>Tanggal Revisi</th>
                                                             <td class="wrap-text-td-70">
-                                                                {{ $revisi->tanggal_revisi ? \Carbon\Carbon::parse($revisi->tanggal_revisi)->translatedFormat('d F Y') : 'N/A' }}
+                                                                {{ $revisi->tanggal_revisi ? \Carbon\Carbon::parse($revisi->tanggal_revisi)->translatedFormat('d F Y, H:i') : 'N/A' }}
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th>Tanggal Validasi</th>
+                                                            <td class="wrap-text-td-70">
+                                                                {{ $revisi->tanggal_validasi ? \Carbon\Carbon::parse($revisi->tanggal_validasi)->translatedFormat('d F Y, H:i') : 'N/A' }}
                                                             </td>
                                                         </tr>
 
@@ -418,12 +421,12 @@
                                                             <th>Revisi Rancangan</th>
                                                             <td class="wrap-text-td-70">
                                                                 @if (isset($revisi->revisi_rancangan))
-                                                                    <a href="{{ asset('storage/' . $revisi->revisi_rancangan) }}"
+                                                                    <a href="{{ url('/view-private/revisi/rancangan/' . basename($revisi->revisi_rancangan)) }}"
                                                                         target="_blank"
                                                                         class="d-flex align-items-center">
-                                                                        <i class="bi bi-file-earmark-text mr-2"
+                                                                        <i class="bi bi-file-earmark-pdf mr-2"
                                                                             style="font-size: 1.5rem; color: #007bff;"></i>
-                                                                        <span>Download Revisi</span>
+                                                                        <span>Lihat Revisi Rancangan</span>
                                                                     </a>
                                                                 @else
                                                                     <span style="color: #6c757d;">Data Tidak Ada</span>
@@ -434,12 +437,12 @@
                                                             <th>Revisi Matrik</th>
                                                             <td class="wrap-text-td-70">
                                                                 @if (isset($revisi->revisi_matrik))
-                                                                    <a href="{{ asset('storage/' . $revisi->revisi_matrik) }}"
+                                                                    <a href="{{ url('/view-private/revisi/matrik/' . basename($revisi->revisi_matrik)) }}"
                                                                         target="_blank"
                                                                         class="d-flex align-items-center">
-                                                                        <i class="bi bi-file-earmark-spreadsheet mr-2"
+                                                                        <i class="bi bi-file-earmark-pdf mr-2"
                                                                             style="font-size: 1.5rem; color: #28a745;"></i>
-                                                                        <span>Download Matrik Revisi</span>
+                                                                        <span>Lihat Matrik Revisi</span>
                                                                     </a>
                                                                 @else
                                                                     <span style="color: #6c757d;">Data Tidak Ada</span>

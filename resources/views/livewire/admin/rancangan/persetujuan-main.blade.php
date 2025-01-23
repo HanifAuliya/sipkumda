@@ -1,21 +1,22 @@
 @section('title', 'Verifikasi Berkas')
 
-{{-- Header --}}
-@section('header', 'Menu Verifikasi Berkas')
-@section('breadcrumb')
-    <nav aria-label="breadcrumb" class="d-none d-md-inline-block ml-md-4">
-        <ol class="breadcrumb breadcrumb-links bg-gradient-orange">
-            <li class="breadcrumb-item">
-                <a href="{{ route('admin.persetujuan') }}" class="text-white">
-                    <i class="fas fa-home"></i>
-                </a>
-            </li>
-            <li class="breadcrumb-item">
-                <a href="{{ route('user.management') }}" class="text-white">Daftar Pengguna</a>
-            </li>
-            <li class="breadcrumb-item active text-white" aria-current="page">Tables</li>
-        </ol>
-    </nav>
+@section('manual')
+    <div class="card  mb--2">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div class="d-flex flex-column">
+                <h3 class="mb-0">Panduan Verifikasi Berkas</h3>
+                <p class="description">
+                    © Hak Cipta Bagian Hukum Sekretariat Daerah Kabupaten Hulu
+                    Sungai Tengah.
+                </p>
+            </div>
+
+            {{-- Tombol untuk Verifikator --}}
+            <button class="btn btn-outline-warning">
+                <i class="bi bi-info-circle"></i> Panduan
+            </button>
+        </div>
+    </div>
 @endsection
 
 @section('actions')
@@ -28,13 +29,14 @@
     <div class="card-header d-flex justify-content-between align-items-center">
         <div>
             <h3 class="mb-2">Daftar Berkas untuk Verifikasi</h3>
+            <small>Pastikan perhatikan tab di bawah! Tekan dan pilih tab untuk navigasi ke tab tujuan anda !</small>
         </div>
     </div>
 
     {{-- Penjelasan Menu --}}
     <div class="card-body">
         {{-- Tab --}}
-        <ul class="nav nav-pills flex-row" role="tablist">
+        <ul class="nav nav-pills nav-fill flex-column flex-md-row" role="tablist">
             <li class="nav-item">
                 <a href="#" class="nav-link {{ $activeTab === 'menunggu' ? 'active' : '' }}"
                     wire:click.prevent="set('activeTab','menunggu')">
@@ -56,7 +58,7 @@
         </ul>
 
         {{-- Content --}}
-        <div class="tab-content mt-3">
+        <div class="tab-content mt-4">
             @if ($activeTab === 'menunggu')
                 @livewire('admin.rancangan.persetujuan-menunggu')
             @elseif ($activeTab === 'ditolak')

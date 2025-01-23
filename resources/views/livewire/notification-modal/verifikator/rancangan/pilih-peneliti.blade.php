@@ -304,43 +304,30 @@
                                 </div>
                             </div>
                         </div>
-                    @else
-                        {{-- Tampilkan loading atau alert --}}
-                        @if (!$selectedRancangan)
-                            <div class="d-flex justify-content-center align-items-start"
-                                style="min-height: 200px; padding-top: 50px;">
-                                <div class="text-center">
-                                    <div class="spinner-border text-primary" role="status">
-                                        <span class="sr-only">Loading...</span>
-                                    </div>
-                                    <p class="mt-3 info-text">Sedang memuat data, harap tunggu...</p>
+                    @endif
+                    @if (!$selectedRancangan)
+                        <div class="d-flex justify-content-center align-items-start"
+                            style="min-height: 200px; padding-top: 50px;">
+                            <div class="text-center">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="sr-only">Loading...</span>
                                 </div>
+                                <p class="mt-3 info-text">Sedang memuat data, harap tunggu...</p>
                             </div>
-
-                            <script>
-                                document.addEventListener('DOMContentLoaded', () => {
-                                    let loadingTimeout = setTimeout(() => {
-                                        Livewire.emit('checkDataLoaded');
-                                    }, 5000); // Timeout 5 detik
-
-                                    window.Livewire.on('dataLoaded', () => {
-                                        clearTimeout(loadingTimeout); // Hentikan timeout jika data tersedia sebelum 5 detik
-                                    });
-                                });
-                            </script>
-                        @else
-                            <div class="alert alert-danger" role="alert">
-                                <i class="bi bi-exclamation-triangle-fill"></i>
-                                Rancangan ini belum disetujui!. Tidak dapat melakukan tindakan ini. Silahkan hubungi
-                                Admin untuk informasi
-                                lebih lanjut.
-                            </div>
-                            <div class="d-flex justify-content-end">
-                                <button class="btn btn-neutral" data-dismiss="modal">
-                                    <i class="bi bi-x-circle"></i> Tutup
-                                </button>
-                            </div>
-                        @endif
+                        </div>
+                    @endif
+                    @if ($selectedRancangan && $selectedRancangan->status_berkas !== 'Disetujui')
+                        <div class="alert alert-danger" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            Rancangan ini belum disetujui!. Tidak dapat melakukan tindakan ini. Silahkan hubungi
+                            Admin untuk informasi
+                            lebih lanjut.
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <button class="btn btn-neutral" data-dismiss="modal">
+                                <i class="bi bi-x-circle"></i> Tutup
+                            </button>
+                        </div>
                     @endif
                 </div>
             </div>

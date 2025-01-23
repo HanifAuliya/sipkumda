@@ -160,6 +160,7 @@ class PersetujuanMenunggu extends Component
     {
         $rancanganMenunggu = RancanganProdukHukum::with(['user', 'perangkatDaerah'])
             ->whereIn('status_berkas', ['Menunggu Persetujuan'])
+            ->where('status_rancangan', 'Dalam Proses')
             ->where(function ($query) {
                 $query->where('no_rancangan', 'like', "%{$this->search}%")
                     ->orWhere('tentang', 'like', "%{$this->search}%");

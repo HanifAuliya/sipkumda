@@ -25,12 +25,15 @@ class Daftarpeneliti extends Component
         // Ambil user dengan role peneliti
         $peneliti = User::role('peneliti')
             ->with(['revisi' => function ($query) {
-                $query->where('status_revisi', 'Menunggu Revisi')
+                $query->whereIn('status_revisi', [
+                    'Proses Revisi',
+                    'Menunggu Validasi',
+                    'Direvisi'
+                ]) // Filter status revisi
                     ->with('rancangan'); // Eager load rancangan terkait
             }])
             ->where('nama_user', 'like', "%{$this->search}%") // Filter pencarian
             ->paginate($this->perPage);
-
         return view('livewire.verifikator.rancangan.daftarpeneliti', compact('peneliti'));
     }
 }

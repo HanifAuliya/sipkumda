@@ -50,7 +50,7 @@ class MenungguPeneliti extends Component
             ],
             [
                 'id_user' => $this->selectedPeneliti, // ID Peneliti yang dipilih
-                'status_revisi' => 'Menunggu Revisi',
+                'status_revisi' => 'Proses Revisi',
                 'tanggal_peneliti_ditunjuk' => Carbon::now(),
             ]
         );
@@ -92,6 +92,7 @@ class MenungguPeneliti extends Component
         // Query Rancangan dengan Status Berkas "Disetujui" dan Status Revisi "Belum Tahap Revisi"
         $rancangan = RancanganProdukHukum::with('revisi') // Eager loading revisi
             ->where('status_berkas', 'Disetujui')
+            ->where('status_rancangan', 'Dalam Proses')
             ->whereHas('revisi', function ($query) {
                 $query->where('status_revisi', 'Menunggu Peneliti');
             })

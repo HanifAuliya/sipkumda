@@ -10,6 +10,11 @@ use App\Livewire\Rancangan\DaftarRancangan;
 use App\Livewire\Perangkatdaerah\Rancangan\Rancanganku;
 use App\Livewire\Admin\Rancangan\PersetujuanMain;
 use App\Livewire\Verifikator\Rancangan\PilihPeneliti;
+use App\Livewire\Verifikator\Rancangan\ValidasiMain;
+use App\Livewire\Peneliti\Rancangan\Revisi;
+
+use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Storage;
 
 
 
@@ -43,6 +48,42 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware(['role:Verifikator'])->group(function () {
         Route::get('/rancangan/pilih-peneliti', PilihPeneliti::class)->name('verifikator.pilih-peneliti');
+    });
+
+    Route::get('/revisi/rancangan', Revisi::class)
+        ->name('revisi.rancangan');
+
+    Route::middleware(['role:Verifikator'])->group(function () {
+        Route::get('/validasi-rancangan', ValidasiMain::class)
+            ->name('verifikator.validasi-rancangan');
+    });
+
+
+    Route::get('/view-private/{folder}/{subfolder}/{filename}', function ($folder, $subfolder, $filename) {
+        // Periksa apakah user sudah login
+        if (!auth()->check()) {
+            abort(403, 'Unauthorized access.');
+        }
+
+        // Path lengkap file
+        $filePath = "{$folder}/{$subfolder}/{$filename}";
+
+        // Cek apakah file ada
+        if (!Storage::disk('local')->exists($filePath)) {
+            abort(404, 'File not found.');
+        }
+
+        // Ambil konten file
+        $fileContent = Storage::disk('local')->get($filePath);
+
+        // Tentukan MIME type berdasarkan ekstensi file
+        $mimeType = Storage::disk('local')->mimeType($filePath);
+
+        // Kembalikan file untuk ditampilkan di browser
+        return Response::make($fileContent, 200, [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="' . $filename . '"',
+        ]);
     });
 });
 

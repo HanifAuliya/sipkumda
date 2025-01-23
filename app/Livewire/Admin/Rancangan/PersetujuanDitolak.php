@@ -94,6 +94,7 @@ class PersetujuanDitolak extends Component
     public function render()
     {
         $berkasRancanganDitolak = RancanganProdukHukum::where('status_berkas', 'Ditolak')
+            ->where('status_rancangan', 'Dalam Proses')
             ->where(function ($query) {
                 $query->where('no_rancangan', 'like', "%{$this->search}%")
                     ->orWhere('tentang', 'like', "%{$this->search}%");

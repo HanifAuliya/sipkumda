@@ -30,8 +30,9 @@ class Revisi extends Model
     // Relasi ke User (Peneliti)
     public function user()
     {
-        return $this->belongsTo(User::class, 'id_user');
+        return $this->belongsTo(User::class, 'id_user', 'id');
     }
+
 
     // Relasi ke RancanganProdukHukum
     public function rancangan()
@@ -41,6 +42,6 @@ class Revisi extends Model
 
     public function peneliti()
     {
-        return $this->belongsTo(User::class, 'id_user');
+        return $this->belongsTo(User::class, 'id_user', 'id');
     }
 }

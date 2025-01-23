@@ -20,11 +20,10 @@ return new class extends Migration
             $table->enum('status_revisi', [
                 'Belum Tahap Revisi',
                 'Menunggu Peneliti',
-                'Menunggu Revisi',
-                'Menunggu Validasi',
+                'Proses Revisi',
                 'Direvisi',
             ])->nullable(); // Status revisi
-            $table->enum('status_validasi', ['Belum Tahap Validasi', 'Diterima', 'Ditolak'])->nullable(); // Status validasi
+            $table->enum('status_validasi', ['Belum Tahap Validasi', 'Menunggu Validasi', 'Diterima', 'Ditolak'])->nullable(); // Status validasi
             $table->text('catatan_revisi')->nullable();
             $table->text('catatan_validasi')->nullable(); // Catatan validasi
             $table->dateTime('tanggal_peneliti_ditunjuk')->nullable();

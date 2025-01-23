@@ -50,7 +50,7 @@
 <body>
     {{-- Loading Screen --}}
 
-    <!--
+
     <div class="loading-screen" id="loading-screen" style="{{ session('loading', true) ? '' : 'display:none;' }}">
         <div class="loading-content">
             {{-- Logo and SIPKUMDA Text in Row --}}
@@ -66,7 +66,7 @@
             </p>
         </div>
     </div>
--->
+
 
     {{-- Sidebar --}}
     @include('layouts.partials.sidebar')
