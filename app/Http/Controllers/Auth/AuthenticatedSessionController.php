@@ -8,7 +8,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
-use RealRashid\SweetAlert\Facades\Alert;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -43,7 +42,6 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerateToken();
 
         // Tambahkan SweetAlert untuk logout
-        Alert::info('Logout Berhasil', 'Anda telah keluar dari sistem.');
 
         return redirect('/');
     }

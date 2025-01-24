@@ -118,7 +118,7 @@
                                     wire:click.prevent="loadDetailRevisi({{ $item->id_rancangan }})">
                                     <i class="bi bi-info-circle"></i> Lihat Detail Revisi
                                 </a>
-                                <a href="#" class="dropdown-item text-danger d-flex align-items-center"
+                                <a class="dropdown-item text-danger d-flex align-items-center"
                                     onclick="confirmResetRevisi({{ $item->id_rancangan }})">
                                     <i class="bi bi-trash3"></i> Reset Revisi
                                 </a>

@@ -418,40 +418,6 @@
                                                                 : 'N/A' }}
                                                         </td>
                                                         <tr>
-                                                            <th>Revisi Rancangan</th>
-                                                            <td class="wrap-text-td-70">
-                                                                @if (isset($revisi->revisi_rancangan))
-                                                                    <a href="{{ url('/view-private/revisi/rancangan/' . basename($revisi->revisi_rancangan)) }}"
-                                                                        target="_blank"
-                                                                        class="d-flex align-items-center">
-                                                                        <i class="bi bi-file-earmark-pdf mr-2"
-                                                                            style="font-size: 1.5rem; color: #007bff;"></i>
-                                                                        <span>Lihat Revisi Rancangan</span>
-                                                                    </a>
-                                                                @else
-                                                                    <span style="color: #6c757d;">Data Tidak Ada</span>
-                                                                @endif
-                                                            </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <th>Revisi Matrik</th>
-                                                            <td class="wrap-text-td-70">
-                                                                @if (isset($revisi->revisi_matrik))
-                                                                    <a href="{{ url('/view-private/revisi/matrik/' . basename($revisi->revisi_matrik)) }}"
-                                                                        target="_blank"
-                                                                        class="d-flex align-items-center">
-                                                                        <i class="bi bi-file-earmark-pdf mr-2"
-                                                                            style="font-size: 1.5rem; color: #28a745;"></i>
-                                                                        <span>Lihat Matrik Revisi</span>
-                                                                    </a>
-                                                                @else
-                                                                    <span style="color: #6c757d;">Data Tidak Ada</span>
-                                                                @endif
-                                                            </td>
-                                                        </tr>
-
-
-                                                        <tr>
                                                             <th>Catatan Revisi</th>
                                                             <td class="wrap-text-td-70 ">
                                                                 {{ $revisi->catatan_revisi ?? 'Tidak Ada Catatan' }}
@@ -476,9 +442,11 @@
                                     </div>
                                 </div>
                             @endif
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+                            {{-- Tutup Modal --}}
+                            <div class="card mt-4">
+                                <button type="button" class="btn btn-neutral" data-dismiss="modal">Tutup Detail
+                                    Rancangan</button>
+                            </div>
                         </div>
                     </div>
                 </div>

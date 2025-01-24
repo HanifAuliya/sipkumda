@@ -147,7 +147,7 @@
                                                     <i class="bi bi-trash-fill"></i>
                                                 </button>
                                             @else
-                                                <span class="text-muted">Hanya untuk Admin</span>
+                                                <span class="text-danger">Butuh Akses</span>
                                             @endif
                                         </td>
                                     </tr>

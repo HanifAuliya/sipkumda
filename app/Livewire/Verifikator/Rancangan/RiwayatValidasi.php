@@ -16,8 +16,8 @@ class RiwayatValidasi extends Component
     public function render()
     {
         $riwayatValidasi = Revisi::with(['rancangan.user.perangkatDaerah'])
-            ->where('status_revisi', 'Proses Revisi')
-            ->whereIn('status_validasi', ['Disetujui', 'Ditolak'])
+            ->whereIn('status_revisi', ['Proses Revisi', 'Direvisi'])
+            ->whereIn('status_validasi', ['Diterima', 'Ditolak'])
             ->whereHas('rancangan', function ($query) {
                 $query->where('tentang', 'like', "%{$this->search}%")
                     ->orWhere('no_rancangan', 'like', "%{$this->search}%");

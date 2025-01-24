@@ -506,12 +506,12 @@
                             </div>
                         </div>
                     @endif
+                    <div class="card mt-4">
+                        <button type="button" class="btn btn-neutral" data-dismiss="modal">Tutup Detail
+                            Rancangan</button>
+                    </div>
                 </div>
 
-                {{-- Footer Modal --}}
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
-                </div>
             </div>
         </div>
     </div>

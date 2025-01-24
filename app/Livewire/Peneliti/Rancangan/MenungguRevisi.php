@@ -21,6 +21,7 @@ class MenungguRevisi extends Component
     public $search = '';
     public $perPage = 5;
 
+    public $selectedRevisi;
     public $revisiRancangan, $revisiMatrik, $catatanRevisi, $selectedRevisiId;
 
     protected $rules = [
@@ -28,7 +29,21 @@ class MenungguRevisi extends Component
         'revisiMatrik' => 'required|file|max:10240|mimes:pdf',
         'catatanRevisi' => 'required|string|max:1000',
     ];
+    public function loadDetailRevisi($id)
+    {
+        $this->selectedRevisi = Revisi::with('rancangan.user')->find($id);
+        if (!$this->selectedRevisi) {
+            $this->dispatch('swal:modal', [
+                'type' => 'error',
+                'title' => 'Kesalahan',
+                'message' => 'Detail revisi tidak ditemukan.',
+            ]);
+            return;
+        }
 
+        // Emit untuk membuka modal
+        $this->dispatch('openDetailRevisiModal');
+    }
     public function selectRevisi($id)
     {
         // Pastikan ID revisi valid

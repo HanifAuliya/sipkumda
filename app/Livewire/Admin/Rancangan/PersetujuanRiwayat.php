@@ -30,7 +30,8 @@ class PersetujuanRiwayat extends Component
 
     public function setSelectedRancangan($id)
     {
-        $this->selectedRancanganId = $id; // Simpan ID rancangan yang akan di-reset
+        $this->selectedRancanganId = $id;
+        $this->selectedRancangan = RancanganProdukHukum::find($id);
     }
     public function confirmResetStatus()
     {
@@ -49,7 +50,16 @@ class PersetujuanRiwayat extends Component
             $revisi = $rancangan->revisi()->first();
             if ($revisi) {
                 $revisi->update([
-                    'status_revisi' => 'Belum Tahap Revisi', // Reset status revisi
+                    'revisi_rancangan' => null,
+                    'revisi_matrik' => null,
+                    'id_user' => null,
+                    'status_revisi' => 'Belum Tahap Revisi', // Status awal
+                    'status_validasi' => 'Belum Tahap Validasi', // Status awal validasi
+                    'catatan_revisi' => null,
+                    'catatan_validasi' => null,
+                    'tanggal_peneliti_ditunjuk' => null,
+                    'tanggal_revisi' => null,
+                    'tanggal_validasi' => null,
                 ]);
             }
 

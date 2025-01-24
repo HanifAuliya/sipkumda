@@ -771,3 +771,10 @@ textarea.form-control:focus {
     align-items: center;
     width: 40px; /* Ukuran kolom ikon */
 }
+
+/* -----------------------------------------------
+   Dropdown -Item
+-------------------------------------------------- */
+.dropdown-item {
+    cursor: pointer;
+}

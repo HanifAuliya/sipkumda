@@ -3,7 +3,7 @@
         {{-- Header --}}
         <div class="card-header d-flex justify-content-between align-items-center">
             <div>
-                <h3 class="mb-2">Daftar Berkas untuk Verifikasi</h3>
+                <h3 class="mb-2">Daftar Validasi Menunggu</h3>
                 <small>Pastikan perhatikan tab di bawah! Tekan dan pilih tab untuk navigasi ke tab tujuan Anda!</small>
             </div>
         </div>
@@ -35,5 +35,41 @@
             </div>
         </div>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
 
+            window.Livewire.on('openModalValidasiRancangan', () => {
+                $('#modalValidasiRancangan').modal('show');
+            });
+
+            window.Livewire.on('closeModalValidasiRancangan', () => {
+                $('#modalValidasiRancangan').modal('hide');
+            });
+
+            window.addEventListener('swal:modal', function(event) {
+                const data = event.detail[0];
+                Swal.fire({
+                    icon: data.type, // 'success', 'error', 'warning', etc.
+                    title: data.title,
+                    text: data.message,
+                    timer: 3000,
+                    timerProgressBar: true,
+                    showConfirmButton: false,
+                    position: 'top-end',
+                    toast: true,
+                });
+            });
+
+            window.addEventListener('swal:reset', function(event) {
+                const data = event.detail[0];
+
+                Swal.fire({
+                    icon: data.type || 'info',
+                    title: data.title || 'Informasi',
+                    text: data.message || 'Tidak ada pesan yang diterima.',
+                    showConfirmButton: true,
+                });
+            });
+        });
+    </script>
 </div>

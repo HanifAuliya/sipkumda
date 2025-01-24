@@ -13,12 +13,12 @@ class RancanganProdukHukumPolicy
     public function viewAny(User $user): bool
     {
         // Admin, Verifikator, dan Peneliti bisa melihat semua rancangan
-        if ($user->hasRole(['Admin', 'Verifikator', 'Peneliti'])) {
+        if ($user->hasRole(['Super Admin', 'Admin', 'Verifikator', 'Peneliti'])) {
             return true;
         }
 
         // Perangkat Daerah hanya bisa melihat rancangan miliknya
-        if ($user->hasRole('Perangkat_Daerah')) {
+        if ($user->hasRole('Perangkat Daerah')) {
             return true;
         }
 
@@ -32,12 +32,12 @@ class RancanganProdukHukumPolicy
     public function view(User $user, RancanganProdukHukum $rancanganProdukHukum): bool
     {
         // Admin, Verifikator, dan Peneliti bisa melihat semua rancangan
-        if ($user->hasRole(['Admin', 'Verifikator', 'Peneliti'])) {
+        if ($user->hasRole(['Super Admin', 'Admin', 'Verifikator', 'Peneliti'])) {
             return true;
         }
 
         // Perangkat Daerah hanya bisa melihat rancangan miliknya
-        if ($user->hasRole('Perangkat_Daerah') && $rancanganProdukHukum->id_user === $user->id) {
+        if ($user->hasRole('Perangkat Daerah') && $rancanganProdukHukum->id_user === $user->id) {
             return true;
         }
 
@@ -51,7 +51,7 @@ class RancanganProdukHukumPolicy
     public function create(User $user): bool
     {
         // Hanya Perangkat Daerah yang bisa menambahkan rancangan
-        return $user->hasRole('Perangkat_Daerah');
+        return $user->hasRole('Perangkat Daerah');
     }
 
     /**
@@ -60,12 +60,12 @@ class RancanganProdukHukumPolicy
     public function update(User $user, RancanganProdukHukum $rancanganProdukHukum): bool
     {
         // Admin bisa mengupdate semua rancangan
-        if ($user->hasRole('Admin')) {
+        if ($user->hasRole(['Super Admin', 'Admin'])) {
             return true;
         }
 
         // Perangkat Daerah hanya bisa mengupdate rancangan miliknya, dengan status tertentu
-        if ($user->hasRole('Perangkat_Daerah') && $rancanganProdukHukum->id_user === $user->id) {
+        if ($user->hasRole('Perangkat Daerah') && $rancanganProdukHukum->id_user === $user->id) {
             return true;
         }
 
@@ -79,7 +79,7 @@ class RancanganProdukHukumPolicy
     public function delete(User $user, RancanganProdukHukum $rancanganProdukHukum): bool
     {
         // Hanya Admin yang bisa menghapus rancangan
-        return $user->hasRole('Admin');
+        return $user->hasRole('Super Admin');
     }
 
     /**
@@ -88,7 +88,7 @@ class RancanganProdukHukumPolicy
     public function restore(User $user, RancanganProdukHukum $rancanganProdukHukum): bool
     {
         // Hanya Admin yang bisa merestore rancangan
-        return $user->hasRole('Admin');
+        return $user->hasRole('Super Admin');
     }
 
     /**
@@ -97,6 +97,6 @@ class RancanganProdukHukumPolicy
     public function forceDelete(User $user, RancanganProdukHukum $rancanganProdukHukum): bool
     {
         // Hanya Admin yang bisa menghapus permanen
-        return $user->hasRole('Admin');
+        return $user->hasRole('Super Admin');
     }
 }

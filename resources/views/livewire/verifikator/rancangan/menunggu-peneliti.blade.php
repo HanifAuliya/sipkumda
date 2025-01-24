@@ -91,7 +91,7 @@
                                 class="badge-{{ $item->revisi->first()?->peneliti ? 'success' : 'danger' }} badge-pill">
                                 @if ($item->revisi->first()?->peneliti)
                                     <i class="bi bi-person-check"></i>
-                                    {{ $item->revisi->first()?->peneliti->name }}
+                                    {{ $item->revisi->first()?->peneliti->nama_user }}
                                 @else
                                     <i class="bi bi-person-dash"></i>
                                     Menunggu Pemilihan Peneliti

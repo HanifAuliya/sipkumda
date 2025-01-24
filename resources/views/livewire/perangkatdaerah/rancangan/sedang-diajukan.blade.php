@@ -62,8 +62,8 @@
                             <p class="mb-0 info-text small">
                                 <i class="bi bi-person-gear"></i>
                                 <span
-                                    class="{{ $item->revisi->first()->peneliti->nama_user ?? false ? 'info-text' : 'text-danger' }} text-primary">
-                                    {{ $item->revisi->first()->peneliti->nama_user ?? 'Belum Ditentukan' }}
+                                    class="{{ $item->revisi->last()->peneliti->nama_user ?? false ? 'info-text' : 'text-danger' }} text-primary">
+                                    {{ $item->revisi->last()->peneliti->nama_user ?? 'Belum Ditentukan' }}
                                 </span>
                                 <span class="badge badge-secondary">
                                     Peneliti
@@ -81,18 +81,49 @@
                                 <i class="bi bi-file-earmark-text"></i>
                                 Status Revisi:
                                 <mark
-                                    class="badge-{{ $item->revisi->first()->status_revisi === 'Direvisi'
+                                    class="badge-{{ $item->revisi->last()->status_revisi === 'Direvisi'
                                         ? 'success'
-                                        : ($item->revisi->first()->status_revisi === 'Menunggu Peneliti'
+                                        : ($item->revisi->last()->status_revisi === 'Menunggu Peneliti'
                                             ? 'info text-default'
-                                            : ($item->revisi->first()->status_revisi === 'Proses Revisi'
+                                            : ($item->revisi->last()->status_revisi === 'Proses Revisi'
                                                 ? 'warning'
-                                                : ($item->revisi->first()->status_revisi === 'Belum Tahap Revisi'
+                                                : ($item->revisi->last()->status_revisi === 'Belum Tahap Revisi'
                                                     ? 'danger'
                                                     : 'secondary'))) }} badge-pill">
-                                    {{ $item->revisi->first()->status_revisi }}
+                                    {{ $item->revisi->last()->status_revisi }}
                                 </mark>
                             </p>
+                            <p>
+                                {{-- Progress Bar --}}
+                            <div class="progress-wrapper mt--4">
+                                <div class="progress-info d-flex justify-content-between">
+                                    <div class="progress-label">
+                                        <span>Progress Pengajuan Rancangan</span>
+                                    </div>
+                                    <div class="progress-percentage">
+                                        <span>{{ $item->progress ?? 0 }}%</span>
+                                    </div>
+                                </div>
+                                <div class="progress">
+                                    <div class="progress-bar {{ $item->progress == 100 ? 'bg-success' : ($item->progress >= 50 ? 'bg-warning' : 'bg-danger') }}"
+                                        role="progressbar" aria-valuenow="{{ $item->progress ?? 0 }}" aria-valuemin="0"
+                                        aria-valuemax="100" style="width: {{ $item->progress ?? 0 }}%;">
+                                    </div>
+                                </div>
+                            </div>
+
+                            </p>
+                            @if ($item->status_berkas === 'Ditolak')
+                                <p class="mt-2">
+                                <div class="alert alert-{{ $item->status_berkas === 'Disetujui' ? 'success' : 'danger' }} mb-0"
+                                    role="alert">
+                                    <strong>{{ $item->status_berkas }} !</strong> Rancangan
+                                    Telah
+                                    {{ $item->status_berkas }} Silahkan lakukan ke kelola rancangan >> Upload Ulang
+                                    Berkas
+                                </div>
+                                </p>
+                            @endif
                         </div>
                     </div>
 
@@ -119,9 +150,8 @@
 
                         <div class="mt-2">
                             <div class="dropdown">
-                                <button class="btn btn-outline-primary dropdown-toggle" type="button"
-                                    id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true"
-                                    aria-expanded="false">
+                                <button class="btn btn-neutral dropdown-toggle" type="button" id="dropdownMenuButton"
+                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     <i class="bi bi-gear"></i> Kelola Rancangan
                                 </button>
                                 <div class="dropdown-menu shadow-lg" aria-labelledby="dropdownMenuButton">
@@ -131,6 +161,20 @@
                                         data-target="#detailModalPengajuan-{{ $item->id_rancangan }}">
                                         <i class="bi bi-folder mr-2 text-warning"></i>
                                         <span>Detail Pengajuan</span>
+                                    </a>
+                                    {{-- Upload Ulang Berkas Ditolak --}}
+                                    @if ($item->status_berkas === 'Ditolak')
+                                        <a href="#" class="dropdown-item d-flex align-items-center"
+                                            wire:click.prevent="openUploadUlangModal({{ $item->id_rancangan }})">
+                                            <i class="bi bi-upload text-success"></i>
+                                            <span>Upload Ulang Berkas Ditolak</span>
+                                        </a>
+                                    @endif
+                                    <a href="#" class="dropdown-item d-flex align-items-center"
+                                        data-toggle="modal"
+                                        data-target="#detailModalPengajuan-{{ $item->id_rancangan }}">
+                                        <i class="bi bi-filetype-pdf text-capitalize"></i>
+                                        <span>Berkas Revisi dan Nota Dinas</span>
                                     </a>
                                 </div>
                             </div>
@@ -144,7 +188,7 @@
             <div wire:ignore.self class="modal fade" id="detailModalPengajuan-{{ $item->id_rancangan }}" tabindex="-1"
                 role="dialog" aria-labelledby="detailModalLabelPengajuan" aria-hidden="true" data-backdrop="static"
                 data-keyboard="false">
-                <div class="modal-dialog modal-xl no-style-modal" role="document">
+                <div class="modal-dialog  modal-xl no-style-modal" role="document">
                     <div class="modal-content">
                         {{-- Body Modal --}}
                         <div class="modal-body">
@@ -158,7 +202,8 @@
                                         </h5>
 
                                         {{-- Tombol --}}
-                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <button type="button" class="close" data-dismiss="modal"
+                                            aria-label="Close">
                                             <span aria-hidden="true">&times;</span>
                                         </button>
                                     </div>
@@ -424,39 +469,6 @@
                                                                 : 'N/A' }}
                                                         </td>
                                                         <tr>
-                                                            <th>Revisi Rancangan</th>
-                                                            <td class="wrap-text-td-70">
-                                                                @if (isset($revisi->revisi_rancangan))
-                                                                    <a href="{{ url('/view-private/revisi/rancangan/' . basename($revisi->revisi_rancangan)) }}"
-                                                                        target="_blank"
-                                                                        class="d-flex align-items-center">
-                                                                        <i class="bi bi-file-earmark-pdf mr-2"
-                                                                            style="font-size: 1.5rem; color: #007bff;"></i>
-                                                                        <span>Lihat Revisi Rancangan</span>
-                                                                    </a>
-                                                                @else
-                                                                    <span style="color: #6c757d;">Data Tidak Ada</span>
-                                                                @endif
-                                                            </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <th>Revisi Matrik</th>
-                                                            <td class="wrap-text-td-70">
-                                                                @if (isset($revisi->revisi_matrik))
-                                                                    <a href="{{ url('/view-private/revisi/matrik/' . basename($revisi->revisi_matrik)) }}"
-                                                                        target="_blank"
-                                                                        class="d-flex align-items-center">
-                                                                        <i class="bi bi-file-earmark-pdf mr-2"
-                                                                            style="font-size: 1.5rem; color: #28a745;"></i>
-                                                                        <span>Lihat Matrik Revisi</span>
-                                                                    </a>
-                                                                @else
-                                                                    <span style="color: #6c757d;">Data Tidak Ada</span>
-                                                                @endif
-                                                            </td>
-                                                        </tr>
-
-                                                        <tr>
                                                             <th>Catatan Revisi</th>
                                                             <td class="wrap-text-td-70 ">
                                                                 {{ $revisi->catatan_revisi ?? 'Tidak Ada Catatan' }}
@@ -481,15 +493,16 @@
                                     </div>
                                 </div>
                             @endif
-                        </div>
-
-                        {{-- Footer Modal --}}
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+                            {{-- Tutup Modal --}}
+                            <div class="card mt-4">
+                                <button type="button" class="btn btn-neutral" data-dismiss="modal">Tutup Detail
+                                    Rancangan</button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+
 
         @empty
             <p class="text-center info-text">Tidak ada data rancangan sedang diajukan.</p>
@@ -499,6 +512,117 @@
         <div class="d-flex justify-content-center w-100 w-md-auto">
             {{ $rancangan->links('pagination::bootstrap-4') }}
         </div>
+    </div>
 
+    {{-- Modal Upload Ulang Berkas Ditolak --}}
+    <div wire:ignore.self class="modal fade" id="uploadUlangBerkasModal" tabindex="-1" role="dialog"
+        aria-labelledby="uploadUlangBerkasModalLabel" aria-hidden="true" data-backdrop="static"
+        data-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="uploadUlangBerkasModalLabel">Upload Ulang Berkas Ditolak</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                        wire:click="resetForm">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form wire:submit.prevent="uploadUlangBerkas">
+                    {{-- Modal Body --}}
+                    <div class="modal-body">
+                        {{-- Input File Nota Dinas --}}
+                        <div class="mb-4">
+                            <label for="fileNotaDinas" class="font-weight-bold form-control-label">
+                                <i class="bi bi-file-earmark-pdf text-primary"></i> File Nota Dinas
+                                <small class="text-muted d-block">Unggah dokumen nota dinas dalam format PDF (max:
+                                    2MB).</small>
+                            </label>
+                            <input type="file" id="fileNotaDinas" class="form-control" wire:model="fileNotaDinas"
+                                accept="application/pdf" />
+                            <div wire:loading wire:target="fileNotaDinas" class="text-info mt-2">
+                                <i class="spinner-border spinner-border-sm"></i> Mengunggah Nota Dinas...
+                            </div>
+                            @error('fileNotaDinas')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+                        {{-- Input File Rancangan --}}
+                        <div class="mb-4">
+                            <label for="fileRancangan" class="font-weight-bold form-control-label">
+                                <i class="bi bi-file-earmark-pdf text-primary"></i> File Rancangan
+                                <small class="text-muted d-block">Unggah dokumen rancangan dalam format PDF (max:
+                                    2MB).</small>
+                            </label>
+                            <input type="file" id="fileRancangan" class="form-control" wire:model="fileRancangan"
+                                accept="application/pdf" />
+                            <div wire:loading wire:target="fileRancangan" class="text-info mt-2">
+                                <i class="spinner-border spinner-border-sm"></i> Mengunggah File Rancangan...
+                            </div>
+                            @error('fileRancangan')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        {{-- Input File Matrik --}}
+                        <div class="mb-4">
+                            <label for="fileMatrik" class="font-weight-bold form-control-label">
+                                <i class="bi bi-file-earmark-pdf text-primary"></i> File Matrik
+                                <small class="text-muted d-block">Unggah matrik dokumen dalam format PDF (max:
+                                    2MB).</small>
+                            </label>
+                            <input type="file" id="fileMatrik" class="form-control" wire:model="fileMatrik"
+                                accept="application/pdf" />
+                            <div wire:loading wire:target="fileMatrik" class="text-info mt-2">
+                                <i class="spinner-border spinner-border-sm"></i> Mengunggah File Matrik...
+                            </div>
+                            @error('fileMatrik')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        {{-- Input File Bahan Pendukung --}}
+                        <div class="mb-4">
+                            <label for="fileBahanPendukung" class="font-weight-bold form-control-label">
+                                <i class="bi bi-file-earmark-pdf text-primary"></i> File Bahan Pendukung (Opsional)
+                                <small class="text-muted d-block">Unggah dokumen bahan pendukung dalam format PDF (max:
+                                    2MB).</small>
+                            </label>
+                            <input type="file" id="fileBahanPendukung" class="form-control"
+                                wire:model="fileBahanPendukung" accept="application/pdf" />
+                            <div wire:loading wire:target="fileBahanPendukung" class="text-info mt-2">
+                                <i class="spinner-border spinner-border-sm"></i> Mengunggah Bahan Pendukung...
+                            </div>
+                            @error('fileBahanPendukung')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="hapusBahanPendukung"
+                                wire:model="hapusBahanPendukung">
+                            <label class="form-check-label" for="hapusBahanPendukung">
+                                Hapus Bahan Pendukung Lama <small class="text-danger"> jika sebelumnya anda mengajukan
+                                    file pendukung dan sekarng tidak lagi !</small>
+                            </label>
+                        </div>
+                    </div>
+                    {{-- Modal Footer --}}
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-dismiss="modal"
+                            wire:click="resetForm">
+                            Batal
+                        </button>
+                        <button type="button" class="btn btn-primary" wire:click="uploadUlangBerkas"
+                            wire:loading.attr="disabled">
+                            <span wire:loading.remove>
+                                <i class="bi bi-upload"></i> Upload Ulang
+                            </span>
+                            <span wire:loading>
+                                <i class="spinner-border spinner-border-sm"></i> Memproses...
+                            </span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </div>

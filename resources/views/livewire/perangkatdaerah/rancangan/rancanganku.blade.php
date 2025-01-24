@@ -190,6 +190,18 @@
         </div>
     </div>
     <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Membuka Modal
+            window.Livewire.on('openUploadUlangBerkasModal', () => {
+                $('#uploadUlangBerkasModal').modal('show');
+            });
+
+            // Menmutup Modal
+            window.Livewire.on('closeUploadUlangBerkasModal', () => {
+                $('#uploadUlangBerkasModal').modal('hide');
+            });
+
+        });
         // Berhasil
         window.addEventListener('swal:modal', function(event) {
             // Ambil elemen pertama dari array

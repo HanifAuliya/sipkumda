@@ -102,7 +102,7 @@ class Rancanganku extends Component
         $this->dispatch('refreshNotifications');
 
         // Dispatch success event
-        $this->dispatch('rancanganDitambahkan');
+        $this->dispatch('rancanganDiperbarui');
 
         $this->reset();
 

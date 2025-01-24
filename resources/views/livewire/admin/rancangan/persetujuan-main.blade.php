@@ -71,11 +71,52 @@
 
     {{-- Script --}}
     <script>
+        async function confirmSetujui(id) {
+            // Tampilkan SweetAlert dengan textarea input
+            const {
+                value: catatan
+            } = await Swal.fire({
+                title: "Kamu Yakin ? Untuk Menyetujui Rancangan",
+                input: "textarea",
+                icon: 'question',
+                inputLabel: "Tambahkan Catatan",
+                inputPlaceholder: "Tambahkan catatan terkait persetujuan ini...",
+                inputAttributes: {
+                    "aria-label": "Tambahkan catatan terkait persetujuan ini"
+                },
+                showCancelButton: true,
+                confirmButtonText: "Setujui",
+                cancelButtonText: "Batal",
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                inputValidator: (value) => {
+                    if (!value) {
+                        return "Catatan tidak boleh kosong!";
+                    }
+                }
+            });
+
+            // Jika tombol konfirmasi ditekan dan catatan diisi
+            if (catatan) {
+                // Kirim data ke Livewire
+                Livewire.dispatch("setujuiConfirmed", {
+                    id: id,
+                    catatan: catatan
+                });
+            }
+        }
+    </script>
+
+    <script>
         document.addEventListener('DOMContentLoaded', () => {
             // Membuka Modal
             window.Livewire.on('openModalPersetujuan', () => {
                 $('#modalPersetujuan').modal('show');
             });
+            window.Livewire.on('openModalDetailPersetujuan', () => {
+                $('#modalDetailPersetujuan').modal('show');
+            });
+
             // Menmutup Modal
             window.Livewire.on('closeModalPersetujuan', () => {
                 $('#modalPersetujuan').modal('hide');
@@ -95,7 +136,7 @@
                     toast: true, // Mengaktifkan toast
                     position: 'top-end', // Posisi toast ('top', 'top-start', 'top-end', 'center', 'bottom', dll.)
                     showConfirmButton: false, // Tidak menampilkan tombol konfirmasi
-                    timer: 3000, // Waktu toast tampil (dalam milidetik)
+                    timer: 5000, // Waktu toast tampil (dalam milidetik)
                     timerProgressBar: true, // Menampilkan progress bar pada timer
                 });
             });

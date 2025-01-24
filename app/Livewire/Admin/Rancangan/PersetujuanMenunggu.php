@@ -97,7 +97,7 @@ class PersetujuanMenunggu extends Component
                     'title' => "Berkas Rancangan Anda {$this->statusBerkas}",
                     'message' => $this->statusBerkas === 'Disetujui'
                         ? "Selamat! Berkas Rancangan Anda dengan nomor {$this->selectedRancangan->no_rancangan} telah disetujui. Proses selanjutnya adalah penugasan Peneliti. Mohon menunggu pemelihan peneliti."
-                        : "Mohon maaf, Berkas Rancangan Anda dengan nomor {$this->selectedRancangan->no_rancangan} Di Tolak. Silakan periksa catatan yang diberikan untuk melakukan perbaikan dan ajukan kembali jika diperlukan.",
+                        : "Mohon maaf, Berkas Rancangan Anda dengan nomor {$this->selectedRancangan->no_rancangan} Di Tolak. Silakan periksa catatan yang diberikan untuk melakukan perbaikan dan ajukan kembali .",
                     'slug' => $this->selectedRancangan->slug, // Slug untuk memuat modal detail
                     'type' => $this->statusBerkas === 'Disetujui' ? 'persetujuan_diterima' : 'persetujuan_ditolak', // Tentukan tipe
                     // 'url' => route('user.rancangan.detail', $this->rancangan->id), // URL detail rancangan
@@ -114,41 +114,6 @@ class PersetujuanMenunggu extends Component
             ]);
         }
     }
-
-    // public function resetStatus()
-    // {
-    //     if ($this->selectedRancangan) {
-    //         $this->selectedRancangan->update([
-    //             'status_berkas' => 'Menunggu Persetujuan',
-    //             'catatan_berkas' => null,
-    //             'tanggal_berkas_disetujui' => null, // Reset tanggal jika status direset
-    //         ]);
-
-    //         $this->statusBerkas = 'Menunggu Persetujuan';
-    //         $this->catatan = '';
-
-    //         // Kirim notifikasi ke user
-    //         Notification::send(
-    //             $this->selectedRancangan->user, // User yang mengajukan rancangan
-    //             new PersetujuanRancanganNotification([
-    //                 'title' => "Rancangan Anda {$this->statusBerkas}",
-    //                 'message' => "Rancangan Anda dengan nomor {$this->selectedRancangan->no_rancangan} telah {$this->statusBerkas}.",
-    //                 'slug' => $this->selectedRancangan->slug, // Slug untuk memuat modal detail
-    //                 'type' => 'persetujuan_menunggu', // Tipe notifikasi
-    //                 // 'url' => route('user.rancangan.detail', $this->rancangan->id), // URL detail rancangan
-    //             ])
-    //         );
-
-    //         // Emit notifikasi sukses ke pengguna
-    //         $this->dispatch('refreshNotifications');
-
-    //         $this->dispatch('swal:modal', [
-    //             'type' => 'info',
-    //             'title' => 'Reset Berhasil!',
-    //             'message' => 'Status rancangan telah direset ke Menunggu Persetujuan.',
-    //         ]);
-    //     }
-    // }
 
     public function resetForm()
     { // Atur ulang semua properti ke nilai default

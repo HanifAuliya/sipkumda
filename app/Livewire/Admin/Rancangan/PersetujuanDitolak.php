@@ -4,8 +4,10 @@ namespace App\Livewire\Admin\Rancangan;
 
 use Livewire\Component;
 use Livewire\WithPagination;
-use App\Models\RancanganProdukHukum;
 use Livewire\WithoutUrlPagination;
+use App\Models\User;
+use App\Models\RancanganProdukHukum;
+use Illuminate\Support\Carbon;
 
 use App\Notifications\PersetujuanRancanganNotification;
 use Illuminate\Support\Facades\Notification;
@@ -22,10 +24,77 @@ class PersetujuanDitolak extends Component
     public $statusBerkas;
     public $selectedRancanganId;
 
+
     public function openModal($id)
     {
         $this->selectedRancangan = RancanganProdukHukum::with(['user', 'perangkatDaerah'])->find($id);
-        $this->dispatch('openModalPersetujuan');
+        $this->dispatch('openModalDetailPersetujuan');
+    }
+
+    public $listeners = [
+        'setujuiConfirmed' => 'setujuiBerkas',
+    ];
+
+    public function setujuiBerkas($id, $catatan)
+    {
+        $this->selectedRancangan = RancanganProdukHukum::with(['user', 'perangkatDaerah'])->find($id);
+
+        if (!$this->selectedRancangan) {
+            $this->dispatch('swal:modal', [
+                'type' => 'error',
+                'title' => 'Kesalahan',
+                'message' => 'Data rancangan tidak ditemukan!',
+            ]);
+            return;
+        }
+
+        // Update status berkas dan catatan
+        $this->selectedRancangan->update([
+            'status_berkas' => 'Disetujui',
+            'tanggal_berkas_disetujui' => Carbon::now(),
+            'catatan_berkas' => $catatan,
+        ]);
+
+        // Update status_revisi di tabel Revisi menjadi 'Menunggu Peneliti'
+        $revisi = $this->selectedRancangan->revisi()->first(); // Ambil revisi terkait
+
+        $revisi->update([
+            'status_revisi' => 'Menunggu Peneliti',
+        ]);
+
+        // Kirim notifikasi ke verifikator
+        $verifikator = User::role('Verifikator')->get(); // Ambil semua user dengan role Verifikator
+        Notification::send(
+            $verifikator, // Semua verifikator
+            new PersetujuanRancanganNotification([
+                'title' => "Berkas Rancangan nomor {$this->selectedRancangan->no_rancangan} Disetujui, Silahkan Pilih Peneliti",
+                'message' => "Berkas Rancangan dengan nomor {$this->selectedRancangan->no_rancangan} telah berhasil disetujui. Harap segera memilih peneliti untuk melanjutkan proses berikutnya.",
+                'slug' => $this->selectedRancangan->slug, // Slug untuk memuat modal detail
+                'type' => 'pilih_peneliti', // Tipe notifikasi untuk verifikator
+            ])
+
+
+        );
+
+        // Kirim notifikasi ke user
+        Notification::send(
+            $this->selectedRancangan->user, // User yang mengajukan rancangan
+            new PersetujuanRancanganNotification([
+                'title' => "Berkas Rancangan Anda {$this->statusBerkas}",
+                'message' => "Selamat! Berkas Rancangan Anda dengan nomor {$this->selectedRancangan->no_rancangan} telah disetujui. Proses selanjutnya adalah penugasan Peneliti. Mohon menunggu pemelihan peneliti.",
+                'slug' => $this->selectedRancangan->slug, // Slug untuk memuat modal detail
+                'type' => $this->statusBerkas === 'Disetujui' ? 'persetujuan_diterima' : 'persetujuan_ditolak', // Tentukan tipe
+                // 'url' => route('user.rancangan.detail', $this->rancangan->id), // URL detail rancangan
+            ])
+        );
+
+        // Emit notifikasi sukses ke pengguna
+        $this->dispatch('refreshNotifications');
+
+        $this->dispatch('swal:modal', [
+            'type' => 'success',
+            'message' => 'Status rancangan berhasil diperbarui!',
+        ]);
     }
 
     public function setSelectedRancangan($id)

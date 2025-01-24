@@ -45,8 +45,8 @@ class UserManagement extends Component
     ];
     public function mount()
     {
-        $this->isAdmin = Auth::user()->hasRole('Admin');
-        $this->isVerifier = Auth::user()->hasRole('Verifikator');
+        $this->isAdmin = Auth::user()->hasRole('Super Admin');
+        $this->isVerifier = Auth::user()->hasRole(['Verifikator', 'Admin']);
         $this->daftar_perangkat_daerah = PerangkatDaerah::all();
 
         if (!$this->isAdmin && !$this->isVerifier) {

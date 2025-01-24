@@ -13,20 +13,33 @@ class UserSeeder extends Seeder
     public function run()
     { // Buat user dan tetapkan role
         User::factory()->count(10)->create()->each(function ($user) {
-            $user->assignRole('Perangkat_Daerah'); // Ganti dengan role yang sesuai
+            $user->assignRole('Perangkat Daerah'); // Ganti dengan role yang sesuai
         });
 
+        $superAdminRole = Role::firstOrCreate(['name' => 'Super Admin']);
         $adminRole = Role::firstOrCreate(['name' => 'Admin']);
         $verifikatorRole = Role::firstOrCreate(['name' => 'Verifikator']);
-        $perangkatDaerahRole = Role::firstOrCreate(['name' => 'Perangkat_Daerah']);
+        $perangkatDaerahRole = Role::firstOrCreate(['name' => 'Perangkat Daerah']);
         $penelitiRole = Role::firstOrCreate(['name' => 'Peneliti']);
         $tamuRole = Role::firstOrCreate(['name' => 'Tamu']);
+
+        // Buat User Admin
+        $superAdmin = User::firstOrCreate([
+            'email' => 'superadmin@example.com', // Email unik
+        ], [
+            'nama_user' => 'Super Admin ',
+            'NIP' => 'superadmin',
+            'password' => bcrypt('password'), // Default password
+            'email_verified_at' => Carbon::now(), // Set email_verified_at
+            'perangkat_daerah_id' => PerangkatDaerah::inRandomOrder()->first()->id ?? null, // Perangkat Daerah Acak
+        ]);
+        $superAdmin->assignRole($superAdminRole);
 
         // Buat User Admin
         $admin = User::firstOrCreate([
             'email' => 'admin@example.com', // Email unik
         ], [
-            'nama_user' => 'Admin User',
+            'nama_user' => 'Admin',
             'NIP' => 'admin',
             'password' => bcrypt('password'), // Default password
             'email_verified_at' => Carbon::now(), // Set email_verified_at

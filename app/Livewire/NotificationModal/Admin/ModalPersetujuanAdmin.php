@@ -89,10 +89,13 @@ class ModalPersetujuanAdmin extends Component
 
             // Emit notifikasi sukses ke pengguna
             $this->dispatch('refreshNotifications');
+            // refresh halaman
+            $this->dispatch('rancanganDiperbarui');
+
 
             $this->dispatch('swal:modalPersetujuan', [
                 'type' => 'success',
-                'message' => "Rancangan berhasil di {$this->statusBerkas}!",
+                'message' => "Status Berkas Rancangan berhasil di {$this->statusBerkas}! "
             ]);
         }
     }

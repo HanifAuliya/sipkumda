@@ -42,8 +42,8 @@
                                 <span class="nav-link-text">Profile</span>
                             </a>
                         </li>
-                        {{-- Hanya untuk Admin dan Verifikator --}}
-                        @if (Auth::user()->hasRole('Admin') || Auth::user()->hasRole('Verifikator'))
+                        {{-- Hanya untuk Admin, Verifikator, atau Super Admin --}}
+                        @if (Auth::user()->hasRole('Admin') || Auth::user()->hasRole('Verifikator') || Auth::user()->hasRole('Super Admin'))
                             <li class="nav-item">
                                 <a class="nav-link {{ Route::currentRouteName() == 'user.management' ? 'active' : '' }}"
                                     href="{{ route('user.management') }}">
@@ -63,7 +63,7 @@
                     </h6>
                     {{-- Navigation --}}
                     <ul class="navbar-nav mb-md--1">
-                        @if (Auth::user()->hasRole('Perangkat_Daerah'))
+                        @if (Auth::user()->hasRole('Perangkat Daerah'))
                             <li class="nav-item">
                                 <a class="nav-link {{ Route::currentRouteName() == 'rancanganku' ? 'active' : '' }}"
                                     href="{{ route('rancanganku') }}">
@@ -81,8 +81,7 @@
                             </a>
                         </li>
 
-
-                        @if (Auth::user()->hasRole('Admin'))
+                        @if (Auth::user()->hasRole('Admin') || Auth::user()->hasRole('Super Admin'))
                             <li class="nav-item">
                                 <a class="nav-link {{ Route::currentRouteName() == 'admin.persetujuan' ? 'active' : '' }}"
                                     href="{{ route('admin.persetujuan') }}">
@@ -91,7 +90,7 @@
                                 </a>
                             </li>
                         @endif
-                        @if (Auth::user()->hasRole('Verifikator'))
+                        @if (Auth::user()->hasRole('Verifikator') || Auth::user()->hasRole('Super Admin'))
                             <li class="nav-item">
                                 <a class="nav-link  {{ Route::currentRouteName() == 'verifikator.pilih-peneliti' ? 'active' : '' }}"
                                     href="{{ route('verifikator.pilih-peneliti') }}">
@@ -100,12 +99,21 @@
                                 </a>
                             </li>
                         @endif
-                        @if (Auth::user()->hasRole('Peneliti'))
+                        @if (Auth::user()->hasRole('Peneliti') || Auth::user()->hasRole('Super Admin'))
                             <li class="nav-item">
                                 <a class="nav-link {{ Route::currentRouteName() == 'revisi.rancangan' ? 'active' : '' }}"
                                     href="{{ route('revisi.rancangan') }}">
                                     <i class="bi bi-pencil-square"></i>
                                     <span class="nav-link-text">Upload Revisi</span>
+                                </a>
+                            </li>
+                        @endif
+                        @if (Auth::user()->hasRole('Verifikator') || Auth::user()->hasRole('Super Admin'))
+                            <li class="nav-item">
+                                <a class="nav-link {{ Route::currentRouteName() == 'verifikator.validasi-rancangan' ? 'active' : '' }}"
+                                    href="{{ route('verifikator.validasi-rancangan') }}">
+                                    <i class="bi bi-clipboard2-check"></i>
+                                    <span class="nav-link-text">Validasi Rancangan</span>
                                 </a>
                             </li>
                         @endif
@@ -158,7 +166,7 @@
                         <li class="nav-item">
                             <a class="nav-link" href="dokumentasi.html">
                                 <i class="bi bi-folder-check"></i>
-                                <span class="nav-link-text">Dafftar Dokumentasi</span>
+                                <span class="nav-link-text">Daftar Dokumentasi</span>
                             </a>
                         </li>
                         <li class="nav-item">
@@ -169,6 +177,7 @@
                         </li>
                     </ul>
                 @endif
+
             </div>
         </div>
     </div>

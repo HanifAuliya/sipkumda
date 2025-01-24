@@ -109,7 +109,7 @@ class DaftarRancangan extends Component
         $rancanganProdukHukum = RancanganProdukHukum::with(['user.perangkatDaerah', 'revisi'])
             ->when(auth()->user()->hasRole(['Perangkat Daerah']), function ($query) {
                 // Perangkat Daerah hanya dapat melihat rancangan miliknya
-                $query->where('id_user', auth()->id());
+                // $query->where('id_user', auth()->id());
             })
             ->when(auth()->user()->hasRole(['Admin', 'Verifikator', 'Peneliti']), function ($query) {
                 // Admin, Verifikator, dan Peneliti dapat melihat semua rancangan

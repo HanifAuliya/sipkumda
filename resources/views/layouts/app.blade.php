@@ -38,6 +38,8 @@
         integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
 
+    {{-- Sweet alert --}}
+    <link href="https://cdn.jsdelivr.net/npm/@sweetalert2/themes/bootstrap-4/bootstrap-4.css" rel="stylesheet">
     {{-- Argon CSS --}}
     <link rel="stylesheet" href="{{ asset('assets/css/argon.css?v=1.2.0') }}" type="text/css" />
 
@@ -163,13 +165,9 @@
 
     {{-- Include SweetAlert Script --}}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    {{-- SweetAlert Blade Helper --}}
-    @include('sweetalert::alert')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
 
     @livewireScripts
-
-
 </body>
 
 </html>
