@@ -778,3 +778,7 @@ textarea.form-control:focus {
 .dropdown-item {
     cursor: pointer;
 }
+
+.modal-backdrop.show {
+    background-color: black; /* Warna hitam dengan tingkat transparansi 80% */
+}

@@ -31,104 +31,106 @@
         @forelse ($rancangan as $item)
             {{-- Card Tab Sedang Diajukan --}}
             <div class="card p-3 shadow-sm border mb-3">
-                <div class="d-flex justify-content-between align-items-center">
+                <div class="row">
                     {{-- Bagian Kiri --}}
-                    <div class="d-flex align-items-start">
-                        <div>
-                            <div class="d-flex align-items-center">
-                                <h4 class="mb-1 font-weight-bold">
-                                    {{ $item->no_rancangan }}
-                                </h4>
-                                <h5 class="ml-2">
-                                    <mark
-                                        class="badge-{{ $item->jenis_rancangan === 'Peraturan Bupati' ? 'primary' : '' }} badge-pill">
-                                        {{ $item->jenis_rancangan }}
-                                    </mark>
-                                </h5>
-                            </div>
+                    <div class="col-md-8">
+                        <div class="d-flex align-items-start">
+                            <div>
+                                <div class="d-flex align-items-center">
+                                    <h4 class="mb-1 font-weight-bold">
+                                        {{ $item->no_rancangan }}
+                                    </h4>
+                                    <h5 class="ml-2">
+                                        <mark
+                                            class="badge-{{ $item->jenis_rancangan === 'Peraturan Bupati' ? 'primary' : '' }} badge-pill">
+                                            {{ $item->jenis_rancangan }}
+                                        </mark>
+                                    </h5>
+                                </div>
 
-                            <p class="mb-1 mt-2 font-weight-bold">
-                                {{ $item->tentang }}
-                            </p>
-                            <p class="mb-0 info-text small">
-                                <i class="bi bi-houses"></i>
-                                {{ $item->user->perangkatDaerah->nama_perangkat_daerah ?? '-' }}
-                            </p>
-                            <p class="mb-0 info-text small">
-                                <i class="bi bi-calendar"></i>
-                                Tanggal Pengajuan:
-                                {{ \Carbon\Carbon::parse($item->tanggal_pengajuan)->translatedFormat('d F Y, H:i') }}
-                            </p>
-                            <p class="mb-0 info-text small">
-                                <i class="bi bi-person-gear"></i>
-                                <span
-                                    class="{{ $item->revisi->last()->peneliti->nama_user ?? false ? 'info-text' : 'text-danger' }} text-primary">
-                                    {{ $item->revisi->last()->peneliti->nama_user ?? 'Belum Ditentukan' }}
-                                </span>
-                                <span class="badge badge-secondary">
-                                    Peneliti
-                                </span>
-                            </p>
-                            <p class="mb-1 info-text small">
-                                <i class="bi bi-file-check"></i>
-                                Persetujuan Berkas:
-                                <mark
-                                    class="badge-{{ $item->status_berkas === 'Disetujui' ? 'success' : ($item->status_berkas === 'Ditolak' ? 'danger' : 'warning') }} badge-pill">
-                                    {{ $item->status_berkas }}
-                                </mark>
-                            </p>
-                            <p class="mb-0 info-text small">
-                                <i class="bi bi-file-earmark-text"></i>
-                                Status Revisi:
-                                <mark
-                                    class="badge-{{ $item->revisi->last()->status_revisi === 'Direvisi'
-                                        ? 'success'
-                                        : ($item->revisi->last()->status_revisi === 'Menunggu Peneliti'
-                                            ? 'info text-default'
-                                            : ($item->revisi->last()->status_revisi === 'Proses Revisi'
-                                                ? 'warning'
-                                                : ($item->revisi->last()->status_revisi === 'Belum Tahap Revisi'
-                                                    ? 'danger'
-                                                    : 'secondary'))) }} badge-pill">
-                                    {{ $item->revisi->last()->status_revisi }}
-                                </mark>
-                            </p>
-                            <p>
-                                {{-- Progress Bar --}}
-                            <div class="progress-wrapper mt--4">
-                                <div class="progress-info d-flex justify-content-between">
-                                    <div class="progress-label">
-                                        <span>Progress Pengajuan Rancangan</span>
-                                    </div>
-                                    <div class="progress-percentage">
-                                        <span>{{ $item->progress ?? 0 }}%</span>
-                                    </div>
-                                </div>
-                                <div class="progress">
-                                    <div class="progress-bar {{ $item->progress == 100 ? 'bg-success' : ($item->progress >= 50 ? 'bg-warning' : 'bg-danger') }}"
-                                        role="progressbar" aria-valuenow="{{ $item->progress ?? 0 }}" aria-valuemin="0"
-                                        aria-valuemax="100" style="width: {{ $item->progress ?? 0 }}%;">
-                                    </div>
-                                </div>
-                            </div>
-
-                            </p>
-                            @if ($item->status_berkas === 'Ditolak')
-                                <p class="mt-2">
-                                <div class="alert alert-{{ $item->status_berkas === 'Disetujui' ? 'success' : 'danger' }} mb-0"
-                                    role="alert">
-                                    <strong>{{ $item->status_berkas }} !</strong> Rancangan
-                                    Telah
-                                    {{ $item->status_berkas }} Silahkan lakukan ke kelola rancangan >> Upload Ulang
-                                    Berkas
-                                </div>
+                                <p class="mb-1 mt-2 font-weight-bold">
+                                    {{ $item->tentang }}
                                 </p>
-                            @endif
+                                <p class="mb-0 info-text small">
+                                    <i class="bi bi-houses"></i>
+                                    {{ $item->user->perangkatDaerah->nama_perangkat_daerah ?? '-' }}
+                                </p>
+                                <p class="mb-0 info-text small">
+                                    <i class="bi bi-calendar"></i>
+                                    Tanggal Pengajuan:
+                                    {{ \Carbon\Carbon::parse($item->tanggal_pengajuan)->translatedFormat('d F Y, H:i') }}
+                                </p>
+                                <p class="mb-0 info-text small">
+                                    <i class="bi bi-person-gear"></i>
+                                    <span
+                                        class="{{ $item->revisi->last()->peneliti->nama_user ?? false ? 'info-text' : 'text-danger' }} text-primary">
+                                        {{ $item->revisi->last()->peneliti->nama_user ?? 'Belum Ditentukan' }}
+                                    </span>
+                                    <span class="badge badge-secondary">
+                                        Peneliti
+                                    </span>
+                                </p>
+                                <p class="mb-1 info-text small">
+                                    <i class="bi bi-file-check"></i>
+                                    Persetujuan Berkas:
+                                    <mark
+                                        class="badge-{{ $item->status_berkas === 'Disetujui' ? 'success' : ($item->status_berkas === 'Ditolak' ? 'danger' : 'warning') }} badge-pill">
+                                        {{ $item->status_berkas }}
+                                    </mark>
+                                </p>
+                                <p class="mb-0 info-text small">
+                                    <i class="bi bi-file-earmark-text"></i>
+                                    Status Revisi:
+                                    <mark
+                                        class="badge-{{ $item->revisi->last()->status_revisi === 'Direvisi'
+                                            ? 'success'
+                                            : ($item->revisi->last()->status_revisi === 'Menunggu Peneliti'
+                                                ? 'info text-default'
+                                                : ($item->revisi->last()->status_revisi === 'Proses Revisi'
+                                                    ? 'warning'
+                                                    : ($item->revisi->last()->status_revisi === 'Belum Tahap Revisi'
+                                                        ? 'danger'
+                                                        : 'secondary'))) }} badge-pill">
+                                        {{ $item->revisi->last()->status_revisi }}
+                                    </mark>
+                                </p>
+                                <p>
+                                    {{-- Progress Bar --}}
+                                <div class="progress-wrapper mt--4">
+                                    <div class="progress-info d-flex justify-content-between">
+                                        <div class="progress-label">
+                                            <span>Progress Pengajuan Rancangan</span>
+                                        </div>
+                                        <div class="progress-percentage">
+                                            <span>{{ $item->progress ?? 0 }}%</span>
+                                        </div>
+                                    </div>
+                                    <div class="progress">
+                                        <div class="progress-bar {{ $item->progress == 100 ? 'bg-success' : ($item->progress >= 50 ? 'bg-warning' : 'bg-danger') }} progress-bar-striped"
+                                            role="progressbar" aria-valuenow="{{ $item->progress ?? 0 }}"
+                                            aria-valuemin="0" aria-valuemax="100"
+                                            style="width: {{ $item->progress ?? 0 }}%;">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                </p>
+                                @if ($item->status_berkas === 'Ditolak')
+                                    <p class="mt-2">
+                                    <div class="alert alert-warning mb-0" role="alert">
+                                        <strong>{{ $item->status_berkas }} !</strong> Rancangan
+                                        Telah
+                                        {{ $item->status_berkas }} Silahkan lakukan ke kelola rancangan >> Upload Ulang
+                                        Berkas
+                                    </div>
+                                    </p>
+                                @endif
+                            </div>
                         </div>
                     </div>
 
                     {{-- Bagian Kanan --}}
-                    <div class="text-right">
+                    <div class="col-md-4 col-12 d-flex flex-column justify-content-center text-right">
                         {{-- Status Rancangan --}}
                         <h4>
                             <mark
@@ -145,7 +147,8 @@
                         </h4>
 
                         <p class="info-text mb-1 small">
-                            Pengajuan Rancangan Tahun {{ \Carbon\Carbon::parse($item->tanggal_pengajuan)->year }}
+                            Pengajuan Rancangan Tahun
+                            {{ \Carbon\Carbon::parse($item->tanggal_pengajuan)->year }}
                         </p>
 
                         <div class="mt-2">
@@ -178,10 +181,10 @@
                                     </a>
                                 </div>
                             </div>
-
                         </div>
                     </div>
                 </div>
+
             </div>
 
             {{-- Modal Detail --}}
@@ -600,23 +603,25 @@
                             <input class="form-check-input" type="checkbox" id="hapusBahanPendukung"
                                 wire:model="hapusBahanPendukung">
                             <label class="form-check-label" for="hapusBahanPendukung">
-                                Hapus Bahan Pendukung Lama <small class="text-danger"> jika sebelumnya anda mengajukan
-                                    file pendukung dan sekarng tidak lagi !</small>
+                                Hapus Bahan Pendukung Lama <small class="text-danger"> (CENTANG INI APABILA ANDA
+                                    SEBLUMNYA SUDAH MEMPUNYAI BAHAN PENDUKUNG DAN AKAN MENGUPLOAD FIE TANPA BAHAN
+                                    PENDUKUNG !)</small>
                             </label>
                         </div>
                     </div>
                     {{-- Modal Footer --}}
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-outline-secondary" data-dismiss="modal"
+                        <button type="button" class="btn btn-outline-warning" data-dismiss="modal"
                             wire:click="resetForm">
+                            <i class="bi bi-x"></i>
                             Batal
                         </button>
-                        <button type="button" class="btn btn-primary" wire:click="uploadUlangBerkas"
+                        <button type="button" class="btn btn-otuline-default" wire:click="uploadUlangBerkas"
                             wire:loading.attr="disabled">
-                            <span wire:loading.remove>
+                            <span wire:loading.remove wire:target="uploadUlangBerkas">
                                 <i class="bi bi-upload"></i> Upload Ulang
                             </span>
-                            <span wire:loading>
+                            <span wire:loading wire:target="uploadUlangBerkas">
                                 <i class="spinner-border spinner-border-sm"></i> Memproses...
                             </span>
                         </button>

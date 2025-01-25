@@ -106,7 +106,7 @@ class SedangDiajukan extends Component
             User::role(['Admin'])->get(),
             new RancanganBaruNotification([
                 'title' => 'Pengajuan Ulang Rancangan',
-                'message' => 'Rancangan telah diajukan ulang dan menunggu persetujuan.',
+                'message' => 'Rancangan dengan nomor ' . $rancangan->no_rancangan . ' telah diajukan ulang dan menunggu persetujuan. Silahkan periksa dan lakukan Persetujuan',
                 'slug' => $rancangan->slug,
                 'type' => 'admin_persetujuan',
             ])

@@ -36,7 +36,7 @@
             {{-- Daftar Rancangan --}}
             <div class="list-group">
                 @forelse ($berkasRancanganDitolak as $item)
-                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <div class="list-group-item d-flex flex-wrap justify-content-between align-items-center">
                         {{-- Informasi Utama --}}
                         <div class="d-flex flex-column">
                             <div class="d-flex align-items-center">
@@ -78,7 +78,7 @@
                         </div>
 
                         {{-- Bagian Kanan --}}
-                        <div class="text-right">
+                        <div class="col-md-4 col-12 text-right d-flex flex-column align-items-end mt-3 mt-md-0">
                             {{-- Status Berkas --}}
                             <h4 class="mb-2">
                                 <mark
