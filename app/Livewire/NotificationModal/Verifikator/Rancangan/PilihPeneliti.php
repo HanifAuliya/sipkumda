@@ -29,7 +29,7 @@ class PilihPeneliti extends Component
         if (!$this->selectedRancangan || $this->selectedRancangan->status_berkas !== 'Disetujui') {
             $this->dispatch('closeNotificationPilihPeneliti');
             $this->dispatch('swal:denied', [
-                'type' => 'error',
+                'type' => 'info',
                 'title' => 'Akses Ditolak',
                 'message' => 'Rancangan ini belum disetujui. Tidak dapat memilih peneliti.',
             ]);

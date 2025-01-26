@@ -148,7 +148,7 @@
             <div class="modal-content">
                 <form wire:submit.prevent="uploadRevisi">
                     <div class="modal-header border-bottom">
-                        <h5 class="modal-title" id="uploadRevisiModalLabel">Upload Revisi</h5>
+                        <h5 class="modal-title" id="uploadRevisiModalLabel">Modal Upload Revisi</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close"
                             wire:click="resetForm">
                             <span aria-hidden="true">&times;</span>
@@ -199,11 +199,12 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline-warning" data-dismiss="modal"
-                            wire:click="resetForm">
+                            wire:click="resetForm"> <i class="bi bi-backspace"></i>
                             Batal
                         </button>
                         <button class="btn btn-outline-default" type="submit" wire:loading.attr="disabled">
-                            <span wire:loading.remove wire:target="uploadRevisi">Upload</span>
+                            <span wire:loading.remove wire:target="uploadRevisi"><i
+                                    class="bi bi-file-earmark-arrow-up mr-2"></i>Upload</span>
                             <span wire:loading wire:target="uploadRevisi">
                                 <i class="spinner-border spinner-border-sm"></i> Memproses...
                             </span>
@@ -215,7 +216,7 @@
     </div>
     <div wire:ignore.self class="modal fade" id="detailRevisiModal" tabindex="-1" role="dialog"
         aria-labelledby="detailRevisiModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
-        <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-dialog modal-xl no-style-modal" role="document">
             <div class="modal-content">
                 <div class="modal-body">
                     @if ($selectedRevisi)
@@ -466,8 +467,9 @@
                                         </div>
                                     </div>
                                     <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary"
-                                            data-dismiss="modal">Tutup</button>
+                                        <button type="button" class="btn btn-outline-warning"
+                                            data-dismiss="modal">Tutup
+                                            Detail </button>
                                     </div>
                                 </div>
                             </div>

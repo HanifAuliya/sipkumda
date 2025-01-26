@@ -72,9 +72,10 @@ class MenungguPeneliti extends Component
         // Kirim notifikasi ke peneliti
         $peneliti = User::find($this->selectedPeneliti);
         Notification::send($peneliti, new PilihPenelitiNotification([
-            'title' => 'Penugasan Baru',
-            'message' => "Anda telah ditugaskan untuk meneliti rancangan: {$this->selectedRancangan->tentang}",
+            'title' => "Penugasan Baru rancangan {$this->selectedRancangan->no_rancangan}",
+            'message' => "Anda telah ditugaskan untuk meneliti rancangan: {$this->selectedRancangan->tentang} Segera periksa dan lakukan revisi !",
             'slug' => $this->selectedRancangan->slug,
+            'type' => 'upload_revisi',
         ]));
 
         // Tutup modal dan tampilkan notifikasi sukses

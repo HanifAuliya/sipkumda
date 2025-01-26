@@ -117,6 +117,9 @@
         {{-- Modal Detail pilih peneliti --}}
         <livewire:notification-modal.verifikator.rancangan.pilih-peneliti />
 
+        {{-- Modal Revisi Rancanganan --}}
+        <livewire:notification-modal.peneliti.rancangan.notificationrevisi />
+
         {{-- Notification Modal Script --}}
         <script>
             document.addEventListener('DOMContentLoaded', () => {
@@ -133,6 +136,11 @@
                     const modal = new bootstrap.Modal(document.getElementById('notificationPilihPeneliti'));
                     modal.show();
                 });
+                Livewire.on('openModalNotificationRevisi', () => {
+                    const modal = new bootstrap.Modal(document.getElementById('notificationRevisi'));
+                    modal.show();
+                });
+
             });
         </script>
 

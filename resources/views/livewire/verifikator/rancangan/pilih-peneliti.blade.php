@@ -22,17 +22,11 @@
 <div>
     {{-- Header --}}
     <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">Pilih Peneliti</h3>
-            {{-- Penjelasan Tab --}}
-            <p class="description">
-                <strong>Menunggu Peneliti </strong> Menampilkan daftar rancangan produk hukum yang masih menunggu
-                peneliti untuk ditugaskan.
-                <strong>Peneliti Ditugaskan </strong> Menampilkan daftar rancangan yang sudah memiliki peneliti untuk
-                melanjutkan proses revisi.
-                <strong>Daftar Peneliti </strong> Menampilkan daftar lengkap peneliti beserta rancangan yang sedang di
-                teliti.
-            </p>
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div>
+                <h3 class="mb-0">Pilih Peneliti Rancangan</h3>
+                <small>Pastikan perhatikan tab di bawah!</small>
+            </div>
         </div>
         <div class="card-body">
 
@@ -71,8 +65,63 @@
                 @endif
             </div>
         </div>
-
     </div>
+
+    {{-- Pilih Peneliti --}}
+    <script>
+        async function pilihUlangPeneliti(idRancangan) {
+            // Daftar peneliti dari backend (hanya nama yang akan tampil)
+            const inputOptions = @json($listPeneliti); // Format: { id: 'Nama Peneliti' }
+
+            const {
+                value: selectedPeneliti
+            } = await Swal.fire({
+                title: 'Pilih Peneliti',
+                input: 'select',
+                inputLabel: "Pilih Peneliti yang akan diperbarui, dibawah ini!  ",
+                inputOptions: inputOptions, // Menampilkan nama peneliti
+                inputPlaceholder: 'Pilih Peneliti',
+                showCancelButton: true,
+                confirmButtonText: 'Pilih',
+                cancelButtonText: 'Batal',
+                inputValidator: (value) => {
+                    if (!value) {
+                        return 'Anda harus memilih peneliti!';
+                    }
+                },
+            });
+
+            if (selectedPeneliti) {
+                // Kirim data ke Livewire
+                Livewire.dispatch('pilihUlangPenelitiConfirmed', {
+                    idRancangan: idRancangan,
+                    idPeneliti: selectedPeneliti, // Kirim ID peneliti ke backend
+                });
+            }
+        }
+    </script>
+    {{-- Reset Confirm --}}
+    <script>
+        async function confirmResetPeneliti(id) {
+
+            const result = await Swal.fire({
+                title: 'Apakah Anda yakin?',
+                text: "Peneliti akan direset, dan status revisi akan kembali ke 'Menunggu Peneliti'.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Ya, Reset!',
+                cancelButtonText: 'Batal',
+            });
+
+            if (result.isConfirmed) {
+                Livewire.dispatch('resetPenelitiConfirmed', {
+                    id: id
+                });
+            }
+        }
+    </script>
     {{-- Script --}}
     <script>
         document.addEventListener('DOMContentLoaded', () => {

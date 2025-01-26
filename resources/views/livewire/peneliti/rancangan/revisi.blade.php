@@ -16,14 +16,14 @@
             {{-- Tab Navigasi --}}
             <ul class="nav nav-pills nav-fill flex-column flex-md-row" role="tablist">
                 <li class="nav-item">
-                    <a href="#" class="nav-link {{ $activeTab === 'menunggu' ? 'active' : '' }}"
-                        wire:click.prevent="switchTab('menunggu')">
+                    <a href="#" class="nav-link {{ $activeTab === 'menunggu-revisi' ? 'active' : '' }}"
+                        wire:click.prevent="switchTab('menunggu-revisi')">
                         <i class="ni ni-time-alarm mr-2"></i> Menunggu Revisi
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="#" class="nav-link {{ $activeTab === 'riwayat' ? 'active' : '' }}"
-                        wire:click.prevent="switchTab('riwayat')">
+                    <a href="#" class="nav-link {{ $activeTab === 'riwayat-revisi' ? 'active' : '' }}"
+                        wire:click.prevent="switchTab('riwayat-revisi')">
                         <i class="ni ni-archive-2 mr-2"></i> Riwayat Revisi
                     </a>
                 </li>
@@ -31,9 +31,9 @@
 
             {{-- Tab Content --}}
             <div class="tab-content mt-4">
-                @if ($activeTab === 'menunggu')
+                @if ($activeTab === 'menunggu-revisi')
                     @livewire('peneliti.rancangan.menunggu-revisi')
-                @elseif ($activeTab === 'riwayat')
+                @elseif ($activeTab === 'riwayat-revisi')
                     @livewire('peneliti.rancangan.riwayat-revisi')
                 @endif
             </div>
@@ -63,6 +63,18 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
 
+            // nyoba manggil dispatch dengan id
+            // Listener untuk membuka modal
+            Livewire.on('openModal', (modalId) => {
+                $(`#${modalId}`).modal('show');
+            });
+
+            // Listener untuk menutup modal
+            Livewire.on('closeModal', (modalId) => {
+                $(`#${modalId}`).modal('hide');
+            });
+
+            // ini yang langsun gmangiglnya
             window.Livewire.on('openUploadRevisiModal', () => {
                 $('#uploadRevisiModal').modal('show');
             });

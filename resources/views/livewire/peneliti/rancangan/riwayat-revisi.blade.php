@@ -84,7 +84,7 @@
                                     {{ $item->status_berkas }}
                                 </mark>
                             </p>
-                            <p class="mb-0 info-text small">
+                            <p class="mb-0 info-text small mb-3">
                                 <i class="bi bi-file-earmark-text"></i>
                                 Status Revisi:
                                 <mark
@@ -92,6 +92,41 @@
                                     {{ $item->revisi->first()->status_revisi ?? 'N/A' }}
                                 </mark>
                             </p>
+                            @if ($item->revisi->last()->status_validasi === 'Ditolak')
+                                <div class="alert alert-danger alert-dismissible fade show mb-2" role="alert">
+                                    <span class="alert-icon"><i class="bi bi-clipboard-x"></i></span>
+                                    <span class="alert-text">
+                                        <strong>Revisi Anda dikoreksi</strong> Silahkan sesuaikan berkas dengan catatan
+                                        validasi dan lakukan revisi ulang!
+                                    </span>
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                            @endif
+                            @if ($item->revisi->last()->status_validasi === 'Diterima')
+                                <div class="alert alert-success alert-dismissible fade show mb-2" role="alert">
+                                    <span class="alert-icon"><i class="bi bi-clipboard-check"></i></span>
+                                    <span class="alert-text">
+                                        <strong>Selesai</strong> Revisi rancangan anda Diterima!
+                                    </span>
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                            @endif
+                            @if ($item->revisi->last()->status_validasi === 'Menunggu Validasi')
+                                <div class="alert alert-primary alert-dismissible fade show mb-2" role="alert">
+                                    <span class="alert-icon"><i class="bi bi-pencil"></i></span>
+                                    <span class="alert-text">
+                                        <strong>Revisi Anda sedang dikoreksi</strong> Tunggu verifikator memvalidasi
+                                        revisi!
+                                    </span>
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                            @endif
                         </div>
                     </div>
 
@@ -118,20 +153,16 @@
                                     wire:click.prevent="loadDetailRevisi({{ $item->id_rancangan }})">
                                     <i class="bi bi-info-circle"></i> Lihat Detail Revisi
                                 </a>
+                                {{-- Upload Ulang Berkas --}}
+                                <a class="dropdown-item d-flex align-items-center text-default"
+                                    wire:click.prevent="openUploadRevisi({{ $item->id_rancangan }})">
+                                    <i class="bi bi-upload text-success"></i> Upload Ulang Revisi
+                                </a>
+
+                                {{-- Reset Revisi --}}
                                 <a class="dropdown-item text-danger d-flex align-items-center"
                                     onclick="confirmResetRevisi({{ $item->id_rancangan }})">
                                     <i class="bi bi-trash3"></i> Reset Revisi
-                                </a>
-                                {{-- Item 2 --}}
-                                <a href="#" class="dropdown-item d-flex align-items-center" data-toggle="modal"
-                                    data-target="#uploadRevisiModal-{{ $item->id_rancangan }}">
-                                    <i class="bi bi-upload mr-2 text-success"></i>
-                                    <span>Upload Ulang Berkas</span>
-                                </a>
-                                {{-- Item Tambahan --}}
-                                <a href="#" class="dropdown-item d-flex align-items-center">
-                                    <i class="bi bi-file-earmark-text mr-2 text-primary"></i>
-                                    <span>Preview Dokumen</span>
                                 </a>
                             </div>
                         </div>
@@ -151,7 +182,7 @@
 
     <div wire:ignore.self class="modal fade" id="detailRevisiModal" tabindex="-1" role="dialog"
         aria-labelledby="detailRevisiModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
-        <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-dialog modal-xl no-style-modal" role="document">
             <div class="modal-content">
                 <div class="modal-body">
                     @if ($selectedRevisi)
@@ -411,6 +442,83 @@
                         </div>
                     @endif
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <div wire:ignore.self class="modal fade" id="uploadRevisiModal" tabindex="-1" role="dialog"
+        aria-labelledby="uploadRevisiModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="uploadRevisiModalLabel">Upload Ulang Revisi</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form wire:submit.prevent="uploadUlangRevisi">
+                    <div class="modal-body">
+                        {{-- Input File Revisi Rancangan --}}
+                        <div class="mb-4">
+                            <label for="revisiRancangan" class="form-control-label">
+                                <i class="bi bi-file-earmark-pdf text-primary"></i> File Revisi Rancangan
+                                <small class="text-muted d-block">Unggah dokumen rancangan dalam format PDF (max: 10
+                                    MB).</small>
+                            </label>
+                            <input type="file" class="form-control" wire:model="revisiRancangan" accept=".pdf">
+                            {{-- Indikator Loading --}}
+                            <div wire:loading wire:target="revisiRancangan" class="text-info mt-2">
+                                <i class="spinner-border spinner-border-sm"></i> Mengunggah file revisi rancangan...
+                            </div>
+                            @error('revisiRancangan')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        {{-- Input File Revisi Matrik --}}
+                        <div class="mb-4">
+                            <label for="revisiMatrik" class="form-control-label">
+                                <i class="bi bi-file-earmark-pdf text-primary"></i> File Revisi Matrik
+                                <small class="text-muted d-block">Unggah dokumen matrik dalam format PDF (max: 10
+                                    MB).</small>
+                            </label>
+                            <input type="file" class="form-control" wire:model="revisiMatrik" accept=".pdf">
+                            {{-- Indikator Loading --}}
+                            <div wire:loading wire:target="revisiMatrik" class="text-info mt-2">
+                                <i class="spinner-border spinner-border-sm"></i> Mengunggah file revisi matrik...
+                            </div>
+                            @error('revisiMatrik')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+
+                        {{-- Catatan Revisi --}}
+                        <div class="mb-4">
+                            <label for="catatanRevisi" class="form-control-label">Catatan Revisi</label>
+                            <textarea id="catatanRevisi" class="form-control" wire:model="catatanRevisi"
+                                placeholder="Tambahkan catatan revisi jika diperlukan" rows="4"></textarea>
+                            @error('catatanRevisi')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-warning" data-dismiss="modal"
+                            wire:loading.attr="disabled" wire:target="notifUploadRevisi"><i
+                                class="bi bi-backspace"></i>
+                            Batal
+                        </button>
+                        <button type="submit" class="btn btn-outline-default" wire:loading.attr="disabled"
+                            wire:target="uploadUlangRevisi">
+                            <span wire:loading.remove wire:target="uploadUlangRevisi"><i
+                                    class="bi bi-repeat mr-2"></i> Upload Ulang Revisi</span>
+                            <span wire:loading wire:target="uploadUlangRevisi">
+                                <i class="spinner-border spinner-border-sm"></i> Memproses...
+                            </span>
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

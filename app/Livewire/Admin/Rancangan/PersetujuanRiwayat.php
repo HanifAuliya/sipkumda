@@ -78,6 +78,7 @@ class PersetujuanRiwayat extends Component
                 ])
             );
 
+
             // Emit notifikasi sukses ke pengguna
             $this->dispatch('refreshNotifications');
 

@@ -1,22 +1,9 @@
     {{-- Modal --}}
     <div wire:ignore.self class="modal fade" id="notificationPilihPeneliti" tabindex="-1">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content">
-                <div class="modal-header flex-column align-items-start" style="border-bottom: 2px solid #dee2e6;">
-                    <h4 class="modal-title w-100 mb-2">Notification Pilih Peneliti</h4>
-                    <p class=" description mb-0 w-100 info-text">
-                        Silakan cek informasi rancangan di bawah ini, termasuk file yang diajukan, lalu pilih
-                        status
-                        persetujuan.
-                    </p>
-                    <button type="button" class="close position-absolute" style="top: 10px; right: 10px;"
-                        data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-
-                <div class="modal-body">
-                    @if ($selectedRancangan && $selectedRancangan->status_berkas === 'Disetujui')
+        <div class="modal-dialog modal-xl no-style-modal">
+            @if ($selectedRancangan)
+                @if ($selectedRancangan && $selectedRancangan->status_berkas === 'Disetujui')
+                    <div class="modal-content">
                         <div class="row">
                             {{--  Informasi Utama  --}}
                             <div class="col-md-6 mb-4">
@@ -277,7 +264,6 @@
 
                                     </div>
 
-
                                     <div class="modal-footer">
                                         {{-- Tombol Batal --}}
                                         @if (!$selectedRancangan->revisi->first()?->peneliti)
@@ -286,13 +272,11 @@
                                             </button>
 
                                             {{-- Tombol Simpan dengan wire:loading --}}
-
                                             <button class="btn btn-primary" wire:click="assignPeneliti"
                                                 wire:loading.attr="disabled">
                                                 <i class="bi bi-check-circle" wire:loading.remove></i>
                                                 <span wire:loading.remove>Simpan</span>
-                                                <i class="spinner-border spinner-border-sm text-light"
-                                                    wire:loading></i>
+                                                <i class="spinner-border spinner-border-sm text-light" wire:loading></i>
                                                 <span wire:loading>Memproses...</span>
                                             </button>
                                         @else
@@ -304,75 +288,88 @@
                                 </div>
                             </div>
                         </div>
-                    @endif
-                    @if (!$selectedRancangan)
-                        <div class="d-flex justify-content-center align-items-start"
-                            style="min-height: 200px; padding-top: 50px;">
-                            <div class="text-center">
-                                <div class="spinner-border text-primary" role="status">
-                                    <span class="sr-only">Loading...</span>
-                                </div>
-                                <p class="mt-3 info-text">Sedang memuat data, harap tunggu...</p>
+                    </div>
+                @else
+                    <div class="modal-content">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="modal-title" id="uploadRevisiModalLabel">Notification Upload Revisi</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
                             </div>
-                        </div>
-                    @endif
-                    @if ($selectedRancangan && $selectedRancangan->status_berkas !== 'Disetujui')
-                        <div class="alert alert-danger" role="alert">
-                            <i class="bi bi-exclamation-triangle-fill"></i>
-                            Rancangan ini belum disetujui!. Tidak dapat melakukan tindakan ini. Silahkan hubungi
-                            Admin untuk informasi
-                            lebih lanjut.
+                            <!-- Tambahkan wrapper untuk center align -->
+                            <div class="d-flex justify-content-center align-items-center" style="min-height: 150px;">
+                                <div class="col-md-10 alert alert-default text-center" role="alert">
+                                    <i class="bi bi-exclamation-triangle-fill"></i>
+                                    Rancangan ini belum disetujui! Tidak dapat melakukan tindakan ini. Silahkan hubungi
+                                    Admin untuk informasi lebih lanjut.
+                                </div>
+                            </div>
                         </div>
                         <div class="d-flex justify-content-end">
                             <button class="btn btn-neutral" data-dismiss="modal">
                                 <i class="bi bi-x-circle"></i> Tutup
                             </button>
                         </div>
-                    @endif
+                    </div>
+                @endif
+            @else
+                <div class="card">
+                    <div class="d-flex justify-content-center align-items-start"
+                        style="min-height: 200px; padding-top: 50px;">
+                        <div class="text-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="sr-only">Loading...</span>
+                            </div>
+                            <p class="mt-3 info-text">Sedang memuat data, harap tunggu...</p>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            @endif
         </div>
-        {{-- Script --}}
-        <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                window.Livewire.on('closeNotificationPilihPeneliti', () => {
+    </div>
+    {{-- Script --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            window.Livewire.on('closeNotificationPilihPeneliti', () => {
 
-                    $('#notificationPilihPeneliti').modal('hide');
-                });
-
-
-                window.addEventListener('swal:notif', function(event) {
-
-                    const data = event.detail[0];
-                    $('#modalPersetujuan').modal('hide');
-
-                    // Tampilkan SweetAlert
-                    Swal.fire({
-                        icon: data.type, // Bisa 'success', 'error', 'warning', 'info', atau 'question'
-                        text: data.message, // Pesan tambahan (opsional)
-                        toast: true, // Mengaktifkan toast
-                        position: 'top-end', // Posisi toast ('top', 'top-start', 'top-end', 'center', 'bottom', dll.)
-                        showConfirmButton: false, // Tidak menampilkan tombol konfirmasi
-                        timer: 3000, // Waktu toast tampil (dalam milidetik)
-                        timerProgressBar: true, // Menampilkan progress bar pada timer
-                    });
-                });
-                // Sweeet Alert 2
-                window.Livewire.on('swal:denied', (data) => {
-
-                    // Jika data adalah array, akses elemen pertama
-                    if (Array.isArray(data)) {
-                        data = data[0];
-                    }
-
-                    Swal.fire({
-                        icon: data.type,
-                        title: data.title,
-                        text: data.message,
-                        showConfirmButton: true,
-                    });
-                });
-
+                $('#notificationPilihPeneliti').modal('hide');
             });
-        </script>
+
+
+            window.addEventListener('swal:notif', function(event) {
+
+                const data = event.detail[0];
+                $('#modalPersetujuan').modal('hide');
+
+                // Tampilkan SweetAlert
+                Swal.fire({
+                    icon: data.type, // Bisa 'success', 'error', 'warning', 'info', atau 'question'
+                    text: data.message, // Pesan tambahan (opsional)
+                    toast: true, // Mengaktifkan toast
+                    position: 'top-end', // Posisi toast ('top', 'top-start', 'top-end', 'center', 'bottom', dll.)
+                    showConfirmButton: false, // Tidak menampilkan tombol konfirmasi
+                    timer: 3000, // Waktu toast tampil (dalam milidetik)
+                    timerProgressBar: true, // Menampilkan progress bar pada timer
+                });
+            });
+            // Sweeet Alert 2
+            window.Livewire.on('swal:denied', (data) => {
+
+                // Jika data adalah array, akses elemen pertama
+                if (Array.isArray(data)) {
+                    data = data[0];
+                }
+
+                Swal.fire({
+                    icon: data.type,
+                    title: data.title,
+                    text: data.message,
+                    showConfirmButton: true,
+                });
+            });
+
+        });
+    </script>
     </div>

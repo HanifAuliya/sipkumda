@@ -6,7 +6,7 @@ use Livewire\Component;
 
 class Revisi extends Component
 {
-    public $activeTab = 'menunggu'; // Tab default
+    public $activeTab = 'menunggu-revisi'; // Tab default
     protected $queryString = ['activeTab']; // Masukkan 'tab' ke dalam query string
 
 

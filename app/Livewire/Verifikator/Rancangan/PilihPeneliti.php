@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Verifikator\Rancangan;
 
+use App\Models\User;
 use Livewire\Component;
 
 class PilihPeneliti extends Component
@@ -10,8 +11,13 @@ class PilihPeneliti extends Component
 
     protected $queryString = ['activeTab']; // Masukkan 'tab' ke dalam query string\
 
+
+
     public function render()
     {
-        return view('livewire.verifikator.rancangan.pilih-peneliti')->layout('layouts.app');
+        // Dapatkan daftar user dengan role "peneliti"
+        $listPeneliti = User::role('peneliti')->pluck('nama_user', 'id');
+
+        return view('livewire.verifikator.rancangan.pilih-peneliti', compact('listPeneliti'))->layout('layouts.app');
     }
 }

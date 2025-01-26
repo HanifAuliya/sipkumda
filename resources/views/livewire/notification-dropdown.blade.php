@@ -67,8 +67,14 @@
                                     <i class="bi bi-info-circle text-warning" style="font-size: 2rem;"></i>
                                 @elseif (isset($notification->data['type']) && $notification->data['type'] === 'pilih_peneliti')
                                     <i class="bi bi-person-exclamation text-danger" style="font-size: 2rem;"></i>
+                                @elseif (isset($notification->data['type']) && $notification->data['type'] === 'peneliti_dibatalkan')
+                                    <i class="bi bi-person-dash text-danger" style="font-size: 2rem;"></i>
                                 @elseif (isset($notification->data['type']) && $notification->data['type'] === 'peneliti_dipilih')
                                     <i class="bi bi-person-check text-success" style="font-size: 2rem;"></i>
+                                @elseif (isset($notification->data['type']) && $notification->data['type'] === 'upload_revisi')
+                                    <i class="bi bi-person-lock text-default" style="font-size: 2rem;"></i>
+                                @elseif (isset($notification->data['type']) && $notification->data['type'] === 'detail_validasi')
+                                    <i class="bi bi-pencil-square text-primary" style="font-size: 2rem;"></i>
                                 @else
                                     <i class="bi bi-app-indicator fs-1 text-default" style="font-size: 2rem;"></i>
                                 @endif

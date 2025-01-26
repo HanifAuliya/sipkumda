@@ -24,6 +24,12 @@ class MenungguRevisi extends Component
     public $selectedRevisi;
     public $revisiRancangan, $revisiMatrik, $catatanRevisi, $selectedRevisiId;
 
+    protected $listeners = ['refreshPage' => 'refreshRancangan'];
+    public function refreshRancangan()
+    {
+        $this->resetPage(); // Reset ke halaman pertama
+    }
+
     protected $rules = [
         'revisiRancangan' => 'required|file|max:10240|mimes:pdf',
         'revisiMatrik' => 'required|file|max:10240|mimes:pdf',
@@ -90,8 +96,8 @@ class MenungguRevisi extends Component
         // Kirim notifikasi ke user yang mengajukan rancangan
         $user = $revisi->rancangan->user;
         $user->notify(new RevisiValidationNotification([
-            'title' => 'Revisi Dikirim',
-            'message' => 'Revisi untuk rancangan Anda telah berhasil diunggah dan menunggu validasi.',
+            'title' => 'Revisi Rancangan anda dengan nonmor' . $revisi->rancangan->no_rancangan . " Telah dikirm",
+            'message' => 'Revisi untuk rancangan Anda telah berhasil diunggah dan menunggu validasi. Silahkan tunggu informasi selanjutnya',
             'slug' => $revisi->rancangan->slug,
             'type' => 'detail_validasi'
         ]));
@@ -100,8 +106,8 @@ class MenungguRevisi extends Component
         $verifikators = User::role('verifikator')->get();
         foreach ($verifikators as $verifikator) {
             $verifikator->notify(new RevisiValidationNotification([
-                'title' => 'Revisi Baru Menunggu Validasi',
-                'message' => 'Ada revisi baru yang menunggu validasi.',
+                'title' => "Revisi Rancangan " . $revisi->rancangan->no_rancangan . " Baru Menunggu Validasi ",
+                'message' => 'Rancangan tentang.' . $revisi->rancangan->tentang . "menunggu validasi, Silahkan Periksa dan Validasi",
                 'slug' => $revisi->rancangan->slug,
                 'type' => 'validasi_revisi'
             ]));
@@ -118,7 +124,6 @@ class MenungguRevisi extends Component
         $this->dispatch('closeUploadRevisiModal');
 
         $this->resetForm();
-        $this->dispatch('closeModal', 'uploadRevisiModal');
     }
 
 
