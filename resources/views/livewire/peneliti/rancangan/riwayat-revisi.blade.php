@@ -133,11 +133,18 @@
                     {{-- Bagian Kanan --}}
                     <div class="text-right">
                         <h4>
-                            <mark
-                                class="badge-{{ $item->revisi->first()->status_validasi === 'Menunggu Revisi' ? 'warning' : 'danger' }} badge-pill">
-                                <i class="bi bi-clipboard2-check"></i>
-                                {{ $item->revisi->first()->status_revisi ?? 'N/A' }}
-                            </mark>
+                            @if (in_array($item->revisi->last()->status_validasi, ['Diterima', 'Ditolak']))
+                                <mark
+                                    class="badge-{{ $item->revisi->last()->status_validasi === 'Diterima' ? 'success' : 'danger' }} badge-pill">
+                                    {{ $item->revisi->last()->status_validasi }}
+                                </mark>
+                            @else
+                                <mark
+                                    class="badge-{{ $item->revisi->first()->status_validasi === 'Menunggu Revisi' ? 'warning' : 'danger' }} badge-pill">
+                                    <i class="bi bi-clipboard2-check"></i>
+                                    {{ $item->revisi->first()->status_revisi ?? 'N/A' }}
+                                </mark>
+                            @endif
                         </h4>
                         <p class="info-text mb-1 small">
                             Pengajuan Rancangan Tahun {{ \Carbon\Carbon::parse($item->tanggal_pengajuan)->year }}
@@ -154,11 +161,12 @@
                                     <i class="bi bi-info-circle"></i> Lihat Detail Revisi
                                 </a>
                                 {{-- Upload Ulang Berkas --}}
-                                <a class="dropdown-item d-flex align-items-center text-default"
-                                    wire:click.prevent="openUploadRevisi({{ $item->id_rancangan }})">
-                                    <i class="bi bi-upload text-success"></i> Upload Ulang Revisi
-                                </a>
-
+                                @if ($item->revisi->last()->status_validasi === 'Ditolak')
+                                    <a class="dropdown-item d-flex align-items-center text-default"
+                                        wire:click.prevent="openUploadRevisi({{ $item->id_rancangan }})">
+                                        <i class="bi bi-upload text-success"></i> Upload Ulang Revisi
+                                    </a>
+                                @endif
                                 {{-- Reset Revisi --}}
                                 <a class="dropdown-item text-danger d-flex align-items-center"
                                     onclick="confirmResetRevisi({{ $item->id_rancangan }})">
@@ -194,10 +202,6 @@
                                         <h4 class="mb-0">Informasi Utama</h4>
                                     </div>
                                     <div class="card-body">
-                                        <p class="description info-text mb-3">
-                                            Berikut adalah informasi dasar dari rancangan yang diajukan. Pastikan semua
-                                            informasi sudah sesuai.
-                                        </p>
                                         <table class="table table-sm table-borderless">
                                             <tbody>
                                                 <tr>
@@ -341,10 +345,6 @@
                                         <h4 class="mb-0">Detail Revisi</h4>
                                     </div>
                                     <div class="card-body">
-                                        <p class="description info-text mb-3">
-                                            Pastikan file yang diajukan sudah lengkap dan sesuai. Anda dapat mengunduh
-                                            file untuk memverifikasinya.
-                                        </p>
                                         <table class="table table-sm table-borderless">
                                             <tbody>
                                                 <tr>
@@ -360,6 +360,23 @@
                                                     <th class="info-text w-25">Tanggal Revisi</th>
                                                     <td class="wrap-text w-75">
                                                         {{ $selectedRevisi->tanggal_revisi ? \Carbon\Carbon::parse($selectedRevisi->tanggal_revisi)->translatedFormat('d F Y, H:i') : 'N/A' }}
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th class="info-text w-25">Status Validasi</th>
+                                                    <td class="wrap-text w-75">
+                                                        <mark
+                                                            class="badge-{{ $selectedRevisi->status_validasi === 'Direvisi' ? 'success' : ($selectedRevisi->status_validasi === 'Menunggu Revisi' ? 'warning' : 'danger') }} badge-pill">
+                                                            {{ $selectedRevisi->status_validasi }}
+                                                        </mark>
+
+                                                    </td>
+                                                </tr>
+
+                                                <tr>
+                                                    <th class="info-text w-25">Tanggal Validasi</th>
+                                                    <td class="wrap-text w-75">
+                                                        {{ $selectedRevisi->tanggal_validasi ? \Carbon\Carbon::parse($selectedRevisi->tanggal_validasi)->translatedFormat('d F Y, H:i') : 'Belum Validasi' }}
                                                     </td>
                                                 </tr>
                                                 <tr>
@@ -404,28 +421,64 @@
                                                         @endif
                                                     </td>
                                                 </tr>
-
                                                 <tr>
                                                     <th class="info-text w-25">Catatan Revisi</th>
                                                     <td class="wrap-text w-75">
                                                         {{ $selectedRevisi->catatan_revisi ?? 'Tidak Ada Catatan' }}
                                                     </td>
                                                 </tr>
+                                                <tr>
+                                                    <th class="info-text w-25">Catatan Validasi <small>dari
+                                                            verifikator</small></th>
+                                                    <td class="wrap-text w-75">
+                                                        {{ $selectedRevisi->catatan_validasi ?? 'Tidak Ada Catatan' }}
+                                                    </td>
+                                                </tr>
                                             </tbody>
                                         </table>
                                     </div>
-                                    <div class="card-body">
+                                    @if ($selectedRevisi->status_validasi === 'Diterima')
+                                        <div class="card-body mt--2">
+                                            {{-- Alert Peneliti Sudah Dipilih --}}
+                                            <div class="alert alert-default" role="alert">
+                                                <i class="bi bi-info-circle"></i>
+                                                Revisi Rancangan berstatus
+                                                <strong>{{ $selectedRevisi->status_revisi }}.</strong>
+                                                Silahkan Tunggu Verifikator melakukan <strong>Validasi</strong> Revisi !
+                                            </div>
+                                            <div class="text-right"> <button type="button"
+                                                    class="btn btn-outline-warning" data-dismiss="modal">Tutup
+                                                    Detail Revisi</button>
+                                            </div>
+                                        </div>
+                                    @endif
+                                    @if ($selectedRevisi->status_validasi === 'Ditolak')
+                                        <div class="card-body mt--2">
+                                            {{-- Alert Peneliti Sudah Dipilih --}}
+                                            <div class="alert alert-warning" role="alert">
+                                                <i class="bi bi-info-circle"></i>
+                                                Revisi Rancangan berstatus
+                                                <strong> Ditolak !</strong>
+                                                Silahkan lakukan ulang kembali revisi berdasarkan catatan validasi !
+                                            </div>
+                                            <div class="text-right"> <button type="button"
+                                                    class="btn btn-outline-warning" data-dismiss="modal">Tutup
+                                                    Detail Revisi</button>
+                                            </div>
+                                        </div>
+                                    @endif
+                                    <div class="card-body mt--2">
                                         {{-- Alert Peneliti Sudah Dipilih --}}
-                                        <div class="alert alert-default" role="alert">
+                                        <div class="alert alert-primary" role="alert">
                                             <i class="bi bi-info-circle"></i>
-                                            Revisi Rancangan berstatus
+                                            Revisi sedang
                                             <strong>{{ $selectedRevisi->status_revisi }}.</strong>
                                             Silahkan Tunggu Verifikator melakukan <strong>Validasi</strong> Revisi !
                                         </div>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary"
-                                            data-dismiss="modal">Tutup</button>
+                                        <div class="text-right"> <button type="button"
+                                                class="btn btn-outline-warning" data-dismiss="modal">Tutup
+                                                Detail Revisi</button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -505,8 +558,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline-warning" data-dismiss="modal"
-                            wire:loading.attr="disabled" wire:target="notifUploadRevisi"><i
-                                class="bi bi-backspace"></i>
+                            wire:loading.attr="disabled"><i class="bi bi-backspace"></i>
                             Batal
                         </button>
                         <button type="submit" class="btn btn-outline-default" wire:loading.attr="disabled"

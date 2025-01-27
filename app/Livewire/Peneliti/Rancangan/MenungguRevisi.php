@@ -9,6 +9,7 @@ use Livewire\WithoutUrlPagination;
 use App\Models\Revisi;
 use App\Models\User;
 use App\Models\RancanganProdukHukum;
+
 use App\Notifications\RevisiValidationNotification;
 use Illuminate\Support\Facades\Auth;
 
@@ -99,7 +100,7 @@ class MenungguRevisi extends Component
             'title' => 'Revisi Rancangan anda dengan nonmor' . $revisi->rancangan->no_rancangan . " Telah dikirm",
             'message' => 'Revisi untuk rancangan Anda telah berhasil diunggah dan menunggu validasi. Silahkan tunggu informasi selanjutnya',
             'slug' => $revisi->rancangan->slug,
-            'type' => 'detail_validasi'
+            'type' => 'revisi_dikirim'
         ]));
 
         // Kirim notifikasi ke semua verifikator
@@ -107,7 +108,7 @@ class MenungguRevisi extends Component
         foreach ($verifikators as $verifikator) {
             $verifikator->notify(new RevisiValidationNotification([
                 'title' => "Revisi Rancangan " . $revisi->rancangan->no_rancangan . " Baru Menunggu Validasi ",
-                'message' => 'Rancangan tentang.' . $revisi->rancangan->tentang . "menunggu validasi, Silahkan Periksa dan Validasi",
+                'message' => 'Rancangan tentang ' . $revisi->rancangan->tentang . "menunggu validasi, Silahkan Periksa dan Validasi",
                 'slug' => $revisi->rancangan->slug,
                 'type' => 'validasi_revisi'
             ]));

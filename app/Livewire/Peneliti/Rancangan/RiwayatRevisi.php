@@ -137,8 +137,6 @@ class RiwayatRevisi extends Component
         $this->dispatch('closeModal', 'uploadRevisiModal');
     }
 
-
-
     public function resetRevisi($id)
     {
         $revisi = Revisi::findOrFail($id);
@@ -189,10 +187,11 @@ class RiwayatRevisi extends Component
 
         $revisi = RancanganProdukHukum::with(['revisi.peneliti', 'user'])
             ->whereHas('revisi', function ($query) use ($penelitiId) {
-                $query->where('status_validasi', 'Menunggu Validasi')
+                $query->whereIn('status_validasi', ['Menunggu Validasi', 'Diterima', 'Ditolak']) // Memfilter tiga status
                     ->where('status_revisi', 'Proses Revisi')
                     ->where('status_rancangan', 'Dalam Proses')
                     ->where('id_user', $penelitiId); // Filter berdasarkan peneliti yang sedang login
+
             })
             ->where(function ($query) {
                 $query->where('id_rancangan', 'like', "%{$this->search}%")

@@ -23,6 +23,7 @@ class SedangDiajukan extends Component
     public $perPage = 3; // Default: 3 data per halaman
 
     public $selectedRancanganId;
+    public $selectedRancangan;
     public $fileRancangan; // File rancangan
     public $fileMatrik; // File matrik
     public $fileNotaDinas; // File nota dinas
@@ -123,6 +124,7 @@ class SedangDiajukan extends Component
         $this->reset(['fileRancangan', 'fileMatrik', 'fileNotaDinas', 'fileBahanPendukung', 'hapusBahanPendukung']);
         $this->dispatch('closeUploadUlangBerkasModal');
     }
+
 
     public function resetForm()
     {

@@ -417,7 +417,8 @@
                                     @endif
                                     <div class="text-right">
                                         {{-- Tombol Batal --}}
-                                        <button class="btn btn-outline-warning" data-dismiss="modal">
+                                        <button class="btn btn-outline-warning" data-dismiss="modal"
+                                            wire:click="resetDetail">
                                             <i class="bi bi-x-circle"></i> Batal
                                         </button>
                                         {{-- Tombol Simpan dengan wire:loading --}}

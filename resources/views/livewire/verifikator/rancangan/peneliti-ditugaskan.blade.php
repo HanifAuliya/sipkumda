@@ -393,8 +393,8 @@
                                     </div>
 
                                     <div class="modal-footer">
-                                        <button type="button" class="btn btn-outline-warning"
-                                            data-dismiss="modal">Tutup
+                                        <button type="button" class="btn btn-outline-warning" data-dismiss="modal"
+                                            wire:click="resetDetail">Tutup
                                             Detail </button>
                                     </div>
                                 </div>

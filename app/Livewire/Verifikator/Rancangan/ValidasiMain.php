@@ -6,9 +6,11 @@ use Livewire\Component;
 
 class ValidasiMain extends Component
 {
-    public $activeTab = 'menunggu'; // Tab aktif default
+    public $activeTab = 'menunggu-validasi'; // Tab aktif default
+    protected $queryString = ['activeTab']; // Masukkan 'tab' ke dalam query string
 
-    public function setTab($tab)
+
+    public function switchTab($tab)
     {
         $this->activeTab = $tab;
     }

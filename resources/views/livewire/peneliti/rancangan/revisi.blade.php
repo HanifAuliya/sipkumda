@@ -27,6 +27,12 @@
                         <i class="ni ni-archive-2 mr-2"></i> Riwayat Revisi
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link {{ $activeTab === 'daftar-revisi' ? 'active' : '' }}"
+                        wire:click.prevent="switchTab('daftar-revisi')">
+                        <i class="ni ni-archive-2 mr-2"></i> Daftar Revisi Selesai
+                    </a>
+                </li>
             </ul>
 
             {{-- Tab Content --}}
@@ -35,6 +41,8 @@
                     @livewire('peneliti.rancangan.menunggu-revisi')
                 @elseif ($activeTab === 'riwayat-revisi')
                     @livewire('peneliti.rancangan.riwayat-revisi')
+                @elseif ($activeTab === 'daftar-revisi')
+                    @livewire('peneliti.rancangan.daftar-revisi')
                 @endif
             </div>
         </div>
@@ -63,7 +71,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
 
-            // nyoba manggil dispatch dengan id
+            // nyoba manggil dispatch dengan
             // Listener untuk membuka modal
             Livewire.on('openModal', (modalId) => {
                 $(`#${modalId}`).modal('show');
@@ -74,7 +82,6 @@
                 $(`#${modalId}`).modal('hide');
             });
 
-            // ini yang langsun gmangiglnya
             window.Livewire.on('openUploadRevisiModal', () => {
                 $('#uploadRevisiModal').modal('show');
             });
@@ -93,7 +100,7 @@
                     icon: data.type, // 'success', 'error', 'warning', etc.
                     title: data.title,
                     text: data.message,
-                    timer: 3000,
+                    timer: 7000,
                     timerProgressBar: true,
                     showConfirmButton: false,
                     position: 'top-end',

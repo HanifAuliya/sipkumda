@@ -186,12 +186,13 @@
                                 <span class="text-danger">{{ $message }}</span>
                             @enderror
                         </div>
-
                         {{-- Catatan Revisi --}}
                         <div class="mb-4">
                             <label for="catatanRevisi" class="font-weight-bold">Catatan Revisi</label>
+                            <small class="text-muted d-block">Catatan yang diberikan oleh pengguna untuk revisi
+                                dokumen.</small>
                             <textarea id="catatanRevisi" class="form-control" wire:model="catatanRevisi" rows="4"
-                                placeholder="Tambahkan catatan revisi jika diperlukan"></textarea>
+                                placeholder="Tambahkan catatan revisi"></textarea>
                             @error('catatanRevisi')
                                 <span class="text-danger">{{ $message }}</span>
                             @enderror
@@ -204,7 +205,7 @@
                         </button>
                         <button class="btn btn-outline-default" type="submit" wire:loading.attr="disabled">
                             <span wire:loading.remove wire:target="uploadRevisi"><i
-                                    class="bi bi-file-earmark-arrow-up mr-2"></i>Upload</span>
+                                    class="bi bi-file-earmark-arrow-up mr-2"></i>Unggah Revisi</span>
                             <span wire:loading wire:target="uploadRevisi">
                                 <i class="spinner-border spinner-border-sm"></i> Memproses...
                             </span>
@@ -228,10 +229,6 @@
                                         <h4 class="mb-0">Informasi Utama</h4>
                                     </div>
                                     <div class="card-body">
-                                        <p class="description info-text mb-3">
-                                            Berikut adalah informasi dasar dari rancangan yang diajukan. Pastikan semua
-                                            informasi sudah sesuai.
-                                        </p>
                                         <table class="table table-sm table-borderless">
                                             <tbody>
                                                 <tr>
@@ -447,11 +444,17 @@
                                                         @endif
                                                     </td>
                                                 </tr>
-
                                                 <tr>
                                                     <th class="info-text w-25">Catatan Revisi</th>
                                                     <td class="wrap-text w-75">
                                                         {{ $selectedRevisi->catatan_revisi ?? 'Tidak Ada Catatan' }}
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th class="info-text w-25">Catatan Validasi <small>dari
+                                                            verifikator</small></th>
+                                                    <td class="wrap-text w-75">
+                                                        {{ $selectedRevisi->catatan_validasi ?? 'Tidak Ada Catatan' }}
                                                     </td>
                                                 </tr>
                                             </tbody>
@@ -475,13 +478,15 @@
                             </div>
                         </div>
                     @else
-                        <div class="d-flex justify-content-center align-items-start"
-                            style="min-height: 200px; padding-top: 50px;">
-                            <div class="text-center">
-                                <div class="spinner-border text-primary" role="status">
-                                    <span class="sr-only">Loading...</span>
+                        <div class="card">
+                            <div class="d-flex justify-content-center align-items-start"
+                                style="min-height: 200px; padding-top: 50px;">
+                                <div class="text-center">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="sr-only">Loading...</span>
+                                    </div>
+                                    <p class="mt-3 info-text">Sedang memuat data, harap tunggu...</p>
                                 </div>
-                                <p class="mt-3 info-text">Sedang memuat data, harap tunggu...</p>
                             </div>
                         </div>
                     @endif

@@ -175,11 +175,15 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline-warning" data-dismiss="modal"
                             wire:click="resetForm">
+                            <i class="bi bi-backspace mr-2"></i>
                             Batal
                         </button>
                         <button class="btn btn-outline-default" type="submit" wire:loading.attr="disabled"
                             wire:target="submit">
-                            <span wire:loading.remove wire:target="submit"><i class="bi bi-save2"></i> Ajukan</span>
+                            <span wire:loading.remove wire:target="submit">
+                                <i class="bi bi-file-earmark-arrow-up mr-2"></i>
+                                Ajukan
+                            </span>
                             <span wire:loading wire:target="submit">
                                 <i class="spinner-border spinner-border-sm"></i> Memproses...
                             </span>
@@ -189,8 +193,19 @@
             </div>
         </div>
     </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+
+            Livewire.on('openModal', (modalId) => {
+                $(`#${modalId}`).modal('show');
+            });
+
+            // Listener untuk menutup modal
+            Livewire.on('closeModal', (modalId) => {
+                $(`#${modalId}`).modal('hide');
+            });
+
             // Membuka Modal
             window.Livewire.on('openUploadUlangBerkasModal', () => {
                 $('#uploadUlangBerkasModal').modal('show');
@@ -233,5 +248,55 @@
             });
         });
     </script>
+    <!-- Script untuk Zoom dan Fullscreen -->
+    <script>
+        // Fungsi Toggle Fullscreen
+        function toggleFullscreen() {
+            const wrapper = document.getElementById('zoomable-wrapper');
+            const content = document.getElementById('zoomable-content');
 
+            if (!document.fullscreenElement) {
+                wrapper.requestFullscreen().then(() => {
+                    // Sesuaikan tampilan saat fullscreen
+                    wrapper.style.background = "#fff";
+                    wrapper.style.overflow = "hidden"; // Hilangkan scroll
+                    wrapper.style.display = "flex";
+                    wrapper.style.justifyContent = "center";
+                    wrapper.style.alignItems = "center";
+                    wrapper.style.width = "100vw"; // Gunakan seluruh lebar layar
+                    wrapper.style.height = "100vh"; // Gunakan seluruh tinggi layar
+                    content.style.maxHeight = "none"; // Pastikan konten mengambil seluruh area
+                }).catch(err => {
+                    console.error(`Error attempting to enable fullscreen: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen().then(() => {
+                    resetFullscreenStyles(wrapper, content); // Kembalikan ke tampilan awal
+                });
+            }
+        }
+
+        // Reset gaya saat keluar dari fullscreen
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement) {
+                const wrapper = document.getElementById('zoomable-wrapper');
+                const content = document.getElementById('zoomable-content');
+                resetFullscreenStyles(wrapper, content);
+            }
+        });
+
+        // Fungsi Reset Gaya Fullscreen
+        function resetFullscreenStyles(wrapper, content) {
+            wrapper.style.background = "none";
+            wrapper.style.overflow = "auto";
+            wrapper.style.display = "block";
+            wrapper.style.justifyContent = "unset";
+            wrapper.style.alignItems = "unset";
+            wrapper.style.width = "auto";
+            wrapper.style.height = "auto";
+            content.style.maxHeight = "200px";
+            content.style.transform = "none";
+            content.style.transformOrigin = "unset";
+        }
+    </script>
 </div>

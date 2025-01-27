@@ -85,7 +85,14 @@ class MenungguPeneliti extends Component
             'title' => 'Peneliti Dipilih',
             'message' => 'Peneliti berhasil ditugaskan untuk revisi rancangan.',
         ]);
+        $this->reset();
     }
+
+    public function resetDetail()
+    {
+        $this->selectedRancangan = null;
+    }
+
 
 
     public function render()

@@ -9,6 +9,8 @@ use App\Models\RancanganProdukHukum;
 
 use App\Notifications\PersetujuanRancanganNotification;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
+
 
 class PersetujuanRiwayat extends Component
 {
@@ -49,6 +51,13 @@ class PersetujuanRiwayat extends Component
             // Reset status revisi terkait rancangan
             $revisi = $rancangan->revisi()->first();
             if ($revisi) {
+                // Hapus file lama jika ada
+                if ($revisi->revisi_rancangan) {
+                    Storage::disk('local')->delete($revisi->revisi_rancangan);
+                }
+                if ($revisi->revisi_matrik) {
+                    Storage::disk('local')->delete($revisi->revisi_matrik);
+                }
                 $revisi->update([
                     'revisi_rancangan' => null,
                     'revisi_matrik' => null,

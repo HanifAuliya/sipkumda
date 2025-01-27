@@ -49,9 +49,13 @@ class NotificationDropdown extends Component
                 'peneliti_dibatalkan' => 'openModalDetailRancangan',
                 'peneliti_dipilih' => 'openModalDetailRancangan',
                 'upload_revisi' => 'openModalNotificationRevisi',
+                'revisi_dikirim' => 'openModalDetailRancangan',
+                'reset_validasi' => 'openModalNotificationRevisi',
 
                 'detail_validasi' => 'openModalDetailRancangan',
                 'validasi_revisi' => 'openModalDetailRancangan',
+                'revisi_ulang' => 'openModalDetailRancangan',
+                'rancangan_selesai' => 'openModalDetailRancangan',
 
             ];
 

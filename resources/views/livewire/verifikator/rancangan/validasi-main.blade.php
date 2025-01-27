@@ -12,14 +12,14 @@
         <div class="card-body">
             <ul class="nav nav-pills nav-fill flex-column flex-md-row" role="tablist">
                 <li class="nav-item">
-                    <a href="#" class="nav-link {{ $activeTab === 'menunggu' ? 'active' : '' }}"
-                        wire:click.prevent="setTab('menunggu')">
+                    <a href="#" class="nav-link {{ $activeTab === 'menunggu-validasi' ? 'active' : '' }}"
+                        wire:click.prevent="switchTab('menunggu-validasi')">
                         <i class="ni ni-send mr-2"></i>Berkas Menunggu Validasi
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="#" class="nav-link {{ $activeTab === 'riwayat' ? 'active' : '' }}"
-                        wire:click.prevent="setTab('riwayat')">
+                    <a href="#" class="nav-link {{ $activeTab === 'riwayat-validasi' ? 'active' : '' }}"
+                        wire:click.prevent="switchTab('riwayat-validasi')">
                         <i class="ni ni-check-bold mr-2"></i>Riwayat Validasi
                     </a>
                 </li>
@@ -27,16 +27,47 @@
 
             {{-- Konten Tab --}}
             <div class="tab-content mt-4">
-                @if ($activeTab === 'menunggu')
+                @if ($activeTab === 'menunggu-validasi')
                     @livewire('verifikator.rancangan.validasi-menunggu')
-                @elseif ($activeTab === 'riwayat')
+                @elseif ($activeTab === 'riwayat-validasi')
                     @livewire('verifikator.rancangan.riwayat-validasi')
                 @endif
             </div>
         </div>
     </div>
+    {{-- comnfirm reset --}}
+    <script>
+        function confirmResetValidasi(id) {
+            Swal.fire({
+                title: 'Apakah Anda yakin?',
+                text: "Validasi Rancangan ini akan direset!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Ya, Reset!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Livewire.dispatch('resetValidasiConfirmed', {
+                        id: id
+                    }); // Dispatch event Livewire
+                }
+            });
+        }
+    </script>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+
+            Livewire.on('openModal', (modalId) => {
+                $(`#${modalId}`).modal('show');
+            });
+
+            // Listener untuk menutup modal
+            Livewire.on('closeModal', (modalId) => {
+                $(`#${modalId}`).modal('hide');
+            });
 
             window.Livewire.on('openModalValidasiRancangan', () => {
                 $('#modalValidasiRancangan').modal('show');

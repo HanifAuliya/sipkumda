@@ -45,92 +45,55 @@
                         <div class="modal-body">
                             {{-- Informasi Rancangan --}}
                             @if ($selectedRevisi && $selectedRevisi->rancangan)
-                                <div class="mb-4">
-                                    <div class="row">
-                                        {{-- Nomor Rancangan --}}
-                                        <div class="col-md-4 mb-2">
-                                            <h5 class="font-weight-bold">Nomor Rancangan:</h5>
-                                            <h5 class="text-default mb-0">
-                                                {{ $selectedRevisi->rancangan->no_rancangan ?? '-' }}
-                                                <mark
+                                <table class="table table-sm table-borderless">
+                                    <tbody>
+                                        <tr>
+                                            <th class="info-text w-25"> No Rancangan</th>
+                                            <td class="wrap-text w-75">
+                                                {{ $selectedRevisi->rancangan->no_rancangan ?? '-' }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="info-text w-25">Jenis Rancangan</th>
+                                            <td class="wrap-text w-75"><mark
                                                     class="badge badge-{{ $selectedRevisi->rancangan->jenis_rancangan === 'Peraturan Bupati' ? 'primary' : 'success' }} badge-pill">
                                                     {{ $selectedRevisi->rancangan->jenis_rancangan ?? 'N/A' }}
-                                                </mark>
-                                            </h5>
-                                        </div>
-
-                                        {{-- Jenis Rancangan --}}
-                                        <div class="col-md-8 mb-2">
-                                            <h5 class="font-weight-bold">Tentang:</h5>
-                                            <h5 class="text-dark mb-0">
-                                                {{ $selectedRevisi->rancangan->tentang ?? '-' }}</h5>
-                                        </div>
-                                    </div>
-                                </div>
-                            @else
-                                <p class="text-danger">Data revisi atau rancangan tidak ditemukan.</p>
-                            @endif
-
-
-                            {{-- File Sebelumnya --}}
-                            <div class="mb-4">
-                                <h4 class="mb-3 font-weight-bold ">File Rancangan</h4>
-                                <div class="row">
-                                    {{-- Nota Dinas --}}
-                                    <div class="col-6 col-md-3 text-center">
-                                        <i class="bi bi-file-earmark-pdf text-default" style="font-size: 1.5rem;"></i>
-                                        <p class="mt-2 font-weight-bold" style="font-size: 1rem;">
-                                            <a href="{{ url('/view-private/rancangan/nota_dinas/' . basename($selectedRevisi->rancangan->nota_dinas_pd ?? '')) }}"
-                                                target="_blank" class="text-default">
-                                                Nota Dinas
-                                            </a>
-                                        </p>
-                                    </div>
-
-                                    {{-- File Rancangan --}}
-                                    <div class="col-6 col-md-3 text-center">
-                                        <i class="bi bi-file-earmark-pdf text-default" style="font-size: 1.5rem;"></i>
-                                        <p class="mt-2 font-weight-bold" style="font-size: 1rem;">
-                                            <a href="{{ url('/view-private/rancangan/rancangan/' . basename($selectedRevisi->rancangan->rancangan ?? '')) }}"
-                                                target="_blank" class="text-default">
-                                                File Rancangan
-                                            </a>
-                                        </p>
-                                    </div>
-
-                                    {{-- Matrik --}}
-                                    <div class="col-6 col-md-3 text-center">
-                                        <i class="bi bi-file-earmark-pdf text-default" style="font-size: 1.5rem;"></i>
-                                        <p class="mt-2 font-weight-bold" style="font-size: 1rem;">
-                                            <a href="{{ url('/view-private/rancangan/matrik/' . basename($selectedRevisi->rancangan->matrik ?? '')) }}"
-                                                target="_blank" class="text-default">
-                                                File Matrik
-                                            </a>
-                                        </p>
-                                    </div>
-
-                                    {{-- Bahan Pendukung --}}
-                                    @if (!empty($selectedRevisi->rancangan->bahan_pendukung))
-                                        <div class="col-6 col-md-3 text-center">
-                                            <i class="bi bi-file-earmark-pdf text-warning"
-                                                style="font-size: 1.5rem;"></i>
-                                            <p class="mt-2 font-weight-bold" style="font-size: 1rem;">
-                                                <a href="{{ url('/view-private/rancangan/bahan-pendukung/' . basename($selectedRevisi->rancangan->bahan_pendukung)) }}"
-                                                    target="_blank" class="text-warning">
-                                                    Bahan Pendukung
+                                                </mark></td>
+                                        </tr>
+                                        <tr>
+                                            <th class="info-text w-25"> Tentang</th>
+                                            <td class="wrap-text w-75"> {{ $selectedRevisi->rancangan->tentang ?? '-' }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th class="info-text w-25">Nota Dinas dari PD</th>
+                                            <td class="wrap-text w-75">
+                                                <a href="{{ url('/view-private/rancangan/nota_dinas/' . basename($selectedRevisi->rancangan->nota_dinas_pd ?? '')) }}"
+                                                    target="_blank">
+                                                    <i class="bi bi-file-earmark-pdf text-default"></i>
+                                                    Nota Dinas
                                                 </a>
-                                            </p>
-                                        </div>
-                                    @endif
-                                </div>
-                            </div>
-
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th class="info-text w-25">File Rancangan </th>
+                                            <td class="wrap-text w-75">
+                                                <a href="{{ url('/view-private/rancangan/rancangan/' . basename($selectedRevisi->rancangan->rancangan ?? '')) }}"
+                                                    target="_blank">
+                                                    <i class="bi bi-file-earmark-pdf text-default"></i>
+                                                    File Rancangan
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            @endif
 
                             {{-- Input File Revisi Rancangan --}}
                             <div class="mb-4">
                                 <label for="revisiRancangan" class="font-weight-bold form-control-label">
                                     <i class="bi bi-file-earmark-pdf text-primary"></i> File Revisi Rancangan
-                                    <small class="text-muted d-block">Unggah dokumen rancangan dalam format PDF (max:
+                                    <small class="text-muted d-block">Unggah dokumen rancangan dalam format PDF
+                                        (max:
                                         2MB).</small>
                                 </label>
                                 <input type="file" class="form-control" wire:model="revisiRancangan"
@@ -150,8 +113,7 @@
                                     <small class="text-muted d-block">Unggah dokumen matrik dalam format PDF (max:
                                         10 MB).</small>
                                 </label>
-                                <input type="file" class="form-control" wire:model="revisiMatrik"
-                                    accept=".pdf" />
+                                <input type="file" class="form-control" wire:model="revisiMatrik" accept=".pdf" />
                                 <div wire:loading wire:target="revisiMatrik" class="text-info mt-2">
                                     <i class="spinner-border spinner-border-sm"></i> Mengunggah...
                                 </div>
@@ -173,10 +135,11 @@
                         <div class="modal-footer">
                             <button type="button" class="btn btn-outline-warning" data-dismiss="modal"
                                 wire:click="resetForm">
-                                Batal
+                                <i class="bi bi-backspace mr-2"></i> Batal
                             </button>
                             <button class="btn btn-outline-default" type="submit" wire:loading.attr="disabled">
-                                <span wire:loading.remove wire:target="notifUploadRevisi">Upload</span>
+                                <span wire:loading.remove wire:target="notifUploadRevisi"> <i
+                                        class="bi bi-file-earmark-arrow-up mr-2"></i>Upload</span>
                                 <span wire:loading wire:target="notifUploadRevisi">
                                     <i class="spinner-border spinner-border-sm"></i> Memproses...
                                 </span>

@@ -197,11 +197,6 @@
                                             <span>Upload Ulang Berkas Ditolak</span>
                                         </a>
                                     @endif
-                                    {{-- Item Tambahan --}}
-                                    <a href="#" class="dropdown-item d-flex align-items-center">
-                                        <i class="bi bi-file-earmark-text  text-primary"></i>
-                                        <span>Preview Dokumen Revisi dan Nota Dinas</span>
-                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -653,4 +648,5 @@
             </div>
         </div>
     </div>
+
 </div>

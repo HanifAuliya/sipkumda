@@ -15,6 +15,34 @@ class RiwayatPengajuan extends Component
     public $page = 1; // Halaman saat ini
 
     protected $queryString = ['search', 'perPage', 'page']; // Untuk mempertahankan state URL
+    public $selectedRancangan;
+
+
+    public function loadDokumenRevisi($id)
+    {
+        // Cari rancangan berdasarkan ID
+        $rancangan = RancanganProdukHukum::with(['revisi'])->find($id);
+
+        if (!$rancangan) {
+            $this->dispatch('swal:modal', [
+                'type' => 'error',
+                'title' => 'Kesalahan',
+                'message' => 'Rancangan tidak ditemukan.',
+            ]);
+            return;
+        }
+
+        // Set data rancangan dan revisi ke properti untuk digunakan di modal
+        $this->selectedRancangan = $rancangan;
+
+        // Emit event untuk membuka modal
+        $this->dispatch('openModal', 'berkasModal');
+    }
+
+    public function resetDetail()
+    {
+        $this->selectedRancangan = null;
+    }
 
     public function updatingSearch()
     {

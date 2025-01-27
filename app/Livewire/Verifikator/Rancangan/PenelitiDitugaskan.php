@@ -213,6 +213,10 @@ class PenelitiDitugaskan extends Component
         ]);
     }
 
+    public function resetDetail()
+    {
+        $this->selectedRevisi = null;
+    }
 
 
 

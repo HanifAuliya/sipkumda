@@ -30,7 +30,7 @@
     <div id="riwayatPengajuanContent">
         @forelse ($riwayat as $item)
             {{-- Card Riwayat --}}
-            <div class="card p-3 shadow-sm border mb-3 bg-light">
+            <div class="card p-3 shadow-sm border mb-3 ">
                 <div class="d-flex justify-content-between align-items-center">
                     {{-- Bagian Kiri --}}
                     <div class="d-flex align-items-start">
@@ -84,7 +84,7 @@
                                     {{ $item->status_berkas }}
                                 </mark>
                             </p>
-                            <p class="mb-0 info-text small">
+                            <p class="mb-0 info-text small mb-2">
                                 <i class="bi bi-file-earmark-text"></i>
                                 Status Revisi:
                                 <mark
@@ -100,6 +100,18 @@
                                     {{ $item->revisi->first()->status_revisi }}
                                 </mark>
                             </p>
+
+                            <div class="alert alert-default alert-dismissible fade show mb-2" role="alert">
+                                <span class="alert-icon"><i class="bi bi-clipboard2-check"></i></span>
+                                <span class="alert-text">
+                                    <strong>Rancangan Diterima</strong>. Ajukan ke menu Fasilitasi <i
+                                        class="bi bi-send-plus"></i> dengan catatan dan file dari revisi yang dikirm.
+                                </span>
+
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -124,11 +136,25 @@
                             Pengajuan Rancangan Tahun {{ \Carbon\Carbon::parse($item->tanggal_pengajuan)->year }}
                         </p>
 
-                        <button class="btn btn-neutral mt-3" data-toggle="modal"
-                            data-target="#detailModalRiwayat-{{ $item->id_rancangan }}">
-                            <i class="bi bi-info-circle"></i>
-                            Lihat Detail
-                        </button>
+                        <div class="dropdown">
+                            <button class="btn btn-neutral dropdown-toggle" type="button" id="dropdownMenuButton"
+                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="bi bi-gear"></i> Kelola Rancangan
+                            </button>
+                            <div class="dropdown-menu shadow-lg" aria-labelledby="dropdownMenuButton">
+                                {{-- Item 1 --}}
+                                <a class="dropdown-item d-flex align-items-center" data-toggle="modal"
+                                    data-target="#detailModalRiwayat-{{ $item->id_rancangan }}">
+                                    <i class="bi bi-info-circle"></i>
+                                    Lihat Detail
+                                </a>
+                                <a href="#" class="dropdown-item d-flex align-items-center"
+                                    wire:click.prevent="loadDokumenRevisi({{ $item->id_rancangan }})">
+                                    <i class="bi bi-file-earmark-text text-primary"></i>
+                                    <span>Preview Dokumen Revisi</span>
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -402,7 +428,6 @@
                                                                 {{ $revisi->tanggal_validasi ? \Carbon\Carbon::parse($revisi->tanggal_validasi)->translatedFormat('d F Y, H:i') : 'N/A' }}
                                                             </td>
                                                         </tr>
-
                                                         <tr>
                                                             <th>Peneliti</th>
                                                             <td class="wrap-text-td-70 ">
@@ -458,6 +483,93 @@
         {{-- Pagination --}}
         <div class="d-flex justify-content-center">
             {{ $riwayat->links('pagination::bootstrap-4') }}
+        </div>
+    </div>
+    <!-- Modal untuk menampilkan daftar berkas -->
+    <div class="modal fade" id="berkasModal" tabindex="-1" role="dialog" aria-labelledby="berkasModalLabel"
+        aria-hidden="true" wire:ignore.self>
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="berkasModalLabel">Daftar Berkas Revisi</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                        wire:click="resetModal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    @if ($selectedRancangan && $selectedRancangan->revisi)
+                        <div class="card shadow">
+                            <div class="list-group list-group-flush">
+                                <!-- File Rancangan -->
+                                @if ($selectedRancangan->rancangan)
+                                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <i class="bi bi-file-earmark-pdf text-primary"></i>
+                                            <span>File Rancangan</span>
+                                        </div>
+                                        <a href="{{ url('/view-private/revisi/rancangan/' . basename($selectedRancangan->revisi->last()->revisi_rancangan)) }}"
+                                            target="_blank" class="btn btn-outline-primary btn-sm">
+                                            <i class="bi bi-eye"></i> Lihat
+                                        </a>
+                                    </div>
+                                @endif
+
+                                <!-- File Matrik -->
+                                @if ($selectedRancangan->matrik)
+                                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <i class="bi bi-file-earmark-pdf text-success"></i>
+                                            <span>File Matrik</span>
+                                        </div>
+                                        <a href="{{ url('/view-private/revisi/matrik/' . basename($selectedRancangan->revisi->last()->revisi_matrik)) }}"
+                                            target="_blank" class="btn btn-outline-success btn-sm">
+                                            <i class="bi bi-eye"></i> Lihat
+                                        </a>
+                                    </div>
+                                @endif
+                                <!-- Catatan Revisi -->
+                                <div class="card shadow-sm">
+                                    <div
+                                        class="card-header text-dark d-flex justify-content-between align-items-center">
+                                        <span><i class="bi bi-stickies"></i> Catatan Revisi</span>
+                                        <div>
+                                            <button class="btn btn-outline-success btn-sm"
+                                                onclick="toggleFullscreen()">
+                                                <i class="bi bi-arrows-fullscreen"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div id="zoomable-wrapper" style="position: relative;">
+                                        <div class="card-body" id="zoomable-content"
+                                            style="max-height: 200px; overflow-y: auto; font-size: 16px; background: #fff;">
+                                            @if ($selectedRancangan->revisi->last()->catatan_revisi)
+                                                <div class="alert alert-secondary" role="alert"
+                                                    style="white-space: pre-line;">
+                                                    <i class="bi bi-chat-dots"></i>
+                                                    {{ $selectedRancangan->revisi->last()->catatan_revisi }}
+                                                </div>
+                                            @else
+                                                <div class="alert alert-secondary" role="alert">
+                                                    <i class="bi bi-info-circle"></i> Tidak ada catatan revisi
+                                                    tersedia.
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    @else
+                        <p class="text-danger">Data dokumen tidak tersedia.</p>
+                    @endif
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                        wire:click="resetDetail">Tutup</button>
+                </div>
+            </div>
         </div>
     </div>
 

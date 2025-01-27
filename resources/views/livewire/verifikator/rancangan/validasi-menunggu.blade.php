@@ -38,7 +38,7 @@
                                 <i class="bi bi-houses"></i>
                                 {{ $item->user->perangkatDaerah->nama_perangkat_daerah ?? '-' }}
                             </p>
-                            <p class="mb-0 info-text small">
+                            <p class="mb-0 info-text small text-primary">
                                 <i class="bi bi-person"></i>
                                 {{ $item->user->nama_user ?? 'N/A' }}
                                 <span class="badge badge-secondary">
@@ -47,8 +47,8 @@
                             </p>
                             <p class="mb-0 info-text small">
                                 <i class="bi bi-calendar"></i>
-                                Tanggal Berkas Disetujui:
-                                {{ \Carbon\Carbon::parse($item->tanggal_berkas_disetujui)->translatedFormat('d F Y, H:i') }}
+                                Tanggal Revisi
+                                {{ \Carbon\Carbon::parse($item->revisi->last()?->tanggal_revisi)->translatedFormat('d F Y, H:i') }}
                             </p>
                             <p class="mb-1 info-text small">
                                 <i class="bi bi-file-check"></i>
@@ -73,15 +73,9 @@
                     <div class="text-right">
                         {{-- Status Rancangan --}}
                         <h4>
-                            <mark
-                                class="badge-{{ $item->revisi->last()?->peneliti ? 'success' : 'danger' }} badge-pill">
-                                @if ($item->revisi->last()?->peneliti)
-                                    <i class="bi bi-person-check"></i>
-                                    {{ $item->revisi->last()?->peneliti->nama_user }}
-                                @else
-                                    <i class="bi bi-person-dash"></i>
-                                    Menunggu Pemilihan Peneliti
-                                @endif
+                            <mark class="badge-secondary badge-pill">
+                                <i class="bi bi-person-check"></i>
+                                {{ $item->revisi->last()?->peneliti->nama_user }}
                             </mark>
                         </h4>
 
@@ -110,8 +104,8 @@
     </div>
 
     <div wire:ignore.self class="modal fade" id="modalValidasiRancangan" tabindex="-1" role="dialog"
-        aria-labelledby="modalValidasiRancanganLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl" role="document">
+        aria-labelledby="modalValidasiRancanganLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog modal-xl no-style-modal" role="document">
             <div class="modal-content">
                 <div class="modal-body">
                     @if ($selectedRancangan)
@@ -209,7 +203,8 @@
                                                         @if ($selectedRancangan->matrik)
                                                             <a href="{{ url('/view-private/rancangan/matrik/' . basename($selectedRancangan->matrik)) }}"
                                                                 target="_blank" class="d-flex align-items-center">
-                                                                <i class="bi bi-file-earmark-pdf mr-2 text-success"></i>
+                                                                <i
+                                                                    class="bi bi-file-earmark-pdf mr-2 text-success"></i>
                                                                 Lihat Matrik
                                                             </a>
                                                         @else
@@ -268,13 +263,8 @@
                                         <h4 class="mb-0">Detail Revisi</h4>
                                     </div>
                                     <div class="card-body">
-                                        <p class="description info-text mb-3">
-                                            Pastikan file yang diajukan sudah lengkap dan sesuai. Anda dapat mengunduh
-                                            file untuk memverifikasinya.
-                                        </p>
                                         <table class="table table-sm table-borderless">
                                             <tbody>
-                                                <tr>
                                                 <tr>
                                                     <th class="info-text w-25">Status Revisi</th>
                                                     <td class="wrap-text w-75">
@@ -289,7 +279,7 @@
                                                     <th class="info-text w-25">Status Validasi</th>
                                                     <td class="wrap-text w-75">
                                                         <mark
-                                                            class="badge-{{ $selectedRancangan->revisi->last()->status_validasi === 'Direvisi' ? 'success' : ($selectedRancangan->revisi->last()->status_validasi === 'Menunggu Revisi' ? 'warning' : 'danger') }} badge-pill">
+                                                            class="badge-{{ $selectedRancangan->revisi->last()->status_validasi === 'Diterima' ? 'success' : ($selectedRancangan->revisi->last()->status_validasi === 'Menunggu Validasi' ? 'warning' : 'danger') }} badge-pill">
                                                             {{ $selectedRancangan->revisi->last()->status_validasi }}
                                                         </mark>
 
@@ -358,7 +348,7 @@
                                     </div>
                                     <div class="card-body">
                                         {{-- Form Validasi --}}
-                                        <form wire:submit.prevent="submitValidasi">
+                                        <form wire:submit.prevent="validasiRevisi">
 
                                             {{-- Pilihan Validasi --}}
                                             <div class="form-group">
@@ -381,45 +371,52 @@
                                             </div>
                                             {{-- Catatan Validasi --}}
                                             <div class="form-group">
-                                                <label for="catatanValidasi">Catatan Validasi (Opsional)</label>
+                                                <label for="catatanValidasi">Catatan Validasi</label>
                                                 <textarea id="catatanValidasi" class="form-control" wire:model.defer="catatanValidasi"
                                                     placeholder="Tambahkan catatan terkait validasi ini..." rows="3"></textarea>
                                                 @error('catatanValidasi')
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
                                             </div>
-                                            <div class="modal-footer">
+                                            <div class="form-group text-right">
                                                 <button type="button" class="btn btn-outline-warning"
                                                     data-dismiss="modal" wire:click="resetFormValidasi">
                                                     Batal
                                                 </button>
-                                                <button type="submit" class="btn btn-outline-default">
-                                                    <i class="bi bi-check-circle mr-1"></i> Validasi
+                                                <button type="submit"
+                                                    class="btn btn-outline-default"wire:loading.attr="disabled"
+                                                    wire:target="validasiRevisi">
+                                                    <!-- Spinner Loading -->
+                                                    <span wire:loading wire:target="validasiRevisi">
+                                                        <i class="spinner-border spinner-border-sm mr-1"
+                                                            role="status" aria-hidden="true"></i>Proses..
+                                                    </span>
+                                                    <!-- Ikon dan Teks -->
+                                                    <span wire:loading.remove wire:target="validasiRevisi">
+                                                        <i class="bi bi-check-circle mr-1"></i> Validasi
+                                                    </span>
                                                 </button>
+
                                             </div>
                                         </form>
                                     </div>
                                 </div>
                             </div>
-
-                            <div class="col-md-6 mb-4">
-
-                            </div>
-
                         </div>
                     @else
-                        <div class="d-flex justify-content-center align-items-start"
-                            style="min-height: 200px; padding-top: 50px;">
-                            <div class="text-center">
-                                <div class="spinner-border text-primary" role="status">
-                                    <span class="sr-only">Loading...</span>
+                        <div class="card">
+                            <div class="d-flex justify-content-center align-items-start"
+                                style="min-height: 200px; padding-top: 50px;">
+                                <div class="text-center">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="sr-only">Loading...</span>
+                                    </div>
+                                    <p class="mt-3 info-text">Sedang memuat data, harap tunggu...</p>
                                 </div>
-                                <p class="mt-3 info-text">Sedang memuat data, harap tunggu...</p>
                             </div>
                         </div>
                     @endif
                 </div>
-
             </div>
         </div>
     </div>

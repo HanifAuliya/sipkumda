@@ -103,6 +103,12 @@ class DaftarRancangan extends Component
         $this->dispatch('show-modal', ['modalId' => 'detailModal']);
     }
 
+    public function resetDetail()
+    {
+        $this->selectedRancangan = null;
+    }
+
+
 
     public function render()
     {

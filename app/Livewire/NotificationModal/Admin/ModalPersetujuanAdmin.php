@@ -98,6 +98,7 @@ class ModalPersetujuanAdmin extends Component
                 'message' => "Status Berkas Rancangan berhasil di {$this->statusBerkas}! "
             ]);
         }
+        $this->reset();
     }
 
     // public function resetStatus()

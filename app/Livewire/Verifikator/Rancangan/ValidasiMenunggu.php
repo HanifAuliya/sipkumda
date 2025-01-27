@@ -4,13 +4,16 @@ namespace App\Livewire\Verifikator\Rancangan;
 
 use Livewire\Component;
 use Livewire\WithPagination;
+use Livewire\WithoutUrlPagination;
 use App\Models\RancanganProdukHukum;
+
 use App\Notifications\ValidationResultNotification;
 
 
 class ValidasiMenunggu extends Component
 {
-    use WithPagination;
+    use WithPagination, WithoutUrlPagination;
+
 
     public $search = '';
     public $perPage = 5;
@@ -32,7 +35,7 @@ class ValidasiMenunggu extends Component
         $this->dispatch('openModalValidasiRancangan');
     }
 
-    public function submitValidasi()
+    public function validasiRevisi()
     {
         $this->validate([
             'statusValidasi' => 'required|in:Diterima,Ditolak',
@@ -54,37 +57,57 @@ class ValidasiMenunggu extends Component
         $revisi->update([
             'status_validasi' => $this->statusValidasi,
             'catatan_validasi' => $this->catatanValidasi,
-            'status_revisi' => 'Direvisi',
+            'status_revisi' => $this->statusValidasi === 'Diterima' ? 'Direvisi' : 'Proses Revisi',
             'tanggal_revisi' => now(),
             'tanggal_validasi' => now(),
         ]);
 
-        // Update status_rancangan menjadi "Disetujui"
-        $rancangan = $revisi->rancangan;
-        $rancangan->update([
-            'status_rancangan' => 'Disetujui',
-        ]);
+        // Jika validasi diterima, update status rancangan menjadi "Disetujui"
+        if ($this->statusValidasi === 'Diterima') {
+            $rancangan = $revisi->rancangan;
+            $rancangan->update([
+                'status_rancangan' => 'Disetujui',
+            ]);
 
-        // // Kirim notifikasi ke user
-        // $user = $this->selectedRancangan->user;
-        // // Notification::send($user, new ValidationResultNotification([
-        // //     'title' => "Validasi {$this->statusValidasi}",
-        // //     'message' => $this->statusValidasi === 'Disetujui'
-        // //         ? 'Rancangan Anda telah disetujui.'
-        // //         : 'Rancangan Anda ditolak. Silakan perbaiki sesuai catatan.',
-        // //     'slug' => $this->selectedRancangan->slug,
-        // // ]));
+            // Kirim notifikasi ke user pengaju rancangan
+            $user = $rancangan->user;
+            if ($user) {
+                $user->notify(new ValidationResultNotification([
+                    'title' => 'Rancangan Anda  dengan nomor ' . $rancangan->no_rancangan . ' Telah Disetujui',
+                    'message' => "Keseluruhan rancangan Anda telah disetujui. Silakan cek di menu 'Rancangan Saya' untuk melihat file revisi yang telah selesai. Ajukan fasilitasi menggunakan catatan revisi dan validasi yang ada.",
+                    'type' => 'rancangan_selesai',
+                    'slug' => $rancangan->slug,
+                ]));
+            }
+        }
+
+        // Jika validasi ditolak, kirim notifikasi ke peneliti untuk melakukan upload ulang
+        if ($this->statusValidasi === 'Ditolak') {
+            $peneliti = $revisi->peneliti;
+            if ($peneliti) {
+                $peneliti->notify(new ValidationResultNotification([
+                    'title' => "Revisi Rancangan No '{$revisi->rancangan->no_rancangan} 'Anda Ditolak",
+                    'message' => "Revisi untuk rancangan '{$revisi->rancangan->tentang}' telah ditolak. Silakan unggah ulang revisi berdasarkan catatan validasi yang diberikan.",
+                    'slug' => $revisi->rancangan->slug,
+                    'type' => 'revisi_ulang',
+                ]));
+            }
+        }
 
         // Kirim pesan sukses
         $this->dispatch('swal:modal', [
             'type' => 'success',
-            'title' => 'Berhasil',
             'message' => "Rancangan berhasil divalidasi sebagai '{$this->statusValidasi}'.",
         ]);
 
         // Reset form dan tutup modal
         $this->resetFormValidasi();
         $this->dispatch('closeModalValidasiRancangan');
+    }
+
+    public function resetDetail()
+    {
+        $this->selectedRancangan = null;
     }
 
     public function resetFormValidasi()
