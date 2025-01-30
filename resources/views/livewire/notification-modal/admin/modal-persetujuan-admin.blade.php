@@ -2,20 +2,6 @@
     data-keyboard="false" data-keyboard="false">
     <div class="modal-dialog modal-xl no-style-modal" role="document">
         <div class="modal-content">
-            {{-- Header Modal --}}
-            <div class="modal-header flex-column align-items-start" style="border-bottom: 2px solid #dee2e6;">
-                <h4 class="modal-title w-100 mb-2">Persetujuan Rancangan</h4>
-                <p class="description mb-0 w-100 info-text">
-                    Silakan cek informasi rancangan di bawah ini, termasuk file yang diajukan, lalu pilih status
-                    persetujuan.
-                </p>
-                <button type="button" class="close position-absolute" style="top: 10px; right: 10px;"
-                    data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-
-
             @if ($rancangan)
                 <div class="row mt-3">
                     {{-- Informasi Utama --}}
@@ -25,9 +11,6 @@
                                 <h4 class="mb-0">Informasi Utama</h4>
                             </div>
                             <div class="card-body">
-                                <p class="description info-text mb-3">Berikut adalah informasi dasar dari rancangan
-                                    yang
-                                    diajukan. Pastikan semua informasi sudah sesuai.</p>
                                 <table class="table table-sm table-borderless">
                                     <tbody>
                                         <tr>
@@ -65,6 +48,18 @@
                                             </td>
                                         </tr>
                                         <tr>
+                                            <th>Nomor Nota</th>
+                                            <td class="wrap-text-td-70 ">
+                                                {{ $rancangan->nomor_nota ?? 'N/A' }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Tanggal Nota</th>
+                                            <td>
+                                                {{ $rancangan->tanggal_nota ? \Carbon\Carbon::parse($rancangan->tanggal_nota)->translatedFormat('d F Y') : 'N/A' }}
+                                            </td>
+                                        </tr>
+                                        <tr>
                                             <th class="info-text w-25">Status Rancangan</th>
                                             <td class="wrap-text w-75">
                                                 <span
@@ -73,24 +68,6 @@
                                                 </span>
                                             </td>
                                         </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- File Persetujuan --}}
-                    <div class="col-md-6">
-                        <div class="card shadow-sm">
-                            <div class="card-header">
-                                <h4 class="mb-0">File Persetujuan</h4>
-                            </div>
-                            <div class="card-body">
-                                <p class="description info-text mb-3">Pastikan file yang diajukan sudah lengkap dan
-                                    sesuai. Anda
-                                    dapat mengunduh file untuk memverifikasinya.</p>
-                                <table class="table table-sm table-borderless">
-                                    <tbody>
                                         <tr>
                                             <th class="info-text w-25">Nota Dinas</th>
                                             <td class="wrap-text w-75">
@@ -172,110 +149,119 @@
                                             </td>
                                         </tr>
                                     </tbody>
-
                                 </table>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                {{-- Pilihan Status dan Catatan Persetujuan --}}
-                <div class="row mb-3">
-                    <div class="col-md-12">
-                        @if ($rancangan->status_berkas === 'Disetujui' || $rancangan->status_berkas === 'Ditolak')
-                            <div class="alert alert-{{ $rancangan->status_berkas === 'Disetujui' ? 'success' : 'danger' }} mb-0"
-                                role="alert" style="flex: 1; text-align: center;">
-                                <strong>{{ $rancangan->status_berkas }} !</strong> Rancangan
-                                Telah
-                                {{ $rancangan->status_berkas }} Silahkan Cek diHalaman Persetujuan sesuai
-                                dengan tab statusnya
+                    {{-- File Persetujuan --}}
+                    <div class="col-md-6">
+                        <div class="card shadow-sm">
+                            <div class="card-header">
+                                <h4 class="mb-0">File Persetujuan</h4>
                             </div>
-                        @else
-                            <div class="alert alert-warning mb-0" role="alert" style="flex: 1; text-align: center;">
-                                <strong> Berkas Rancangan {{ $rancangan->status_berkas }}!</strong>
-                                Periksa dan Lakukan Verifikasi
-                            </div>
-                            <div class="card shadow-sm mt-3">
-                                <div class="card-body">
-                                    {{-- Informasi --}}
-                                    <p class="description info-text mb-3 info-text">
-                                        Pilih status persetujuan untuk rancangan ini. Tambahkan catatan
-                                        untuk memberikan masukan atau alasan penolakan.
-                                    </p>
+                            <div class="card-body">
+                                @if ($rancangan->status_berkas === 'Disetujui' || $rancangan->status_berkas === 'Ditolak')
+                                    <div class="alert alert-{{ $rancangan->status_berkas === 'Disetujui' ? 'success' : 'danger' }} mb-0"
+                                        role="alert" style="flex: 1; text-align: center;">
+                                        <strong>{{ $rancangan->status_berkas }} !</strong> Rancangan
+                                        Telah
+                                        {{ $rancangan->status_berkas }} Silahkan Cek diHalaman Persetujuan sesuai
+                                        dengan tab statusnya
+                                    </div>
+                                @else
+                                    <div class="alert alert-warning mb-0" role="alert"
+                                        style="flex: 1; text-align: center;">
+                                        <strong> Berkas Rancangan {{ $rancangan->status_berkas }}!</strong>
+                                        Periksa dan Lakukan Verifikasi
+                                    </div>
+                                    <div class="card shadow-sm mt-3">
+                                        <div class="card-body">
+                                            {{-- Informasi --}}
+                                            <p class="description info-text mb-3 info-text">
+                                                Pilih status persetujuan untuk rancangan ini. Tambahkan catatan
+                                                untuk memberikan masukan atau alasan penolakan.
+                                            </p>
 
-                                    {{-- Pilihan Persetujuan Berkas --}}
-                                    <div class="form-group">
-                                        <label class="font-weight-bold form-control-label">Pilih Persetujuan Berkas
-                                            di
-                                            bawah ini:</label>
-                                        <div class="d-flex align-items-center mt-2">
-                                            {{-- Radio Button Setujui --}}
-                                            <div class="custom-control custom-radio mr-4">
-                                                <input type="radio" id="setujui" name="statusBerkas"
-                                                    class="custom-control-input" wire:model="statusBerkas"
-                                                    value="Disetujui" @disabled(in_array($statusBerkas, ['Disetujui', 'Ditolak']))>
-                                                <label class="custom-control-label" for="setujui">
-                                                    <i class="bi bi-check-circle-fill text-success"></i> Setujui
+                                            {{-- Pilihan Persetujuan Berkas --}}
+                                            <div class="form-group">
+                                                <label class="font-weight-bold form-control-label">Pilih Persetujuan
                                                     Berkas
-                                                </label>
+                                                    di
+                                                    bawah ini:</label>
+                                                <div class="d-flex align-items-center mt-2">
+                                                    {{-- Radio Button Setujui --}}
+                                                    <div class="custom-control custom-radio mr-4">
+                                                        <input type="radio" id="setujui" name="statusBerkas"
+                                                            class="custom-control-input" wire:model="statusBerkas"
+                                                            value="Disetujui">
+                                                        <label class="custom-control-label" for="setujui">
+                                                            <i class="bi bi-check-circle-fill text-success"></i> Setujui
+                                                            Berkas
+                                                        </label>
+                                                    </div>
+
+                                                    {{-- Radio Button Tolak --}}
+                                                    <div class="custom-control custom-radio">
+                                                        <input type="radio" id="tolak" name="statusBerkas"
+                                                            class="custom-control-input" wire:model="statusBerkas"
+                                                            value="Ditolak">
+                                                        <label class="custom-control-label" for="tolak">
+                                                            <i class="bi bi-x-circle-fill text-danger"></i> Tolak
+                                                            Berkas
+                                                        </label>
+                                                    </div>
+                                                </div>
+
+                                                {{-- Error Message --}}
+                                                @error('statusBerkas')
+                                                    <span class="text-danger mt-2 d-block">{{ $message }}</span>
+                                                @enderror
                                             </div>
 
-                                            {{-- Radio Button Tolak --}}
-                                            <div class="custom-control custom-radio">
-                                                <input type="radio" id="tolak" name="statusBerkas"
-                                                    class="custom-control-input" wire:model="statusBerkas"
-                                                    value="Ditolak" @disabled(in_array($statusBerkas, ['Disetujui', 'Ditolak']))>
-                                                <label class="custom-control-label" for="tolak">
-                                                    <i class="bi bi-x-circle-fill text-danger"></i> Tolak Berkas
-                                                </label>
+                                            {{-- Catatan --}}
+                                            <div class="form-group">
+                                                <label class="font-weight-bold form-control-label">Tambahkan Catatan
+                                                    <small class="text-danger"> wajib</small></label>
+                                                <textarea wire:model.defer="catatan" class="form-control mb-3" rows="3" placeholder="Tambahkan catatan..."></textarea>
+                                                @error('catatan')
+                                                    <span class="text-danger mt-2 d-block">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+
+                                            {{-- Tombol --}}
+                                            <div class="d-flex justify-content-end">
+                                                {{-- Tombol Tutup --}}
+                                                <button type="button" class="btn btn-neutral mr-3"
+                                                    data-dismiss="modal" wire:click="resetForm">
+                                                    <i class="bi bi-x-circle-lg"></i> Batal
+                                                </button>
+
+                                                {{-- Tombol Verifikasi --}}
+                                                <button class="btn btn-success" wire:click="updateStatus"
+                                                    wire:loading.attr="disabled">
+                                                    <span wire:loading.remove wire:target="updateStatus"><i
+                                                            class="bi bi-check-circle"></i>
+                                                        Verifikasi
+                                                        Rancangan</span>
+                                                    <span wire:loading wire:target="updateStatus"><i
+                                                            class="bi bi-hourglass-split"></i>
+                                                        Memproses...</span>
+                                                </button>
                                             </div>
                                         </div>
-
-                                        {{-- Error Message --}}
-                                        @error('statusBerkas')
-                                            <span class="text-danger mt-2 d-block">{{ $message }}</span>
-                                        @enderror
                                     </div>
-
-                                    {{-- Catatan --}}
-                                    <div class="form-group">
-                                        <label class="font-weight-bold form-control-label">Tambahkan Catatan <small
-                                                class="text-danger"> wajib</small></label>
-                                        <textarea wire:model.defer="catatan" class="form-control mb-3" rows="3" placeholder="Tambahkan catatan..."
-                                            @disabled(in_array($statusBerkas, ['Disetujui', 'Ditolak']) && !is_null($catatan))></textarea>
-                                        @error('catatan')
-                                            <span class="text-danger mt-2 d-block">{{ $message }}</span>
-                                        @enderror
+                                @endif
+                                @if ($rancangan->status_berkas === 'Disetujui' || $rancangan->status_berkas === 'Ditolak')
+                                    <div class="modal-footer d-flex justify-content-end">
+                                        <button type="button" class="btn btn-outline-warning" data-dismiss="modal"
+                                            wire:click="resetForm">Tutup </button>
                                     </div>
-
-                                    {{-- Tombol --}}
-                                    <div class="d-flex justify-content-end">
-                                        {{-- Tombol Tutup --}}
-                                        <button type="button" class="btn btn-neutral mr-3" data-dismiss="modal"
-                                            wire:click="resetForm">
-                                            <i class="bi bi-x-circle-lg"></i> Batal
-                                        </button>
-
-                                        {{-- Tombol Verifikasi --}}
-                                        <button class="btn btn-success" wire:click="updateStatus"
-                                            wire:loading.attr="disabled">
-                                            <span wire:loading.remove wire:target="updateStatus"><i
-                                                    class="bi bi-check-circle"></i>
-                                                Verifikasi
-                                                Rancangan</span>
-                                            <span wire:loading wire:target="updateStatus"><i
-                                                    class="bi bi-hourglass-split"></i>
-                                                Memproses...</span>
-                                        </button>
-                                    </div>
-                                </div>
+                                @endif
                             </div>
-                        @endif
+                        </div>
                     </div>
                 </div>
-                @if ($rancangan->status_berkas === 'Disetujui' || $rancangan->status_berkas === 'Ditolak')
-                    <button type="button" class="btn btn-neutral" data-dismiss="modal">Tutup</button>
-                @endif
             @else
                 <div class="card shadow-sm mt-3">
                     {{-- Spinner Loading --}}

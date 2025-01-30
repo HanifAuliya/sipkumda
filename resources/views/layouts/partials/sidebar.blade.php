@@ -65,7 +65,7 @@
                     <ul class="navbar-nav mb-md--1">
                         @if (Auth::user()->hasRole('Perangkat Daerah'))
                             <li class="nav-item">
-                                <a class="nav-link {{ Route::currentRouteName() == 'rancanganku' ? 'active' : '' }}"
+                                <a class="nav-link {{ Route::currentRouteName() == 'rancanganku' ? 'active' : '' }} rancangan"
                                     href="{{ route('rancanganku') }}">
                                     <i class="bi bi-clipboard2"></i>
                                     <span class="nav-link-text">Rancanganku</span>
@@ -74,7 +74,7 @@
                         @endif
 
                         <li class="nav-item">
-                            <a class="nav-link {{ Route::currentRouteName() == 'daftar-rancangan' ? 'active' : '' }}"
+                            <a class="nav-link {{ Route::currentRouteName() == 'daftar-rancangan' ? 'active' : '' }} rancangan"
                                 href="{{ route('daftar-rancangan') }}">
                                 <i class="bi bi-clipboard2-data"></i>
                                 <span class="nav-link-text">Daftar Rancangan</span>
@@ -83,7 +83,7 @@
 
                         @if (Auth::user()->hasRole('Admin') || Auth::user()->hasRole('Super Admin'))
                             <li class="nav-item">
-                                <a class="nav-link {{ Route::currentRouteName() == 'admin.persetujuan' ? 'active' : '' }}"
+                                <a class="nav-link {{ Route::currentRouteName() == 'admin.persetujuan' ? 'active' : '' }} rancangan"
                                     href="{{ route('admin.persetujuan') }}">
                                     <i class="bi bi-card-checklist"></i>
                                     <span class="nav-link-text">Persetujuan Berkas</span>
@@ -92,7 +92,7 @@
                         @endif
                         @if (Auth::user()->hasRole('Verifikator') || Auth::user()->hasRole('Super Admin'))
                             <li class="nav-item">
-                                <a class="nav-link  {{ Route::currentRouteName() == 'verifikator.pilih-peneliti' ? 'active' : '' }}"
+                                <a class="nav-link  {{ Route::currentRouteName() == 'verifikator.pilih-peneliti' ? 'active' : '' }} rancangan"
                                     href="{{ route('verifikator.pilih-peneliti') }}">
                                     <i class="bi bi-person-check"></i>
                                     <span class="nav-link-text">Pilih Peneliti</span>
@@ -101,7 +101,7 @@
                         @endif
                         @if (Auth::user()->hasRole('Peneliti') || Auth::user()->hasRole('Super Admin'))
                             <li class="nav-item">
-                                <a class="nav-link {{ Route::currentRouteName() == 'revisi.rancangan' ? 'active' : '' }}"
+                                <a class="nav-link {{ Route::currentRouteName() == 'revisi.rancangan' ? 'active' : '' }} rancangan"
                                     href="{{ route('revisi.rancangan') }}">
                                     <i class="bi bi-pencil-square"></i>
                                     <span class="nav-link-text">Upload Revisi</span>
@@ -110,13 +110,14 @@
                         @endif
                         @if (Auth::user()->hasRole('Verifikator') || Auth::user()->hasRole('Super Admin'))
                             <li class="nav-item">
-                                <a class="nav-link {{ Route::currentRouteName() == 'verifikator.validasi-rancangan' ? 'active' : '' }}"
+                                <a class="nav-link {{ Route::currentRouteName() == 'verifikator.validasi-rancangan' ? 'active' : '' }} rancangan "
                                     href="{{ route('verifikator.validasi-rancangan') }}">
                                     <i class="bi bi-clipboard2-check"></i>
                                     <span class="nav-link-text">Validasi Rancangan</span>
                                 </a>
                             </li>
                         @endif
+
                     </ul>
 
                     {{-- Divider --}}
@@ -126,32 +127,54 @@
                     <h6 class="navbar-heading p-0 text-muted">
                         <span class="docs-normal">Fasilitasi Produk Hukum</span>
                     </h6>
+
                     {{-- Navigation --}}
                     <ul class="navbar-nav mb-md--1">
-                        <li class="nav-item">
-                            <a class="nav-link" href="fasilitasi.html">
-                                <i class="bi bi-files"></i>
-                                <span class="nav-link-text">Daftar Fasilitasi</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="addfasilitasi.html">
-                                <i class="bi bi-file-earmark-plus"></i>
-                                <span class="nav-link-text">Tambah Fasilitasi</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="verifikasi.html">
-                                <i class="bi bi-file-earmark-check"></i>
-                                <span class="nav-link-text">Verifikasi Fasilitasi</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="nota.html">
-                                <i class="bi bi-file-text"></i>
-                                <span class="nav-link-text">Daftar Nota Dinas</span>
-                            </a>
-                        </li>
+                        @if (Auth::user()->hasRole('Perangkat Daerah') || Auth::user()->hasRole('Super Admin'))
+                            <li class="nav-item">
+                                <a class="nav-link nav-link {{ Route::currentRouteName() == 'fasilitasiku.main' ? 'active' : '' }} fasilitasi"
+                                    href="{{ route('fasilitasiku.main') }}">
+                                    <i class="bi bi-files"></i>
+                                    <span class="nav-link-text">Fasilitasiku</span>
+                                </a>
+                            </li>
+                        @endif
+                        @if (Auth::user()->hasRole('Peneliti') || Auth::user()->hasRole('Super Admin'))
+                            <li class="nav-item">
+                                <a class="nav-link {{ Route::currentRouteName() == 'persetujuan-fasilitasi.main' ? 'active' : '' }} fasilitasi"
+                                    href="{{ route('persetujuan-fasilitasi.main') }}">
+                                    <i class="bi bi-file-check"></i>
+                                    <span class="nav-link-text">Persetujuan Fasilitasi</span>
+                                </a>
+                            </li>
+                        @endif
+
+                        @if (Auth::user()->hasRole('Verifikator') || Auth::user()->hasRole('Super Admin'))
+                            <li class="nav-item ">
+                                <a class="nav-link {{ Route::currentRouteName() == 'validasi-fasilitasi' ? 'active' : '' }} fasilitasi"
+                                    href="{{ route('validasi-fasilitasi') }}">
+                                    <i class="bi bi-journal-check"></i>
+                                    <span class="nav-link-text">Validasi Fasilitasi </span>
+                                </a>
+                            </li>
+                            <li class="nav-item ">
+                                <a class="nav-link {{ Route::currentRouteName() == 'kelola-ttd.main' ? 'active' : '' }} fasilitasi"
+                                    href="{{ route('kelola-ttd.main') }}">
+                                    <i class="bi bi-pen"></i>
+                                    <span class="nav-link-text">kelola TTD </span>
+                                </a>
+                            </li>
+                        @endif
+
+                        @if (Auth::user()->hasRole(['Admin', 'Verifikator', 'Perangkat Daerah']))
+                            <li class="nav-item">
+                                <a class="nav-link {{ Route::currentRouteName() == 'nota-dinas.generate' ? 'active' : '' }} fasilitasi"
+                                    href="{{ route('nota-dinas.generate') }}">
+                                    <i class="bi bi-file-text"></i>
+                                    <span class="nav-link-text">Daftar Nota Dinas</span>
+                                </a>
+                            </li>
+                        @endif
                     </ul>
 
                     {{-- Divider --}}
@@ -164,13 +187,13 @@
                     {{-- Navigation --}}
                     <ul class="navbar-nav mb-md-3">
                         <li class="nav-item">
-                            <a class="nav-link" href="dokumentasi.html">
+                            <a class="nav-link dokumentasi" href="dokumentasi.html">
                                 <i class="bi bi-folder-check"></i>
                                 <span class="nav-link-text">Daftar Dokumentasi</span>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="adddokumentasi.html">
+                            <a class="nav-link dokumentasi" href="adddokumentasi.html">
                                 <i class="bi bi-folder-plus"></i>
                                 <span class="nav-link-text">Tambah Dokumentasi</span>
                             </a>

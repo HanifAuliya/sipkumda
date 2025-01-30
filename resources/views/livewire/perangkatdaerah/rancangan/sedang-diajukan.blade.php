@@ -111,10 +111,22 @@
                                     </div>
                                 </div>
                             </div>
+                            @if ($item->status_berkas === 'Menunggu Persetujuan')
+                                <div class="alert alert-warning alert-dismissible fade show mb-2" role="alert">
+                                    <span class="alert-icon"><i class="bi bi-send"></i></span>
+                                    <span class="alert-text">
+                                        Rancangan <strong>{{ $item->status_berkas }}!</strong> Tunggu Admin memeriksa
+                                        berkas diajukan!.
+                                    </span>
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                            @endif
 
                             @if ($item->status_berkas === 'Ditolak')
                                 <div class="alert alert-danger alert-dismissible fade show mb-2" role="alert">
-                                    <span class="alert-icon"><i class="bi bi-clipboard-x"></i></i></span>
+                                    <span class="alert-icon"><i class="bi bi-clipboard-x"></i></span>
                                     <span class="alert-text">
                                         <strong>{{ $item->status_berkas }}!</strong> Rancangan telah
                                         {{ $item->status_berkas }}. Silahkan lakukan ke kelola rancangan >> Upload
@@ -177,8 +189,9 @@
 
                         <div class="mt-2">
                             <div class="dropdown">
-                                <button class="btn btn-neutral dropdown-toggle" type="button" id="dropdownMenuButton"
-                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <button class="btn btn-neutral dropdown-toggle" type="button"
+                                    id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true"
+                                    aria-expanded="false">
                                     <i class="bi bi-gear"></i> Kelola Rancangan
                                 </button>
                                 <div class="dropdown-menu shadow-lg" aria-labelledby="dropdownMenuButton">
@@ -186,7 +199,7 @@
                                     <a href="#" class="dropdown-item d-flex align-items-center"
                                         data-toggle="modal"
                                         data-target="#detailModalPengajuan-{{ $item->id_rancangan }}">
-                                        <i class="bi bi-folder mr-2 text-warning"></i>
+                                        <i class="bi bi-folder text-warning"></i>
                                         <span>Detail Pengajuan</span>
                                     </a>
                                     {{-- Upload Ulang Berkas Ditolak --}}
@@ -207,8 +220,8 @@
 
             {{-- Modal Detail --}}
             <div wire:ignore.self class="modal fade" id="detailModalPengajuan-{{ $item->id_rancangan }}"
-                tabindex="-1" role="dialog" aria-labelledby="detailModalLabelPengajuan" aria-hidden="true"
-                data-backdrop="static" data-keyboard="false">
+                tabindex="-1" role="dialog" aria-labelledby="detailModalLabelPengajuan" data-backdrop="static"
+                data-keyboard="false">
                 <div class="modal-dialog  modal-xl no-style-modal" role="document">
                     <div class="modal-content">
                         {{-- Body Modal --}}
@@ -280,6 +293,18 @@
                                                     <th>Perangkat Daerah</th>
                                                     <td class="wrap-text-td-70 ">
                                                         {{ $item->user->perangkatDaerah->nama_perangkat_daerah ?? 'N/A' }}
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Nomor Nota</th>
+                                                    <td class="wrap-text-td-70 ">
+                                                        {{ $item->nomor_nota ?? 'N/A' }}
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Tanggal Nota</th>
+                                                    <td>
+                                                        {{ $item->tanggal_nota ? \Carbon\Carbon::parse($item->tanggal_nota)->translatedFormat('d F Y') : 'N/A' }}
                                                     </td>
                                                 </tr>
                                                 <tr>
@@ -537,9 +562,8 @@
 
     {{-- Modal Upload Ulang Berkas Ditolak --}}
     <div wire:ignore.self class="modal fade" id="uploadUlangBerkasModal" tabindex="-1" role="dialog"
-        aria-labelledby="uploadUlangBerkasModalLabel" aria-hidden="true" data-backdrop="static"
-        data-keyboard="false">
-        <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+        aria-labelledby="uploadUlangBerkasModalLabel" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="uploadUlangBerkasModalLabel">Upload Ulang Berkas Ditolak</h5>
@@ -551,15 +575,42 @@
                 <form wire:submit.prevent="uploadUlangBerkas">
                     {{-- Modal Body --}}
                     <div class="modal-body">
+                        <div class="row">
+                            <!-- Input Tanggal Nota -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="tanggalNota" class="form-label font-weight-bold">Tanggal Nota</label>
+                                    <input type="date" id="tanggalNota" class="form-control"
+                                        wire:model="tanggalNota" required />
+                                    @error('tanggalNota')
+                                        <span class="text-danger">{{ $message }}</span>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <!-- Input Nomor Nota -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="nomorNota" class="form-label font-weight-bold">Nomor Nota</label>
+                                    <input type="text" id="nomorNota" class="form-control" wire:model="nomorNota"
+                                        placeholder="Masukkan Nomor Nota" required />
+                                    @error('nomorNota')
+                                        <span class="text-danger">{{ $message }}</span>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
+
+
                         {{-- Input File Nota Dinas --}}
                         <div class="mb-4">
                             <label for="fileNotaDinas" class="font-weight-bold form-control-label">
                                 <i class="bi bi-file-earmark-pdf text-primary"></i> File Nota Dinas
                                 <small class="text-muted d-block">Unggah dokumen nota dinas dalam format PDF (max:
-                                    2MB).</small>
+                                    5mb).</small>
                             </label>
                             <input type="file" id="fileNotaDinas" class="form-control" wire:model="fileNotaDinas"
-                                accept="application/pdf" />
+                                accept="application/pdf" wire:change="resetError('fileNotaDinas')" />
                             <div wire:loading wire:target="fileNotaDinas" class="text-info mt-2">
                                 <i class="spinner-border spinner-border-sm"></i> Mengunggah Nota Dinas...
                             </div>
@@ -572,10 +623,10 @@
                             <label for="fileRancangan" class="font-weight-bold form-control-label">
                                 <i class="bi bi-file-earmark-pdf text-primary"></i> File Rancangan
                                 <small class="text-muted d-block">Unggah dokumen rancangan dalam format PDF (max:
-                                    2MB).</small>
+                                    5mb).</small>
                             </label>
                             <input type="file" id="fileRancangan" class="form-control" wire:model="fileRancangan"
-                                accept="application/pdf" />
+                                accept="application/pdf" wire:change="resetError('fileRancangan')" />
                             <div wire:loading wire:target="fileRancangan" class="text-info mt-2">
                                 <i class="spinner-border spinner-border-sm"></i> Mengunggah File Rancangan...
                             </div>
@@ -589,10 +640,10 @@
                             <label for="fileMatrik" class="font-weight-bold form-control-label">
                                 <i class="bi bi-file-earmark-pdf text-primary"></i> File Matrik
                                 <small class="text-muted d-block">Unggah matrik dokumen dalam format PDF (max:
-                                    2MB).</small>
+                                    5mb).</small>
                             </label>
                             <input type="file" id="fileMatrik" class="form-control" wire:model="fileMatrik"
-                                accept="application/pdf" />
+                                accept="application/pdf" wire:change="resetError('fileMatrik')" />
                             <div wire:loading wire:target="fileMatrik" class="text-info mt-2">
                                 <i class="spinner-border spinner-border-sm"></i> Mengunggah File Matrik...
                             </div>
@@ -606,10 +657,11 @@
                             <label for="fileBahanPendukung" class="font-weight-bold form-control-label">
                                 <i class="bi bi-file-earmark-pdf text-primary"></i> File Bahan Pendukung (Opsional)
                                 <small class="text-muted d-block">Unggah dokumen bahan pendukung dalam format PDF (max:
-                                    2MB).</small>
+                                    5mb).</small>
                             </label>
                             <input type="file" id="fileBahanPendukung" class="form-control"
-                                wire:model="fileBahanPendukung" accept="application/pdf" />
+                                wire:model="fileBahanPendukung" accept="application/pdf"
+                                wire:change="resetError('fileBahanPendukung')" />
                             <div wire:loading wire:target="fileBahanPendukung" class="text-info mt-2">
                                 <i class="spinner-border spinner-border-sm"></i> Mengunggah Bahan Pendukung...
                             </div>
@@ -621,9 +673,8 @@
                             <input class="form-check-input" type="checkbox" id="hapusBahanPendukung"
                                 wire:model="hapusBahanPendukung">
                             <label class="form-check-label" for="hapusBahanPendukung">
-                                Hapus Bahan Pendukung Lama <small class="text-danger"> (CENTANG INI APABILA ANDA
-                                    SEBLUMNYA SUDAH MEMPUNYAI BAHAN PENDUKUNG DAN AKAN MENGUPLOAD FIE TANPA BAHAN
-                                    PENDUKUNG !)</small>
+                                Hapus Bahan Pendukung Lama <small class="info-text"> (Centang ini apabila anda tidak
+                                    menggunakan bahan pendukung)</small>
                             </label>
                         </div>
                     </div>
@@ -634,7 +685,7 @@
                             <i class="bi bi-x"></i>
                             Batal
                         </button>
-                        <button type="button" class="btn btn-otuline-default" wire:click="uploadUlangBerkas"
+                        <button type="button" class="btn btn-outline-default" wire:click="uploadUlangBerkas"
                             wire:loading.attr="disabled">
                             <span wire:loading.remove wire:target="uploadUlangBerkas">
                                 <i class="bi bi-upload"></i> Upload Ulang

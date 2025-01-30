@@ -27,16 +27,25 @@ class SedangDiajukan extends Component
     public $fileRancangan; // File rancangan
     public $fileMatrik; // File matrik
     public $fileNotaDinas; // File nota dinas
+    public $nomorNota; // File bahan pendukung
+    public $tanggalNota; // File bahan pendukung
     public $fileBahanPendukung; // File bahan pendukung
     public $hapusBahanPendukung = false;
 
     protected $listeners = ['rancanganDiperbarui' => 'refreshRancangan'];
 
 
-    // Membuka modal upload ulang
     public function openUploadUlangModal($id)
     {
-        $this->selectedRancanganId = $id;
+        // Cari data rancangan berdasarkan ID
+        $rancangan = RancanganProdukHukum::findOrFail($id);
+
+        // Set properti Livewire dengan data rancangan
+        $this->selectedRancanganId = $rancangan->id_rancangan;
+        $this->tanggalNota = $rancangan->tanggal_nota;
+        $this->nomorNota = $rancangan->nomor_nota;
+
+        // Emit event untuk membuka modal
         $this->dispatch('openUploadUlangBerkasModal');
     }
 
@@ -49,6 +58,8 @@ class SedangDiajukan extends Component
             'fileMatrik' => 'required|mimes:pdf|max:2048', // File matrik wajib
             'fileNotaDinas' => 'required|mimes:pdf|max:2048', // File nota dinas wajib
             'fileBahanPendukung' => 'nullable|mimes:pdf|max:2048', // File bahan pendukung opsional
+            'tanggalNota' => 'required|date', // Tanggal Nota
+            'nomorNota' => 'required|string|max:255', // Nomor Nota
         ]);
 
         // Cari rancangan berdasarkan ID yang dipilih
@@ -100,6 +111,9 @@ class SedangDiajukan extends Component
             'nota_dinas_pd' => $notaDinasPath,
             'bahan_pendukung' => $bahanPendukungPath,
             'status_berkas' => 'Menunggu Persetujuan',
+            'nomor_nota' => $this->nomorNota,
+            'tanggal_nota' => $this->tanggalNota,
+            'status_berkas' => 'Menunggu Persetujuan',
         ]);
 
         // Kirim notifikasi ke admin
@@ -125,6 +139,12 @@ class SedangDiajukan extends Component
         $this->dispatch('closeUploadUlangBerkasModal');
     }
 
+    public function resetError($field)
+    {
+        // Reset error validasi untuk field tertentu
+        $this->resetErrorBag($field);
+    }
+
 
     public function resetForm()
     {
@@ -148,6 +168,12 @@ class SedangDiajukan extends Component
         // Hapus semua error validasi
         $this->resetValidation();
     }
+
+    public function resetData()
+    {
+        $this->reset(['selectedRancanganId']);
+    }
+
 
 
     public function refreshRancangan()

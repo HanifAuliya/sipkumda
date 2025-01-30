@@ -53,21 +53,29 @@ class PilihPeneliti extends Component
         $this->dispatch('refreshNotifications');
 
         // Kirim notifikasi ke user yang mengajukan rancangan
-        Notification::send(
-            $this->selectedRancangan->user,
-            new PilihPenelitiNotification([
-                'title' => "Peneliti Telah Ditugaskan untuk Rancangan Nomor {$this->selectedRancangan->no_rancangan}",
-                'message' => "Rancangan Anda dengan nomor {$this->selectedRancangan->no_rancangan} telah disetujui, dan peneliti telah ditetapkan untuk melaksanakan revisi. Mohon menunggu proses revisi oleh peneliti yang ditugaskan.",
-                'slug' => $this->selectedRancangan->slug,
-                'type' => 'peneliti_dipilih',
-            ])
-        );
+        $peneliti = User::find($this->selectedPeneliti);
+        Notification::send($peneliti, new PilihPenelitiNotification([
+            'title' => "Penugasan Baru rancangan {$this->selectedRancangan->no_rancangan}",
+            'message' => "Anda telah ditugaskan untuk meneliti rancangan: {$this->selectedRancangan->tentang} Segera periksa dan lakukan revisi !",
+            'slug' => $this->selectedRancangan->slug,
+            'type' => 'upload_revisi',
+        ]));
 
         $this->dispatch('closeModalPilihPeneliti');
+
+        $this->dispatch('refreshData');
+        // refresh halaman
+        $this->dispatch('refresh');
+
         $this->dispatch('swal:notif', [
             'type' => 'success',
             'message' => 'Peneliti berhasil ditugaskan untuk revisi rancangan.',
         ]);
+    }
+
+    public function refreshData()
+    {
+        $this->reset(['selectedRancangan']);
     }
 
     public function checkDataLoaded()

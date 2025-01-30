@@ -170,7 +170,7 @@
         </div>
     </div>
     <div wire:ignore.self class="modal fade" id="detailModal" tabindex="-1" role="dialog"
-        aria-labelledby="detailModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+        aria-labelledby="detailModalLabel" data-backdrop="static" data-keyboard="false">
         <div class="modal-dialog modal-xl no-style-modal" role="document">
             <div class="modal-content ">
                 {{-- Body Modal untuk header --}}
@@ -240,6 +240,18 @@
                                             <th>Perangkat Daerah</th>
                                             <td class="wrap-text-td-70 ">
                                                 {{ $selectedRancangan->user->perangkatDaerah->nama_perangkat_daerah ?? 'N/A' }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Nomor Nota</th>
+                                            <td class="wrap-text-td-70 ">
+                                                {{ $selectedRancangan->nomor_nota ?? 'N/A' }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Tanggal Nota</th>
+                                            <td>
+                                                {{ $selectedRancangan->tanggal_nota ? \Carbon\Carbon::parse($selectedRancangan->tanggal_nota)->translatedFormat('d F Y') : 'N/A' }}
                                             </td>
                                         </tr>
                                         <tr>
@@ -497,13 +509,15 @@
                             </div>
                         </div>
                     @else
-                        {{-- Spinner Loading --}}
-                        <div class="card mb-3">
-                            <div class="d-flex justify-content-center align-items-center">
-                                <div class="spinner-border text-primary" role="status">
-                                    <span class="sr-only">Loading...</span>
+                        <div class="card">
+                            <div class="d-flex justify-content-center align-items-start"
+                                style="min-height: 200px; padding-top: 50px;">
+                                <div class="text-center">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="sr-only">Loading...</span>
+                                    </div>
+                                    <p class="mt-3 info-text">Sedang memuat data, harap tunggu...</p>
                                 </div>
-                                <p class="mt-3 ml-3 text-muted">Sedang memuat data, harap tunggu...</p>
                             </div>
                         </div>
                     @endif

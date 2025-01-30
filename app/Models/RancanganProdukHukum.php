@@ -28,6 +28,8 @@ class RancanganProdukHukum extends Model
         'status_berkas',
         'status_rancangan',
         'catatan_berkas',
+        'tanggal_nota',
+        'nomor_nota'
     ];
 
     // Mutator untuk nomor rancangan otomatis
@@ -81,5 +83,11 @@ class RancanganProdukHukum extends Model
     public function revisi()
     {
         return $this->hasMany(Revisi::class, 'id_rancangan', 'id_rancangan');
+    }
+
+    // Relasi ke tabel fasilitasi_produk_hukum
+    public function fasilitasi()
+    {
+        return $this->hasOne(FasilitasiProdukHukum::class, 'rancangan_id');
     }
 }

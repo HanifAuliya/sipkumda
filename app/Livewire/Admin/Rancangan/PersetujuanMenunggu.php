@@ -104,9 +104,11 @@ class PersetujuanMenunggu extends Component
                 ])
             );
 
-
             // Emit notifikasi sukses ke pengguna
             $this->dispatch('refreshNotifications');
+            // reset
+            $this->resetForm();
+
 
             $this->dispatch('swal:modal', [
                 'type' => 'success',
@@ -117,6 +119,7 @@ class PersetujuanMenunggu extends Component
 
     public function resetForm()
     { // Atur ulang semua properti ke nilai default
+        $this->selectedRancangan = null;
 
         $this->resetErrorBag(); // Reset error validasi
         $this->resetValidation(); // Reset tampilan error validasi

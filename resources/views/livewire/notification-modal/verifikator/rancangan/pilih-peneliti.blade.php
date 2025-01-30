@@ -1,5 +1,6 @@
     {{-- Modal --}}
-    <div wire:ignore.self class="modal fade" id="notificationPilihPeneliti" tabindex="-1">
+    <div wire:ignore.self class="modal fade" id="notificationPilihPeneliti" tabindex="-1" data-backdrop="static"
+        data-keyboard="false">
         <div class="modal-dialog modal-xl no-style-modal">
             @if ($selectedRancangan)
                 @if ($selectedRancangan && $selectedRancangan->status_berkas === 'Disetujui')
@@ -47,6 +48,18 @@
                                                 <tr>
                                                     <th class="info-text">Perangkat Daerah</th>
                                                     <td>{{ $selectedRancangan->user->perangkatDaerah->nama_perangkat_daerah ?? 'N/A' }}
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Nomor Nota</th>
+                                                    <td class="wrap-text-td-70 ">
+                                                        {{ $selectedRancangan->nomor_nota ?? 'N/A' }}
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Tanggal Nota</th>
+                                                    <td>
+                                                        {{ $selectedRancangan->tanggal_nota ? \Carbon\Carbon::parse($selectedRancangan->tanggal_nota)->translatedFormat('d F Y') : 'N/A' }}
                                                     </td>
                                                 </tr>
                                                 <tr>
@@ -150,8 +163,10 @@
                                             <tbody>
                                                 @foreach ($selectedRancangan->revisi as $revisi)
                                                     <tr>
-                                                        <th>Status Revisi</th>
-                                                        <td class="info-text">
+                                                        <th class="info-text w-25">Status Revisi</th>
+                                                        <td
+                                                            class="wrap-text
+                                                            w-75">
                                                             <mark
                                                                 class="badge-{{ $revisi->status_revisi === 'Direvisi' ? 'success' : ($revisi->status_revisi === 'Menunggu Revisi' ? 'warning' : 'danger') }} badge-pill">
                                                                 {{ $revisi->status_revisi }}
@@ -159,26 +174,26 @@
                                                         </td>
                                                     </tr>
                                                     <tr>
-                                                        <th>Tanggal Revisi</th>
-                                                        <td class="info-text">
+                                                        <th class="info-text w-25">Tanggal Revisi</th>
+                                                        <td class="wrap-text w-75">
                                                             {{ $revisi->tanggal_revisi ? \Carbon\Carbon::parse($revisi->tanggal_revisi)->translatedFormat('d F Y, H:i') : 'N/A' }}
                                                         </td>
                                                     </tr>
                                                     <tr>
-                                                        <th>Peneliti</th>
-                                                        <td class="info-text ">
+                                                        <th class="info-text w-25">Peneliti</th>
+                                                        <td class="wrap-text w-75">
                                                             {{ $revisi->peneliti->nama_user ?? 'Belum Ditentukan' }}
                                                         </td>
                                                     </tr>
                                                     <tr>
-                                                        <th>Tanggal Peneliti Ditunjuk</th>
-                                                        <td class="info-text">
+                                                        <th class="info-text w-25">Tanggal Peneliti Ditunjuk</th>
+                                                        <td class="wrap-text w-75">
                                                             {{ $revisi->tanggal_peneliti_ditunjuk ? \Carbon\Carbon::parse($revisi->tanggal_peneliti_ditunjuk)->translatedFormat('d F Y, H:i') : 'Belum Ditentukan' }}
                                                         </td>
                                                     </tr>
                                                     <tr>
-                                                        <th>Revisi Rancangan</th>
-                                                        <td class="info-text">
+                                                        <th class="info-text w-25">Revisi Rancangan</th>
+                                                        <td class="wrap-text w-75">
                                                             @if ($revisi->revisi_rancangan)
                                                                 <a href="{{ asset('storage/' . $revisi->revisi_rancangan) }}"
                                                                     target="_blank" class="d-flex align-items-center">
@@ -196,8 +211,8 @@
                                                         </td>
                                                     </tr>
                                                     <tr>
-                                                        <th>Revisi Matrik</th>
-                                                        <td class="info-text">
+                                                        <th class="info-text w-25">Revisi Matrik</th>
+                                                        <td class="wrap-text w-75">
                                                             @if ($revisi->revisi_matrik)
                                                                 <a href="{{ asset('storage/' . $revisi->revisi_matrik) }}"
                                                                     target="_blank" class="d-flex align-items-center">
@@ -260,13 +275,6 @@
                                                     <span class="text-danger">{{ $message }}</span>
                                                 @enderror
                                             </div>
-                                        @endif
-
-                                    </div>
-
-                                    <div class="modal-footer">
-                                        {{-- Tombol Batal --}}
-                                        @if (!$selectedRancangan->revisi->first()?->peneliti)
                                             <button class="btn btn-neutral" data-dismiss="modal">
                                                 <i class="bi bi-x-circle"></i> Batal
                                             </button>
@@ -279,8 +287,16 @@
                                                 <i class="spinner-border spinner-border-sm text-light" wire:loading></i>
                                                 <span wire:loading>Memproses...</span>
                                             </button>
+                                        @endif
+
+                                    </div>
+
+                                    <div class="modal-footer">
+                                        {{-- Tombol Batal --}}
+                                        @if (!$selectedRancangan->revisi->first()?->peneliti)
                                         @else
-                                            <button class="btn btn-neutral" data-dismiss="modal">
+                                            <button class="btn btn-outline-warning" data-dismiss="modal"
+                                                wire:click="refreshData">
                                                 <i class="bi bi-x-circle"></i> Tutup
                                         @endif
                                     </div>

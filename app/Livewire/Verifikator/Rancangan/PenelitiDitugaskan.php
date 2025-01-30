@@ -28,7 +28,13 @@ class PenelitiDitugaskan extends Component
     protected $listeners = [
         'resetPenelitiConfirmed' => 'resetPeneliti',
         'pilihUlangPenelitiConfirmed' => 'pilihUlangPeneliti',
+        'refresh' => 'refreshRancangan'
     ];
+
+    public function refreshRancangan()
+    {
+        $this->resetPage(); // Reset ke halaman pertama
+    }
 
 
     public function updatedSearch()

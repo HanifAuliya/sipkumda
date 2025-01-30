@@ -17,6 +17,12 @@ class RiwayatPengajuan extends Component
     protected $queryString = ['search', 'perPage', 'page']; // Untuk mempertahankan state URL
     public $selectedRancangan;
 
+    protected $listeners = ['rancanganDiperbarui' => 'refreshRancangan'];
+
+    public function refreshRancangan()
+    {
+        $this->resetPage(); // Reset ke halaman pertama
+    }
 
     public function loadDokumenRevisi($id)
     {

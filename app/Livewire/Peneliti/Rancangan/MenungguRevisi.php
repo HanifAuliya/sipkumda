@@ -33,7 +33,7 @@ class MenungguRevisi extends Component
 
     protected $rules = [
         'revisiRancangan' => 'required|file|max:10240|mimes:pdf',
-        'revisiMatrik' => 'required|file|max:10240|mimes:pdf',
+        'revisiMatrik' => 'required|file|max:10240|mimes:pdf,doc,docx,xls,xlsx|max:5120',
         'catatanRevisi' => 'required|string|max:1000',
     ];
     public function loadDetailRevisi($id)

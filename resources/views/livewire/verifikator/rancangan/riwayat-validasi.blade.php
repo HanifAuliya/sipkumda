@@ -136,11 +136,11 @@
 
     {{-- Pagination --}}
     <div class="d-flex justify-content-center mt-3">
-        {{ $riwayatValidasi->links() }}
+        {{ $riwayatValidasi->links('pagination::bootstrap-4') }}
     </div>
 
     <div wire:ignore.self class="modal fade" id="detailValidasiModal" tabindex="-1" role="dialog"
-        aria-labelledby="detailValidasiModalLabel" aria-hidden="true">
+        aria-labelledby="detailValidasiModalLabel">
         <div class="modal-dialog modal-xl no-style-modal" role="document">
             <div class="modal-content">
                 @if ($selectedRancangan)

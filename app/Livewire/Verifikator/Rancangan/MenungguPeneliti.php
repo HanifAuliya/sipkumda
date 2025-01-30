@@ -22,6 +22,12 @@ class MenungguPeneliti extends Component
     public $selectedRancangan;
     public $selectedPeneliti;
 
+    protected $listeners = ['refresh' => 'refreshRancangan'];
+
+    public function refreshRancangan()
+    {
+        $this->resetPage(); // Reset ke halaman pertama
+    }
 
     protected $rules = [
         'selectedPeneliti' => 'required|exists:users,id',

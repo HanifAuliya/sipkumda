@@ -132,7 +132,7 @@
 
             {{-- Modal Detail Persetujuan --}}
             <div wire:ignore.self class="modal fade" id="modalPersetujuan" tabindex="-1" role="dialog"
-                aria-hidden="true" data-backdrop="static" data-keyboard="false">
+                data-backdrop="static" data-keyboard="false">
                 <div class="modal-dialog modal-xl no-style-modal" role="document">
                     <div class="modal-content">
                         {{--  Header Modal  --}}
@@ -193,6 +193,18 @@
                                                         <th class="info-text w-25">Perangkat Daerah</th>
                                                         <td class="wrap-text w-75">
                                                             {{ $selectedRancangan->user->perangkatDaerah->nama_perangkat_daerah ?? 'N/A' }}
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Nomor Nota</th>
+                                                        <td class="wrap-text-td-70 ">
+                                                            {{ $selectedRancangan->nomor_nota ?? 'N/A' }}
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Tanggal Nota</th>
+                                                        <td>
+                                                            {{ $selectedRancangan->tanggal_nota ? \Carbon\Carbon::parse($selectedRancangan->tanggal_nota)->translatedFormat('d F Y') : 'N/A' }}
                                                         </td>
                                                     </tr>
                                                     <tr>
@@ -330,8 +342,7 @@
 
             {{-- Modal Konfirmasi Reset Status --}}
             <div wire:ignore.self class="modal fade" id="resetStatusModal" tabindex="-1" role="dialog"
-                aria-labelledby="resetStatusModalLabel" aria-hidden="true" data-backdrop="static"
-                data-keyboard="false">
+                aria-labelledby="resetStatusModalLabel" data-backdrop="static" data-keyboard="false">
                 <div class="modal-dialog modal-dialog-centered" role="document">
                     <div class="modal-content">
                         {{-- Header --}}

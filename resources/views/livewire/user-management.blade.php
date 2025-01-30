@@ -188,7 +188,7 @@
 
                 {{-- Modal Tambah --}}
                 <div wire:ignore.self class="modal fade" id="addUserModal" tabindex="-1" role="dialog"
-                    aria-labelledby="addUserModalLabel" aria-hidden="true">
+                    aria-labelledby="addUserModalLabel">
                     <div class="modal-dialog modal-lg" role="document">
                         <div class="modal-content">
                             <form wire:submit.prevent="store">

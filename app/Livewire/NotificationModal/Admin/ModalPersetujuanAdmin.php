@@ -92,51 +92,19 @@ class ModalPersetujuanAdmin extends Component
             // refresh halaman
             $this->dispatch('rancanganDiperbarui');
 
+            $this->dispatch('refreshData');
+
+            $this->dispatch('closeModal');
 
             $this->dispatch('swal:modalPersetujuan', [
                 'type' => 'success',
                 'message' => "Status Berkas Rancangan berhasil di {$this->statusBerkas}! "
             ]);
         }
-        $this->reset();
     }
-
-    // public function resetStatus()
-    // {
-    //     if ($this->rancangan) {
-    //         $this->rancangan->status_berkas = 'Menunggu Persetujuan';
-    //         $this->rancangan->catatan_berkas = null;
-    //         $this->rancangan->tanggal_berkas_disetujui = null; // Reset tanggal jika status direset
-    //         $this->rancangan->save();
-
-    //         $this->statusBerkas = 'Menunggu Persetujuan';
-    //         $this->catatan = null;
-
-    //         // Kirim notifikasi ke user
-    //         Notification::send(
-    //             $this->rancangan->user, // User yang mengajukan rancangan
-    //             new PersetujuanRancanganNotification([
-    //                 'title' => "Rancangan Anda {$this->statusBerkas}",
-    //                 'message' => "Rancangan Anda dengan nomor {$this->rancangan->no_rancangan} telah {$this->statusBerkas}. Silahkan Periksa !",
-    //                 'slug' => $this->rancangan->slug, // Slug untuk memuat modal detail
-    //                 'type' => 'persetujuan_menunggu', // Tipe notifikasi
-    //                 // 'url' => route('user.rancangan.detail', $this->rancangan->id), // URL detail rancangan
-    //             ])
-    //         );
-
-    //         // Emit notifikasi sukses ke pengguna
-    //         $this->dispatch('refreshNotifications');
-
-    //         $this->dispatch('swal:modalPersetujuan', [
-    //             'type' => 'info',
-    //             'message' => 'Status rancangan dikembalikan ke Menunggu Persetujuan.',
-    //         ]);
-    //     }
-    // }
-
     public function resetForm()
     { // Atur ulang semua properti ke nilai default
-
+        $this->reset(['rancangan']);
         $this->resetErrorBag(); // Reset error validasi
         $this->resetValidation(); // Reset tampilan error validasi
     }

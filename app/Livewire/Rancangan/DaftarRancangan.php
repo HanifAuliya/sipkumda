@@ -108,8 +108,6 @@ class DaftarRancangan extends Component
         $this->selectedRancangan = null;
     }
 
-
-
     public function render()
     {
         $rancanganProdukHukum = RancanganProdukHukum::with(['user.perangkatDaerah', 'revisi'])

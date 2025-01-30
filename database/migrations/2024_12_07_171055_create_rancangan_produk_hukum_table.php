@@ -18,6 +18,8 @@ return new class extends Migration
             $table->enum('jenis_rancangan', ['Peraturan Bupati', 'Surat Keputusan']);
             $table->string('tentang', 255);
             $table->string('nota_dinas_pd', 255)->nullable();
+            $table->string('nomor_nota', 255)->nullable();
+            $table->date('tanggal_nota')->nullable();
             $table->string('rancangan', 255)->nullable();
             $table->string('matrik', 255)->nullable();
             $table->string('bahan_pendukung', 255)->nullable();

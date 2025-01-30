@@ -241,6 +241,21 @@
     background-color: var(--default) !important;
     transform: none !important;
 }
+.sidenav .nav-link.active.rancangan {
+    color: var(--white) !important;
+    background-color: var(--warning) !important;
+    transform: none !important;
+}
+.sidenav .nav-link.active.fasilitasi {
+    color: var(--white) !important;
+    background-color: var(--primary) !important;
+    transform: none !important;
+}
+.sidenav .nav-link.active.dokumentasi {
+    color: var(--white) !important;
+    background-color: var(--success) !important;
+    transform: none !important;
+}
 
 .sidenav .nav-link.active i {
     color: var(--white) !important;

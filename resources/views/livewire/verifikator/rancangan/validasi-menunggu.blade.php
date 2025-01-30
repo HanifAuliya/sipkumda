@@ -85,7 +85,7 @@
 
                         <div class="mt-2">
                             <a href="#" class="btn btn-neutral" data-toggle="modal"
-                                wire:click="openModalValidasiRancangan({{ $item->id_rancangan }})"
+                                wire:click.prevent="openModalValidasiRancangan({{ $item->id_rancangan }})"
                                 data-target="#modalValidasiRancangan">
                                 Validasi Rancangan <i class="bi bi-question-circle"></i>
                             </a>
@@ -100,11 +100,11 @@
 
     {{-- Pagination --}}
     <div class="d-flex justify-content-center mt-3">
-        {{ $rancanganMenunggu->links() }}
+        {{ $rancanganMenunggu->links('pagination::bootstrap-4') }}
     </div>
 
     <div wire:ignore.self class="modal fade" id="modalValidasiRancangan" tabindex="-1" role="dialog"
-        aria-labelledby="modalValidasiRancanganLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+        aria-labelledby="modalValidasiRancanganLabel" data-backdrop="static" data-keyboard="false">
         <div class="modal-dialog modal-xl no-style-modal" role="document">
             <div class="modal-content">
                 <div class="modal-body">
@@ -203,8 +203,7 @@
                                                         @if ($selectedRancangan->matrik)
                                                             <a href="{{ url('/view-private/rancangan/matrik/' . basename($selectedRancangan->matrik)) }}"
                                                                 target="_blank" class="d-flex align-items-center">
-                                                                <i
-                                                                    class="bi bi-file-earmark-pdf mr-2 text-success"></i>
+                                                                <i class="bi bi-file-earmark-pdf mr-2 text-success"></i>
                                                                 Lihat Matrik
                                                             </a>
                                                         @else
@@ -396,7 +395,6 @@
                                                         <i class="bi bi-check-circle mr-1"></i> Validasi
                                                     </span>
                                                 </button>
-
                                             </div>
                                         </form>
                                     </div>

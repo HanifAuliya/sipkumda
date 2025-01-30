@@ -53,22 +53,6 @@
     {{-- Loading Screen --}}
 
 
-    <div class="loading-screen" id="loading-screen" style="{{ session('loading', true) ? '' : 'display:none;' }}">
-        <div class="loading-content">
-            {{-- Logo and SIPKUMDA Text in Row --}}
-            <div class="logo-text-wrapper">
-                <div class="logo">
-                    <img src="{{ asset('assets/img/brand/loading_screen.png') }}" alt="Logo" class="img-fluid" />
-                </div>
-            </div>
-            <h1 class="sipkumda-title m-0">SIPKUMDA HST</h1>
-            {{-- Text Content Below --}}
-            <p class="typing-animation-loading m-0 mt-2">
-                Sistem Informasi Produk Hukum Daerah
-            </p>
-        </div>
-    </div>
-
 
     {{-- Sidebar --}}
     @include('layouts.partials.sidebar')
@@ -121,30 +105,26 @@
         <livewire:notification-modal.peneliti.rancangan.notificationrevisi />
 
         {{-- Notification Modal Script --}}
+        {{-- Notification Modal Script --}}
         <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                Livewire.on('openAdminPersetujuanModal', () => {
-                    const modal = new bootstrap.Modal(document.getElementById('adminPersetujuanModal'));
-                    modal.show();
+            document.addEventListener('DOMContentLoaded', function() {
+                Livewire.on('openAdminPersetujuanModal', function() {
+                    $('#adminPersetujuanModal').modal('show');
                 });
 
-                Livewire.on('openModalDetailRancangan', () => {
-                    const modal = new bootstrap.Modal(document.getElementById('modalDetailRancangan'));
-                    modal.show();
-                });
-                Livewire.on('openNotificationPilihPeneliti', () => {
-                    const modal = new bootstrap.Modal(document.getElementById('notificationPilihPeneliti'));
-                    modal.show();
-                });
-                Livewire.on('openModalNotificationRevisi', () => {
-                    const modal = new bootstrap.Modal(document.getElementById('notificationRevisi'));
-                    modal.show();
+                Livewire.on('openModalDetailRancangan', function() {
+                    $('#modalDetailRancangan').modal('show');
                 });
 
+                Livewire.on('openNotificationPilihPeneliti', function() {
+                    $('#notificationPilihPeneliti').modal('show');
+                });
+
+                Livewire.on('openModalNotificationRevisi', function() {
+                    $('#notificationRevisi').modal('show');
+                });
             });
         </script>
-
-
 
     </div>
 

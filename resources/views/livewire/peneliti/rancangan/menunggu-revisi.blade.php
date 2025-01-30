@@ -143,7 +143,7 @@
 
     {{-- Modal Unggah Revisi --}}
     <div wire:ignore.self class="modal fade" id="uploadRevisiModal" tabindex="-1" role="dialog"
-        aria-labelledby="uploadRevisiModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+        aria-labelledby="uploadRevisiModalLabel" data-backdrop="static" data-keyboard="false">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <form wire:submit.prevent="uploadRevisi">
@@ -178,7 +178,7 @@
                                 <small class="text-muted d-block">Unggah dokumen rancangan dalam format PDF (max:
                                     10 MB).</small>
                             </label>
-                            <input type="file" class="form-control" wire:model="revisiMatrik" accept=".pdf" />
+                            <input type="file" class="form-control" wire:model="revisiMatrik" />
                             <div wire:loading wire:target="revisiMatrik" class="text-info mt-2">
                                 <i class="spinner-border spinner-border-sm"></i> Mengunggah...
                             </div>
@@ -216,7 +216,7 @@
         </div>
     </div>
     <div wire:ignore.self class="modal fade" id="detailRevisiModal" tabindex="-1" role="dialog"
-        aria-labelledby="detailRevisiModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+        aria-labelledby="detailRevisiModalLabel" data-backdrop="static" data-keyboard="false">
         <div class="modal-dialog modal-xl no-style-modal" role="document">
             <div class="modal-content">
                 <div class="modal-body">
@@ -459,15 +459,6 @@
                                                 </tr>
                                             </tbody>
                                         </table>
-                                    </div>
-                                    <div class="card-body">
-                                        {{-- Alert Peneliti Sudah Dipilih --}}
-                                        <div class="alert alert-default" role="alert">
-                                            <i class="bi bi-info-circle"></i>
-                                            Revisi Rancangan berstatus
-                                            <strong>{{ $selectedRevisi->status_revisi }}.</strong>
-                                            Silahkan Tunggu Verifikator melakukan <strong>Validasi</strong> Revisi !
-                                        </div>
                                     </div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-outline-warning"

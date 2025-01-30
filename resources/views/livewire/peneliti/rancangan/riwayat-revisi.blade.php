@@ -189,7 +189,7 @@
     </div>
 
     <div wire:ignore.self class="modal fade" id="detailRevisiModal" tabindex="-1" role="dialog"
-        aria-labelledby="detailRevisiModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+        aria-labelledby="detailRevisiModalLabel" data-backdrop="static" data-keyboard="false">
         <div class="modal-dialog modal-xl no-style-modal" role="document">
             <div class="modal-content">
                 <div class="modal-body">
@@ -500,7 +500,7 @@
     </div>
 
     <div wire:ignore.self class="modal fade" id="uploadRevisiModal" tabindex="-1" role="dialog"
-        aria-labelledby="uploadRevisiModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+        aria-labelledby="uploadRevisiModalLabel" data-backdrop="static" data-keyboard="false">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">

@@ -11,9 +11,15 @@ class DetailRancangan extends Component
 
     protected $listeners = ['openModalDetailRancangan' => 'loadRancangan'];
 
+
     public function loadRancangan($slug)
     {
         $this->rancangan = RancanganProdukHukum::where('slug', $slug)->first();
+    }
+
+    public function refreshData()
+    {
+        $this->reset(['rancangan']);
     }
     public function render()
     {

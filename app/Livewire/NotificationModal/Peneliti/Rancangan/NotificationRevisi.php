@@ -117,14 +117,10 @@ class NotificationRevisi extends Component
             'message' => 'Revisi berhasil diunggah dan dikirim untuk validasi.',
         ]);
 
-
         // Emit event untuk menutup modal
         $this->dispatch('closeModalNotificationRevisi');
 
         $this->dispatch('refreshPage');
-
-        // Reset form setelah berhasil
-        $this->reset(['revisiRancangan', 'revisiMatrik', 'catatanRevisi', 'selectedRevisiId', 'selectedRevisi']);
     }
 
     public function resetForm()

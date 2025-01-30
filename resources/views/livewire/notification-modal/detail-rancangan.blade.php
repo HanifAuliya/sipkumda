@@ -1,24 +1,12 @@
 <div>
     <div wire:ignore.self class="modal fade" id="modalDetailRancangan" tabindex="-1" role="dialog"
-        aria-labelledby="modalDetailRancanganLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+        aria-labelledby="modalDetailRancanganLabel" data-backdrop="static" data-keyboard="false">
         <div class="modal-dialog modal-xl no-style-modal" role="document">
             <div class="modal-content">
                 <div class="modal-body">
                     {{-- Header --}}
                     @if ($rancangan)
                         <div class="card mb-3">
-                            <div class="modal-header">
-                                {{-- Teks Detail Rancangan --}}
-                                <h5 class="modal-title mb-0" id="detailModalLabel">
-                                    Detail Rancangan: {{ $rancangan->no_rancangan ?? 'N/A' }}
-                                </h5>
-
-                                {{-- Tombol --}}
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-
                         </div>
                         {{-- Informasi Utama --}}
                         <div class="card mb-3">
@@ -65,11 +53,22 @@
                                                 {{ $rancangan->user->nama_user ?? 'N/A' }}
                                             </td>
                                         </tr>
-
                                         <tr>
                                             <th>Perangkat Daerah</th>
                                             <td class="wrap-text-td-70 ">
                                                 {{ $rancangan->user->perangkatDaerah->nama_perangkat_daerah ?? 'N/A' }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Nomor Nota</th>
+                                            <td class="wrap-text-td-70 ">
+                                                {{ $rancangan->nomor_nota ?? 'N/A' }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Tanggal Nota</th>
+                                            <td>
+                                                {{ $rancangan->tanggal_nota ? \Carbon\Carbon::parse($rancangan->tanggal_nota)->translatedFormat('d F Y') : 'N/A' }}
                                             </td>
                                         </tr>
                                         <tr>
@@ -370,7 +369,8 @@
                         </div>
                     @endif
                     <div class="card mt-4">
-                        <button type="button" class="btn btn-neutral" data-dismiss="modal">Tutup Detail
+                        <button type="button" class="btn btn-neutral" data-dismiss="modal"
+                            wire:click="refreshData">Tutup Detail
                             Rancangan</button>
                     </div>
                 </div>

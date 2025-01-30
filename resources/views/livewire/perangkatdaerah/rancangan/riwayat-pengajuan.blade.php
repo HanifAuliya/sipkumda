@@ -161,8 +161,7 @@
 
             {{-- Modal Detail Riwayat --}}
             <div wire:ignore.self class="modal fade" id="detailModalRiwayat-{{ $item->id_rancangan }}" tabindex="-1"
-                role="dialog" aria-labelledby="detailModalLabelRiwayat" aria-hidden="true" data-backdrop="static"
-                data-keyboard="false">
+                role="dialog" aria-labelledby="detailModalLabelRiwayat" data-backdrop="static" data-keyboard="false">
                 <div class="modal-dialog  no-style-modal modal-xl" role="document">
                     <div class="modal-content">
                         {{-- Body Modal --}}
@@ -233,6 +232,18 @@
                                                     <th>Perangkat Daerah</th>
                                                     <td class="wrap-text-td-70 ">
                                                         {{ $item->user->perangkatDaerah->nama_perangkat_daerah ?? 'N/A' }}
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Nomor Nota</th>
+                                                    <td class="wrap-text-td-70 ">
+                                                        {{ $item->nomor_nota ?? 'N/A' }}
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Tanggal Nota</th>
+                                                    <td>
+                                                        {{ $item->tanggal_nota ? \Carbon\Carbon::parse($item->tanggal_nota)->translatedFormat('d F Y') : 'N/A' }}
                                                     </td>
                                                 </tr>
                                                 <tr>
@@ -487,7 +498,7 @@
     </div>
     <!-- Modal untuk menampilkan daftar berkas -->
     <div class="modal fade" id="berkasModal" tabindex="-1" role="dialog" aria-labelledby="berkasModalLabel"
-        aria-hidden="true" wire:ignore.self>
+        wire:ignore.self>
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">

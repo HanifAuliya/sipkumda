@@ -1,20 +1,28 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Livewire\ProfileManagement;
 use App\Livewire\Dashboard;
-
 use App\Livewire\UserManagement;
-use App\Livewire\Rancangan\DaftarRancangan;
+use App\Livewire\ProfileManagement;
 
-use App\Livewire\Perangkatdaerah\Rancangan\Rancanganku;
-use App\Livewire\Admin\Rancangan\PersetujuanMain;
-use App\Livewire\Verifikator\Rancangan\PilihPeneliti;
-use App\Livewire\Verifikator\Rancangan\ValidasiMain;
-use App\Livewire\Peneliti\Rancangan\Revisi;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 
 use Illuminate\Support\Facades\Response;
-use Illuminate\Support\Facades\Storage;
+use App\Http\Controllers\ProfileController;
+use App\Livewire\Admin\Fasilitasi\ManajemenFasilitasi;
+use App\Livewire\Admin\NotaDinas\KelolaNotaDinas;
+use App\Livewire\Rancangan\DaftarRancangan;
+use App\Livewire\Admin\Rancangan\PersetujuanMain;
+use App\Livewire\Peneliti\Rancangan\RevisiRancangan;
+
+use App\Livewire\Verifikator\Rancangan\ValidasiMain;
+use App\Livewire\Verifikator\Rancangan\PilihPeneliti;
+use App\Livewire\Verifikator\TandaTangan\PengelolaTtd;
+
+use App\Livewire\Perangkatdaerah\Rancangan\Rancanganku;
+use App\Livewire\PerangkatDaerah\Fasilitasi\Fasilitasiku;
+use App\Livewire\Verifikator\Fasilitasi\ValidasiFasilitasi;
+use App\Livewire\Peneliti\Fasilitasi\PersetujuanFasilitasiMain;
 
 
 
@@ -28,6 +36,12 @@ Route::middleware('auth')->group(function () {
         ->middleware(['verified'])
         ->name('dashboard');
 
+    // **Daftar Rancangan (Semua Role terkait dan Super Admin)**
+    Route::get('/daftar-rancangan', DaftarRancangan::class)
+        ->middleware('role:Admin|Verifikator|Perangkat Daerah|Peneliti|Super Admin')
+        ->name('daftar-rancangan');
+
+
     // **Profile (Semua Role termasuk Super Admin)**
     Route::middleware(['password.confirm'])->group(function () {
         Route::get('/profile', ProfileManagement::class)->name('profile.edit');
@@ -36,18 +50,17 @@ Route::middleware('auth')->group(function () {
     // **User Management (Admin, Verifikator, dan Super Admin)**
     Route::middleware(['role:Admin|Verifikator|Super Admin'])->group(function () {
         Route::get('/user-management', UserManagement::class)->name('user.management');
+        Route::get('/validasi-rancangan', ValidasiMain::class)->name('verifikator.validasi-rancangan');
     });
 
-    // **Daftar Rancangan (Semua Role terkait dan Super Admin)**
-    Route::get('/daftar-rancangan', DaftarRancangan::class)
-        ->middleware('role:Admin|Verifikator|Perangkat Daerah|Peneliti|Super Admin')
-        ->name('daftar-rancangan');
-
     // **Rancanganku (Perangkat Daerah dan Super Admin)**
-    Route::get('/rancanganku', Rancanganku::class)
-        ->middleware('role:Perangkat Daerah')
-        ->name('rancanganku');
-
+    Route::middleware(['role:Perangkat Daerah|Super Admin'])->group(function () {
+        Route::get('/rancanganku', Rancanganku::class)
+            ->name('rancanganku');
+        // Menu Fasilitasiku
+        Route::get('/fasilitasiku', Fasilitasiku::class)
+            ->name('fasilitasiku.main');
+    });
     // **Admin-Only Routes (Termasuk Super Admin)**
     Route::middleware(['role:Admin|Super Admin'])->group(function () {
         Route::get('/rancangan/persetujuan', PersetujuanMain::class)->name('admin.persetujuan');
@@ -56,13 +69,13 @@ Route::middleware('auth')->group(function () {
     // **Verifikator-Only Routes (Termasuk Super Admin)**
     Route::middleware(['role:Verifikator|Super Admin'])->group(function () {
         Route::get('/rancangan/pilih-peneliti', PilihPeneliti::class)->name('verifikator.pilih-peneliti');
-        Route::get('/validasi-rancangan', ValidasiMain::class)->name('verifikator.validasi-rancangan');
     });
 
-    // **Revisi Rancangan (Semua Role termasuk Super Admin)**
-    Route::get('/revisi/rancangan', Revisi::class)
-        ->name('revisi.rancangan');
-
+    Route::middleware(['role:Peneliti|Super Admin'])->group(function () {
+        // **Revisi Rancangan (Semua Role termasuk Super Admin)**
+        Route::get('/revisi/rancangan', RevisiRancangan::class)
+            ->name('revisi.rancangan');
+    });
     // **View Private Files (Semua Role termasuk Super Admin)**
     Route::get('/view-private/{folder}/{subfolder}/{filename}', function ($folder, $subfolder, $filename) {
         // Periksa apakah user sudah login
@@ -89,6 +102,34 @@ Route::middleware('auth')->group(function () {
             'Content-Type' => $mimeType,
             'Content-Disposition' => 'inline; filename="' . $filename . '"',
         ]);
+    });
+
+    // **======================================================**
+    // **Fasilitasi**
+    Route::middleware(['role:Verifikator|Super Admin'])->group(function () {
+        Route::get('/validasi/fasilitasi', ValidasiFasilitasi::class)
+            ->name('validasi-fasilitasi');
+        Route::get('/kelola-ttd', PengelolaTtd::class)
+            ->name('kelola-ttd.main');
+    });
+
+    Route::middleware(['role:Perangkat Daerah|Super Admin'])->group(function () {
+        // Menu Fasilitasiku
+        Route::get('/fasilitasiku', Fasilitasiku::class)
+            ->name('fasilitasiku.main');
+    });
+
+    Route::middleware(['role:Admin|Super Admin|Verifikator|Perangkat Daerah'])->group(function () {
+        // Menu Fasilitasiku
+        Route::get('/nota-dinas', KelolaNotaDinas::class)
+            ->name('nota-dinas.generate');
+
+        Route::get('/manajemen-fasilitasi', ManajemenFasilitasi::class)
+            ->name('manajemen-fasilitasi');
+    });
+
+    Route::middleware(['role:Peneliti|Super Admin'])->group(function () {
+        Route::get('/persetujuan-fasilitasi', PersetujuanFasilitasiMain::class)->name('persetujuan-fasilitasi.main');
     });
 });
 

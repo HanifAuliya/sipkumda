@@ -1,6 +1,6 @@
 {{-- Modal Unggah Revisi --}}
 <div wire:ignore.self class="modal fade" id="notificationRevisi" tabindex="-1" role="dialog"
-    aria-labelledby="notificationRevisi" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+    aria-labelledby="notificationRevisi" data-backdrop="static" data-keyboard="false">
     <div class="modal-dialog modal-lg" role="document">
         @if ($selectedRevisi)
             @if ($selectedRevisi->status_validasi === 'Menunggu Validasi')
