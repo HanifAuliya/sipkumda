@@ -36,16 +36,32 @@
                 <li class="nav-item">
                     <a href="#" class="nav-link {{ $activeTab === 'menunggu-validasi' ? 'active' : '' }}"
                         wire:click.prevent="switchTab('menunggu-validasi')">
-                        <i class="ni ni-time-alarm mr-2"></i> Menunggu Validasi
+
+                        {{-- Teks tombol saat loading --}}
+                        <span wire:loading wire:target="switchTab('menunggu-validasi')"
+                            class="spinner-border spinner-border-sm text-light"></span>
+                        <span wire:loading wire:target="switchTab('menunggu-validasi')">Memuat Data...</span>
+                        <span wire:loading.remove wire:target="switchTab('menunggu-validasi')">
+                            <i class="ni ni-time-alarm mr-2"></i> Menunggu Validasi
+                        </span>
                     </a>
                 </li>
+
                 <li class="nav-item">
                     <a href="#" class="nav-link {{ $activeTab === 'riwayat-validasi' ? 'active' : '' }}"
                         wire:click.prevent="switchTab('riwayat-validasi')">
-                        <i class="ni ni-archive-2 mr-2"></i> Riwayat Validasi
+
+                        {{-- Teks tombol saat loading --}}
+                        <span wire:loading wire:target="switchTab('riwayat-validasi')"
+                            class="spinner-border spinner-border-sm text-light"></span>
+                        <span wire:loading wire:target="switchTab('riwayat-validasi')">Memuat Data...</span>
+                        <span wire:loading.remove wire:target="switchTab('riwayat-validasi')">
+                            <i class="ni ni-archive-2 mr-2"></i> Riwayat Validasi
+                        </span>
                     </a>
                 </li>
             </ul>
+
 
             {{-- Tab Content --}}
             <div class="tab-content mt-4">

@@ -9,8 +9,10 @@
         /* Pengaturan Halaman PDF */
         @page {
             size: A4;
-            margin: 2cm;
+            margin: 1cm 2cm 2cm 2cm;
+            /* Kurangi margin atas menjadi 1cm */
         }
+
 
         /* Mengatur jarak antar baris agar lebih rapat */
         body {
@@ -18,7 +20,7 @@
             font-size: 11pt;
             text-align: justify;
             margin: 0 auto;
-            padding: 20px;
+            padding-top: 100px;
             width: 100%;
             max-width: 18cm;
             line-height: 1.1;
@@ -45,17 +47,21 @@
 
         /* Header */
         .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            background-color: white;
             text-align: center;
-            position: relative;
-            max-width: 100%;
-            margin-bottom: 15px;
+            z-index: 1000;
         }
 
         .header img {
             position: absolute;
             left: 0;
             top: 0;
-            width: 2.5cm;
+            width: 3cm;
             height: auto;
         }
 
@@ -65,18 +71,25 @@
         }
 
         .header .title {
+            margin-left: 80px;
             font-size: 18pt;
             font-weight: bold;
         }
 
         .header .subtitle {
+            margin-left: 80px;
             font-size: 10pt;
             font-weight: bold;
         }
 
         .header .gov-name {
+            margin-left: 80px;
             font-size: 14pt;
             font-weight: bold;
+        }
+
+        .header .no-telp {
+            margin-left: 80px;
         }
 
         .double-line {
@@ -127,24 +140,32 @@
             float: right;
             text-align: center;
             width: 40%;
-            margin-top: 30px;
-        }
-
-        .signature .name {
-            font-weight: bold;
+            margin-top: 80px;
+            position: relative;
+            /* Pastikan konteks posisi */
         }
 
         .signature img.ttd {
             width: 5cm;
-            /* Paksa ukuran lebar gambar */
-            height: 3cm;
-            /* Paksa ukuran tinggi gambar */
-            max-width: 100%;
-            max-height: 100%;
+            /* Lebar tetap */
+            height: 4cm;
+            /* Tinggi tetap */
             object-fit: contain;
-            display: block;
-            margin: auto;
-            z-index: 999999;
+            /* Pastikan gambar tidak terdistorsi */
+            position: absolute;
+            top: -10px;
+            /* Pindahkan ke atas agar tidak menimpa teks */
+            left: 50%;
+            transform: translateX(-50%);
+            /* Pusatkan gambar */
+            z-index: 10;
+            /* Pastikan berada di atas teks */
+        }
+
+        .signature .name {
+            font-weight: bold;
+            margin-top: 60px;
+            /* Tambahkan jarak setelah tanda tangan */
         }
     </style>
 </head>
@@ -155,7 +176,7 @@
         <p class="gov-name">PEMERINTAH KABUPATEN HULU SUNGAI TENGAH</p>
         <p class="title">SEKRETARIAT DAERAH</p>
         <p class="subtitle">Jalan Perwira No. 1 Telpon (0517) 41029, 43120</p>
-        <p>No Telp : fax : (0517) 41052 - Kode Pos : 71311 - Email: setda@hulusungaitengah.go.id</p>
+        <p class="no-telp">No Telp : fax : (0517) 41052 - Kode Pos : 71311 - Email: setda@hulusungaitengah.go.id</p>
         <div class="double-line"></div>
     </div>
 
@@ -183,7 +204,7 @@
             <tr>
                 <td>Nomor</td>
                 <td>: </td>
-                <td> &nbsp;180/{{ $notaDinas->nomor_nota ?? '...' }}/ND/KUM/2024</td>
+                <td> &nbsp;{{ $notaDinas->nomor_nota ?? '...' }}</td>
             </tr>
             <tr>
                 <td>Perihal</td>
@@ -237,7 +258,7 @@
         <p>Kepala Bagian Hukum,</p>
         <img src="file://{{ storage_path('app/private/tanda_tangan/ttd/' . basename($notaDinas->tandaTangan->file_ttd)) }}"
             alt="Tanda Tangan" class="ttd">
-        <p class="name" style="margin-top: 30px">TAUFIK RAHMAN, SH.</p>
+        <p class="name" style="margin-top: 55px">TAUFIK RAHMAN, SH.</p>
         <p style="margin-top: -10px">Pembina Tk. I</p>
         <p style="margin-top: -10px">NIP 19731002 199903 1 005</p>
     </div>

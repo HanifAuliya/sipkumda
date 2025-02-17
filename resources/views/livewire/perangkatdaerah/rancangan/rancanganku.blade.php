@@ -26,7 +26,7 @@
         <div class="card-header d-flex justify-content-between align-items-center">
             <div>
                 <h3 class="mb-0">Daftar Rancanganku</h3>
-                <small>Pastikan perhatikan tab di bawah!</small>
+                <small>Pastikan perhatikan tab di bawah!</small>x
             </div>
             @livewire('perangkat-daerah.rancangan.ajukan-rancangan')
         </div>
@@ -113,7 +113,7 @@
             });
         });
     </script>
-    <!-- Script untuk Zoom dan Fullscreen -->
+    {{-- Script untuk Zoom dan Fullscreen --}}
     <script>
         // Fungsi Toggle Fullscreen
         function toggleFullscreen() {

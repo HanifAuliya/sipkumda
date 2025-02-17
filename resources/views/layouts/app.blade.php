@@ -51,8 +51,21 @@
 
 <body>
     {{-- Loading Screen --}}
-
-
+    <div class="loading-screen" id="loading-screen" style="{{ session('loading', true) ? '' : 'display:none;' }}">
+        <div class="loading-content">
+            {{-- Logo and SIPKUMDA Text in Row --}}
+            <div class="logo-text-wrapper">
+                <div class="logo">
+                    <img src="{{ asset('assets/img/brand/loading_screen.png') }}" alt="Logo" class="img-fluid" />
+                </div>
+            </div>
+            <h1 class="sipkumda-title m-0">SIPKUMDA HST</h1>
+            {{-- Text Content Below --}}
+            <p class="typing-animation-loading m-0 mt-2">
+                Sistem Informasi Produk Hukum Daerah
+            </p>
+        </div>
+    </div>
 
     {{-- Sidebar --}}
     @include('layouts.partials.sidebar')
@@ -105,9 +118,19 @@
         <livewire:notification-modal.peneliti.rancangan.notificationrevisi />
 
         {{-- Notification Modal Script --}}
-        {{-- Notification Modal Script --}}
         <script>
             document.addEventListener('DOMContentLoaded', function() {
+                // buka dan tutup global
+                Livewire.on('openModal', (modalId) => {
+                    $(`#${modalId}`).modal('show');
+                });
+
+                // Listener untuk menutup modal
+                Livewire.on('closeModal', (modalId) => {
+                    $(`#${modalId}`).modal('hide');
+                });
+
+                // Untuk Notifikasi
                 Livewire.on('openAdminPersetujuanModal', function() {
                     $('#adminPersetujuanModal').modal('show');
                 });
@@ -122,6 +145,45 @@
 
                 Livewire.on('openModalNotificationRevisi', function() {
                     $('#notificationRevisi').modal('show');
+                });
+                // Sweet alert global modal
+                window.addEventListener('swal:modal', function(event) {
+                    const data = event.detail[0];
+                    Swal.fire({
+                        icon: data.type, // 'success', 'error', 'warning', etc.
+                        title: data.title,
+                        text: data.message,
+                        showConfirmButton: true,
+                    });
+                });
+                // sweet alert global delete degnan toast
+                window.addEventListener('swal:delete', function(event) {
+                    const data = event.detail[0];
+                    Swal.fire({
+                        icon: data.type, // 'success', 'error', 'warning', etc.
+                        title: data.title,
+                        text: data.message,
+                        timer: 7000,
+                        timerProgressBar: true,
+                        showConfirmButton: false,
+                        position: 'top-end',
+                        toast: true,
+                    });
+                });
+
+                // sweet alert global delete degnan toast
+                window.addEventListener('swal:toast', function(event) {
+                    const data = event.detail[0];
+                    Swal.fire({
+                        icon: data.type, // 'success', 'error', 'warning', etc.
+                        title: data.title,
+                        text: data.message,
+                        timer: 7000,
+                        timerProgressBar: true,
+                        showConfirmButton: false,
+                        position: 'top-end',
+                        toast: true,
+                    });
                 });
             });
         </script>
@@ -155,7 +217,12 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
 
+    {{-- Charts --}}
+    <script src="{{ asset('assets/vendor/chart.js/dist/Chart.min.js') }}"></script>
+    <script src="{{ asset('assets/vendor/chart.js/dist/Chart.extension.js') }}"></script>
+
     @livewireScripts
+
 </body>
 
 </html>

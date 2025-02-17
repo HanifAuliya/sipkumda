@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Perangkatdaerah\Rancangan;
+namespace App\Livewire\PerangkatDaerah\Rancangan;
 
 use Livewire\Component;
 use App\Models\RancanganProdukHukum;
@@ -143,6 +143,11 @@ class SedangDiajukan extends Component
     {
         // Reset error validasi untuk field tertentu
         $this->resetErrorBag($field);
+    }
+
+    public function removeFile($fileField)
+    {
+        $this->reset($fileField); // Menghapus file yang sudah diunggah
     }
 
 

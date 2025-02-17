@@ -14,6 +14,7 @@ class Fasilitasiku extends Component
     public function switchTab($tab)
     {
         $this->activeTab = $tab;
+        $this->dispatch('refreshToastButtons'); // Pastikan tombol toast diinisialisasi ulang
     }
 
     public function render()

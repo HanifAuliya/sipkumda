@@ -57,7 +57,7 @@
                             <p class="mb-0 info-text small">
                                 <i class="bi bi-person"></i>
                                 {{ $item->user->nama_user ?? 'N/A' }}
-                                <span class="badge badge-secondary">
+                                <span class="badge ">
                                     Pemohon
                                 </span>
                             </p>

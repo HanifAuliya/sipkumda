@@ -49,38 +49,27 @@
     </div>
 
     <script>
-        function confirmResetRevisi(id) {
+        function confirmDelete(id) {
             Swal.fire({
                 title: 'Apakah Anda yakin?',
-                text: "Revisi ini akan direset!",
+                text: "Data yang dihapus tidak bisa dikembalikan!",
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Ya, Reset!',
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Ya, Hapus!',
                 cancelButtonText: 'Batal'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    Livewire.dispatch('resetRevisiConfirmed', {
+                    Livewire.dispatch('deleteConfirmed', {
                         id: id
-                    }); // Dispatch event Livewire
+                    }); // Kirim ID sebagai objek
                 }
             });
         }
     </script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-
-            // nyoba manggil dispatch dengan
-            // Listener untuk membuka modal
-            Livewire.on('openModal', (modalId) => {
-                $(`#${modalId}`).modal('show');
-            });
-
-            // Listener untuk menutup modal
-            Livewire.on('closeModal', (modalId) => {
-                $(`#${modalId}`).modal('hide');
-            });
 
             window.Livewire.on('openUploadRevisiModal', () => {
                 $('#uploadRevisiModal').modal('show');

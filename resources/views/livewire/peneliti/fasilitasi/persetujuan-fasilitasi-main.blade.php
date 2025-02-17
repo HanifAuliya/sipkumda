@@ -33,12 +33,13 @@
                 <li class="nav-item">
                     <a href="#" class="nav-link {{ $activeTab === 'menunggu-persetujuan' ? 'active' : '' }}"
                         wire:click.prevent="switchTab('menunggu-persetujuan')">
-                        Menunggu Persetujuan
+                        <i class="bi bi-question-circle"></i> Menunggu Persetujuan
                     </a>
                 </li>
                 <li class="nav-item">
                     <a href="#" class="nav-link {{ $activeTab === 'riwayat-persetujuan' ? 'active' : '' }}"
                         wire:click.prevent="switchTab('riwayat-persetujuan')">
+                        <i class="bi bi-clock-history"></i> Riwayat Fasilitasi
                         Riwayat Persetujuan
                     </a>
                 </li>
@@ -69,20 +70,6 @@
             });
             window.Livewire.on('closeModalDetailFasilitasi', () => {
                 $('#modalDetailFasilitasi').modal('hide');
-            });
-            window.addEventListener('swal:modalfasilitasi', function(event) {
-                $('#modalAjukanFasilitasi').modal('hide');
-                const data = event.detail[0];
-                Swal.fire({
-                    icon: data.type, // 'success', 'error', 'warning', etc.
-                    title: data.title,
-                    text: data.message,
-                    timer: 3000,
-                    timerProgressBar: true,
-                    showConfirmButton: false,
-                    position: 'top-end',
-                    toast: true,
-                });
             });
         });
     </script>

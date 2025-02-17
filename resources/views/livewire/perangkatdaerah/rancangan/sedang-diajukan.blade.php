@@ -567,10 +567,6 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="uploadUlangBerkasModalLabel">Upload Ulang Berkas Ditolak</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
-                        wire:click="resetForm">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
                 </div>
                 <form wire:submit.prevent="uploadUlangBerkas">
                     {{-- Modal Body --}}
@@ -601,74 +597,45 @@
                             </div>
                         </div>
 
+                        {{-- Input File (Nota Dinas, Rancangan, Matrik, Bahan Pendukung) --}}
+                        @foreach (['fileNotaDinas', 'fileRancangan', 'fileMatrik', 'fileBahanPendukung'] as $fileField)
+                            <div class="mb-4">
+                                <label class="font-weight-bold form-control-label">
+                                    <i class="bi bi-file-earmark-pdf text-primary"></i>
+                                    {{ ucfirst(str_replace('_', ' ', $fileField)) }}
+                                    <small class="text-muted d-block">Unggah dokumen dalam format PDF (max:
+                                        5MB).</small>
+                                </label>
 
-                        {{-- Input File Nota Dinas --}}
-                        <div class="mb-4">
-                            <label for="fileNotaDinas" class="font-weight-bold form-control-label">
-                                <i class="bi bi-file-earmark-pdf text-primary"></i> File Nota Dinas
-                                <small class="text-muted d-block">Unggah dokumen nota dinas dalam format PDF (max:
-                                    5mb).</small>
-                            </label>
-                            <input type="file" id="fileNotaDinas" class="form-control" wire:model="fileNotaDinas"
-                                accept="application/pdf" wire:change="resetError('fileNotaDinas')" />
-                            <div wire:loading wire:target="fileNotaDinas" class="text-info mt-2">
-                                <i class="spinner-border spinner-border-sm"></i> Mengunggah Nota Dinas...
-                            </div>
-                            @error('fileNotaDinas')
-                                <span class="text-danger">{{ $message }}</span>
-                            @enderror
-                        </div>
-                        {{-- Input File Rancangan --}}
-                        <div class="mb-4">
-                            <label for="fileRancangan" class="font-weight-bold form-control-label">
-                                <i class="bi bi-file-earmark-pdf text-primary"></i> File Rancangan
-                                <small class="text-muted d-block">Unggah dokumen rancangan dalam format PDF (max:
-                                    5mb).</small>
-                            </label>
-                            <input type="file" id="fileRancangan" class="form-control" wire:model="fileRancangan"
-                                accept="application/pdf" wire:change="resetError('fileRancangan')" />
-                            <div wire:loading wire:target="fileRancangan" class="text-info mt-2">
-                                <i class="spinner-border spinner-border-sm"></i> Mengunggah File Rancangan...
-                            </div>
-                            @error('fileRancangan')
-                                <span class="text-danger">{{ $message }}</span>
-                            @enderror
-                        </div>
+                                <input type="file" class="form-control" wire:model="{{ $fileField }}"
+                                    accept="application/pdf" wire:change="resetError('{{ $fileField }}')"
+                                    {{ $$fileField ? 'disabled' : '' }}
+                                    style="{{ $$fileField ? 'background-color: #e9ecef; cursor: not-allowed; opacity: 0.6;' : '' }}">
 
-                        {{-- Input File Matrik --}}
-                        <div class="mb-4">
-                            <label for="fileMatrik" class="font-weight-bold form-control-label">
-                                <i class="bi bi-file-earmark-pdf text-primary"></i> File Matrik
-                                <small class="text-muted d-block">Unggah matrik dokumen dalam format PDF (max:
-                                    5mb).</small>
-                            </label>
-                            <input type="file" id="fileMatrik" class="form-control" wire:model="fileMatrik"
-                                accept="application/pdf" wire:change="resetError('fileMatrik')" />
-                            <div wire:loading wire:target="fileMatrik" class="text-info mt-2">
-                                <i class="spinner-border spinner-border-sm"></i> Mengunggah File Matrik...
-                            </div>
-                            @error('fileMatrik')
-                                <span class="text-danger">{{ $message }}</span>
-                            @enderror
-                        </div>
+                                {{-- Indikator Loading --}}
+                                <div wire:loading wire:target="{{ $fileField }}" class="text-info mt-2">
+                                    <i class="spinner-border spinner-border-sm"></i> Mengunggah...
+                                </div>
 
-                        {{-- Input File Bahan Pendukung --}}
-                        <div class="mb-4">
-                            <label for="fileBahanPendukung" class="font-weight-bold form-control-label">
-                                <i class="bi bi-file-earmark-pdf text-primary"></i> File Bahan Pendukung (Opsional)
-                                <small class="text-muted d-block">Unggah dokumen bahan pendukung dalam format PDF (max:
-                                    5mb).</small>
-                            </label>
-                            <input type="file" id="fileBahanPendukung" class="form-control"
-                                wire:model="fileBahanPendukung" accept="application/pdf"
-                                wire:change="resetError('fileBahanPendukung')" />
-                            <div wire:loading wire:target="fileBahanPendukung" class="text-info mt-2">
-                                <i class="spinner-border spinner-border-sm"></i> Mengunggah Bahan Pendukung...
+                                {{-- Preview file & tombol hapus --}}
+                                @if ($$fileField)
+                                    <div class="mt-2 p-2 border rounded bg-light d-flex align-items-center">
+                                        <i class="bi bi-file-earmark-pdf text-danger mr-2"></i>
+                                        <span class="flex-grow-1">{{ $$fileField->getClientOriginalName() }}</span>
+                                        <button type="button" class="btn btn-sm btn-outline-danger ml-2"
+                                            wire:click="removeFile('{{ $fileField }}')">
+                                            <i class="bi bi-trash"></i> Hapus File
+                                        </button>
+                                    </div>
+                                @endif
+
+                                @error($fileField)
+                                    <span class="text-danger">{{ $message }}</span>
+                                @enderror
                             </div>
-                            @error('fileBahanPendukung')
-                                <span class="text-danger">{{ $message }}</span>
-                            @enderror
-                        </div>
+                        @endforeach
+
+                        {{-- Checkbox Hapus Bahan Pendukung Lama --}}
                         <div class="form-check mb-3">
                             <input class="form-check-input" type="checkbox" id="hapusBahanPendukung"
                                 wire:model="hapusBahanPendukung">
@@ -678,6 +645,7 @@
                             </label>
                         </div>
                     </div>
+
                     {{-- Modal Footer --}}
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline-warning" data-dismiss="modal"
@@ -685,8 +653,8 @@
                             <i class="bi bi-x"></i>
                             Batal
                         </button>
-                        <button type="button" class="btn btn-outline-default" wire:click="uploadUlangBerkas"
-                            wire:loading.attr="disabled">
+                        <button type="submit" class="btn btn-outline-default" wire:loading.attr="disabled"
+                            {{ empty($tanggalNota) || empty($nomorNota) || empty($fileNotaDinas) || empty($fileRancangan) ? 'disabled' : '' }}>
                             <span wire:loading.remove wire:target="uploadUlangBerkas">
                                 <i class="bi bi-upload"></i> Upload Ulang
                             </span>
@@ -696,6 +664,7 @@
                         </button>
                     </div>
                 </form>
+
             </div>
         </div>
     </div>

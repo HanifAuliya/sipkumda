@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Perangkatdaerah\Fasilitasi;
+namespace App\Livewire\PerangkatDaerah\Fasilitasi;
 
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -62,6 +62,22 @@ class AjukanFasilitasi extends Component
             'message' => 'Fasilitasi berhasil diajukan untuk rancangan yang dipilih.',
         ]);
     }
+
+    public function removeFile()
+    {
+        $this->reset('fileRancangan'); // Reset file yang sudah diunggah
+        // Hapus file sementara Livewire
+        if ($this->fileRancangan) {
+            $this->fileRancangan->delete();
+        }
+    }
+
+    public function getFormValidProperty()
+    {
+        return !empty($this->rancanganId) && !empty($this->fileRancangan);
+    }
+
+
 
     public function resetError($field)
     {

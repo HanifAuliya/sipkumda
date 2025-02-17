@@ -9,7 +9,6 @@ use App\Models\FasilitasiProdukHukum;
 class RiwayatFasilitasi extends Component
 {
     use WithPagination;
-
     public $search = ''; // Pencarian
     public $selectedFasilitasi;
 
@@ -33,11 +32,12 @@ class RiwayatFasilitasi extends Component
 
     public function render()
     {
-        $riwayatFasilitasi = FasilitasiProdukHukum::whereIn('status_berkas_fasilitasi', ['Disetujui', 'Ditolak'])
+        $riwayatFasilitasi = FasilitasiProdukHukum::where('status_berkas_fasilitasi', 'Disetujui',)
             ->whereHas('rancangan', function ($query) {
                 $query->where('tentang', 'like', "%{$this->search}%")
                     ->orWhere('no_rancangan', 'like', "%{$this->search}%");
             })
+            ->orderBy('tanggal_validasi_fasilitasi', 'desc') // Urutkan berdasarkan tanggal fasilitasi (terbaru di atas)
             ->paginate(10);
 
         return view('livewire.peneliti.fasilitasi.riwayat-fasilitasi', compact('riwayatFasilitasi'));

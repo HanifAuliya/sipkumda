@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Perangkatdaerah\Rancangan;
+namespace App\Livewire\PerangkatDaerah\Rancangan;
 
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -116,6 +116,12 @@ class AjukanRancangan extends Component
             'message' => 'Rancangan berhasil ditambahkan!',
         ]);
     }
+
+    public function removeFile($fileField)
+    {
+        $this->reset($fileField); // Menghapus file yang sudah diunggah
+    }
+
     public function resetForm()
     {
         // Hapus file sementara Livewire

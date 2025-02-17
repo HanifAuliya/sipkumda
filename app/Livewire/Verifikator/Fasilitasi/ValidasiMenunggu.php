@@ -71,6 +71,9 @@ class ValidasiMenunggu extends Component
             'tanggal_validasi_fasilitasi' => now(),
         ]);
 
+        // 🔥 Ambil ID peneliti dari rancangan (berdasarkan id_user di tabel revisi)
+        $penelitiId = $this->selectedFasilitasi->rancangan->revisi()->latest()->first()->id_user ?? null;
+
         // Jika validasi diterima, lanjutkan proses fasilitasi
         if ($this->statusValidasi === 'Diterima') {
             $this->selectedFasilitasi->update([
@@ -78,39 +81,82 @@ class ValidasiMenunggu extends Component
             ]);
 
             // Kirim notifikasi ke user pengaju rancangan
-            // $user = $this->selectedFasilitasi->rancangan->user;
-            // if ($user) {
-            //     $user->notify(new ValidationResultNotification([
-            //         'title' => 'Fasilitasi Anda dengan nomor ' . $this->selectedFasilitasi->rancangan->no_rancangan . ' Telah Diterima',
-            //         'message' => "Selamat! Fasilitasi Anda telah berhasil divalidasi. Anda bisa lanjut ke tahap selanjutnya.",
-            //         'type' => 'fasilitasi_diterima',
-            //         'slug' => $this->selectedFasilitasi->rancangan->slug,
-            //     ]));
-            // }
+            $user = $this->selectedFasilitasi->rancangan->user;
+            if ($user) {
+                $user->notify(new ValidationResultNotification([
+                    'title' => "✅📜 Fasilitasi Anda dengan No. {$this->selectedFasilitasi->rancangan->no_rancangan} Telah Diterima!",
+                    'message' => "Selamat! 🎉 Fasilitasi Anda telah berhasil divalidasi dan diterima ✅. Mohon menunggu proses *pembuatan Nota Dinas* 📝⚖️ sebelum melanjutkan ke tahap berikutnya.",
+                    'type' => 'fasilitasi_diterima',
+                    'slug' => $this->selectedFasilitasi->rancangan->slug,
+                ]));
+            }
+            // 🔥 Kirim notifikasi ke semua Admin
+            $admins = User::role('Admin')->get(); // Ambil semua user dengan role Admin
+            Notification::send($admins, new ValidationResultNotification([
+                'title' => '✅📜 Fasilitasi No. ' . $this->selectedFasilitasi->rancangan->no_rancangan . ' Telah Diterima!',
+                'message' => "🎉 Fasilitasi dengan nomor **{$this->selectedFasilitasi->rancangan->no_rancangan}** telah *divalidasi dan diterima* ✅. Harap segera buatkan Nota dan Catat *pencatatan pengajuan* ⚖️📑.",
+                'type' => 'fasilitasi_diterima_admin',
+                'slug' => $this->selectedFasilitasi->rancangan->slug,
+
+            ]));
+
+            // 🔥 Kirim notifikasi ke Peneliti terkait (berdasarkan revisi terakhir)
+
+            if ($penelitiId) {
+                $peneliti = User::find($penelitiId);
+                if ($peneliti) {
+                    $peneliti->notify(new ValidationResultNotification([
+                        'title' => "📑🔍 Fasilitasi No. {$this->selectedFasilitasi->rancangan->no_rancangan} Lanjut ke Tahap Berikutnya!",
+                        'message' => "Fasilitasi rancangan yang telah Anda teliti kini telah diterima ✅. Harap pantau perkembangan selanjutnya terkait *pencatatan pengajuan rancangan* dan persiapan tahap lanjutan. 📝⚖️",
+                        'type' => 'fasilitasi_lanjut_peneliti',
+                        'slug' => $this->selectedFasilitasi->rancangan->slug,
+                    ]));
+                }
+            }
         }
 
-        // Jika validasi ditolak, berikan kesempatan untuk perbaikan
+        // ✅ Jika validasi ditolak, kirim notifikasi **hanya ke peneliti**
         if ($this->statusValidasi === 'Ditolak') {
             $this->selectedFasilitasi->update([
                 'status_validasi_fasilitasi' => 'Ditolak',
+                'status_berkas_fasilitasi' => 'Ditolak',
+                'catatan_persetujuan_fasilitasi' => null,
+                'tanggal_persetujuan_berkas' => null,
             ]);
 
-            // Kirim notifikasi ke user perangkat daerah
-            // $user = $this->selectedFasilitasi->rancangan->user;
-            // if ($user) {
-            //     $user->notify(new ValidationResultNotification([
-            //         'title' => "Fasilitasi No '{$this->selectedFasilitasi->rancangan->no_rancangan}' Ditolak",
-            //         'message' => "Mohon periksa kembali berkas fasilitasi Anda dan ajukan ulang berdasarkan catatan yang diberikan.",
-            //         'slug' => $this->selectedFasilitasi->rancangan->slug,
-            //         'type' => 'fasilitasi_ditolak',
-            //     ]));
-            // }
+
+            // 🔹 Cek apakah penelitiId ada, lalu ambil instance User
+            if ($penelitiId) {
+                $peneliti = User::find($penelitiId);
+
+                // 🔥 Pastikan instance User ditemukan sebelum memanggil notify()
+                if ($peneliti) {
+                    $peneliti->notify(new ValidationResultNotification([
+                        'title' => "🚫📜 Fasilitasi No. '{$this->selectedFasilitasi->rancangan->no_rancangan}' Ditolak",
+                        'message' => "❌😔 Fasilitasi ini telah ditolak. Status berkas kini *Ditolak*. Mohon periksa kembali berkas yang telah Anda teliti 🔍 dan lakukan revisi sesuai catatan yang diberikan. Perangkat Daerah akan mengunggah ulang berkas untuk diperbaiki. Tetap semangat! 💪😊",
+                        'slug' => $this->selectedFasilitasi->rancangan->slug,
+                        'type' => 'fasilitasi_ditolak',
+                    ]));
+                }
+            }
+
+            // Kirim notifikasi ke user pengaju rancangan
+            $user = $this->selectedFasilitasi->rancangan->user;
+            if ($user) {
+                $user->notify(new ValidationResultNotification([
+                    'title' => '📜✨ Fasilitasi No. ' . $this->selectedFasilitasi->rancangan->no_rancangan . ' Telah Diterima!',
+                    'message' => "⚠️😞 Berkas fasilitasi Anda ditolak! Harap periksa catatan pengajuan rancangan 📝 dan ajukan ulang dengan perbaikan yang diperlukan. Jangan khawatir, Anda bisa melakukannya! 💪😊",
+                    'type' => 'fasilitasi_diterima',
+                    'slug' => $this->selectedFasilitasi->rancangan->slug,
+                ]));
+            }
         }
+
 
         // Kirim pesan sukses
         $this->dispatch('swal:modal', [
             'type' => 'success',
-            'title' => 'berhasil',
+            'title' => 'Berhasil',
             'message' => "Fasilitasi berhasil divalidasi sebagai '{$this->statusValidasi}'.",
         ]);
 
@@ -121,7 +167,6 @@ class ValidasiMenunggu extends Component
 
     public function resetFormValidasi()
     {
-
         $this->reset(['catatanValidasi', 'statusValidasi']);
     }
 
@@ -130,7 +175,6 @@ class ValidasiMenunggu extends Component
         $this->reset(['catatanValidasi', 'statusValidasi']);
         $this->selectedFasilitasi = null;
     }
-
 
     public function render()
     {
@@ -141,6 +185,7 @@ class ValidasiMenunggu extends Component
                 $query->where('no_rancangan', 'like', "%{$this->search}%")
                     ->orWhere('tentang', 'like', "%{$this->search}%");
             })
+            ->orderBy('tanggal_persetujuan_berkas', 'desc') // 🔥 Urutkan berdasarkan tanggal terbaru
             ->paginate($this->perPage);
 
         return view('livewire.verifikator.fasilitasi.validasi-menunggu', compact('fasilitasiMenunggu'));

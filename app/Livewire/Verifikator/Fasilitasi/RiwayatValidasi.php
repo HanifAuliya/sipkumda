@@ -40,6 +40,7 @@ class RiwayatValidasi extends Component
                 $query->where('no_rancangan', 'like', "%{$this->search}%")
                     ->orWhere('tentang', 'like', "%{$this->search}%");
             })
+            ->orderBy('tanggal_validasi_fasilitasi', 'desc') // 🔥 Urutkan berdasarkan tanggal terbaru
             ->paginate($this->perPage);
 
         return view('livewire.verifikator.fasilitasi.riwayat-validasi', compact('fasilitasiRiwayat'));

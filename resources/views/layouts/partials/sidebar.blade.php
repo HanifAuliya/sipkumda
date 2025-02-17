@@ -81,7 +81,7 @@
                             </a>
                         </li>
 
-                        @if (Auth::user()->hasRole('Admin') || Auth::user()->hasRole('Super Admin'))
+                        @if (Auth::user()->hasRole('Admin'))
                             <li class="nav-item">
                                 <a class="nav-link {{ Route::currentRouteName() == 'admin.persetujuan' ? 'active' : '' }} rancangan"
                                     href="{{ route('admin.persetujuan') }}">
@@ -90,7 +90,7 @@
                                 </a>
                             </li>
                         @endif
-                        @if (Auth::user()->hasRole('Verifikator') || Auth::user()->hasRole('Super Admin'))
+                        @if (Auth::user()->hasRole('Verifikator'))
                             <li class="nav-item">
                                 <a class="nav-link  {{ Route::currentRouteName() == 'verifikator.pilih-peneliti' ? 'active' : '' }} rancangan"
                                     href="{{ route('verifikator.pilih-peneliti') }}">
@@ -99,7 +99,7 @@
                                 </a>
                             </li>
                         @endif
-                        @if (Auth::user()->hasRole('Peneliti') || Auth::user()->hasRole('Super Admin'))
+                        @if (Auth::user()->hasRole('Peneliti'))
                             <li class="nav-item">
                                 <a class="nav-link {{ Route::currentRouteName() == 'revisi.rancangan' ? 'active' : '' }} rancangan"
                                     href="{{ route('revisi.rancangan') }}">
@@ -108,7 +108,7 @@
                                 </a>
                             </li>
                         @endif
-                        @if (Auth::user()->hasRole('Verifikator') || Auth::user()->hasRole('Super Admin'))
+                        @if (Auth::user()->hasRole('Verifikator'))
                             <li class="nav-item">
                                 <a class="nav-link {{ Route::currentRouteName() == 'verifikator.validasi-rancangan' ? 'active' : '' }} rancangan "
                                     href="{{ route('verifikator.validasi-rancangan') }}">
@@ -130,7 +130,7 @@
 
                     {{-- Navigation --}}
                     <ul class="navbar-nav mb-md--1">
-                        @if (Auth::user()->hasRole('Perangkat Daerah') || Auth::user()->hasRole('Super Admin'))
+                        @if (Auth::user()->hasRole('Perangkat Daerah'))
                             <li class="nav-item">
                                 <a class="nav-link nav-link {{ Route::currentRouteName() == 'fasilitasiku.main' ? 'active' : '' }} fasilitasi"
                                     href="{{ route('fasilitasiku.main') }}">
@@ -139,7 +139,7 @@
                                 </a>
                             </li>
                         @endif
-                        @if (Auth::user()->hasRole('Peneliti') || Auth::user()->hasRole('Super Admin'))
+                        @if (Auth::user()->hasRole('Peneliti'))
                             <li class="nav-item">
                                 <a class="nav-link {{ Route::currentRouteName() == 'persetujuan-fasilitasi.main' ? 'active' : '' }} fasilitasi"
                                     href="{{ route('persetujuan-fasilitasi.main') }}">
@@ -149,7 +149,7 @@
                             </li>
                         @endif
 
-                        @if (Auth::user()->hasRole('Verifikator') || Auth::user()->hasRole('Super Admin'))
+                        @if (Auth::user()->hasRole('Verifikator'))
                             <li class="nav-item ">
                                 <a class="nav-link {{ Route::currentRouteName() == 'validasi-fasilitasi' ? 'active' : '' }} fasilitasi"
                                     href="{{ route('validasi-fasilitasi') }}">
@@ -175,6 +175,15 @@
                                 </a>
                             </li>
                         @endif
+                        @if (Auth::user()->hasRole(['Admin', 'Verifikator']))
+                            <li class="nav-item">
+                                <a class="nav-link {{ Route::currentRouteName() == 'manajemen-fasilitasi' ? 'active' : '' }} fasilitasi"
+                                    href="{{ route('manajemen-fasilitasi') }}">
+                                    <i class="bi bi-file-earmark-zip"></i>
+                                    <span class="nav-link-text">Manajemen Fasilitasi</span>
+                                </a>
+                            </li>
+                        @endif
                     </ul>
 
                     {{-- Divider --}}
@@ -186,18 +195,30 @@
                     </h6>
                     {{-- Navigation --}}
                     <ul class="navbar-nav mb-md-3">
-                        <li class="nav-item">
-                            <a class="nav-link dokumentasi" href="dokumentasi.html">
-                                <i class="bi bi-folder-check"></i>
-                                <span class="nav-link-text">Daftar Dokumentasi</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link dokumentasi" href="adddokumentasi.html">
-                                <i class="bi bi-folder-plus"></i>
-                                <span class="nav-link-text">Tambah Dokumentasi</span>
-                            </a>
-                        </li>
+                        @if (Auth::user()->hasRole(['Admin', 'Verifikator', 'Perangkat Daerah', 'Peneliti']))
+                            <li class="nav-item">
+                                <a class="nav-link {{ Route::currentRouteName() == 'dokumentasi.main' ? 'active' : '' }} dokumentasi"
+                                    href="{{ route('dokumentasi.main') }}">
+                                    <i class="bi bi-folder-check"></i>
+                                    <span class="nav-link-text">Daftar Dokumentasi</span>
+                                </a>
+                            </li>
+                        @endif
+                        @if (Auth::user()->hasRole(['Admin', 'Verifikator', 'Peneliti', 'Super Admin']))
+                            <li class="nav-item">
+                                <a class="nav-link {{ Route::currentRouteName() == 'masterdata.main' ? 'active' : '' }} dokumentasi"
+                                    href="{{ route('masterdata.main') }}">
+                                    <i class="bi bi-journals"></i>
+                                    <span class="nav-link-text">Master Data</span>
+                                </a>
+                            </li>
+                            <br>
+                            <br>
+                            <br>
+                            <br>
+                            <br>
+                            <br>
+                        @endif
                     </ul>
                 @endif
 

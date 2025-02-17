@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('nota_dinas', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('fasilitasi_id'); // Foreign key ke tabel fasilitasi_produk_hukum
+            $table->string('nomor_inputan', 3);
             $table->string('nomor_nota', 100); // Nomor nota dinas
             $table->date('tanggal_nota'); // Tanggal pembuatan nota dinas
             $table->string('file_nota_dinas', 255)->nullable(); // Path file nota dinas

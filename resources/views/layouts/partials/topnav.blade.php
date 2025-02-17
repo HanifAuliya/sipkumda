@@ -26,8 +26,8 @@
             <!-- End Topnav name -->
 
             <!-- Navbar links -->
-            <ul class="navbar-nav align-items-center ml-md-auto">
-                <li class="nav-item">
+            <ul class="navbar-nav align-items-center ml-md-auto ">
+                <li class="nav-item mr-3">
                     <!-- Sidenav toggler -->
                     <div class="pr-3 sidenav-toggler sidenav-toggler-dark" id="sidenav-toggler"
                         data-action="sidenav-pin" data-target="#sidenav-main">
@@ -38,6 +38,42 @@
                         </div>
                     </div>
                 </li>
+                <li class="nav-item">
+                    <button id="darkModeToggle" class="btn btn-sm btn-outline-light">
+                        <i class="bi bi-moon-stars"></i>
+                        Dark Mode
+                    </button>
+                </li>
+                <script>
+                    document.addEventListener("DOMContentLoaded", function() {
+                        const darkModeToggle =
+                            document.getElementById("darkModeToggle");
+                        const body = document.body;
+
+                        // Cek mode sebelumnya dari localStorage
+                        if (localStorage.getItem("dark-mode") === "enabled") {
+                            body.classList.add("dark-mode");
+                        }
+
+                        darkModeToggle.addEventListener("click", function() {
+                            body.classList.toggle("dark-mode");
+
+                            // Simpan status di localStorage
+                            if (body.classList.contains("dark-mode")) {
+                                localStorage.setItem("dark-mode", "enabled");
+                                darkModeToggle.innerHTML = `<i class="bi bi-brightness-high"></i> Light Mode`;
+                            } else {
+                                localStorage.setItem("dark-mode", "disabled");
+                                darkModeToggle.innerHTML = `<i class="bi bi-moon-stars"></i> Dark Mode`;
+                            }
+                        });
+
+                        // Perbarui ikon saat reload halaman
+                        if (body.classList.contains("dark-mode")) {
+                            darkModeToggle.innerHTML = `<i class="bi bi-brightness-high"></i> Light Mode`;
+                        }
+                    });
+                </script>
                 <li class="nav-item dropdown">
                     {{-- notification --}}
                     @livewire('notification-dropdown')
@@ -51,7 +87,7 @@
                         aria-expanded="false">
                         <div class="media align-items-center">
                             <span class="avatar avatar-sm rounded-circle">
-                                <img alt="Image placeholder" src="{{ asset('assets/img/theme/team-4.jpg') }}" />
+                                <img alt="Image placeholder" src="{{ asset('assets/img/theme/profile.png') }}" />
                             </span>
                             <div class="media-body ml-2 d-none d-lg-block">
                                 <span class="mb-0 text-sm font-weight-bold">
@@ -61,9 +97,6 @@
                         </div>
                     </a>
                     <div class="dropdown-menu dropdown-menu-right">
-                        <div class="dropdown-header noti-title">
-                            <h6 class="text-overflow m-0">Welcome!</h6>
-                        </div>
                         <a href="{{ route('profile.edit') }}" class="dropdown-item">
                             <i class="ni ni-single-02"></i>
                             <span>My profile</span>

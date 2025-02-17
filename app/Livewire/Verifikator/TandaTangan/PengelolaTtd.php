@@ -15,10 +15,17 @@ class PengelolaTtd extends Component
 
     public $search = '';
     public $perPage = 5;
-    public $nama_ttd, $file_ttd, $status = 'Aktif';
-    public $selectedTtdId;
+    public $editId;
+    public $nama_ttd, $file_ttd, $status;
+    public $file_ttd_preview; // Untuk menampilkan preview file
+    public $existingFile;
 
-    protected $listeners = ['refreshTtdList' => 'render'];
+    protected $listeners = [
+        'refreshTtdList' => 'render',
+        'refreshTable' => '$refresh',
+        'deleteConfirmedTtd' => 'delete'
+    ];
+
 
     public function updatingSearch()
     {
@@ -31,14 +38,17 @@ class PengelolaTtd extends Component
         $this->dispatch('openModalTambahTtd');
     }
 
-    public function openModalEdit($id)
+
+    public function updatedFileTtd()
     {
-        $ttd = TandaTangan::findOrFail($id);
-        $this->selectedTtdId = $ttd->id;
-        $this->nama_ttd = $ttd->nama_ttd;
-        $this->status = $ttd->status;
-        $this->dispatch('openModalEditTtd');
+        if ($this->file_ttd) {
+            $this->validate([
+                'file_ttd' => 'image|mimes:png|max:2048', // Hanya menerima PNG dengan maksimal 2MB
+            ]);
+            $this->file_ttd_preview = $this->file_ttd->temporaryUrl(); // Simpan preview file
+        }
     }
+
 
     public function store()
     {
@@ -71,42 +81,89 @@ class PengelolaTtd extends Component
         ]);
     }
 
+    public function openModalEdit($id)
+    {
+        $ttd = TandaTangan::findOrFail($id);
+
+        $this->editId = $ttd->id;
+        $this->nama_ttd = $ttd->nama_ttd;
+        $this->status = $ttd->status;
+        $this->existingFile = $ttd->file_ttd; // Simpan file lama
+
+        // Buka modal edit
+        $this->dispatch('openModalEditTtd');
+    }
+
 
     public function update()
     {
         $this->validate([
             'nama_ttd' => 'required|string|max:100',
-            'status' => 'required|in:Aktif,Tidak Aktif'
+            'file_ttd' => 'nullable|image|mimes:png|max:2048', // Bisa kosong jika tidak mengganti
+            'status' => 'required|in:Aktif,Tidak Aktif',
         ]);
 
-        $ttd = TandaTangan::findOrFail($this->selectedTtdId);
+        $ttd = TandaTangan::findOrFail($this->editId);
 
+        // Simpan file baru jika diunggah
         if ($this->file_ttd) {
-            Storage::disk('public')->delete($ttd->file_ttd);
-            $ttd->file_ttd = $this->file_ttd->store('tanda_tangan', 'public');
+            $path = $this->file_ttd->storeAs('tanda_tangan/ttd', 'ttd_' . uniqid() . '.png', 'local');
+            $ttd->file_ttd = $path; // Update file TTD baru
         }
 
+        // Update data
         $ttd->update([
             'nama_ttd' => $this->nama_ttd,
-            'status' => $this->status
+            'status' => $this->status,
         ]);
 
+        // Tutup modal edit
         $this->dispatch('closeModalEditTtd');
-        $this->dispatch('swal:modal', ['type' => 'success', 'message' => 'Tanda tangan berhasil diperbarui!']);
+
+        // Refresh tabel
+        $this->dispatch('refreshTable');
+
+        // Tampilkan notifikasi sukses
+        $this->dispatch('swal:ttd', [
+            'type' => 'success',
+            'title' => 'Berhasil',
+            'message' => "TTD berhasil diperbarui",
+        ]);
     }
+
+    public function removeFile()
+    {
+        $this->file_ttd = null;
+        $this->file_ttd_preview = null;
+    }
+
 
     public function delete($id)
     {
+        if (is_array($id)) {
+            $id = $id['id']; // Ambil ID jika dikirim dalam array
+        }
+
         $ttd = TandaTangan::findOrFail($id);
-        Storage::disk('public')->delete($ttd->file_ttd);
         $ttd->delete();
 
-        $this->dispatch('swal:modal', ['type' => 'success', 'message' => 'Tanda tangan berhasil dihapus!']);
+        // Perbarui tampilan tanpa dispatch tambahan
+        $this->resetPage();
+
+        // Tampilkan notifikasi sukses
+        $this->dispatch('swal:ttd', [
+            'type' => 'success',
+            'title' => 'Berhasil!',
+            'message' => 'TTD berhasil dihapus.',
+        ]);
     }
+
+
+
 
     public function resetForm()
     {
-        $this->reset(['nama_ttd', 'file_ttd', 'status', 'selectedTtdId']);
+        $this->reset(['nama_ttd', 'file_ttd', 'status',]);
     }
 
     public function render()

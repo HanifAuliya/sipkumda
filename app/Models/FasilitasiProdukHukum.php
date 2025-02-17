@@ -43,4 +43,9 @@ class FasilitasiProdukHukum extends Model
     {
         return $this->hasOne(NotaDinas::class, 'fasilitasi_id');
     }
+
+    public function dokumentasi()
+    {
+        return $this->hasOne(DokumentasiProdukHukum::class, 'rancangan_id', 'rancangan_id');
+    }
 }

@@ -57,6 +57,7 @@ class NotificationDropdown extends Component
                 'revisi_ulang' => 'openModalDetailRancangan',
                 'rancangan_selesai' => 'openModalDetailRancangan',
 
+                'uploadUlang_revisi' => 'openModalDetailRancangan',
             ];
 
             $type = $notification->data['type'] ?? null;

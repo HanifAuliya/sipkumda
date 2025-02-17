@@ -90,4 +90,9 @@ class RancanganProdukHukum extends Model
     {
         return $this->hasOne(FasilitasiProdukHukum::class, 'rancangan_id');
     }
+
+    public function dokumentasi()
+    {
+        return $this->hasOne(DokumentasiProdukHukum::class, 'rancangan_id');
+    }
 }

@@ -9,6 +9,12 @@
     --neutral: var(--secondary);
     --white: #ffffff;
     --dark: var(--default);
+
+    --dark-bg: #121212;
+    --dark-text: #ffffff;
+    --dark-card: #1e1e1e;
+    --dark-border: #333333;
+    --dark-hover: #2a2a2a;
 }
 
 /* -----------------------------------------------
@@ -253,7 +259,7 @@
 }
 .sidenav .nav-link.active.dokumentasi {
     color: var(--white) !important;
-    background-color: var(--success) !important;
+    background-color: var(--danger) !important;
     transform: none !important;
 }
 
@@ -796,4 +802,629 @@ textarea.form-control:focus {
 
 .modal-backdrop.show {
     background-color: black; /* Warna hitam dengan tingkat transparansi 80% */
+}
+
+/* -----------------------------------------------
+   Dropdown -Item
+-------------------------------------------------- */
+
+.chart-container {
+    position: relative;
+    width: 100%;
+    height: 100%; /* Pastikan mengikuti tinggi card */
+    min-height: 400px; /* Tetapkan minimum height */
+}
+
+canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.toast-container {
+    position: fixed;
+    z-index: 1050; /* Tetap di atas topnav tapi tidak menghalangi UI */
+    bottom: 20px;
+    right: 20px;
+    pointer-events: none; /* Supaya tidak menghalangi klik elemen lain */
+}
+
+.toast {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.5s ease-out forwards;
+    pointer-events: auto; /* Toast tetap bisa diklik */
+}
+
+/* Animasi muncul */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Animasi menghilang */
+@keyframes fadeOutDown {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+}
+
+/* Efek saat toast ditutup */
+.toast.hide {
+    animation: fadeOutDown 0.5s ease-out forwards;
+}
+
+.toast-header img {
+    width: 20px;
+    /* Ukuran favicon lebih kecil */
+    height: 20px;
+    object-fit: contain;
+    margin-right: 10px;
+}
+/* -----------------------------------------------
+   Dark Mode
+-------------------------------------------------- */
+/* -----------------------------------------------
+   Dark Mode - General Text Styling
+-------------------------------------------------- */
+.dark-mode {
+    background-color: var(--dark-bg);
+    color: var(--dark-text);
+}
+
+/* Perbaikan untuk warna teks dalam kartu (card) */
+.dark-mode .card {
+    background-color: var(--dark-card) !important;
+    color: var(--dark-text) !important;
+    border: 1px solid var(--dark-border) !important;
+}
+
+/* Warna teks dalam Card Header */
+.dark-mode .card-header {
+    background-color: var(--dark-card) !important;
+    color: var(--dark-text) !important;
+    border-bottom: 1px solid var(--dark-border) !important;
+}
+
+/* Perbaikan warna teks dalam tabel */
+.dark-mode table {
+    color: var(--dark-text) !important;
+}
+
+.dark-mode table thead th,
+.dark-mode table tbody td {
+    color: var(--dark-text) !important;
+}
+
+/* Warna teks untuk `<th>` agar lebih terang di dark mode */
+.dark-mode th {
+    color: var(--dark-text) !important;
+}
+
+/* Warna teks dalam badge */
+.dark-mode mark.badge-pill {
+    color: var(--dark-text) !important;
+}
+
+/* Warna teks dalam input dan textarea */
+.dark-mode .form-control {
+    background-color: var(--dark-card) !important;
+    color: var(--dark-text) !important;
+    border: 1px solid var(--dark-border) !important;
+}
+
+.dark-mode .form-control:focus {
+    background-color: var(--dark-card) !important;
+    color: var(--dark-text) !important;
+    border: 1px solid var(--dark-border) !important;
+}
+
+/* Warna teks dalam select dropdown */
+.dark-mode select.form-control {
+    background-color: var(--dark-card) !important;
+    color: var(--dark-text) !important;
+}
+
+/* Warna teks dalam label */
+.dark-mode label {
+    color: var(--dark-text) !important;
+}
+
+/* Warna teks dalam tombol */
+.dark-mode .btn {
+    color: var(--dark-text) !important;
+}
+
+/* Perbaikan untuk alert warning */
+.dark-mode .alert-warning {
+    background-color: var(--dark-card) !important;
+    color: var(--dark-text) !important;
+    border: 1px solid var(--dark-border) !important;
+}
+
+/* Dark Mode - Card Header */
+.dark-mode .card-header {
+    background-color: var(--dark-card) !important;
+    color: var(--dark-text) !important;
+    border-bottom: 1px solid var(--dark-border) !important;
+}
+
+/* Perbaikan khusus untuk teks dalam Card Header */
+.dark-mode .card-header h3,
+.dark-mode .card-header h4,
+.dark-mode .card-header h5,
+.dark-mode .card-header h6,
+.dark-mode .card-header h2,
+.dark-mode .card-header h1,
+.dark-mode .card-header small {
+    color: var(--dark-text) !important;
+}
+
+/* Dark Mode - Input Tanggal */
+.dark-mode input[type="date"] {
+    background-color: var(--dark-card) !important;
+    color: var(--dark-text) !important;
+    border: 1px solid var(--dark-border) !important;
+}
+
+/* Untuk memastikan ikon kalender mengikuti warna */
+.dark-mode input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1); /* Membalik warna agar ikon menjadi putih */
+    cursor: pointer;
+}
+
+.dark-mode input[type="date"]::placeholder {
+    color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Top nav */
+/* Dark Mode - Navbar */
+.dark-mode .navbar {
+    background-color: var(--dark-card) !important; /* Warna lebih gelap */
+    border-bottom: 1px solid var(--dark-border) !important;
+}
+
+/* Ubah warna teks dan ikon dalam navbar */
+.dark-mode .navbar .navbar-brand,
+.dark-mode .navbar .nav-link,
+.dark-mode .navbar .nav-item,
+.dark-mode .navbar .navbar-toggler-icon {
+    color: var(--dark-text) !important;
+}
+
+/* Hover efek */
+.dark-mode .navbar .nav-link:hover {
+    color: var(--info) !important; /* Biru muda atau warna yang lebih kontras */
+}
+
+/* Aktifkan warna navbar-toggler */
+.dark-mode .navbar-toggler {
+    border-color: var(--dark-border) !important;
+}
+
+.dark-mode .navbar-toggler-icon {
+    filter: invert(1); /* Membalik warna ikon agar lebih terang */
+}
+
+/* Tombol Dark Mode dalam Light Mode */
+#darkModeToggle {
+    background-color: transparent;
+    color: var(--white); /* Warna teks putih */
+    border: 1px solid var(--white); /* Border putih */
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+#darkModeToggle:hover {
+    background-color: var(--white); /* Latar belakang putih saat hover */
+    color: var(--default); /* Warna teks hitam saat hover */
+}
+
+/* Tombol Dark Mode dalam Dark Mode */
+.dark-mode #darkModeToggle {
+    background-color: transparent;
+    color: var(--dark-text); /* Warna teks dark mode */
+    border: 1px solid var(--dark-text); /* Border dark mode */
+}
+
+.dark-mode #darkModeToggle:hover {
+    background-color: var(--dark-); /* Background teks dark mode saat hover */
+    color: var(--dark-bg); /* Warna teks dark mode */
+}
+
+/* Pastikan semua teks heading berubah menjadi putih dalam Dark Mode */
+.dark-mode h1,
+.dark-mode h2,
+.dark-mode h3,
+.dark-mode h4,
+.dark-mode h5,
+.dark-mode h6,
+.dark-mode .card-title,
+.dark-mode .text-muted,
+.dark-mode .font-weight-bold {
+    color: var(--dark-text) !important;
+}
+
+/* Pastikan warna khusus untuk elemen-elemen tertentu */
+.dark-mode .text-muted {
+    color: rgba(255, 255, 255, 0.7) !important; /* Warna abu-abu terang */
+}
+
+.dark-mode .h2,
+.dark-mode .h5 {
+    color: var(--dark-text) !important;
+}
+
+/* Khusus untuk .card-title agar tetap kontras di Dark Mode */
+.dark-mode .card-title {
+    color: var(--dark-text) !important;
+}
+
+/* Sidenav */
+.dark-mode .sidenav {
+    background-color: var(--dark-card);
+}
+
+.dark-mode .sidenav .nav-link {
+    color: var(--dark-text) !important;
+}
+
+.dark-mode .sidenav .nav-link.active {
+    background-color: var(--dark-hover) !important;
+    color: var(--dark-text) !important;
+}
+
+/* Navbar */
+.dark-mode .navbar {
+    background-color: var(--dark-card);
+    border-bottom: 1px solid var(--dark-border);
+}
+
+/* Cards */
+.dark-mode .card {
+    background-color: var(--dark-card);
+    border: 1px solid var(--dark-border);
+}
+
+/* Dark Mode: Button Neutral */
+.dark-mode .btn-neutral {
+    color: #fff !important; /* Warna teks jadi putih */
+    border-color: #212529 !important; /* Border jadi hitam */
+    background-color: #212529 !important; /* Background jadi hitam */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(255, 255, 255, 0.2); /* Efek bayangan lebih gelap */
+}
+
+/* Dark Mode: Button Neutral Hover */
+.dark-mode .btn-neutral:hover {
+    color: #212529 !important; /* Warna teks jadi hitam saat hover */
+    border-color: #fff !important; /* Border jadi putih */
+    background-color: #fff !important; /* Background jadi putih */
+}
+
+/* Dark Mode: Badge Secondary */
+.dark-mode .badge-secondary {
+    color: #ffffff !important; /* Teks hitam pekat */
+    background-color: #000000 !important; /* Latar belakang biru muda */
+}
+
+/* Hover dan Focus Effect */
+.dark-mode .badge-secondary[href]:hover,
+.dark-mode .badge-secondary[href]:focus {
+    text-decoration: none;
+    color: #fff !important; /* Teks putih saat hover */
+    background-color: #212529 !important; /* Warna lebih gelap */
+}
+
+/* Modals */
+.dark-mode .modal-content {
+    background-color: var(--dark-card);
+    color: var(--dark-text);
+    border: 1px solid var(--dark-border);
+}
+
+/* Forms */
+.dark-mode input.form-control,
+.dark-mode select.form-control,
+.dark-mode textarea.form-control {
+    background-color: var(--dark-card);
+    color: var(--dark-text);
+    border: 1px solid var(--dark-border);
+}
+
+.dark-mode input::placeholder,
+.dark-mode select::placeholder,
+.dark-mode textarea::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+/* Tables */
+.dark-mode table thead th,
+.dark-mode table tbody td {
+    color: var(--dark-text);
+}
+
+.dark-mode table tbody tr:hover {
+    background-color: var(--dark-hover);
+}
+
+/* Pagination */
+.dark-mode .pagination .page-link {
+    background-color: var(--dark-card);
+    color: var(--dark-text);
+}
+
+/* Dark Mode: Pagination Active */
+.dark-mode .pagination .page-item.active .page-link {
+    background-color: #000 !important; /* Hitam pekat */
+    border-color: #000 !important; /* Border juga hitam pekat */
+    color: #fff !important; /* Teks putih */
+    font-weight: bold; /* Tambahkan efek bold agar lebih jelas */
+}
+
+/* Hover Effect untuk Pagination Active */
+.dark-mode .pagination .page-item.active .page-link:hover {
+    background-color: #222 !important; /* Sedikit lebih terang saat hover */
+    border-color: #222 !important;
+    color: #fff !important;
+}
+
+/* Dropdowns */
+.dark-mode .dropdown-menu {
+    background-color: var(--dark-card) !important;
+    border: 1px solid var(--dark-border) !important;
+}
+
+.dark-mode .dropdown-item {
+    color: var(--dark-text) !important;
+}
+
+.dark-mode .dropdown-item:hover {
+    background-color: var(--dark-hover) !important;
+}
+
+/* Loading Screen */
+.dark-mode .loading-screen {
+    background: var(--dark-bg);
+}
+
+/* TTD Canvas */
+.dark-mode #signatureCanvas {
+    background: var(--dark-card);
+}
+
+/* DARK MODE untuk Sidenav */
+.dark-mode .sidenav {
+    background-color: var(
+        --dark-card
+    ) !important; /* Warna latar belakang lebih gelap */
+}
+
+.dark-mode .sidenav .nav-link {
+    color: var(--dark-text) !important;
+    background-color: transparent !important;
+    border-radius: 5px;
+    transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
+}
+
+.dark-mode .sidenav .nav-link:hover {
+    background-color: var(--dark-hover) !important;
+    color: var(--dark-text) !important;
+    transform: translateX(5px);
+}
+
+.dark-mode .sidenav .nav-link.active {
+    background-color: var(--dark-hover) !important;
+    color: var(--dark-text) !important;
+}
+
+.dark-mode .sidenav .nav-link.active.rancangan {
+    background-color: var(--warning) !important;
+}
+
+.dark-mode .sidenav .nav-link.active.fasilitasi {
+    background-color: var(--primary) !important;
+}
+
+.dark-mode .sidenav .nav-link.active.dokumentasi {
+    background-color: var(--danger) !important;
+}
+
+.dark-mode .sidenav .nav-link i {
+    color: var(--dark-text) !important;
+}
+
+/* Dark Mode untuk Dropdown di Sidenav */
+.dark-mode .sidenav .dropdown-menu {
+    background-color: var(--dark-card) !important;
+    border: 1px solid var(--dark-border) !important;
+}
+
+.dark-mode .sidenav .dropdown-menu .dropdown-item {
+    color: var(--dark-text) !important;
+}
+
+.dark-mode .sidenav .dropdown-menu .dropdown-item:hover {
+    background-color: var(--dark-hover) !important;
+}
+
+/* Warna teks di minimized mode tetap putih */
+.dark-mode .sidenav.minimized .nav-link i {
+    color: var(--dark-text) !important;
+}
+
+/* Jika sidenav diminimalkan dalam dark mode */
+.dark-mode .sidenav.minimized {
+    background-color: var(--dark-card);
+}
+
+.dark-mode .sidenav.minimized:hover {
+    background-color: var(--dark-card);
+}
+
+/* DARK MODE untuk Card */
+.dark-mode .card {
+    background-color: var(--dark-card) !important;
+    color: var(--dark-text) !important;
+    border: 1px solid var(--dark-border) !important;
+}
+
+/* Dark Mode untuk Card Header */
+.dark-mode .card-header {
+    background-color: var(--dark-card) !important;
+    color: var(--dark-text) !important;
+    border-bottom: 1px solid var(--dark-border) !important;
+}
+
+/* Warna teks dalam card header */
+.dark-mode .card-header h3,
+.dark-mode .card-header small {
+    color: var(--dark-text) !important;
+}
+
+/* Dark Mode untuk Navbar Brand */
+.dark-mode .navbar-brand-img {
+    filter: brightness(
+        0.8
+    ); /* Menyesuaikan ikon/logo agar tidak terlalu terang */
+}
+
+.dark-mode .brand-text {
+    color: var(--dark-text);
+}
+
+/* DARK MODE untuk List Group Item */
+.dark-mode .list-group-item {
+    background-color: var(--dark-card) !important;
+    color: var(--dark-text) !important;
+    border-color: var(--dark-border) !important;
+}
+
+/* Warna teks dalam list-group-item */
+.dark-mode .list-group-item h4,
+.dark-mode .list-group-item h5,
+.dark-mode .list-group-item p,
+.dark-mode .list-group-item span,
+.dark-mode .list-group-item small,
+.dark-mode .list-group-item i {
+    color: var(--dark-text) !important;
+}
+
+/* Warna badge dalam Dark Mode */
+.dark-mode .badge-pill {
+    background-color: var(--dark-hover) !important;
+    color: var(--dark-text) !important;
+}
+
+/* Warna tombol dalam list-group-item */
+.dark-mode .list-group-item .btn {
+    background-color: var(--dark-card) !important;
+    color: var(--dark-text) !important;
+    border: 1px solid var(--dark-border) !important;
+}
+
+/* Hover efek pada tombol dalam list-group-item */
+.dark-mode .list-group-item .btn:hover {
+    background-color: var(--dark-hover) !important;
+}
+
+/* Warna icon */
+.dark-mode .list-group-item i {
+    color: var(--dark-text) !important;
+}
+
+/* Dark Mode untuk Nav Pills */
+.dark-mode .nav-pills .nav-link {
+    background-color: var(--dark-card) !important;
+    color: var(--dark-text) !important;
+    border: 1px solid var(--dark-border) !important;
+}
+
+/* Warna saat Nav Pills aktif */
+.dark-mode .nav-pills .nav-link.active {
+    background-color: var(--dark-border) !important;
+    color: var(--white) !important;
+}
+
+/* Warna saat hover */
+.dark-mode .nav-pills .nav-link:hover {
+    background-color: var(--dark-hover) !important;
+    color: var(--white) !important;
+}
+
+/* Warna ikon dalam nav-pills */
+.dark-mode .nav-pills .nav-link i {
+    color: var(--dark-text) !important;
+}
+
+/* Warna ikon saat nav-link aktif */
+.dark-mode .nav-pills .nav-link.active i {
+    color: var(--white) !important;
+}
+
+/* Dark Mode untuk Footer */
+.dark-mode .footer {
+    background-color: var(--dark-card) !important;
+    color: var(--dark-text) !important;
+}
+
+/* Ubah warna teks dalam footer */
+.dark-mode .footer .text-muted,
+.dark-mode .footer a {
+    color: var(--dark-text) !important;
+}
+
+/* Hover efek pada link dalam footer */
+.dark-mode .footer a:hover {
+    color: var(--info) !important;
+}
+
+/* -----------------------------------------------
+   Dark Mode - Toast Notification
+-------------------------------------------------- */
+.dark-mode .toast {
+    background-color: var(--dark-card) !important;
+    color: var(--dark-text) !important;
+    border: 1px solid var(--dark-border) !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+}
+
+.dark-mode .toast-header {
+    background-color: var(--dark-hover) !important;
+    color: var(--dark-text) !important;
+    border-bottom: 1px solid var(--dark-border) !important;
+}
+
+.dark-mode .toast-body {
+    background-color: var(--dark-card) !important;
+    color: var(--dark-text) !important;
+}
+
+.dark-mode .toast .close {
+    color: var(--dark-text) !important;
+}
+
+.dark-mode .toast .close:hover {
+    color: var(--white) !important;
+}
+
+/* DARK MODE untuk Input Group */
+.dark-mode .input-group-prepend .input-group-text {
+    background-color: var(--dark-card);
+    border: 1px solid var(--dark-border);
+    color: var(--dark-text);
+}
+
+/* Hover effect */
+.dark-mode .input-group-prepend .input-group-text:hover {
+    background-color: var(--dark-hover);
+    color: var(--white);
 }

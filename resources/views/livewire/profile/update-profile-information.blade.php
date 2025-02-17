@@ -58,16 +58,19 @@
         {{-- Perangkat Daerah --}}
         <div class="form-group">
             <label for="perangkat_daerah_id" class="form-control-label">{{ __('Perangkat Daerah') }}</label>
-            <select id="perangkat_daerah_id" wire:model.defer="perangkat_daerah_id" class="form-control" required>
-                <option value="">{{ __('Pilih Perangkat Daerah') }}</option>
-                @foreach ($daftar_perangkat_daerah as $pd)
-                    <option value="{{ $pd->id }}">{{ $pd->nama_perangkat_daerah }}</option>
-                @endforeach
-            </select>
+            <div class="input-group">
+                <span class="input-group-text">
+                    <i class="bi bi-building"></i> {{-- Icon Perangkat Daerah --}}
+                </span>
+                <input type="text" class="form-control"
+                    value="{{ $daftar_perangkat_daerah->where('id', $perangkat_daerah_id)->first()?->nama_perangkat_daerah }}"
+                    readonly>
+            </div>
             @error('perangkat_daerah_id')
                 <span class="text-danger text-sm mt-2">{{ $message }}</span>
             @enderror
         </div>
+
 
         {{-- role --}}
         <div class="form-group">

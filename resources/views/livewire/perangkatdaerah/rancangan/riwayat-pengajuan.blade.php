@@ -496,7 +496,7 @@
             {{ $riwayat->links('pagination::bootstrap-4') }}
         </div>
     </div>
-    <!-- Modal untuk menampilkan daftar berkas -->
+    {{-- Modal untuk menampilkan daftar berkas --}}
     <div class="modal fade" id="berkasModal" tabindex="-1" role="dialog" aria-labelledby="berkasModalLabel"
         wire:ignore.self>
         <div class="modal-dialog modal-lg" role="document">
@@ -512,7 +512,7 @@
                     @if ($selectedRancangan && $selectedRancangan->revisi)
                         <div class="card shadow">
                             <div class="list-group list-group-flush">
-                                <!-- File Rancangan -->
+                                {{-- File Rancangan --}}
                                 @if ($selectedRancangan->rancangan)
                                     <div class="list-group-item d-flex justify-content-between align-items-center">
                                         <div>
@@ -526,7 +526,7 @@
                                     </div>
                                 @endif
 
-                                <!-- File Matrik -->
+                                {{-- File Matrik --}}
                                 @if ($selectedRancangan->matrik)
                                     <div class="list-group-item d-flex justify-content-between align-items-center">
                                         <div>
@@ -539,7 +539,7 @@
                                         </a>
                                     </div>
                                 @endif
-                                <!-- Catatan Revisi -->
+                                {{-- Catatan Revisi --}}
                                 <div class="card shadow-sm">
                                     <div
                                         class="card-header text-dark d-flex justify-content-between align-items-center">
@@ -563,7 +563,6 @@
                                             @else
                                                 <div class="alert alert-secondary" role="alert">
                                                     <i class="bi bi-info-circle"></i> Tidak ada catatan revisi
-                                                    tersedia.
                                                 </div>
                                             @endif
                                         </div>

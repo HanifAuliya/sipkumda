@@ -114,6 +114,10 @@
                                             <i class="bi bi-check2-square text-success" style="font-size: 2rem;"></i>
                                         @break
 
+                                        @case('uploadUlang_fasilitasi')
+                                            <i class="bi bi-info-lg text-warning" style="font-size: 2rem;"></i>
+                                        @break
+
                                         @default
                                             <i class="bi bi-app-indicator fs-1 text-default" style="font-size: 2rem;"></i>
                                     @endswitch
@@ -134,3 +138,4 @@
                 </div>
             </div>
         </div>
+    </div>

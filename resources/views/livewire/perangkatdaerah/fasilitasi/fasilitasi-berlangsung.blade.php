@@ -35,13 +35,14 @@
                     </div>
                 </div>
             </div>
-            <table class="table table-bordered">
+            <table class="table table-bordered table-sm">
                 <thead>
                     <tr>
                         <th>No Rancangan</th>
                         <th>Tentang</th>
                         <th>Status Berkas Fasilitasi</th>
                         <th>Status Validasi Fasilitasi</th>
+                        <th>Klik Informasi</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -49,7 +50,7 @@
                     @forelse ($fasilitasiBerlangsung as $fasilitasi)
                         <tr>
                             <td class="wrap-text">{{ $fasilitasi->rancangan->no_rancangan }}</td>
-                            <td class="wrap-text w-50">{{ $fasilitasi->rancangan->tentang }}</td>
+                            <td class="wrap-text w-75">{{ $fasilitasi->rancangan->tentang }}</td>
                             <td class="wrap-text w-25">
                                 <mark
                                     class="badge-{{ $fasilitasi->status_berkas_fasilitasi === 'Disetujui' ? 'success' : ($fasilitasi->status_berkas_fasilitasi === 'Ditolak' ? 'danger' : 'warning') }} badge-pill">
@@ -68,6 +69,35 @@
                                     {{ $fasilitasi->status_validasi_fasilitasi ?? 'N/A' }}
                                 </mark>
                             </td>
+                            <td class="wrap-text">
+                                <!-- Tombol untuk Memicu Toast -->
+                                <button type="button" class="btn btn-sm btn-outline-primary showToastBtn"
+                                    data-status="{{ $fasilitasi->status_berkas_fasilitasi }}"
+                                    data-validasi="{{ $fasilitasi->status_validasi_fasilitasi }}"
+                                    data-nota="{{ optional($fasilitasi->notaDinas)->id ? 'true' : 'false' }}">
+                                    Lihat Status
+                                </button>
+                            </td>
+
+                            {{--  Container Toast  --}}
+                            <div class="position-fixed toast-container top-0 right-0 p-3">
+                                <div id="statusToast" class="toast hide" role="alert" aria-live="assertive"
+                                    aria-atomic="true" data-delay="20000">
+                                    <div class="toast-header">
+                                        <img src="{{ asset('assets/img/brand/favicon.ico') }}"
+                                            class="rounded toast-icon" alt="Favicon">
+                                        <strong class="mr-auto">Status Fasilitasi</strong>
+                                        <small>Baru saja</small>
+                                        <button type="button" class="ml-2 mb-1 close" data-dismiss="toast"
+                                            aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="toast-body">
+                                        <span id="toastMessage">Menunggu Persetujuan...</span>
+                                    </div>
+                                </div>
+                            </div>
                             <td>
                                 <div class="dropdown position-static">
                                     <button type="button" class="btn btn btn-neutral dropdown-toggle"
@@ -80,11 +110,45 @@
                                             data-target="#modalDetailFasilitasi" data-toggle="modal">
                                             <i class="bi bi-info-circle"></i> Lihat Detail Fasilitasi
                                         </a>
-                                        {{-- Upload Ulang Berkas --}}
-                                        <a class="dropdown-item d-flex align-items-center text-default"
-                                            wire:click.prevent="openUploadRevisi({{ $fasilitasi->id }})">
-                                            <i class="bi bi-upload text-success"></i> Upload Ulang Fasilitasi
-                                        </a>
+                                        @if ($fasilitasi->status_berkas_fasilitasi === 'Ditolak')
+                                            {{-- Upload Ulang Berkas --}}
+                                            <a class="dropdown-item d-flex align-items-center text-default"
+                                                wire:click.prevent="openUploadUlangRevisi({{ $fasilitasi->id }})"
+                                                data-target="modalUploadUlangFasilitasi" data-toggle="modal">
+                                                <i class="bi bi-upload text-success"></i> Upload Ulang Fasilitasi
+                                            </a>
+                                        @endif
+                                        {{-- Validasi Disetujui dan Nota Dinas Telah Dibuat --}}
+                                        @if ($fasilitasi->status_validasi_fasilitasi === 'Diterima' && optional($fasilitasi->notaDinas)->id)
+                                            <a class="dropdown-item d-flex align-items-center text-warning"
+                                                href="javascript:void(0);"
+                                                onclick="showLoadingSwal(); @this.generatePDF({{ optional($fasilitasi->notaDinas)->id }})">
+                                                <i class="bi bi-file-earmark-pdf"></i> Cetak Nota Dinas
+                                            </a>
+                                        @endif
+
+                                        <script>
+                                            function showLoadingSwal() {
+                                                Swal.fire({
+                                                    title: "Sedang Memproses PDF...",
+                                                    html: "Mohon tunggu sebentar...",
+                                                    allowOutsideClick: false,
+                                                    showConfirmButton: false,
+                                                    didOpen: () => {
+                                                        Swal.showLoading();
+                                                    }
+                                                });
+                                            }
+
+                                            // Event dari Livewire untuk menutup SweetAlert setelah proses selesai
+                                            document.addEventListener('DOMContentLoaded', function() {
+                                                Livewire.on('hideLoadingSwal', () => {
+                                                    Swal.close(); // Menutup SweetAlert
+                                                });
+                                            });
+                                        </script>
+
+
                                     </div>
                                 </div>
                             </td>
@@ -111,7 +175,6 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Detail Fasilitasi</h5>
-                    <button type="button" class="close" data-dismiss="modal" wire:click="resetDetail">&times;</button>
                 </div>
                 <div class="modal-body">
                     @if ($selectedFasilitasi)
@@ -170,14 +233,14 @@
                                     <th class="info-text w-25">Status Validasi Fasilitasi</th>
                                     <td class="wrap-text w-75">
                                         <mark
-                                            class="badge-{{ $fasilitasi->status_validasi_fasilitasi === 'Diterima'
+                                            class="badge-{{ $selectedFasilitasi->status_validasi_fasilitasi === 'Diterima'
                                                 ? 'success'
-                                                : ($fasilitasi->status_validasi_fasilitasi === 'Ditolak'
+                                                : ($selectedFasilitasi->status_validasi_fasilitasi === 'Ditolak'
                                                     ? 'danger'
-                                                    : ($fasilitasi->status_validasi_fasilitasi === 'Belum Tahap Validasi'
+                                                    : ($selectedFasilitasi->status_validasi_fasilitasi === 'Belum Tahap Validasi'
                                                         ? 'danger'
                                                         : 'warning')) }} badge-pill">
-                                            {{ $fasilitasi->status_validasi_fasilitasi ?? 'N/A' }}
+                                            {{ $selectedFasilitasi->status_validasi_fasilitasi ?? 'N/A' }}
                                         </mark>
 
                                     </td>
@@ -191,7 +254,7 @@
                                 <tr>
                                     <th class="info-text w-25">Catatan Fasilitasi</th>
                                     <td class="wrap-text w-75">
-                                        {{ $selectedFasilitasi->catatan_berkas_fasilitasi ?? 'Tidak Ada Catatan' }}
+                                        {{ $selectedFasilitasi->catatan_persetujuan_fasilitasi ?? 'Tidak Ada Catatan' }}
                                     </td>
                                 </tr>
                                 <tr>
@@ -207,29 +270,138 @@
                                         @endif
                                     </td>
                                 </tr>
+                                <tr>
+                                    <th class="info-text w-25">Status Paraf Koordinasi</th>
+                                    <td class="wrap-text w-75">
+                                        {{ $selectedFasilitasi->status_paraf_koordinasi ?? 'Belum' }}
+                                        @if ($selectedFasilitasi->tanggal_paraf_koordinasi)
+                                            ({{ \Carbon\Carbon::parse($selectedFasilitasi->tanggal_paraf_koordinasi)->translatedFormat('d F Y') }})
+                                        @endif
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <th class="info-text w-25">Status Asisten</th>
+                                    <td class="wrap-text w-75">
+                                        {{ $selectedFasilitasi->status_asisten ?? 'Belum' }}
+                                        @if ($selectedFasilitasi->tanggal_asisten)
+                                            ({{ \Carbon\Carbon::parse($selectedFasilitasi->tanggal_asisten)->translatedFormat('d F Y') }})
+                                        @endif
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <th class="info-text w-25">Status Sekda</th>
+                                    <td class="wrap-text w-75">
+                                        {{ $selectedFasilitasi->status_sekda ?? 'Belum' }}
+                                        @if ($selectedFasilitasi->tanggal_sekda)
+                                            ({{ \Carbon\Carbon::parse($selectedFasilitasi->tanggal_sekda)->translatedFormat('d F Y') }})
+                                        @endif
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <th class="info-text w-25">Status Bupati</th>
+                                    <td class="wrap-text w-75">
+                                        {{ $selectedFasilitasi->status_bupati ?? 'Belum' }}
+                                        @if ($selectedFasilitasi->tanggal_bupati)
+                                            ({{ \Carbon\Carbon::parse($selectedFasilitasi->tanggal_bupati)->translatedFormat('d F Y') }})
+                                        @endif
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
-                        @if ($selectedFasilitasi->status_berkas_fasilitasi === 'Menunggu Persetujuan')
-                            <div class="alert alert-warning alert-dismissible fade show mb-2 mt-2" role="alert">
-                                <span class="alert-icon"><i class="bi bi-send"></i></span>
+                        @if (
+                            $selectedFasilitasi->status_berkas_fasilitasi === 'Menunggu Persetujuan' &&
+                                $selectedFasilitasi->status_validasi_fasilitasi === 'Belum Tahap Validasi')
+                            <div class="alert alert-warning alert-dismissible fade show d-flex align-items-center mb-2 mt-2"
+                                role="alert">
+                                <i class="bi bi-hourglass-split mr-2"></i>
                                 <span class="alert-text">
-                                    Rancangan <strong>Menunggu Persetujuan!</strong>
-                                    Tunggu Peneliti memeriksa
-                                    berkas diajukan!.
+                                    <strong>⏳ Harap Sabar!</strong> Fasilitasi Rancangan Menunggu Persetujuan Dari
+                                    Peneliti.
                                 </span>
-                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <button type="button" class="close ml-auto" data-dismiss="alert"
+                                    aria-label="Close">
                                     <span aria-hidden="true">&times;</span>
                                 </button>
                             </div>
-                        @endif
-                        @if ($selectedFasilitasi->status_berkas_fasilitasi === 'Disetujui')
-                            <div class="alert alert-primary alert-dismissible fade show mb-2 mt-2" role="alert">
-                                <span class="alert-icon"><i class="bi bi-send-check"></i></span>
+                        @elseif (
+                            $selectedFasilitasi->status_berkas_fasilitasi === 'Ditolak' &&
+                                $selectedFasilitasi->status_validasi_fasilitasi === 'Belum Tahap Validasi')
+                            <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center mb-2 mt-2"
+                                role="alert">
+                                <i class="bi bi-x-circle mr-2"></i>
                                 <span class="alert-text">
-                                    Rancangan <strong>Distujui!</strong>
-                                    Tahapan selanjutnya menunggu Validasi dari Verifikator!
+                                    <strong>❌ Fasilitasi Rancangan Ditolak!</strong> Silahkan Upload Ulang.
+                                    Anda bisa ke kolom <strong>Aksi ⚙️</strong> -> pilih <strong>Upload Ulang
+                                        Fasilitasi</strong>! 😏
                                 </span>
-                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <button type="button" class="close ml-auto" data-dismiss="alert"
+                                    aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                        @elseif (
+                            $selectedFasilitasi->status_berkas_fasilitasi === 'Ditolak' &&
+                                $selectedFasilitasi->status_validasi_fasilitasi === 'Ditolak')
+                            <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center mb-2 mt-2"
+                                role="alert">
+                                <i class="bi bi-exclamation-triangle mr-2"></i>
+                                <span class="alert-text">
+                                    <strong>⚠️ Fasilitasi Ditolak!</strong>
+                                    Harap periksa fasilitasi Anda sesuai catatan pengajuan sebelumnya 📑, lakukan
+                                    perbaikan dan upload ulang.
+                                    Anda bisa ke kolom <strong>Aksi ⚙️</strong> -> pilih <strong>Upload Ulang
+                                        Fasilitasi</strong>! 😏
+                                </span>
+                                <button type="button" class="close ml-auto" data-dismiss="alert"
+                                    aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                        @elseif (
+                            $selectedFasilitasi->status_berkas_fasilitasi === 'Disetujui' &&
+                                $selectedFasilitasi->status_validasi_fasilitasi === 'Menunggu Validasi')
+                            <div class="alert alert-primary alert-dismissible fade show d-flex align-items-center mb-2 mt-2"
+                                role="alert">
+                                <i class="bi bi-shield-check mr-2"></i>
+                                <span class="alert-text">
+                                    <strong>✅ Fasilitasi Rancangan Telah Disetujui!</strong>
+                                    Menunggu Konfirmasi dari Verifikator. Mohon Ditunggu 🙂!
+                                </span>
+                                <button type="button" class="close ml-auto" data-dismiss="alert"
+                                    aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                        @elseif (
+                            $selectedFasilitasi->status_validasi_fasilitasi === 'Diterima' &&
+                                optional($selectedFasilitasi->notaDinas)->id === null)
+                            <div class="alert alert-info alert-dismissible fade show d-flex align-items-center mb-2 mt-2"
+                                role="alert">
+                                <i class="bi bi-journal-check mr-2"></i>
+                                <span class="alert-text">
+                                    <strong>✅ Validasi Diterima!</strong>
+                                    Menunggu Nota Dinas Dibuat. Harap sabar ya! 🤌
+                                </span>
+                                <button type="button" class="close ml-auto" data-dismiss="alert"
+                                    aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                        @elseif ($selectedFasilitasi->status_validasi_fasilitasi === 'Diterima' && optional($selectedFasilitasi->notaDinas)->id)
+                            <div class="alert alert-success alert-dismissible fade show d-flex align-items-center mb-2 mt-2"
+                                role="alert">
+                                <i class="bi bi-file-earmark-text mr-2"></i>
+                                <span class="alert-text">
+                                    <strong>🗒️ Nota Dinas Telah Dibuat!</strong>
+                                    Kamu bisa cetak di <strong>Aksi ⚙️ -> Cetak Nota Dinas</strong>, atau pergi ke
+                                    halaman Nota dan cari Nota kamu!🔥
+                                    Sekarang Anda dapat Mengajukan Fasilitasi secara daring. 📑⚖️
+                                </span>
+                                <button type="button" class="close ml-auto" data-dismiss="alert"
+                                    aria-label="Close">
                                     <span aria-hidden="true">&times;</span>
                                 </button>
                             </div>
@@ -251,8 +423,70 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-warning" data-dismiss="modal"
-                        wire:click="resetDetail">Tutup Detail</button>
+                        wire:click="resetDetail"><i class="bi bi-backspace"></i> Tutup Detail</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Modal Upload Ulang --}}
+    <div wire:ignore.self class="modal fade" id="modalUploadUlangFasilitasi" tabindex="-1" aria-hidden="true"
+        data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Upload Ulang Fasilitasi</h5>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Upload Berkas Baru (PDF)</label>
+
+                        {{-- Input file (disabled setelah file dipilih) --}}
+                        <input type="file" class="form-control" wire:model="fileRancanganUlang"
+                            accept="application/pdf" wire:change="resetError('fileRancanganUlang')"
+                            {{ $fileRancanganUlang ? 'disabled' : '' }}
+                            style="{{ $fileRancanganUlang ? 'background-color: #e9ecef; cursor: not-allowed; opacity: 0.6;' : '' }}">
+
+                        <small class="form-text text-muted"> * Maksimal 2MB. Format yang diterima: PDF.</small>
+
+                        {{-- Indikator Loading --}}
+                        <div wire:loading wire:target="fileRancanganUlang" class="text-primary mt-2">
+                            <i class="spinner-border spinner-border-sm"></i> Mengunggah file...
+                        </div>
+
+                        @error('fileRancanganUlang')
+                            <small class="text-danger">{{ $message }}</small>
+                        @enderror
+
+                        {{-- Preview file & tombol hapus --}}
+                        @if ($fileRancanganUlang)
+                            <div class="mt-2 p-2 border rounded bg-light d-flex align-items-center">
+                                <i class="bi bi-file-earmark-pdf text-danger mr-2"></i>
+                                <span class="flex-grow-1">{{ $fileRancanganUlang->getClientOriginalName() }}</span>
+                                <button type="button" class="btn btn-sm btn-outline-danger ml-2"
+                                    wire:click="removeFile('fileRancanganUlang')">
+                                    <i class="bi bi-trash"></i> Hapus File
+                                </button>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-dismiss="modal">
+                        <i class="bi bi-backspace"></i> Batal
+                    </button>
+                    <button class="btn btn-outline-primary" wire:click="uploadUlangRevisi"
+                        wire:loading.attr="disabled" {{ empty($fileRancanganUlang) ? 'disabled' : '' }}>
+                        <span wire:loading.remove wire:target="uploadUlangRevisi">
+                            <i class="bi bi-upload"></i> Upload
+                        </span>
+                        <span wire:loading wire:target="uploadUlangRevisi">
+                            <i class="spinner-border spinner-border-sm"></i> Mengunggah...
+                        </span>
+                    </button>
+                </div>
+
             </div>
         </div>
     </div>

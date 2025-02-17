@@ -1,7 +1,30 @@
 <div>
     {{-- Search Bar --}}
-    <div class="form-group">
-        <input type="text" class="form-control" placeholder="Cari nomor rancangan atau tentang..." wire:model="search">
+    {{-- Searching dan PerPage --}}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        {{-- Searching --}}
+        <div class="input-group w-50">
+            <div class="input-group-prepend">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
+            </div>
+            <input type="text" class="form-control" placeholder="Cari berdasarkan No Rancangan atau Tentang"
+                wire:model.live="search">
+        </div>
+
+        {{-- Per Page Dropdown --}}
+        <div class="col-md-3">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="ni ni-bullet-list-67"></i></span>
+                </div>
+                <select class="form-control" wire:model.live="perPage">
+                    <option value="3">3 Data per Halaman</option>
+                    <option value="5">5 Data per Halaman</option>
+                    <option value="10">10 Data per Halaman</option>
+                    <option value="50">50 Data per Halaman</option>
+                </select>
+            </div>
+        </div>
     </div>
 
     {{-- Table --}}
@@ -10,8 +33,8 @@
             <tr>
                 <th>Nomor Rancangan</th>
                 <th>Tentang</th>
+                <th>Perangkat Daerah</th>
                 <th>Status Berkas Fasilitasi</th>
-                <th>Status Validasi Fasilitasi</th>
                 <th>Aksi</th>
             </tr>
         </thead>
@@ -21,21 +44,12 @@
                     <td class="wrap-text">{{ $fasilitasi->rancangan->no_rancangan }}</td>
                     <td class="wrap-text w-50">{{ $fasilitasi->rancangan->tentang }}</td>
                     <td class="wrap-text w-25">
+                        {{ $fasilitasi->rancangan->user->perangkatDaerah->nama_perangkat_daerah }}
+                    </td>
+                    <td class="wrap-text w-25">
                         <mark
                             class="badge-{{ $fasilitasi->status_berkas_fasilitasi === 'Disetujui' ? 'success' : ($fasilitasi->status_berkas_fasilitasi === 'Ditolak' ? 'danger' : 'warning') }} badge-pill">
                             {{ $fasilitasi->status_berkas_fasilitasi ?? 'N/A' }}
-                        </mark>
-                    </td>
-                    <td>
-                        <mark
-                            class="badge-{{ $fasilitasi->status_validasi_fasilitasi === 'Diterima'
-                                ? 'success'
-                                : ($fasilitasi->status_validasi_fasilitasi === 'Ditolak'
-                                    ? 'danger'
-                                    : ($fasilitasi->status_validasi_fasilitasi === 'Belum Tahap Validasi'
-                                        ? 'danger'
-                                        : 'warning')) }} badge-pill">
-                            {{ $fasilitasi->status_validasi_fasilitasi ?? 'N/A' }}
                         </mark>
                     </td>
                     <td>
@@ -50,7 +64,7 @@
                                     data-target="#modalDetailFasilitasi" data-toggle="modal">
                                     <i class="bi bi-check2-square"></i> Verifikasi Berkas Fasilitasi
                                 </a>
-                                {{-- Upload Ulang Berkas --}}
+                                {{-- Hapus Pengajuan --}}
                                 <a class="dropdown-item text-danger d-flex align-items-center"
                                     onclick="confirmDeleteValidasi({{ $fasilitasi->id }})">
                                     <i class="bi bi-arrow-counterclockwise"></i> Hapus Pengajuan Fasilitasi
@@ -71,7 +85,8 @@
     <div class="mt-3">
         {{ $fasilitasiMenunggu->links('pagination::bootstrap-4') }}
     </div>
-    {{-- modal detail fasilitasi --}}
+
+    {{-- modal Persetujuan fasilitasi --}}
     <div wire:ignore.self class="modal fade" id="modalDetailFasilitasi" tabindex="-1" role="dialog"
         data-backdrop="static" data-keyboard="false">
         <div class="modal-dialog modal-xl no-style-modal">
@@ -140,14 +155,14 @@
                                                 <th class="info-text w-25">Status Validasi Fasilitasi</th>
                                                 <td class="wrap-text w-75">
                                                     <mark
-                                                        class="badge-{{ $fasilitasi->status_validasi_fasilitasi === 'Diterima'
+                                                        class="badge-{{ $selectedFasilitasi->status_validasi_fasilitasi === 'Diterima'
                                                             ? 'success'
-                                                            : ($fasilitasi->status_validasi_fasilitasi === 'Ditolak'
+                                                            : ($selectedFasilitasi->status_validasi_fasilitasi === 'Ditolak'
                                                                 ? 'danger'
-                                                                : ($fasilitasi->status_validasi_fasilitasi === 'Belum Tahap Validasi'
+                                                                : ($selectedFasilitasi->status_validasi_fasilitasi === 'Belum Tahap Validasi'
                                                                     ? 'danger'
                                                                     : 'warning')) }} badge-pill">
-                                                        {{ $fasilitasi->status_validasi_fasilitasi ?? 'N/A' }}
+                                                        {{ $selectedFasilitasi->status_validasi_fasilitasi ?? 'N/A' }}
                                                     </mark>
 
                                                 </td>
@@ -168,6 +183,12 @@
                                                     @endif
                                                 </td>
                                             </tr>
+                                            <tr>
+                                                <th class="info-text w-25">Catatan Tahap Rancangan</th>
+                                                <td class="wrap-text w-75">
+                                                    {{ $selectedFasilitasi->rancangan->revisi->last()->catatan_revisi ?? 'Tidak ada Catatan' }}
+                                                </td>
+                                            </tr>
                                         </tbody>
                                     </table>
                                 </div>
@@ -178,17 +199,12 @@
                         <div class="col-md-6 mb-2">
                             <div class="card shadow-sm">
                                 <div class="card-header">
-                                    <h4 class="mb-0">Persetujuan</h4>
+                                    <h4 class="mb-0">Persetujuan Fasilitasi</h4>
                                 </div>
 
                                 {{-- Persetujuan --}}
                                 <div class="card-body">
                                     {{--  Verifikasi Persetujuan  --}}
-                                    {{-- Informasi --}}
-                                    <p class="description info-text mb-3 info-text">
-                                        Pilih status persetujuan untuk rancangan ini. Tambahkan catatan
-                                        untuk memberikan masukan atau alasan penolakan.
-                                    </p>
                                     {{-- Persetujuan --}}
                                     <div class="form-group">
                                         <label>Pilih Status Persetujuan</label>
@@ -204,7 +220,10 @@
 
                                     {{-- Catatan Persetujuan --}}
                                     <div class="form-group">
-                                        <label>Catatan Persetujuan</label>
+                                        <label>
+                                            Catatan Persetujuan
+                                            <small class="text-danger"> wajib</small>
+                                        </label>
                                         <textarea class="form-control" wire:model.defer="catatan" rows="3" placeholder="Tambahkan catatan..."></textarea>
                                         @error('catatan')
                                             <small class="text-danger">{{ $message }}</small>
@@ -224,7 +243,7 @@
 
                                         {{-- Tombol Verifikasi --}}
                                         <button type="button" class="btn btn-outline-warning" data-dismiss="modal"
-                                            wire:click="resetForm">Batalkan</button>
+                                            wire:click="resetForm"><i class="bi bi-backspace"></i> Batalkan</button>
                                         <button class="btn btn-outline-success" wire:click="updateStatus"
                                             wire:loading.attr="disabled">
                                             <span wire:loading.remove wire:target="updateStatus"><i

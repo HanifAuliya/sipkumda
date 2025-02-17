@@ -7,12 +7,12 @@
     {{-- Table --}}
     <div class="table-responsive">
         <table class="table table-bordered">
-            <thead class="thead-light">
+            <thead>
                 <tr>
                     <th>Nomor Rancangan</th>
                     <th>Tentang</th>
-                    <th>Status Berkas Fasilitasi</th>
-                    <th>Status Validasi Fasilitasi</th>
+                    <th>Perangkat Daerah</th>
+                    <th>Status Validasi </th>
                     <th>Aksi</th>
                 </tr>
             </thead>
@@ -21,12 +21,8 @@
                     <tr>
                         <td class="wrap-text">{{ $fasilitasi->rancangan->no_rancangan }}</td>
                         <td class="wrap-text w-50">{{ $fasilitasi->rancangan->tentang }}</td>
-                        <td>
-                            <mark
-                                class="badge-{{ $fasilitasi->status_berkas_fasilitasi === 'Disetujui' ? 'success' : 'danger' }} badge-pill">
-                                {{ $fasilitasi->status_berkas_fasilitasi ?? 'N/A' }}
-                            </mark>
-                        </td>
+                        <td class="wrap-text w-50">
+                            {{ $fasilitasi->rancangan->user->perangkatDaerah->nama_perangkat_daerah }}</td>
                         <td>
                             <mark
                                 class="badge-{{ $fasilitasi->status_validasi_fasilitasi === 'Diterima'
@@ -39,13 +35,26 @@
                                 {{ $fasilitasi->status_validasi_fasilitasi ?? 'N/A' }}
                             </mark>
                         </td>
-                        <td class="w-25">
-                            {{-- Tombol Verifikasi --}}
-                            <button class="btn btn-neutral" href="#"
-                                wire:click.prevent="openModalRiwayatFasilitasi({{ $fasilitasi->id }})"
-                                data-target="#modalRiwayatFasilitasi" data-toggle="modal">
-                                <i class="bi bi-check2-square"></i> Verifikasi Berkas
-                            </button>
+                        <td class="wrap-text">
+                            <div class="dropdown position-static">
+                                <button type="button" class="btn btn btn-neutral dropdown-toggle"
+                                    data-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-gear mr-2"></i></button>
+                                <div class="dropdown-menu shadow-lg dropdown-menu-right">
+                                    {{-- Tombol Lihat Detail --}}
+                                    <a class="dropdown-item d-flex align-items-center" s
+                                        wire:click.prevent="openModalRiwayatFasilitasi({{ $fasilitasi->id }})"
+                                        data-target="#modalRiwayatFasilitasi" data-toggle="modal">
+                                        <i class="bi bi-check2-square"></i> Lihat Detail
+                                    </a>
+                                    {{-- Upload Ulang Berkas --}}
+                                    <a class="dropdown-item text-danger d-flex align-items-center"
+                                        onclick="confirmDeleteValidasi({{ $fasilitasi->id }})">
+                                        <i class="bi bi-arrow-counterclockwise"></i> Hapus Pengajuan Fasilitasi
+                                    </a>
+                                </div>
+                            </div>
+
                         </td>
                     </tr>
                 @empty
@@ -115,7 +124,7 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <th class="info-text w-25">Status Berkas Fasiliatsi</th>
+                                    <th class="info-text w-25">Status Berkas Fasilitasi</th>
                                     <td class="wrap-text w-75">
                                         <mark
                                             class="badge-{{ $selectedFasilitasi->status_berkas_fasilitasi === 'Disetujui' ? 'success' : ($selectedFasilitasi->status_berkas_fasilitasi === 'Ditolak' ? 'danger' : 'warning') }} badge-pill">
@@ -136,7 +145,6 @@
                                                         : 'warning')) }} badge-pill">
                                             {{ $selectedFasilitasi->status_validasi_fasilitasi ?? 'N/A' }}
                                         </mark>
-
                                     </td>
                                 </tr>
                                 <tr>

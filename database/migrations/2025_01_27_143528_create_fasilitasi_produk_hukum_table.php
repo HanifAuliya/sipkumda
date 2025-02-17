@@ -22,6 +22,16 @@ return new class extends Migration
             $table->enum('status_validasi_fasilitasi', ['Belum Tahap Validasi', 'Menunggu Validasi', 'Diterima', 'Ditolak'])->default('Belum Tahap Validasi'); // Status validasi fasilitasi
             $table->text('catatan_validasi_fasilitasi')->nullable();
             $table->date('tanggal_validasi_fasilitasi')->nullable(); // Tanggal validasi
+
+            $table->enum('status_paraf_koordinasi', ['Belum', 'Selesai'])->default('Belum');
+            $table->date('tanggal_paraf_koordinasi')->nullable();
+            $table->enum('status_asisten', ['Belum', 'Selesai'])->default('Belum');
+            $table->date('tanggal_asisten')->nullable();
+            $table->enum('status_sekda', ['Belum', 'Selesai'])->default('Belum');
+            $table->date('tanggal_sekda')->nullable();
+            $table->enum('status_bupati', ['Belum', 'Selesai'])->default('Belum');
+            $table->date('tanggal_bupati')->nullable();
+
             $table->timestamps();
 
             // Foreign key constraints

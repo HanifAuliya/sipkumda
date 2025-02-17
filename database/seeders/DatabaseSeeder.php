@@ -5,6 +5,10 @@ namespace Database\Seeders;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use App\Models\RancanganProdukHukum;
+use App\Models\Revisi;
+use App\Models\FasilitasiProdukHukum;
+use App\Models\DokumentasiProdukHukum;
 
 class DatabaseSeeder extends Seeder
 {
@@ -19,8 +23,13 @@ class DatabaseSeeder extends Seeder
             PerangkatDaerahSeeder::class,
             RoleSeeder::class,
             UserSeeder::class,
-            RancanganProdukHukumSeeder::class,
-            RevisiSeeder::class,
         ]);
+
+        RancanganProdukHukum::factory()
+            ->count(500) // Buat 10 rancangan
+            ->has(Revisi::factory(), 'revisi') // Setiap rancangan punya 1 revisi
+            ->has(FasilitasiProdukHukum::factory(), 'fasilitasi') // Setiap rancangan punya 1 fasilitasi
+            ->has(DokumentasiProdukHukum::factory(), 'dokumentasi') // Setiap rancangan punya 1 dokumentasi
+            ->create();
     }
 }
