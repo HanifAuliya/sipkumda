@@ -49,10 +49,10 @@ class DokumentasiExport implements FromCollection, WithHeadings, WithTitle, With
             ->map(function ($dokumentasi, $index) {
                 return [
                     'No' => $index + 1,
+                    'Nomor Produk Hukum' => $dokumentasi->nomor_formatted,
                     'Nomor Fasilitasi Rancangan' => $dokumentasi->rancangan->no_rancangan,
                     'Jenis Produk Hukum' => $dokumentasi->rancangan->jenis_rancangan,
                     'Tentang' => $dokumentasi->rancangan->tentang,
-                    'Nomor Produk Hukum' => $dokumentasi->nomor_formatted,
                     'Perangkat Daerah' => $dokumentasi->perangkatDaerah->nama_perangkat_daerah,
                     'Tanggal Pengarsipan' => \Carbon\Carbon::parse($dokumentasi->tanggal)->translatedFormat('d F Y'),
                     'File Rancangan' => $dokumentasi->file_produk_hukum ? '=HYPERLINK("' . url('/view-private/dokumentasi/file_produk_hukum/' . basename($dokumentasi->file_produk_hukum)) . '", "Lihat Produk Hukum")' : 'Tidak Ada',
@@ -66,10 +66,10 @@ class DokumentasiExport implements FromCollection, WithHeadings, WithTitle, With
     {
         return [
             'No',
+            'Nomor Produk Hukum',
             'Nomor Fasilitasi Rancangan',
             'Jenis Produk Hukum',
             'Tentang',
-            'Nomor Produk Hukum',
             'Perangkat Daerah',
             'Tanggal Pengarsipan',
             'File Rancangan',
@@ -122,6 +122,14 @@ class DokumentasiExport implements FromCollection, WithHeadings, WithTitle, With
                         'borderStyle' => Border::BORDER_THIN,
                         'color' => ['rgb' => '000000'],
                     ],
+                ],
+            ],
+            // 🔹 Hyperlink (F-H dan M-N) diberi warna biru & garis bawah miring mulai baris ke-3
+            "H2:H{$highestRow}" => [
+                'font' => [
+                    'underline' => Font::UNDERLINE_SINGLE,
+                    'color' => ['rgb' => '0000FF'], // Warna biru
+                    'italic' => true, // Garis bawah miring
                 ],
             ],
         ];

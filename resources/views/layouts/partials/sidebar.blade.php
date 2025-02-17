@@ -85,7 +85,7 @@
                             <li class="nav-item">
                                 <a class="nav-link {{ Route::currentRouteName() == 'admin.persetujuan' ? 'active' : '' }} rancangan"
                                     href="{{ route('admin.persetujuan') }}">
-                                    <i class="bi bi-card-checklist"></i>
+                                    <i class="bi bi-clipboard2-check"></i>
                                     <span class="nav-link-text">Persetujuan Berkas</span>
                                 </a>
                             </li>
@@ -153,7 +153,7 @@
                             <li class="nav-item ">
                                 <a class="nav-link {{ Route::currentRouteName() == 'validasi-fasilitasi' ? 'active' : '' }} fasilitasi"
                                     href="{{ route('validasi-fasilitasi') }}">
-                                    <i class="bi bi-journal-check"></i>
+                                    <i class="bi bi-file-earmark-check"></i>
                                     <span class="nav-link-text">Validasi Fasilitasi </span>
                                 </a>
                             </li>
@@ -179,8 +179,17 @@
                             <li class="nav-item">
                                 <a class="nav-link {{ Route::currentRouteName() == 'manajemen-fasilitasi' ? 'active' : '' }} fasilitasi"
                                     href="{{ route('manajemen-fasilitasi') }}">
-                                    <i class="bi bi-file-earmark-zip"></i>
+                                    <i class="bi bi-file-earmark-break"></i>
                                     <span class="nav-link-text">Manajemen Fasilitasi</span>
+                                </a>
+                            </li>
+                        @endif
+                        @if (Auth::user()->hasRole(['Admin', 'Verifikator', 'Peneliti', 'Super Admin']))
+                            <li class="nav-item">
+                                <a class="nav-link {{ Route::currentRouteName() == 'daftar-fasilitasi' ? 'active' : '' }} dokumentasi"
+                                    href="{{ route('daftar-fasilitasi') }}">
+                                    <i class="bi bi-files"></i>
+                                    <span class="nav-link-text">Daftar Fasilitasi</span>
                                 </a>
                             </li>
                         @endif
@@ -212,13 +221,14 @@
                                     <span class="nav-link-text">Master Data</span>
                                 </a>
                             </li>
-                            <br>
-                            <br>
-                            <br>
-                            <br>
-                            <br>
-                            <br>
                         @endif
+                        <br>
+                        <br>
+                        <br>
+                        <br>
+                        <br>
+                        <br>
+
                     </ul>
                 @endif
 

@@ -38,21 +38,39 @@
                 @endcan
             </div>
 
+            {{-- 🔍 Pencarian --}}
             <div class="row align-items-center mt-4">
 
                 {{-- Filter Tahun --}}
-                <div class="col-md-3">
-                    <select class="form-control" wire:model.live="tahun">
-                        <option value="">Semua Tahun</option>
-                        @foreach ($tahunOptions as $year)
-                            <option value="{{ $year }}">{{ $year }}</option>
-                        @endforeach
-                    </select>
+                <div class="col-md-3 position-relative">
+                    {{-- Loading Spinner (di atas filter) --}}
+                    <div wire:loading wire:target="tahun"
+                        class="text-sm text-muted position-absolute w-100  text-primary" style="top: -22px;">
+                        <div class="spinner-border spinner-border-sm text-primary mr-2" role="status"></div>Memuat
+                        data...
+                    </div>
+
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text"><i class="ni ni-calendar-grid-58"></i></span>
+                        </div>
+                        <select class="form-control" wire:model.live="tahun">
+                            <option value="">Semua Tahun</option>
+                            @foreach ($tahunOptions as $year)
+                                <option value="{{ $year }}">{{ $year }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                 </div>
 
-
                 {{-- Search Bar --}}
-                <div class="col-md-3">
+                <div class="col-md-3 position-relative">
+                    {{-- Loading Spinner (di atas input) --}}
+                    <div wire:loading wire:target="search"
+                        class="text-sm text-muted position-absolute w-100  text-primary" style="top: -22px;">
+                        <div class="spinner-border spinner-border-sm text-primary mr-2" role="status"></div>Mencari...
+                    </div>
+
                     <div class="input-group">
                         <div class="input-group-prepend">
                             <span class="input-group-text"><i class="ni ni-zoom-split-in"></i></span>
@@ -63,7 +81,14 @@
                 </div>
 
                 {{-- Per Page Dropdown --}}
-                <div class="col-md-3">
+                <div class="col-md-3 position-relative">
+                    {{-- Loading Spinner (di atas dropdown) --}}
+                    <div wire:loading wire:target="perPage"
+                        class="text-sm text-muted position-absolute w-100 text-primary" style="top: -22px;">
+                        <div class="spinner-border spinner-border-sm text-primary mr-2" role="status"></div>
+                        Memperbarui daftar...
+                    </div>
+
                     <div class="input-group">
                         <div class="input-group-prepend">
                             <span class="input-group-text"><i class="ni ni-bullet-list-67"></i></span>
@@ -78,7 +103,14 @@
                 </div>
 
                 {{-- Filter by Jenis Rancangan --}}
-                <div class="col-md-3">
+                <div class="col-md-3 position-relative">
+                    {{-- Loading Spinner (di atas dropdown) --}}
+                    <div wire:loading wire:target="jenisRancangan"
+                        class="text-sm text-muted position-absolute w-100 text-primary" style="top: -22px;">
+                        <div class="spinner-border spinner-border-sm text-primary mr-2" role="status"></div>
+                        Memfilter data...
+                    </div>
+
                     <div class="input-group">
                         <div class="input-group-prepend">
                             <span class="input-group-text"><i class="ni ni-single-02"></i></span>
@@ -90,6 +122,7 @@
                         </select>
                     </div>
                 </div>
+
             </div>
 
             <div class="table-responsive">
@@ -98,12 +131,23 @@
                     <thead>
                         <tr>
                             <th>No</th>
-                            <th>No Fasilitasi </th>
+                            <th wire:click="sortBy('nomor')" style="cursor: pointer;">
+                                Nomor Produk Hukum
+                                @if ($sortColumn === 'nomor')
+                                    <i class="bi bi-arrow-{{ $sortDirection === 'asc' ? 'up' : 'down' }}"></i>
+                                @endif
+                            </th>
+                            <th>No Fasilitasi</th>
                             <th>Jenis Produk Hukum</th>
                             <th>Tentang</th>
-                            <th>Nomor Produk Hukum</th>
                             <th>Perangkat Daerah</th>
-                            <th>Tanggal Pengajuan</th>
+                            <th wire:click="sortBy('tanggal')" class="sortable text-center">
+                                Tanggal Dokumentasi
+                                @if ($sortColumn === 'tanggal')
+                                    <i class="bi {{ $sortDirection === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down' }}"></i>
+                                @endif
+                            </th>
+
                             <th>File Produk Hukum</th>
                             @can('viewAny', App\Models\DokumentasiProdukHukum::class)
                                 <th>Aksi</th>
@@ -114,22 +158,27 @@
                         @forelse ($dokumentasiList as $dokumentasi)
                             <tr>
                                 <td>{{ $dokumentasiList->firstItem() + $loop->index }}</td>
-                                <td class="wrap-text">{{ $dokumentasi->rancangan->no_rancangan }}</td>
-                                <td class="wrap-text">
+                                <td class="text-wrap w-25">{{ $dokumentasi->nomor_formatted }}</td>
+                                <td class="text-wrap w-25">{{ $dokumentasi->rancangan->no_rancangan }}</td>
+                                <td class="text-wrap">
                                     <mark
                                         class="badge-{{ $dokumentasi->rancangan->jenis_rancangan === 'Peraturan Bupati' ? 'primary' : '' }} badge-pill">
                                         {{ $dokumentasi->rancangan->jenis_rancangan }}
                                     </mark>
                                 </td>
-                                <td class="wrap-text w-50">{{ $dokumentasi->rancangan->tentang }}</td>
-                                <td class="wrap-text w-25">{{ $dokumentasi->nomor_formatted }}</td>
-                                <td class="wrap-text w-50">{{ $dokumentasi->perangkatDaerah->nama_perangkat_daerah }}
+                                <td
+                                    style="min-width: 300px; max-width: 500px; white-space: normal; word-wrap: break-word;">
+                                    {{ $dokumentasi->rancangan->tentang }}</td>
+                                <td
+                                    style="min-width: 300px; max-width: 500px; white-space: normal; word-wrap: break-word;">
+                                    {{ $dokumentasi->perangkatDaerah->nama_perangkat_daerah }}
                                 </td>
                                 <td class="wrap-text w-25">
-                                    {{ \Carbon\Carbon::parse($dokumentasi->rancangan->tanggal_pengajuan)->translatedFormat('d F Y') }}
+                                    {{ \Carbon\Carbon::parse($dokumentasi->tanggal)->translatedFormat('d F Y') }}
                                 </td>
 
-                                <td>
+                                <td
+                                    style="min-width: 200px; max-width: 200px; white-space: normal; word-wrap: break-word;">
                                     @if ($dokumentasi->file_produk_hukum)
                                         <a href="{{ url('/view-private/dokumentasi/file_produk_hukum/' . basename($dokumentasi->file_produk_hukum)) }}"
                                             target="_blank">
@@ -180,19 +229,18 @@
                         {{-- Nomor Produk Hukum --}}
                         <div class="form-group">
                             <label>Nomor Produk Hukum</label>
-                            <input type="text" class="form-control" wire:model.defer="nomor">
-                            @error('nomor')
-                                <small class="text-danger">{{ $message }}</small>
-                            @enderror
-                        </div>
 
-                        {{-- Tanggal Publikasi --}}
-                        <div class="form-group">
-                            <label>Tanggal Publikasi</label>
-                            <input type="date" class="form-control" wire:model.defer="tanggal">
-                            @error('tanggal')
-                                <small class="text-danger">{{ $message }}</small>
-                            @enderror
+                            <div class="input-group">
+                                <input type="text" class="form-control text-center" value="Nomor" disabled>
+                                <input type="text" class="form-control text-center" wire:model.defer="nomor"
+                                    placeholder="###" maxlength="3"
+                                    oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,3)">
+                                <input type="text" class="form-control text-center"
+                                    value="Tahun {{ now()->year }}" disabled>
+                                @error('nomor')
+                                    <small class="text-danger">{{ $message }}</small>
+                                @enderror
+                            </div>
                         </div>
 
                         {{-- Nomor Berita Daerah --}}
@@ -215,15 +263,38 @@
 
                         {{-- Upload File Baru --}}
                         <div class="form-group">
-                            <label>Upload Berita Daerah (PDF) - Kosongkan jika tidak ingin mengubah</label>
-                            <input type="file" class="form-control" wire:model="fileProdukHukum">
-                            <div wire:loading wire:target="fileProdukHukum">
-                                <small class="text-warning">Mengupload file...</small>
+                            <label class="font-weight-bold">Upload Berita Daerah (PDF) - Kosongkan jika tidak ingin
+                                mengubah</label>
+
+                            {{-- Input File (Disable setelah upload) --}}
+                            <input type="file" class="form-control" wire:model="fileProdukHukum"
+                                wire:change="resetError" wire:loading.attr="disabled" accept="application/pdf"
+                                {{ $fileProdukHukum ? 'disabled' : '' }}
+                                style="{{ $fileProdukHukum ? 'background-color: #e9ecef; cursor: not-allowed; opacity: 0.6;' : '' }}">
+
+                            {{-- Indikator Loading --}}
+                            <div wire:loading wire:target="fileProdukHukum" class="text-warning mt-2">
+                                <i class="spinner-border spinner-border-sm"></i> Mengupload file...
                             </div>
+
+                            {{-- Error Handling --}}
                             @error('fileProdukHukum')
                                 <small class="text-danger">{{ $message }}</small>
                             @enderror
+
+                            {{-- Preview file & tombol hapus --}}
+                            @if ($fileProdukHukum)
+                                <div class="mt-2 p-2 border rounded bg-light d-flex align-items-center">
+                                    <i class="bi bi-file-earmark-pdf text-danger mr-2"></i>
+                                    <span class="flex-grow-1">{{ $fileProdukHukum->getClientOriginalName() }}</span>
+                                    <button type="button" class="btn btn-sm btn-outline-danger ml-2"
+                                        wire:click="removeFile">
+                                        <i class="bi bi-trash"></i> Hapus File
+                                    </button>
+                                </div>
+                            @endif
                         </div>
+
                     </div>
 
                     <div class="modal-footer">

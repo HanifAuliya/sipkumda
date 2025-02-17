@@ -12,6 +12,7 @@ use App\Http\Controllers\ProfileController;
 use App\Livewire\Admin\Fasilitasi\ManajemenFasilitasi;
 use App\Livewire\Admin\NotaDinas\KelolaNotaDinas;
 use App\Livewire\Rancangan\DaftarRancangan;
+use App\Livewire\FasilitasiProdukHukum\DaftarFasilitasi;
 use App\Livewire\Admin\Rancangan\PersetujuanMain;
 use App\Livewire\Peneliti\Rancangan\RevisiRancangan;
 
@@ -43,6 +44,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/daftar-rancangan', DaftarRancangan::class)
         ->middleware('role:Admin|Verifikator|Perangkat Daerah|Peneliti|Super Admin')
         ->name('daftar-rancangan');
+
+    Route::get('/daftar-fasilitasi', DaftarFasilitasi::class)
+        ->middleware('role:Admin|Verifikator|Perangkat Daerah|Peneliti|Super Admin')
+        ->name('daftar-fasilitasi');
 
 
     // **Profile (Semua Role termasuk Super Admin)**

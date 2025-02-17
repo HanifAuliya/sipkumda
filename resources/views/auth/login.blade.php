@@ -75,9 +75,6 @@
                         </a>
 
                     </div>
-                    <div class="col-6 text-right">
-                        <a href="{{ route('register') }}" class="text-light"><small>Buat akun baru</small></a>
-                    </div>
                 </div>
             </div>
         </div>

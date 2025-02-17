@@ -41,38 +41,35 @@
                 <li class="nav-item">
                     <button id="darkModeToggle" class="btn btn-sm btn-outline-light">
                         <i class="bi bi-moon-stars"></i>
-                        Dark Mode
                     </button>
                 </li>
+
                 <script>
                     document.addEventListener("DOMContentLoaded", function() {
-                        const darkModeToggle =
-                            document.getElementById("darkModeToggle");
+                        const darkModeToggle = document.getElementById("darkModeToggle");
                         const body = document.body;
 
                         // Cek mode sebelumnya dari localStorage
                         if (localStorage.getItem("dark-mode") === "enabled") {
                             body.classList.add("dark-mode");
+                            darkModeToggle.innerHTML = `<i class="bi bi-brightness-high"></i>`; // Ikon matahari
                         }
 
                         darkModeToggle.addEventListener("click", function() {
                             body.classList.toggle("dark-mode");
 
-                            // Simpan status di localStorage
+                            // Simpan status di localStorage & ubah ikon
                             if (body.classList.contains("dark-mode")) {
                                 localStorage.setItem("dark-mode", "enabled");
-                                darkModeToggle.innerHTML = `<i class="bi bi-brightness-high"></i> Light Mode`;
+                                darkModeToggle.innerHTML = `<i class="bi bi-brightness-high"></i>`; // Ikon matahari
                             } else {
                                 localStorage.setItem("dark-mode", "disabled");
-                                darkModeToggle.innerHTML = `<i class="bi bi-moon-stars"></i> Dark Mode`;
+                                darkModeToggle.innerHTML = `<i class="bi bi-moon-stars"></i>`; // Ikon bulan
                             }
                         });
-
-                        // Perbarui ikon saat reload halaman
-                        if (body.classList.contains("dark-mode")) {
-                            darkModeToggle.innerHTML = `<i class="bi bi-brightness-high"></i> Light Mode`;
-                        }
                     });
+                </script>
+
                 </script>
                 <li class="nav-item dropdown">
                     {{-- notification --}}

@@ -8,13 +8,17 @@ use App\Models\RancanganProdukHukum;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Gate;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Str;
 
 class DaftarRancangan extends Component
 {
     use WithPagination;
+    protected $paginationTheme = 'bootstrap';
 
     public $search = '';
-    public $jenisFilter = '';
+    public $jenisRancangan = '';
+    public $tahun = ''; // Menyimpan tahun yang dipilih
     public $perPage = 5;
     public $sortField = 'id_rancangan';
     public $sortDirection = 'asc';
@@ -25,10 +29,20 @@ class DaftarRancangan extends Component
 
     protected $queryString = [
         'search' => ['except' => ''],
-        'jenisFilter' => ['except' => ''],
+        'jenisRancangan' => ['except' => ''],
+        'tahun' => ['except' => ''],
         'sortField' => ['except' => 'id_rancangan'],
         'sortDirection' => ['except' => 'asc'],
     ];
+
+    // Memuat data opsi tahun dari database
+    public function getTahunOptionsProperty()
+    {
+        return RancanganProdukHukum::selectRaw('YEAR(tanggal_pengajuan) as tahun')
+            ->groupBy('tahun')
+            ->orderByDesc('tahun')
+            ->pluck('tahun');
+    }
 
 
     public function mount()
@@ -108,27 +122,85 @@ class DaftarRancangan extends Component
         $this->selectedRancangan = null;
     }
 
+    public function exportPDF()
+    {
+        $query = RancanganProdukHukum::with(['user.perangkatDaerah', 'revisi.peneliti']);
+
+        // Filter pencarian
+        if (!empty($this->search)) {
+            $query->where(function ($q) {
+                $q->where('tentang', 'like', "%{$this->search}%")
+                    ->orWhere('no_rancangan', 'like', "%{$this->search}%");
+            });
+        }
+
+        // Filter jenis rancangan
+        if (!empty($this->jenisRancangan)) {
+            $query->where('jenis_rancangan', $this->jenisRancangan);
+        }
+
+        // Filter tahun pengajuan
+        if (!empty($this->tahun)) {
+            $query->whereYear('tanggal_pengajuan', $this->tahun);
+        }
+
+        $rancanganList = $query->orderBy('created_at', 'desc')->get();
+
+        // Generate nama file berdasarkan filter
+        $tahun = $this->tahun ? "_{$this->tahun}" : "";
+        $jenis = $this->jenisRancangan ? "_" . Str::slug($this->jenisRancangan) : "";
+        $fileName = "RancanganProdukHukum{$tahun}{$jenis}.pdf";
+
+        // Load view ke dalam PDF
+        $pdf = Pdf::loadView('pdf.rancangan', compact('rancanganList'))
+            ->setPaper('A4', 'landscape');
+
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf->output();
+        }, $fileName);
+    }
+
     public function render()
     {
-        $rancanganProdukHukum = RancanganProdukHukum::with(['user.perangkatDaerah', 'revisi'])
-            ->when(auth()->user()->hasRole(['Perangkat Daerah']), function ($query) {
-                // Perangkat Daerah hanya dapat melihat rancangan miliknya
-                // $query->where('id_user', auth()->id());
-            })
-            ->when(auth()->user()->hasRole(['Admin', 'Verifikator', 'Peneliti']), function ($query) {
-                // Admin, Verifikator, dan Peneliti dapat melihat semua rancangan
-            })
-            ->when($this->search, function ($query) {
-                $query->where('tentang', 'like', '%' . $this->search . '%')
-                    ->orWhere('no_rancangan', 'like', '%' . $this->search . '%');
-            })
-            ->when($this->jenisFilter, function ($query) {
-                $query->where('jenis_rancangan', $this->jenisFilter);
-            })
-            ->orderBy('created_at', 'desc') // Urutkan berdasarkan waktu terbaru
-            ->orderBy($this->sortField, $this->sortDirection) // Urutkan berdasarkan field tambahan
+        $query = RancanganProdukHukum::with(['user.perangkatDaerah', 'revisi']);
+
+        // **Filter berdasarkan peran pengguna**
+        if (auth()->user()->hasRole('Perangkat Daerah')) {
+            $query->where('id_user', auth()->id());
+        }
+
+        // **Filter pencarian (tentang & nomor rancangan)**
+        if (!empty($this->search)) {
+            $query->where(function ($q) {
+                $q->where('tentang', 'like', "%{$this->search}%")
+                    ->orWhere('no_rancangan', 'like', "%{$this->search}%");
+            });
+        }
+
+        // **Filter berdasarkan tahun**
+        if (!empty($this->tahun)) {
+            $query->whereYear('tanggal_pengajuan', $this->tahun);
+        }
+
+        // **Filter berdasarkan jenis rancangan**
+        if (!empty($this->jenisRancangan)) {
+            $query->where('jenis_rancangan', $this->jenisRancangan);
+        }
+
+        // **Ambil data yang sudah difilter & urutkan**
+        $rancanganProdukHukum = $query->orderBy('created_at', 'desc')
+            ->orderBy($this->sortField, $this->sortDirection)
             ->paginate($this->perPage);
 
-        return view('livewire.rancangan.daftar-rancangan', compact('rancanganProdukHukum'))->layout('layouts.app');
+        // **Ambil daftar tahun dari database (untuk filter dropdown)**
+        $tahunOptions = RancanganProdukHukum::selectRaw('YEAR(tanggal_pengajuan) as tahun')
+            ->groupBy('tahun')
+            ->orderByDesc('tahun')
+            ->pluck('tahun');
+
+        return view('livewire.rancangan.daftar-rancangan', [
+            'rancanganProdukHukum' => $rancanganProdukHukum,
+            'tahunOptions' => $tahunOptions, // Dropdown tahun
+        ])->layout('layouts.app');
     }
 }

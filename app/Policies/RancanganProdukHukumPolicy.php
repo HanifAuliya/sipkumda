@@ -60,12 +60,12 @@ class RancanganProdukHukumPolicy
     public function update(User $user, RancanganProdukHukum $rancanganProdukHukum): bool
     {
         // Admin bisa mengupdate semua rancangan
-        if ($user->hasRole(['Super Admin', 'Admin'])) {
+        if ($user->hasRole(['Admin'])) {
             return true;
         }
 
         // Perangkat Daerah hanya bisa mengupdate rancangan miliknya, dengan status tertentu
-        if ($user->hasRole('Perangkat Daerah') && $rancanganProdukHukum->id_user === $user->id) {
+        if ($user->hasRole('Admin') && $rancanganProdukHukum->id_user === $user->id) {
             return true;
         }
 
@@ -79,7 +79,7 @@ class RancanganProdukHukumPolicy
     public function delete(User $user, RancanganProdukHukum $rancanganProdukHukum): bool
     {
         // Hanya Admin yang bisa menghapus rancangan
-        return $user->hasRole('Super Admin');
+        return $user->hasRole('Admin');
     }
 
     /**
@@ -88,7 +88,7 @@ class RancanganProdukHukumPolicy
     public function restore(User $user, RancanganProdukHukum $rancanganProdukHukum): bool
     {
         // Hanya Admin yang bisa merestore rancangan
-        return $user->hasRole('Super Admin');
+        return $user->hasRole('Admin');
     }
 
     /**
@@ -97,6 +97,6 @@ class RancanganProdukHukumPolicy
     public function forceDelete(User $user, RancanganProdukHukum $rancanganProdukHukum): bool
     {
         // Hanya Admin yang bisa menghapus permanen
-        return $user->hasRole('Super Admin');
+        return $user->hasRole('Admin');
     }
 }

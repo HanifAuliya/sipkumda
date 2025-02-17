@@ -39,25 +39,18 @@
                                     <label for="nomor_produk_hukum">Nomor Produk Hukum</label>
 
                                     <div class="input-group">
-                                        <span class="input-group-text">Nomor</span>
+                                        <input type="text" class="form-control text-center" value="Nomor"
+                                            disabled>
                                         <input type="text" id="nomor_produk_hukum"
                                             class="form-control text-center" wire:model.defer="nomor"
-                                            placeholder="###" maxlength="3" pattern="\d{3}"
+                                            placeholder="###" maxlength="3"
                                             oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,3)">
-                                        <span class="input-group-text">/Tahun {{ now()->year }}</span>
+                                        <input type="text" class="form-control text-center"
+                                            value="Tahun {{ now()->year }}" disabled>
+
                                     </div>
 
                                     @error('nomor')
-                                        <small class="text-danger">{{ $message }}</small>
-                                    @enderror
-                                </div>
-
-
-
-                                <div class="form-group">
-                                    <label>Tanggal Publikasi</label>
-                                    <input type="date" class="form-control" wire:model.defer="tanggal">
-                                    @error('tanggal')
                                         <small class="text-danger">{{ $message }}</small>
                                     @enderror
                                 </div>
@@ -83,17 +76,38 @@
 
 
                                 <div class="form-group">
-                                    <label>Upload Berita Daerah (PDF)</label>
+                                    <label class="font-weight-bold">Upload Berita Daerah (PDF)</label>
+
+                                    {{-- Input File (Disabled setelah file diunggah) --}}
                                     <input type="file" class="form-control" wire:model="fileProdukHukum"
-                                        wire:change="resetError" wire:loading.attr="disabled">
-                                    <!-- Indikator Loading -->
-                                    <div wire:loading wire:target="fileProdukHukum">
-                                        <small class="text-warning">Mengupload file...</small>
+                                        wire:change="resetError" wire:loading.attr="disabled"
+                                        accept="application/pdf" {{ $fileProdukHukum ? 'disabled' : '' }}
+                                        style="{{ $fileProdukHukum ? 'background-color: #e9ecef; cursor: not-allowed; opacity: 0.6;' : '' }}">
+
+                                    {{-- Indikator Loading --}}
+                                    <div wire:loading wire:target="fileProdukHukum" class="text-warning mt-2">
+                                        <i class="spinner-border spinner-border-sm"></i> Mengupload file...
                                     </div>
+
+                                    {{-- Error Handling --}}
                                     @error('fileProdukHukum')
                                         <small class="text-danger">{{ $message }}</small>
                                     @enderror
+
+                                    {{-- Preview file & tombol hapus --}}
+                                    @if ($fileProdukHukum)
+                                        <div class="mt-2 p-2 border rounded bg-light d-flex align-items-center">
+                                            <i class="bi bi-file-earmark-pdf text-danger mr-2"></i>
+                                            <span
+                                                class="flex-grow-1">{{ $fileProdukHukum->getClientOriginalName() }}</span>
+                                            <button type="button" class="btn btn-sm btn-outline-danger ml-2"
+                                                wire:click="removeFile">
+                                                <i class="bi bi-trash"></i> Hapus File
+                                            </button>
+                                        </div>
+                                    @endif
                                 </div>
+
                             </div>
                         </template>
                     </div>

@@ -48,7 +48,7 @@ class DokumentasiProdukHukumPolicy
      */
     public function delete(User $user, DokumentasiProdukHukum $dokumentasiProdukHukum): bool
     {
-        return $user->hasRole('Admin');
+        return $user->hasRole('Admin') || $user->hasRole('Verifikator');
     }
 
     /**

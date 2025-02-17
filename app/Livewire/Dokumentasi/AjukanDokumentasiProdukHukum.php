@@ -7,8 +7,11 @@ use Livewire\WithFileUploads;
 use App\Models\DokumentasiProdukHukum;
 use App\Models\FasilitasiProdukHukum;
 use App\Models\PerangkatDaerah;
+use App\Models\User;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Notification;
+use App\Notifications\DokumentasiNotification;
 
 class AjukanDokumentasiProdukHukum extends Component
 {
@@ -19,15 +22,21 @@ class AjukanDokumentasiProdukHukum extends Component
     public $perangkatList = [];
     public $tahun;
     public $nomor;
-    public $tanggal;
     public $fileProdukHukum;
     public $nomorBeritaDaerah;
     public $tanggalBeritaDaerah;
 
+    public $listeners = [
+        'loadData' => 'loadData',
+    ];
 
     public function mount()
     {
-        // Ambil rancangan yang sudah difasilitasi tapi belum masuk dokumentasi
+        $this->loadData();
+    }
+
+    public function loadData()
+    { // Ambil rancangan yang sudah difasilitasi tapi belum masuk dokumentasi
         $this->rancanganList = FasilitasiProdukHukum::where('status_validasi_fasilitasi', 'Diterima')
             ->whereDoesntHave('dokumentasi') // Pastikan rancangan belum ada di dokumentasi
             ->with('rancangan')
@@ -36,8 +45,6 @@ class AjukanDokumentasiProdukHukum extends Component
         // Ambil semua perangkat daerah
         $this->perangkatList = PerangkatDaerah::all();
     }
-
-
 
     public function store()
     {
@@ -49,7 +56,6 @@ class AjukanDokumentasiProdukHukum extends Component
         $this->validate([
             'rancanganId' => 'required|exists:fasilitasi_produk_hukum,id',
             'nomor' => 'required|numeric|digits_between:1,3',
-            'tanggal' => 'required|date',
             'nomorBeritaDaerah' => 'required|string',
             'tanggalBeritaDaerah' => 'required|date',
             'fileProdukHukum' => 'required|mimes:pdf|max:5120',
@@ -60,10 +66,13 @@ class AjukanDokumentasiProdukHukum extends Component
             $path = $this->fileProdukHukum->store('dokumentasi/file_produk_hukum', 'local');
         }
 
+        // Ambil rancangan terkait
+        $rancangan = FasilitasiProdukHukum::find($this->rancanganId)->rancangan;
+
         DokumentasiProdukHukum::create([
             'rancangan_id' => $this->rancanganId,
             'nomor' => $this->nomor,
-            'tanggal' => $this->tanggal,
+            'tanggal' => now(),
             'nomor_berita_daerah' => $this->nomorBeritaDaerah,
             'tanggal_berita_daerah' => $this->tanggalBeritaDaerah,
             'file_produk_hukum' => $path,
@@ -80,10 +89,21 @@ class AjukanDokumentasiProdukHukum extends Component
             return;
         }
 
+        // Kirim Notifikasi ke Semua Verifikator
+        $verifikatorUsers = User::role('Verifikator')->get();
+        Notification::send($verifikatorUsers, new DokumentasiNotification([
+            'title' => "📄 Dokumentasi Produk Hukum Baru",
+            'message' => "Dokumentasi produk hukum dengan Nomor {$this->nomor} telah Ditambahkan ke Pengarispan. Silahkan Cek di Halaman Daftar Produk Hukum",
+            'type' => 'dokumentasi_dibuat',
+            'slug' => $rancangan->slug, // Mengambil slug dari rancangan
+        ]));
+
         $this->dispatch('closeModalTambahDokumentasi');
         $this->dispatch('refreshTable');
 
-        $this->mount();
+        $this->loadData();
+
+        $this->reset();
 
         // Tampilkan notifikasi sukses
         $this->dispatch('swal:modal', [
@@ -91,6 +111,31 @@ class AjukanDokumentasiProdukHukum extends Component
             'title' => 'Berhasil!',
             'message' => 'Status fasilitasi telah diperbarui.',
         ]);
+    }
+
+    public function resetForm()
+    {
+        // Reset semua nilai form
+        $this->reset([
+            'editId',
+            'rancanganId',
+            'nomor',
+            'nomorBeritaDaerah',
+            'tanggalBeritaDaerah',
+            'fileProdukHukum',
+            'dokumentasi'
+        ]);
+
+        // Reset error validation jika ada
+        $this->resetValidation();
+    }
+
+    public function removeFile()
+    {
+        if ($this->fileProdukHukum) {
+            $this->fileProdukHukum->delete(); // Menghapus dari Livewire temp storage
+        }
+        $this->reset('fileProdukHukum'); // Mengosongkan variabel agar input aktif kembali
     }
 
     public function resetError()

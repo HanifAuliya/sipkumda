@@ -548,14 +548,6 @@ table td.still-text {
 }
 
 /* Membungkus teks tanpa memotong kata */
-table td.wrap-text {
-    white-space: normal; /* Izinkan konten turun ke baris berikutnya */
-    word-wrap: break-word; /* Bungkus kata yang panjang */
-    word-break: normal; /* Pastikan kata tidak dipotong di tengah */
-    overflow-wrap: break-word; /* Bungkus kata yang panjang tanpa memotong */
-    text-align: justify; /* Rata kanan-kiri */
-}
-/* Membungkus teks tanpa memotong kata */
 table td.wrap-text-td-20 {
     white-space: normal; /* Izinkan konten turun ke baris berikutnya */
     word-wrap: break-word; /* Bungkus kata yang panjang */

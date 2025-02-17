@@ -51,10 +51,10 @@
         <thead>
             <tr>
                 <th>No</th>
+                <th>Nomor Produk Hukum</th>
                 <th>Nomor Fasilitasi Rancangan</th>
                 <th>Jenis Produk Hukum</th>
                 <th class="wrap-text">Tentang</th>
-                <th>Nomor Produk Hukum</th>
                 <th class="wrap-text">Perangkat Daerah</th>
                 <th>Tanggal Pengarsipan</th>
                 <th>Nomor Berita Daerah</th>
@@ -65,10 +65,10 @@
             @foreach ($dokumentasiList as $index => $dokumentasi)
                 <tr>
                     <td>{{ $index + 1 }}</td>
+                    <td>{{ $dokumentasi->nomor_formatted }}</td>
                     <td>{{ optional($dokumentasi->rancangan)->no_rancangan }}</td>
                     <td>{{ optional($dokumentasi->rancangan)->jenis_rancangan }}</td>
                     <td class="wrap-text">{{ optional($dokumentasi->rancangan)->tentang }}</td>
-                    <td>{{ $dokumentasi->nomor_formatted }}</td>
                     <td class="wrap-text">{{ optional($dokumentasi->perangkatDaerah)->nama_perangkat_daerah }}</td>
                     <td>{{ \Carbon\Carbon::parse($dokumentasi->tanggal)->translatedFormat('d F Y') }}</td>
                     <td>{{ $dokumentasi->nomor_berita_daerah }}</td>

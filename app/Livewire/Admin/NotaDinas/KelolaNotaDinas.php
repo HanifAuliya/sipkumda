@@ -180,10 +180,12 @@ class KelolaNotaDinas extends Component
 
         // 🔄 Refresh tabel setelah penghapusan
         $this->dispatch('refreshTable');
-
+        // 🔥 Pastikan loadData() dipanggil setelah simpan
+        $this->loadData();
         // 🔥 Notifikasi sukses
-        $this->dispatch('swal:delete', [
+        $this->dispatch('swal:modal', [
             'type' => 'success',
+            'title' => 'Berhasil',
             'message' => 'Nota Dinas berhasil dihapus.',
         ]);
     }
@@ -203,17 +205,25 @@ class KelolaNotaDinas extends Component
 
     public function render()
     {
-        $notaDinasList = NotaDinas::with([
-            'fasilitasi.rancangan.user.perangkatDaerah', // Eager loading lebih dalam untuk performa
+        $query = NotaDinas::with([
+            'fasilitasi.rancangan.user.perangkatDaerah', // Eager loading performa
             'tandaTangan'
         ])
-            ->whereHas('fasilitasi.rancangan', function ($query) {
-                $query->where('no_rancangan', 'like', "%{$this->search}%")
-                    ->orWhere('tentang', 'like', "%{$this->search}%");
-            })
-            ->orWhere('nomor_nota', 'like', "%{$this->search}%")
-            ->orderBy('tanggal_nota', 'desc') // Mengurutkan berdasarkan tanggal terbaru
-            ->paginate($this->perPage);
+            ->orderByDesc('tanggal_nota') // Urutkan berdasarkan tanggal_nota terbaru
+            ->orderByDesc('created_at'); // Jika tanggal sama, urutkan berdasarkan waktu dibuat
+
+        // **Filter Pencarian**
+        if (!empty($this->search)) {
+            $query->where(function ($q) {
+                $q->whereHas('fasilitasi.rancangan', function ($subQuery) {
+                    $subQuery->where('no_rancangan', 'like', "%{$this->search}%")
+                        ->orWhere('tentang', 'like', "%{$this->search}%");
+                })
+                    ->orWhere('nomor_nota', 'like', "%{$this->search}%");
+            });
+        }
+
+        $notaDinasList = $query->paginate($this->perPage);
 
         return view('livewire.admin.nota-dinas.kelola-nota-dinas', [
             'notaDinasList' => $notaDinasList,
