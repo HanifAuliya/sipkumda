@@ -119,8 +119,6 @@ class KelolaNotaDinas extends Component
         // 🔥 Pastikan loadData() dipanggil setelah simpan
         $this->loadData();
 
-        // 🔄 Refresh Livewire untuk memperbarui tabel
-        $this->dispatch('refreshTable');
 
         // 🔥 Kirim notifikasi ke **Verifikator** bahwa Nota Dinas telah dibuat
         $verifikator = User::role('Verifikator')->get(); // Ambil semua user dengan role Verifikator
@@ -150,11 +148,12 @@ class KelolaNotaDinas extends Component
             'message' => "Nota Dinas dengan Nomor {$this->nomorNota} berhasil dibuat!",
         ]);
 
-        // 🔥 Tutup modal setelah reset
-        $this->dispatch('closeModal', 'modalTambahNota');
 
         // 🔥 Reset nilai setelah data difilter ulang
-        $this->reset(['fasilitasiId', 'nomorInputan', 'nomorNota']);
+        $this->reset();
+
+        // 🔥 Tutup modal setelah reset
+        $this->dispatch('closeModal', 'modalTambahNota');
     }
 
     public function resetForm()
@@ -178,8 +177,7 @@ class KelolaNotaDinas extends Component
         $notaDinas = NotaDinas::findOrFail($id);
         $notaDinas->delete();
 
-        // 🔄 Refresh tabel setelah penghapusan
-        $this->dispatch('refreshTable');
+
         // 🔥 Pastikan loadData() dipanggil setelah simpan
         $this->loadData();
         // 🔥 Notifikasi sukses

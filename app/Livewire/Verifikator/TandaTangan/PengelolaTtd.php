@@ -16,7 +16,7 @@ class PengelolaTtd extends Component
     public $search = '';
     public $perPage = 5;
     public $editId;
-    public $nama_ttd, $file_ttd, $status;
+    public $nama_ttd, $file_ttd, $status, $nip_ttd, $jabatan;
     public $file_ttd_preview; // Untuk menampilkan preview file
     public $existingFile;
 
@@ -54,6 +54,8 @@ class PengelolaTtd extends Component
     {
         $this->validate([
             'nama_ttd' => 'required|string|max:100',
+            'nip_ttd' => 'required|string|max:50|unique:tanda_tangan,nip_ttd', // Wajib ada NIP
+            'jabatan' => 'required|string|max:100',
             'file_ttd' => 'required|image|mimes:png|max:2048', // Hanya menerima PNG dengan maksimal 2MB
             'status' => 'required|in:Aktif,Tidak Aktif',
         ]);
@@ -64,13 +66,15 @@ class PengelolaTtd extends Component
         // Simpan ke database
         TandaTangan::create([
             'nama_ttd' => $this->nama_ttd,
+            'nip_ttd' => $this->nip_ttd,  // ✅ Pastikan nip disertakan
+            'jabatan' => $this->jabatan,
             'file_ttd' => $path,
             'dibuat_oleh' => auth()->id(),
             'status' => $this->status
         ]);
 
         // Reset form
-        $this->reset(['nama_ttd', 'file_ttd', 'status']);
+        $this->reset(['nama_ttd', 'nip_ttd', 'jabatan', 'file_ttd', 'status']);
 
         // Tutup modal dan tampilkan notifikasi sukses
         $this->dispatch('closeModalTambahTtd');
@@ -87,6 +91,8 @@ class PengelolaTtd extends Component
 
         $this->editId = $ttd->id;
         $this->nama_ttd = $ttd->nama_ttd;
+        $this->nip_ttd = $ttd->nip_ttd;
+        $this->jabatan = $ttd->jabatan;
         $this->status = $ttd->status;
         $this->existingFile = $ttd->file_ttd; // Simpan file lama
 
@@ -94,36 +100,31 @@ class PengelolaTtd extends Component
         $this->dispatch('openModalEditTtd');
     }
 
-
     public function update()
     {
         $this->validate([
             'nama_ttd' => 'required|string|max:100',
-            'file_ttd' => 'nullable|image|mimes:png|max:2048', // Bisa kosong jika tidak mengganti
+            'nip_ttd' => 'required|string|max:50|unique:tanda_tangan,nip_ttd,' . $this->editId, // Ubah dari 'nip' ke 'nip_ttd'
+            'jabatan' => 'required|string|max:100',
+            'file_ttd' => 'nullable|image|mimes:png|max:2048',
             'status' => 'required|in:Aktif,Tidak Aktif',
         ]);
 
         $ttd = TandaTangan::findOrFail($this->editId);
 
-        // Simpan file baru jika diunggah
         if ($this->file_ttd) {
             $path = $this->file_ttd->storeAs('tanda_tangan/ttd', 'ttd_' . uniqid() . '.png', 'local');
-            $ttd->file_ttd = $path; // Update file TTD baru
+            $ttd->file_ttd = $path;
         }
 
-        // Update data
         $ttd->update([
             'nama_ttd' => $this->nama_ttd,
+            'nip_ttd' => $this->nip_ttd,
+            'jabatan' => $this->jabatan,
             'status' => $this->status,
         ]);
 
-        // Tutup modal edit
         $this->dispatch('closeModalEditTtd');
-
-        // Refresh tabel
-        $this->dispatch('refreshTable');
-
-        // Tampilkan notifikasi sukses
         $this->dispatch('swal:ttd', [
             'type' => 'success',
             'title' => 'Berhasil',
@@ -131,12 +132,12 @@ class PengelolaTtd extends Component
         ]);
     }
 
+
     public function removeFile()
     {
         $this->file_ttd = null;
         $this->file_ttd_preview = null;
     }
-
 
     public function delete($id)
     {

@@ -263,9 +263,9 @@
         <p>Kepala Bagian Hukum,</p>
         <img src="file://{{ storage_path('app/private/tanda_tangan/ttd/' . basename($notaDinas->tandaTangan->file_ttd)) }}"
             alt="Tanda Tangan" class="ttd">
-        <p class="name" style="margin-top: 55px">TAUFIK RAHMAN, SH.</p>
-        <p style="margin-top: -10px">Pembina Tk. I</p>
-        <p style="margin-top: -10px">NIP 19731002 199903 1 005</p>
+        <p class="name" style="margin-top: 55px">{{ $notaDinas->tandaTangan->nama_ttd }}</p>
+        <p style="margin-top: -10px">{{ $notaDinas->tandaTangan->jabatan }}</p>
+        <p style="margin-top: -10px">{{ $notaDinas->tandaTangan->nip_ttd }}</p>
     </div>
 </body>
 

@@ -13,9 +13,11 @@ return new class extends Migration
     {
         Schema::create('tanda_tangan', function (Blueprint $table) {
             $table->id();
-            $table->string('nama_ttd', 100); // Nama tanda tangan
+            $table->string('nama_ttd', 100); // Nama yang akan ditampilkan di Nota Dinas
+            $table->string('nip_ttd', 20)->unique(); // NIP Verifikator
+            $table->string('jabatan', 100); // Jabatan seperti "Pembina Tk. I"
             $table->string('file_ttd', 255); // Path file tanda tangan
-            $table->unsignedBigInteger('dibuat_oleh'); // Foreign key ke tabel users
+            $table->unsignedBigInteger('dibuat_oleh'); // Foreign key ke tabel users (opsional)
             $table->enum('status', ['Aktif', 'Tidak Aktif'])->default('Aktif'); // Status tanda tangan
             $table->timestamps();
 
@@ -23,6 +25,7 @@ return new class extends Migration
             $table->foreign('dibuat_oleh')->references('id')->on('users')->onDelete('cascade');
         });
     }
+
 
     /**
      * Reverse the migrations.

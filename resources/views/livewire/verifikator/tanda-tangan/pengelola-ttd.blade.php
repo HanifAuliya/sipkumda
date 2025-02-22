@@ -123,15 +123,33 @@
                             <small class="text-danger">{{ $message }}</small>
                         @enderror
                     </div>
+                    {{-- NIp --}}
+                    <div class="form-group">
+                        <label class="font-weight-bold">NIP</label>
+                        <input type="text" class="form-control" placeholder="Masukkan NIP"
+                            wire:model.defer="nip_ttd">
+                        @error('nip_ttd')
+                            <small class="text-danger">{{ $message }}</small>
+                        @enderror
+                    </div>
 
+
+                    {{-- Input Jabatan --}}
+                    <div class="form-group">
+                        <label class="font-weight-bold">Jabatan</label>
+                        <input type="text" class="form-control" placeholder="Masukkan Jabatan"
+                            wire:model.defer="jabatan">
+                        @error('jabatan')
+                            <small class="text-danger">{{ $message }}</small>
+                        @enderror
+                    </div>
+
+                    {{-- Input File --}}
                     <div class="form-group">
                         <label class="font-weight-bold">Unggah Tanda Tangan (PNG)</label>
-
-                        {{-- Input File --}}
                         <input type="file" class="form-control" wire:model="file_ttd" accept="image/png"
                             {{ $file_ttd_preview ? 'disabled' : '' }}>
 
-                        {{-- Penjelasan tambahan --}}
                         <small class="form-text text-muted mt-1">
                             <i class="bi bi-info-circle"></i> <strong>Ketentuan:</strong>
                             <ul class="mb-0">
@@ -141,25 +159,23 @@
                             </ul>
                         </small>
 
-                        {{-- Pesan error --}}
                         @error('file_ttd')
                             <small class="text-danger">{{ $message }}</small>
                         @enderror
 
-                        {{-- Loading saat upload --}}
                         <div wire:loading wire:target="file_ttd" class="text-primary mt-2">
                             <i class="spinner-border spinner-border-sm"></i> Mengunggah file...
                         </div>
 
-                        {{-- Tampilkan file yang sudah diunggah --}}
                         @if ($file_ttd_preview)
                             <div class="mt-3 text-center">
                                 <p class="mb-1"><strong>File yang diunggah:</strong></p>
                                 <img src="{{ $file_ttd_preview }}" class="border rounded" width="150"
                                     alt="Preview TTD">
                                 <br>
-                                <button class="btn btn-danger btn-sm mt-2" wire:click="removeFile"><i
-                                        class="bi bi-trash"></i> Hapus</button>
+                                <button class="btn btn-danger btn-sm mt-2" wire:click="removeFile">
+                                    <i class="bi bi-trash"></i> Hapus
+                                </button>
                             </div>
                         @endif
                     </div>
@@ -178,7 +194,6 @@
                     </div>
                 </div>
 
-
                 <div class="modal-footer">
                     <button class="btn btn-secondary" data-dismiss="modal" wire:click="resetForm">
                         <i class="bi bi-x-circle"></i> Batal
@@ -193,25 +208,55 @@
                     </button>
                 </div>
             </div>
-
         </div>
     </div>
 
-    {{-- Modal Edit --}}
+
+    {{-- Modal Edit TTD --}}
     <div wire:ignore.self class="modal fade" id="openModalEditTtd" tabindex="-1" aria-hidden="true"
         data-backdrop="static" data-keyboard="false">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Edit TTD</h5>
+                    <h5 class="modal-title">Edit Tanda Tangan (TTD)</h5>
                 </div>
                 <div class="modal-body">
+
+                    {{-- Informasi --}}
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> <strong>Perhatian!</strong>
+                        Data ini akan digunakan dalam **Nota Dinas**. Harap isi dengan benar.
+                    </div>
+
                     {{-- Input Nama TTD --}}
                     <div class="form-group">
-                        <label>Nama TTD</label>
-                        <input type="text" class="form-control" placeholder="Nama TTD"
+                        <label class="font-weight-bold">Nama Lengkap (Sesuai Nota Dinas)</label>
+                        <input type="text" class="form-control" placeholder="Masukkan Nama TTD"
                             wire:model.defer="nama_ttd">
+                        <small class="form-text text-muted">Contoh: <strong>TAUFIK RAHMAN, SH.</strong></small>
                         @error('nama_ttd')
+                            <small class="text-danger">{{ $message }}</small>
+                        @enderror
+                    </div>
+
+                    {{-- Input NIP --}}
+                    <div class="form-group">
+                        <label class="font-weight-bold">NIP (Nomor Induk Pegawai)</label>
+                        <input type="text" class="form-control" placeholder="Masukkan NIP"
+                            wire:model.defer="nip_ttd">
+                        <small class="form-text text-muted">Format: <strong>18 Digit Angka</strong></small>
+                        @error('nip_ttd')
+                            <small class="text-danger">{{ $message }}</small>
+                        @enderror
+                    </div>
+
+                    {{-- Input Jabatan --}}
+                    <div class="form-group">
+                        <label class="font-weight-bold">Jabatan</label>
+                        <input type="text" class="form-control" placeholder="Masukkan Jabatan"
+                            wire:model.defer="jabatan">
+                        <small class="form-text text-muted">Contoh: <strong>Pembina Tk. I</strong></small>
+                        @error('jabatan')
                             <small class="text-danger">{{ $message }}</small>
                         @enderror
                     </div>
@@ -219,18 +264,22 @@
                     {{-- Tampilkan File TTD yang Ada --}}
                     @if ($existingFile)
                         <div class="form-group">
-                            <label>TTD Saat Ini</label>
+                            <label class="font-weight-bold">Tanda Tangan Saat Ini</label>
                             <br>
                             <img src="{{ url('/view-private/tanda_tangan/ttd/' . basename($existingFile)) }}"
-                                alt="TTD" class="img-thumbnail" width="200">
+                                alt="TTD" class="img-thumbnail border rounded" width="200">
                         </div>
                     @endif
 
                     {{-- Input File Baru untuk Mengganti --}}
                     <div class="form-group">
-                        <label>Upload TTD Baru (PNG) - Kosongkan jika tidak ingin mengubah</label>
+                        <label class="font-weight-bold">Upload Tanda Tangan Baru (PNG)</label>
                         <input type="file" class="form-control" wire:model="file_ttd" accept="image/png">
-                        <small class="form-text text-muted"> * Hanya file PNG. Maksimal 2MB.</small>
+                        <small class="form-text text-muted">
+                            <i class="bi bi-exclamation-triangle"></i> **Kosongkan jika tidak ingin mengganti.** <br>
+                            - Format <strong>PNG</strong>, Maksimal **2MB**. <br>
+                            - Rasio disarankan **4:3** (contoh: **400x300 px**).
+                        </small>
                         @error('file_ttd')
                             <small class="text-danger">{{ $message }}</small>
                         @enderror
@@ -243,7 +292,7 @@
 
                     {{-- Pilihan Status --}}
                     <div class="form-group">
-                        <label>Status</label>
+                        <label class="font-weight-bold">Status Tanda Tangan</label>
                         <select class="form-control" wire:model.defer="status">
                             <option value="" hidden>Pilih Status</option>
                             <option value="Aktif">Aktif</option>
@@ -271,6 +320,7 @@
             </div>
         </div>
     </div>
+
 
     <script>
         function confirmDeleteTtd(id) {

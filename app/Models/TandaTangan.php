@@ -13,9 +13,11 @@ class TandaTangan extends Model
 
     protected $fillable = [
         'nama_ttd',
+        'nip_ttd',
+        'jabatan',
         'file_ttd',
         'dibuat_oleh',
-        'status',
+        'status'
     ];
 
     // Relasi ke tabel nota_dinas
