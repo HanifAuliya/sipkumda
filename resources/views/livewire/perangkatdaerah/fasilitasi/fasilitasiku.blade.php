@@ -64,9 +64,9 @@
             {{-- Tab Content --}}
             <div class="tab-content mt-4">
                 @if ($activeTab === 'fasilitasi-berlangsung')
-                    @livewire('perangkatdaerah.fasilitasi.fasilitasi-berlangsung')
+                    <livewire:perangkat-daerah.fasilitasi.fasilitasi-berlangsung />
                 @elseif ($activeTab === 'riwayat-fasilitasi')
-                    @livewire('perangkatdaerah.fasilitasi.riwayat-fasilitasi')
+                    <livewire:perangkat-daerah.fasilitasi.riwayat-fasilitasi />
                 @endif
             </div>
 

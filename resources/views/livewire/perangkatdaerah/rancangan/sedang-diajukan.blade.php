@@ -574,115 +574,114 @@
     <div class="d-flex justify-content-center w-100 w-md-auto">
         {{ $rancangan->links('pagination::bootstrap-4') }}
     </div>
-</div>
 
-{{-- Modal Upload Ulang Berkas Ditolak --}}
-<div wire:ignore.self class="modal fade" id="uploadUlangBerkasModal" tabindex="-1" role="dialog"
-    aria-labelledby="uploadUlangBerkasModalLabel" data-backdrop="static" data-keyboard="false">
-    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="uploadUlangBerkasModalLabel">Upload Ulang Berkas Ditolak</h5>
-            </div>
-            <form wire:submit.prevent="uploadUlangBerkas">
-                {{-- Modal Body --}}
-                <div class="modal-body">
-                    <div class="row">
-                        <!-- Input Tanggal Nota -->
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="tanggalNota" class="form-label font-weight-bold">Tanggal Nota</label>
-                                <input type="date" id="tanggalNota" class="form-control" wire:model="tanggalNota"
-                                    required />
-                                @error('tanggalNota')
-                                    <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <!-- Input Nomor Nota -->
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="nomorNota" class="form-label font-weight-bold">Nomor Nota</label>
-                                <input type="text" id="nomorNota" class="form-control" wire:model="nomorNota"
-                                    placeholder="Masukkan Nomor Nota" required />
-                                @error('nomorNota')
-                                    <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- Input File (Nota Dinas, Rancangan, Matrik, Bahan Pendukung) --}}
-                    @foreach (['fileNotaDinas', 'fileRancangan', 'fileMatrik', 'fileBahanPendukung'] as $fileField)
-                        <div class="mb-4">
-                            <label class="font-weight-bold form-control-label">
-                                <i class="bi bi-file-earmark-pdf text-primary"></i>
-                                {{ ucfirst(str_replace('_', ' ', $fileField)) }}
-                                <small class="text-muted d-block">Unggah dokumen dalam format PDF (max:
-                                    5MB).</small>
-                            </label>
-
-                            <input type="file" class="form-control" wire:model="{{ $fileField }}"
-                                accept="application/pdf" wire:change="resetError('{{ $fileField }}')"
-                                {{ $$fileField ? 'disabled' : '' }}
-                                style="{{ $$fileField ? 'background-color: #e9ecef; cursor: not-allowed; opacity: 0.6;' : '' }}">
-
-                            {{-- Indikator Loading --}}
-                            <div wire:loading wire:target="{{ $fileField }}" class="text-info mt-2">
-                                <i class="spinner-border spinner-border-sm"></i> Mengunggah...
-                            </div>
-
-                            {{-- Preview file & tombol hapus --}}
-                            @if ($$fileField)
-                                <div class="mt-2 p-2 border rounded bg-light d-flex align-items-center">
-                                    <i class="bi bi-file-earmark-pdf text-danger mr-2"></i>
-                                    <span class="flex-grow-1">{{ $$fileField->getClientOriginalName() }}</span>
-                                    <button type="button" class="btn btn-sm btn-outline-danger ml-2"
-                                        wire:click="removeFile('{{ $fileField }}')">
-                                        <i class="bi bi-trash"></i> Hapus File
-                                    </button>
+    {{-- Modal Upload Ulang Berkas Ditolak --}}
+    <div wire:ignore.self class="modal fade" id="uploadUlangBerkasModal" tabindex="-1" role="dialog"
+        aria-labelledby="uploadUlangBerkasModalLabel" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="uploadUlangBerkasModalLabel">Upload Ulang Berkas Ditolak</h5>
+                </div>
+                <form wire:submit.prevent="uploadUlangBerkas">
+                    {{-- Modal Body --}}
+                    <div class="modal-body">
+                        <div class="row">
+                            <!-- Input Tanggal Nota -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="tanggalNota" class="form-label font-weight-bold">Tanggal Nota</label>
+                                    <input type="date" id="tanggalNota" class="form-control"
+                                        wire:model="tanggalNota" required />
+                                    @error('tanggalNota')
+                                        <span class="text-danger">{{ $message }}</span>
+                                    @enderror
                                 </div>
-                            @endif
+                            </div>
 
-                            @error($fileField)
-                                <span class="text-danger">{{ $message }}</span>
-                            @enderror
+                            <!-- Input Nomor Nota -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="nomorNota" class="form-label font-weight-bold">Nomor Nota</label>
+                                    <input type="text" id="nomorNota" class="form-control" wire:model="nomorNota"
+                                        placeholder="Masukkan Nomor Nota" required />
+                                    @error('nomorNota')
+                                        <span class="text-danger">{{ $message }}</span>
+                                    @enderror
+                                </div>
+                            </div>
                         </div>
-                    @endforeach
 
-                    {{-- Checkbox Hapus Bahan Pendukung Lama --}}
-                    <div class="form-check mb-3">
-                        <input class="form-check-input" type="checkbox" id="hapusBahanPendukung"
-                            wire:model="hapusBahanPendukung">
-                        <label class="form-check-label" for="hapusBahanPendukung">
-                            Hapus Bahan Pendukung Lama <small class="info-text"> (Centang ini apabila anda tidak
-                                menggunakan bahan pendukung)</small>
-                        </label>
+                        {{-- Input File (Nota Dinas, Rancangan, Matrik, Bahan Pendukung) --}}
+                        @foreach (['fileNotaDinas', 'fileRancangan', 'fileMatrik', 'fileBahanPendukung'] as $fileField)
+                            <div class="mb-4">
+                                <label class="font-weight-bold form-control-label">
+                                    <i class="bi bi-file-earmark-pdf text-primary"></i>
+                                    {{ ucfirst(str_replace('_', ' ', $fileField)) }}
+                                    <small class="text-muted d-block">Unggah dokumen dalam format PDF (max:
+                                        5MB).</small>
+                                </label>
+
+                                <input type="file" class="form-control" wire:model="{{ $fileField }}"
+                                    accept="application/pdf" wire:change="resetError('{{ $fileField }}')"
+                                    {{ $$fileField ? 'disabled' : '' }}
+                                    style="{{ $$fileField ? 'background-color: #e9ecef; cursor: not-allowed; opacity: 0.6;' : '' }}">
+
+                                {{-- Indikator Loading --}}
+                                <div wire:loading wire:target="{{ $fileField }}" class="text-info mt-2">
+                                    <i class="spinner-border spinner-border-sm"></i> Mengunggah...
+                                </div>
+
+                                {{-- Preview file & tombol hapus --}}
+                                @if ($$fileField)
+                                    <div class="mt-2 p-2 border rounded bg-light d-flex align-items-center">
+                                        <i class="bi bi-file-earmark-pdf text-danger mr-2"></i>
+                                        <span class="flex-grow-1">{{ $$fileField->getClientOriginalName() }}</span>
+                                        <button type="button" class="btn btn-sm btn-outline-danger ml-2"
+                                            wire:click="removeFile('{{ $fileField }}')">
+                                            <i class="bi bi-trash"></i> Hapus File
+                                        </button>
+                                    </div>
+                                @endif
+
+                                @error($fileField)
+                                    <span class="text-danger">{{ $message }}</span>
+                                @enderror
+                            </div>
+                        @endforeach
+
+                        {{-- Checkbox Hapus Bahan Pendukung Lama --}}
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="hapusBahanPendukung"
+                                wire:model="hapusBahanPendukung">
+                            <label class="form-check-label" for="hapusBahanPendukung">
+                                Hapus Bahan Pendukung Lama <small class="info-text"> (Centang ini apabila anda tidak
+                                    menggunakan bahan pendukung)</small>
+                            </label>
+                        </div>
                     </div>
-                </div>
 
-                {{-- Modal Footer --}}
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-warning" data-dismiss="modal"
-                        wire:click="resetForm">
-                        <i class="bi bi-x"></i>
-                        Batal
-                    </button>
-                    <button type="submit" class="btn btn-outline-default" wire:loading.attr="disabled"
-                        {{ empty($tanggalNota) || empty($nomorNota) || empty($fileNotaDinas) || empty($fileRancangan) ? 'disabled' : '' }}>
-                        <span wire:loading.remove wire:target="uploadUlangBerkas">
-                            <i class="bi bi-upload"></i> Upload Ulang
-                        </span>
-                        <span wire:loading wire:target="uploadUlangBerkas">
-                            <i class="spinner-border spinner-border-sm"></i> Memproses...
-                        </span>
-                    </button>
-                </div>
-            </form>
+                    {{-- Modal Footer --}}
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-warning" data-dismiss="modal"
+                            wire:click="resetForm">
+                            <i class="bi bi-x"></i>
+                            Batal
+                        </button>
+                        <button type="submit" class="btn btn-outline-default" wire:loading.attr="disabled"
+                            {{ empty($tanggalNota) || empty($nomorNota) || empty($fileNotaDinas) || empty($fileRancangan) ? 'disabled' : '' }}>
+                            <span wire:loading.remove wire:target="uploadUlangBerkas">
+                                <i class="bi bi-upload"></i> Upload Ulang
+                            </span>
+                            <span wire:loading wire:target="uploadUlangBerkas">
+                                <i class="spinner-border spinner-border-sm"></i> Memproses...
+                            </span>
+                        </button>
+                    </div>
+                </form>
 
+            </div>
         </div>
     </div>
-</div>
 
 </div>

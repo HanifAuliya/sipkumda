@@ -6,6 +6,10 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 use App\Models\FasilitasiProdukHukum;
 use App\Models\RancanganProdukHukum;
+use App\Models\User;
+use Illuminate\Support\Facades\Notification;
+use App\Notifications\StatusFasilitasiNotification;
+
 
 class AjukanFasilitasi extends Component
 {
@@ -42,13 +46,34 @@ class AjukanFasilitasi extends Component
         ]);
 
         // Simpan fasilitasi
-        FasilitasiProdukHukum::create([
+        $fasilitasi = FasilitasiProdukHukum::create([
             'rancangan_id' => $this->rancanganId,
             'tanggal_fasilitasi' => now(),
             'file_rancangan' => $this->fileRancangan->store('fasilitasi/rancangan', 'local'),
             'status_berkas_fasilitasi' => 'Menunggu Persetujuan',
             'status_validasi_fasilitasi' => 'Belum Tahap Validasi',
         ]);
+
+        // 🔹 Ambil `id_user` dari revisi terakhir yang berelasi dengan rancangan
+        $penelitiId = $fasilitasi->rancangan->revisi()->latest()->first()->id_user ?? null;
+
+        // 🔹 Cek apakah user tersebut memiliki role "Peneliti" menggunakan Spatie
+        $peneliti = User::where('id', $penelitiId)->whereHas('roles', function ($query) {
+            $query->where('name', 'Peneliti');
+        })->first();
+
+        // Kirim notifikasi ke Peneliti
+        if ($peneliti) {
+            Notification::send(
+                $peneliti,
+                new StatusFasilitasiNotification([
+                    'title' => "Pengajuan Fasilitasi untuk Rancangan {$fasilitasi->rancangan->no_rancangan}",
+                    'message' => "Fasilitasi telah diajukan. Silahkan lakukan pengecekan.",
+                    'slug' => $fasilitasi->rancangan->slug,
+                    'type' => 'pengajuan_fasilitasi',
+                ])
+            );
+        }
 
         // Reset data
         $this->resetFormFasilitasi();

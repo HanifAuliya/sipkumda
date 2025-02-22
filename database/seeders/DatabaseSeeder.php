@@ -26,7 +26,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         RancanganProdukHukum::factory()
-            ->count(500) // Buat 10 rancangan
+            ->count(10) // Buat 10 rancangan
             ->has(Revisi::factory(), 'revisi') // Setiap rancangan punya 1 revisi
             ->has(FasilitasiProdukHukum::factory(), 'fasilitasi') // Setiap rancangan punya 1 fasilitasi
             ->has(DokumentasiProdukHukum::factory(), 'dokumentasi') // Setiap rancangan punya 1 dokumentasi

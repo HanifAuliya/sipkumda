@@ -209,7 +209,9 @@
             <tr>
                 <td>Perihal</td>
                 <td>: &nbsp;</td>
-                <td style="padding-left: 4px"> Koreksi atas Keputusan Bupati Hulu Sungai Tengah tentang
+                <td style="padding-left: 4px">
+                    Koreksi atas {{ $notaDinas->fasilitasi->rancangan->jenis_rancangan }}
+                    Hulu Sungai Tengah tentang
                     {{ $notaDinas->fasilitasi->rancangan->tentang }} </td>
             </tr>
         </table>
@@ -226,20 +228,23 @@
 
         <ol style="margin-left: 110px;margin-top : -3px ">
             <li>
-                Konsep Keputusan Bupati Hulu Sungai Tengah sebagaimana dimaksud telah
-                diteliti dan dikoreksi oleh Bagian Hukum sesuai dengan bentuk dan
-                format penyusunan Peraturan Perundang-Undangan yang berlaku dengan
-                beberapa perbaikan sebagaimana tertulis dalam konsep keputusan tersebut;
+                Konsep {{ $notaDinas->fasilitasi->rancangan->jenis_rancangan }} Hulu Sungai Tengah sebagaimana dimaksud
+                telah diteliti dan dikoreksi oleh Bagian Hukum sesuai dengan bentuk dan format penyusunan Peraturan
+                Perundang-Undangan yang berlaku dengan
+                beberapa perbaikan sebagaimana pada matriks hasil koreksi;
             </li>
             <li>
-                Berkenaan dengan substansi/materi dari Keputusan Bupati Hulu Sungai
+                Berkenaan dengan substansi/materi dari {{ $notaDinas->fasilitasi->rancangan->jenis_rancangan }} Hulu
+                Sungai
                 Tengah ini menjadi tanggung jawab Perangkat Daerah pengusul;
             </li>
             <li>
-                Untuk proses Penandatanganan Keputusan Bupati Hulu Sungai Tengah
+                Untuk proses Penandatanganan {{ $notaDinas->fasilitasi->rancangan->jenis_rancangan }} Hulu Sungai
+                Tengah
                 dimaksud haruslah mengikuti mekanisme dan prosedur yang berlaku:
                 <ol type="a" style="margin-rightt: 50px;">
-                    <li>Konsep Keputusan Bupati dibuat dalam rangkap 3 (tiga);</li>
+                    <li>Konsep {{ $notaDinas->fasilitasi->rancangan->jenis_rancangan }} dibuat dalam rangkap 3 (tiga);
+                    </li>
                     <li>
                         Sebelum dilakukan pemarafan secara hirarki agar dimintakan paraf
                         koordinasi Bagian Hukum;

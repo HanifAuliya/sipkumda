@@ -51,9 +51,9 @@
             {{-- Content --}}
             <div class="tab-content mt-3">
                 @if ($tab == 'sedang_diajukan')
-                    @livewire('perangkatdaerah.rancangan.sedang-diajukan')
+                    <livewire:perangkat-daerah.rancangan.sedang-diajukan />
                 @elseif ($tab == 'riwayat_pengajuan')
-                    @livewire('perangkatdaerah.rancangan.riwayat-pengajuan')
+                    <livewire:perangkat-daerah.rancangan.riwayat-pengajuan />
                 @endif
             </div>
         </div>

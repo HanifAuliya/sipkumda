@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Notification;
 
 use Barryvdh\DomPDF\Facade\Pdf;
 
-use App\Notifications\PersetujuanRancanganNotification;
+use App\Notifications\StatusFasilitasiNotification;
 
 
 class FasilitasiBerlangsung extends Component
@@ -87,7 +87,7 @@ class FasilitasiBerlangsung extends Component
 
         Notification::send(
             $peneliti,
-            new PersetujuanRancanganNotification([
+            new StatusFasilitasiNotification([
                 'title' => "Upload Ulang Berkas Fasilitasi untuk Rancangan {$fasilitasi->rancangan->no_rancangan}",
                 'message' => "Berkas fasilitasi telah diperbarui. Silahkan lakukan pengecekan.",
                 'slug' => $fasilitasi->rancangan->slug,

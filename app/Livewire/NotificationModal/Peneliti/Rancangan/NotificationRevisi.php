@@ -137,7 +137,7 @@ class NotificationRevisi extends Component
                 ->find($this->selectedRevisiId);
         }
 
-        return view('livewire.notification-modal.peneliti.rancangan.notificationrevisi', [
+        return view('livewire.notification-modal.peneliti.rancangan.notification-revisi', [
             'selectedRevisi' => $this->selectedRevisi,
         ]);
     }

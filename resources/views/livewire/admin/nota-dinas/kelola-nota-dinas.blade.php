@@ -43,92 +43,95 @@
                     </div>
                 </div>
             </div>
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>Nomor Nota Generate</th>
-                        <th>No Rancangan</th>
-                        <th>Jenis Fasilitasi</th>
-                        <th>Judul Fasilitasi</th>
-                        <th>Tgl Nota Dibuat</th>
-                        <th>Generet Pdf Nota</th>
-                        @can('delete', App\Models\NotaDinas::class)
-                            <th>Aksi</th>
-                        @endcan
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($notaDinasList as $nota)
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
                         <tr>
-                            <td>{{ $nota->nomor_nota }}</td>
-                            <td>{{ $nota->fasilitasi->rancangan->no_rancangan }}</td>
-                            <td>
-                                <mark
-                                    class="badge-{{ $nota->fasilitasi->rancangan->jenis_rancangan === 'Peraturan Bupati' ? 'primary' : '' }} badge-pill">
-                                    {{ $nota->fasilitasi->rancangan->jenis_rancangan }}
-                                </mark>
-                            </td>
-                            <td class="wrap-text w-25">{{ $nota->fasilitasi->rancangan->tentang }}</td>
-                            <td>{{ \Carbon\Carbon::parse($nota->tanggal_nota)->translatedFormat('d F Y') }}</td>
-
-
-                            @can('view', $nota)
-                                <td>
-                                    <button class="btn btn-outline-primary"
-                                        onclick="showLoadingSwal(); @this.generatePDF({{ $nota->id }})"
-                                        wire:loading.attr="disabled">
-                                        <span wire:loading.remove wire:target="generatePDF({{ $nota->id }})">
-                                            <i class="bi bi-file-earmark-pdf"></i> Cetak
-                                        </span>
-                                        <span wire:loading wire:target="generatePDF({{ $nota->id }})">
-                                            <i class="spinner-border spinner-border-sm"></i> Loading ...
-                                        </span>
-                                    </button>
-                                    <script>
-                                        function showLoadingSwal() {
-                                            Swal.fire({
-                                                title: "Sedang Memproses PDF...",
-                                                html: "Mohon tunggu sebentar...",
-                                                allowOutsideClick: false,
-                                                showConfirmButton: false,
-                                                didOpen: () => {
-                                                    Swal.showLoading();
-                                                }
-                                            });
-                                        }
-
-                                        // Event dari Livewire untuk menutup SweetAlert setelah proses selesai
-                                        document.addEventListener('DOMContentLoaded', function() {
-                                            Livewire.on('hideLoadingSwal', () => {
-                                                Swal.close(); // Menutup SweetAlert setelah PDF selesai dibuat
-                                            });
-                                        });
-                                    </script>
-
-                                </td>
-                                @can('delete', $nota)
-                                    <td>
-                                        <button class="btn btn-danger btn-sm" onclick="confirmDelete({{ $nota->id }})">
-                                            <i class="bi bi-trash"></i> Hapus
-                                        </button>
-                                    </td>
-                                @endcan
-                            @else
-                                <td>
-                                    <strong class="text-danger">Perlu Izin!</strong>
-                                </td>
+                            <th>Nomor Nota Generate</th>
+                            <th>No Rancangan</th>
+                            <th>Jenis Fasilitasi</th>
+                            <th>Judul Fasilitasi</th>
+                            <th>Tgl Nota Dibuat</th>
+                            <th>Generet Pdf Nota</th>
+                            @can('delete', App\Models\NotaDinas::class)
+                                <th>Aksi</th>
                             @endcan
                         </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6" class="text-center info-text">Tidak ada data rancangan sedang diajukan.
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-            <div class="mt-3">
-                {{ $notaDinasList->links() }}
+                    </thead>
+                    <tbody>
+                        @forelse ($notaDinasList as $nota)
+                            <tr>
+                                <td>{{ $nota->nomor_nota }}</td>
+                                <td>{{ $nota->fasilitasi->rancangan->no_rancangan }}</td>
+                                <td>
+                                    <mark
+                                        class="badge-{{ $nota->fasilitasi->rancangan->jenis_rancangan === 'Peraturan Bupati' ? 'primary' : '' }} badge-pill">
+                                        {{ $nota->fasilitasi->rancangan->jenis_rancangan }}
+                                    </mark>
+                                </td>
+                                <td class="wrap-text w-25">{{ $nota->fasilitasi->rancangan->tentang }}</td>
+                                <td>{{ \Carbon\Carbon::parse($nota->tanggal_nota)->translatedFormat('d F Y') }}</td>
+
+
+                                @can('view', $nota)
+                                    <td>
+                                        <button class="btn btn-outline-primary"
+                                            onclick="showLoadingSwal(); @this.generatePDF({{ $nota->id }})"
+                                            wire:loading.attr="disabled">
+                                            <span wire:loading.remove wire:target="generatePDF({{ $nota->id }})">
+                                                <i class="bi bi-file-earmark-pdf"></i> Cetak
+                                            </span>
+                                            <span wire:loading wire:target="generatePDF({{ $nota->id }})">
+                                                <i class="spinner-border spinner-border-sm"></i> Loading ...
+                                            </span>
+                                        </button>
+                                        <script>
+                                            function showLoadingSwal() {
+                                                Swal.fire({
+                                                    title: "Sedang Memproses PDF...",
+                                                    html: "Mohon tunggu sebentar...",
+                                                    allowOutsideClick: false,
+                                                    showConfirmButton: false,
+                                                    didOpen: () => {
+                                                        Swal.showLoading();
+                                                    }
+                                                });
+                                            }
+
+                                            // Event dari Livewire untuk menutup SweetAlert setelah proses selesai
+                                            document.addEventListener('DOMContentLoaded', function() {
+                                                Livewire.on('hideLoadingSwal', () => {
+                                                    Swal.close(); // Menutup SweetAlert setelah PDF selesai dibuat
+                                                });
+                                            });
+                                        </script>
+
+                                    </td>
+                                    @can('delete', $nota)
+                                        <td>
+                                            <button class="btn btn-danger btn-sm" onclick="confirmDelete({{ $nota->id }})">
+                                                <i class="bi bi-trash"></i> Hapus
+                                            </button>
+                                        </td>
+                                    @endcan
+                                @else
+                                    <td>
+                                        <strong class="text-danger">Perlu Izin!</strong>
+                                    </td>
+                                @endcan
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="text-center info-text">Tidak ada data rancangan sedang
+                                    diajukan.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+                <div class="mt-3">
+                    {{ $notaDinasList->links() }}
+                </div>
             </div>
         </div>
     </div>
