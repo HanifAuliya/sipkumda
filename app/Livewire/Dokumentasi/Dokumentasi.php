@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Notification;
 use App\Notifications\DokumentasiNotification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Validation\Rule;
 
 class Dokumentasi extends Component
 {
@@ -35,18 +35,21 @@ class Dokumentasi extends Component
         'tahun' => ['except' => '']
     ];
 
-
     // EDIT
     public $editId;
     public $rancanganId;
     public $nomor;
-    public $tanggal;
-    public $nomorBeritaDaerah;
-    public $tanggalBeritaDaerah;
-    public $fileProdukHukum;
+    public $nomor_berita; // Untuk input nomor (2 digit)
+    public $tahun_berita; // Untuk input tahun (4 digit)
+    public $nomor_tahun_berita;
+    public $tanggal_pengarsipan;
+    public $tanggal_penetapan;
+    public $file_produk_hukum;
+
     public $dokumentasi;
-    public $sortColumn = 'tanggal'; // Kolom default yang diurutkan
+    public $sortColumn = 'tanggal_pengarsipan'; // Kolom default yang diurutkan
     public $sortDirection = 'desc'; // Urutan default (desc = terbaru ke terlama)
+
 
     protected $listeners = [
         'refreshTable' => '$refresh',
@@ -79,10 +82,8 @@ class Dokumentasi extends Component
                     $qr->where('jenis_rancangan', $this->jenisRancangan);
                 });
             })
-            ->when($this->tahun, function ($q) { // Filter berdasarkan tahun
-                $q->whereHas('rancangan', function ($qr) {
-                    $qr->whereYear('tanggal_pengajuan', $this->tahun);
-                });
+            ->when($this->tahun, function ($q) { // Filter tahun dari dokumentasi_produk_hukum
+                $q->where('tahun', $this->tahun);
             })
             ->get();
 
@@ -121,7 +122,6 @@ class Dokumentasi extends Component
 
     public function edit($id)
     {
-
         $dokumentasi = DokumentasiProdukHukum::with('rancangan')->find($id);
 
         if (!$dokumentasi) {
@@ -136,10 +136,17 @@ class Dokumentasi extends Component
         $this->editId = $dokumentasi->id;
         $this->rancanganId = optional($dokumentasi->rancangan)->id_rancangan ?? null;
         $this->nomor = $dokumentasi->nomor;
-        $this->nomorBeritaDaerah = $dokumentasi->nomor_berita_daerah;
-        $this->tanggalBeritaDaerah = $dokumentasi->tanggal_berita_daerah;
-        $this->fileProdukHukum = null; // File tidak ditampilkan, hanya bisa diupload ulang
 
+        // Pisahkan nomor_tahun_berita menjadi nomor_berita dan tahun_berita
+        if ($dokumentasi->nomor_tahun_berita) {
+            [$this->nomor_berita, $this->tahun_berita] = explode('/', $dokumentasi->nomor_tahun_berita);
+        } else {
+            $this->nomor_berita = '';
+            $this->tahun_berita = '';
+        }
+
+        $this->tanggal_penetapan = $dokumentasi->tanggal_penetapan;
+        $this->file_produk_hukum = null; // File tidak ditampilkan, hanya bisa diupload ulang
     }
 
     public function resetForm()
@@ -149,8 +156,8 @@ class Dokumentasi extends Component
             'editId',
             'rancanganId',
             'nomor',
-            'nomorBeritaDaerah',
-            'tanggalBeritaDaerah',
+            'nomor_tahun_berita', // Kolom baru
+            'tanggal_penetapan', // Kolom baru
             'fileProdukHukum',
             'dokumentasi'
         ]);
@@ -159,17 +166,19 @@ class Dokumentasi extends Component
         $this->resetValidation();
     }
 
-
     public function update()
     {
         // Validasi input
         $this->validate([
-            'rancanganId' => 'required|exists:fasilitasi_produk_hukum,id',
             'nomor' => 'required|numeric|digits_between:1,3',
-            'nomorBeritaDaerah' => 'required|string|regex:/^[A-Za-z0-9]+$/',
-            'tanggalBeritaDaerah' => 'required|date',
-            'fileProdukHukum' => 'nullable|mimes:pdf|max:5120', // Bisa kosong
+            'nomor_berita' => 'required|numeric', // Nomor harus 2 digit
+            'tahun_berita' => 'required|numeric|digits:4', // Tahun harus 4 digit
+            'tanggal_penetapan' => 'required|date',
+            'file_produk_hukum' => 'nullable|mimes:pdf|max:5120',
         ]);
+
+        // Gabungkan nomor_berita dan tahun_berita menjadi nomor_tahun_berita
+        $this->nomor_tahun_berita = "{$this->nomor_berita}/{$this->tahun_berita}";
 
         $dokumentasi = DokumentasiProdukHukum::findOrFail($this->editId);
 
@@ -177,24 +186,34 @@ class Dokumentasi extends Component
         $this->authorize('update', $dokumentasi);
 
         // Simpan file baru jika ada unggahan
-        if ($this->fileProdukHukum) {
+        if ($this->file_produk_hukum) {
             // Hapus file lama jika ada
             if ($dokumentasi->file_produk_hukum && Storage::exists($dokumentasi->file_produk_hukum)) {
                 Storage::delete($dokumentasi->file_produk_hukum);
             }
 
             // Simpan file baru
-            $path = $this->fileProdukHukum->store('dokumentasi/file_produk_hukum', 'local');
+            $path = $this->file_produk_hukum->store('dokumentasi/file_produk_hukum', 'local');
             $dokumentasi->file_produk_hukum = $path;
         }
 
         // Update data
         $dokumentasi->update([
-            'rancangan_id' => $this->rancanganId,
             'nomor' => $this->nomor,
-            'nomor_berita_daerah' => $this->nomorBeritaDaerah,
-            'tanggal_berita_daerah' => $this->tanggalBeritaDaerah,
+            'nomor_tahun_berita' => $this->nomor_tahun_berita,
+            'tanggal_penetapan' => $this->tanggal_penetapan,
         ]);
+
+        // Cek apakah ada error dari Model (karena Model menggunakan `session()->flash()`)
+        if (session()->has('error_nomor')) {
+            $this->dispatch('swal:modal', [
+                'type' => 'error',
+                'title' => 'Gagal!',
+                'message' => session('error_nomor'),
+            ]);
+            return;
+        }
+
 
         // Kirim Notifikasi ke Verifikator
         $verifikatorUsers = User::role('Verifikator')->get();
@@ -202,12 +221,11 @@ class Dokumentasi extends Component
             'title' => "📄 Dokumentasi Produk Hukum Diperbarui",
             'message' => "Dokumentasi produk hukum dengan Nomor {$this->nomor} telah diperbarui.",
             'type' => 'dokumentasi_diperbarui',
-            'slug' => $dokumentasi->rancangan->slug, // Ambil slug dari rancangan
         ]));
 
         // Tutup modal dan refresh tabel
-        $this->dispatch('closeModalEditDokumentasi');
-        $this->dispatch('refreshTable');
+        $this->dispatch('closeModal', 'modalEditDokumentasi');
+
         $this->dispatch('loadData');
 
         // Tampilkan notifikasi sukses
@@ -217,7 +235,6 @@ class Dokumentasi extends Component
             'message' => 'Dokumentasi berhasil diperbarui.',
         ]);
     }
-
 
     public function resetError()
     {
@@ -296,21 +313,20 @@ class Dokumentasi extends Component
                     $qr->where('jenis_rancangan', $this->jenisRancangan);
                 });
             })
-            ->when($this->tahun, function ($q) { // Filter tahun
-                $q->whereHas('rancangan', function ($qr) {
-                    $qr->whereYear('tanggal_pengajuan', $this->tahun);
-                });
+            ->when($this->tahun, function ($q) { // Filter tahun dari dokumentasi_produk_hukum
+                $q->where('tahun', $this->tahun);
             })
-            ->orderBy($this->sortColumn ?? 'tanggal', $this->sortDirection ?? 'desc') // Sorting dinamis
+            ->orderBy($this->sortColumn ?? 'tanggal_pengarsipan', $this->sortDirection ?? 'desc') // Ubah 'tanggal' menjadi 'tanggal_pengarsipan'
             ->orderByDesc('created_at'); // Fallback jika tanggal sama
         return view('livewire.dokumentasi.dokumentasi', [
             'dokumentasiList' => $query->paginate($this->perPage),
             'totalDokumentasi' => DokumentasiProdukHukum::count(),
             'jenisRancanganList' => RancanganProdukHukum::select('jenis_rancangan')->distinct()->pluck('jenis_rancangan'),
-            'tahunOptions' => RancanganProdukHukum::selectRaw('YEAR(tanggal_pengajuan) as tahun')
+            'tahunOptions' => DokumentasiProdukHukum::select('tahun')
                 ->distinct()
                 ->orderBy('tahun', 'desc')
                 ->pluck('tahun'),
+
         ])->layout('layouts.app');
     }
 }

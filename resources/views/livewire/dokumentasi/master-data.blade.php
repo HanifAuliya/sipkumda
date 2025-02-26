@@ -1,25 +1,48 @@
 <div>
     <div>
+        {{-- Card Pemberitahuan --}}
+        <div class="card mb-3">
+            <div class="card-body d-flex flex-column flex-md-row align-items-center justify-content-between">
+                <div class="d-flex flex-column align-items-xs-center">
+                    <h4 class="card-title mb-1"><i class="ni ni-bell-55"></i> Pemberitahuan</h4>
+                    <p class="card-text">
+                        Data sebelum sistem ini diterapkan tidak tercatat di sini.
+                        Jika ingin mengecek data lama, silakan kunjungi halaman <a href="{{ route('dokumentasi.main') }}"
+                            class="font-weight-bold text-primary">Dokumentasi</a>.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+
         {{-- Filter --}}
-        <div class="row mb-3 ">
+        <div class="row mb-3">
             <div class="col-md-3">
-                <select class="form-control bg-white" wire:model.live="tahun">
-                    <option value="">Semua Tahun</option> {{-- Opsi tambahan --}}
-                    @foreach (range(date('Y'), 2010) as $year)
-                        <option value="{{ $year }}">{{ $year }}</option>
-                    @endforeach
-                </select>
+                <div class="input-group bg-white">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text"><i class="bi bi-calendar4-week"></i></i></span>
+                    </div>
+                    <select class="form-control bg-white" wire:model.live="tahun">
+                        <option value="">Semua Tahun</option> {{-- Opsi tambahan --}}
+                        @foreach (range(date('Y'), 2010) as $year)
+                            <option value="{{ $year }}">Data Tahun {{ $year }}</option>
+                        @endforeach
+                    </select>
+                </div>
             </div>
 
             <div class="col-md-3">
-                <select class="form-control" wire:model.live="jenis">
-                    <option value="all">Semua Jenis</option>
-                    <option value="Peraturan Bupati">Peraturan Bupati</option>
-                    <option value="Surat Keputusan">Surat Keputusan</option>
-                </select>
+                <div class="input-group bg-white">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text"><i class="bi bi-tags"></i></i></span>
+                    </div>
+                    <select class="form-control" wire:model.live="jenis">
+                        <option value="all">Semua Jenis</option>
+                        <option value="Peraturan Bupati">Peraturan Bupati</option>
+                        <option value="Surat Keputusan">Surat Keputusan</option>
+                    </select>
+                </div>
             </div>
-
-
         </div>
 
         {{-- Card --}}

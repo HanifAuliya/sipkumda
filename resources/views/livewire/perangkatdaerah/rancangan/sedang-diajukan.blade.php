@@ -540,7 +540,7 @@
                                             <div class="d-flex justify-content-end mt-4">
                                                 {{-- Tombol Tutup --}}
                                                 <button type="button" class="btn btn-outline-warning mr-3"
-                                                    data-dismiss="modal" wire:click="resetDetail"></i> tutup
+                                                    data-dismiss="modal" wire:click="resetData"></i> tutup
                                                 </button>
                                             </div>
                                         </div>

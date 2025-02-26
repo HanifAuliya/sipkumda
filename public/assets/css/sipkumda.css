@@ -592,6 +592,27 @@ table tbody tr:hover {
     margin-top: 20px;
 }
 
+/* Pastikan tabel dalam modal bisa di-scroll horizontal di HP */
+@media (max-width: 576px) {
+    .modal-table {
+        display: block;
+        max-width: 100%;
+        overflow-x: auto; /* Scroll horizontal */
+        white-space: nowrap; /* Mencegah teks turun ke baris baru */
+    }
+
+    /* Pastikan tabel tidak mengecil */
+    .modal-table table {
+        min-width: 600px; /* Bikin tabel lebih besar dari layar HP */
+    }
+
+    /* Pastikan teks dalam tabel tidak rata tengah, tapi mulai dari kiri */
+    .modal-table th,
+    .modal-table td {
+        text-align: left !important;
+    }
+}
+
 .toggle-detail {
     cursor: pointer;
 }

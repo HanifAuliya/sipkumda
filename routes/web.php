@@ -29,6 +29,8 @@ use App\Livewire\Dokumentasi\MasterData;
 
 use App\Http\Controllers\DokumentasiExportController;
 use App\Http\Controllers\DokumentasiPdfController;
+use App\Http\Controllers\TemplateController;
+use App\Livewire\Rancangan\TambahBahanPenting;
 
 Route::get('/', function () {
     // return view('welcome');
@@ -136,6 +138,12 @@ Route::middleware('auth')->group(function () {
     Route::middleware(['role:Admin'])->group(function () {
         Route::get('/manajemen-fasilitasi', ManajemenFasilitasi::class)
             ->name('manajemen-fasilitasi');
+        Route::get('/kelola-bahan-penting', TambahBahanPenting::class)
+            ->name('bahan-penting');
+    });
+    Route::middleware(['role:Admin|Tamu'])->group(function () {
+        Route::get('/manajemen-fasilitasi', ManajemenFasilitasi::class)
+            ->name('manajemen-fasilitasi');
     });
     Route::middleware(['role:Admin|Verifikator|Perangkat Daerah|Peneliti'])->group(function () {
         Route::get('/dokumentasi-produk-hukum', Dokumentasi::class)->name('dokumentasi.main');
@@ -144,6 +152,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware(['role:Admin|Verifikator|Peneliti|Super Admin'])->group(function () {
         Route::get('/master-data', MasterData::class)->name('masterdata.main');
     });
+
 
     // Export
     Route::get('/export-master-data', [MasterData::class, 'export'])->name('export.masterdata');

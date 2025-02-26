@@ -58,77 +58,79 @@
             </div>
 
             {{-- Table --}}
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>No</th>
-                        <th>Nomor Rancangan</th>
-                        <th>Jenis Rancangan</th>
-                        <th>Paraf Kordinasi</th>
-                        <th>Paraf Asisten</th>
-                        <th>Paraf Sekda</th>
-                        <th>Paraf Bupati</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($fasilitasiList as $fasilitasi)
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
                         <tr>
-                            <td>{{ $loop->iteration }}</td>
-                            <td>{{ $fasilitasi->rancangan->no_rancangan }}</td>
-                            <td>{{ $fasilitasi->rancangan->jenis_rancangan }}</td>
-                            <td>
-                                <span
-                                    class="badge-{{ $fasilitasi->status_paraf_koordinasi === 'Selesai' ? 'success' : 'danger' }} badge pill">
-                                    {{ $fasilitasi->status_paraf_koordinasi }}
-                                </span>
-                            </td>
-                            <td>
-                                <span
-                                    class="badge-{{ $fasilitasi->status_asisten === 'Selesai' ? 'success' : 'danger' }} badge pill">
-                                    {{ $fasilitasi->status_asisten }}
-                                </span>
-                            </td>
-                            <td>
-                                <span
-                                    class=" badge-{{ $fasilitasi->status_sekda === 'Selesai' ? 'success' : 'danger' }} badge pill">
-                                    {{ $fasilitasi->status_sekda }}
-                                </span>
-                            </td>
-                            <td>
-                                <span
-                                    class="badge-{{ $fasilitasi->status_bupati === 'Selesai' ? 'success' : 'danger' }} badge pill">
-                                    {{ $fasilitasi->status_bupati }}
-                                </span>
-                            </td>
-
-                            <td>
-                                @php
-                                    $statusSelesai = collect([
-                                        $fasilitasi->status_paraf_koordinasi,
-                                        $fasilitasi->status_asisten,
-                                        $fasilitasi->status_sekda,
-                                        $fasilitasi->status_bupati,
-                                    ])->every(fn($status) => $status === 'Selesai');
-                                @endphp
-
-                                @if ($statusSelesai)
-                                    <button class="btn btn-success btn-sm" disabled>
-                                        <i class="bi bi-check-circle"></i> Selesai
-                                    </button>
-                                @else
-                                    <button class="btn btn-outline-warning btn-sm"
-                                        wire:click="openUpdateStatus({{ $fasilitasi->id }})"
-                                        data-target="#modalUpdateStatus" data-toggle="modal">
-                                        <i class="bi bi-paperclip"></i> Update Status
-                                    </button>
-                                @endif
-                            </td>
-
+                            <th>No</th>
+                            <th>Nomor Rancangan</th>
+                            <th>Jenis Rancangan</th>
+                            <th>Paraf Kordinasi</th>
+                            <th>Paraf Asisten</th>
+                            <th>Paraf Sekda</th>
+                            <th>Paraf Bupati</th>
+                            <th>Aksi</th>
                         </tr>
-                    @endforeach
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @foreach ($fasilitasiList as $fasilitasi)
+                            <tr>
+                                <td>{{ $loop->iteration }}</td>
+                                <td>{{ $fasilitasi->rancangan->no_rancangan }}</td>
+                                <td>{{ $fasilitasi->rancangan->jenis_rancangan }}</td>
+                                <td>
+                                    <span
+                                        class="badge-{{ $fasilitasi->status_paraf_koordinasi === 'Selesai' ? 'success' : 'danger' }} badge pill">
+                                        {{ $fasilitasi->status_paraf_koordinasi }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span
+                                        class="badge-{{ $fasilitasi->status_asisten === 'Selesai' ? 'success' : 'danger' }} badge pill">
+                                        {{ $fasilitasi->status_asisten }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span
+                                        class=" badge-{{ $fasilitasi->status_sekda === 'Selesai' ? 'success' : 'danger' }} badge pill">
+                                        {{ $fasilitasi->status_sekda }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span
+                                        class="badge-{{ $fasilitasi->status_bupati === 'Selesai' ? 'success' : 'danger' }} badge pill">
+                                        {{ $fasilitasi->status_bupati }}
+                                    </span>
+                                </td>
+
+                                <td>
+                                    @php
+                                        $statusSelesai = collect([
+                                            $fasilitasi->status_paraf_koordinasi,
+                                            $fasilitasi->status_asisten,
+                                            $fasilitasi->status_sekda,
+                                            $fasilitasi->status_bupati,
+                                        ])->every(fn($status) => $status === 'Selesai');
+                                    @endphp
+
+                                    @if ($statusSelesai)
+                                        <button class="btn btn-success btn-sm" disabled>
+                                            <i class="bi bi-check-circle"></i> Selesai
+                                        </button>
+                                    @else
+                                        <button class="btn btn-outline-warning btn-sm"
+                                            wire:click="openUpdateStatus({{ $fasilitasi->id }})"
+                                            data-target="#modalUpdateStatus" data-toggle="modal">
+                                            <i class="bi bi-paperclip"></i> Update Status
+                                        </button>
+                                    @endif
+                                </td>
+
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
         </div>
         {{-- Pagination --}}
         <div class="d-flex justify-content-center w-100 w-md-auto">
@@ -158,21 +160,33 @@
                     @else
                         {{-- 🔹 Informasi Rancangan --}}
                         @if ($selectedFasilitasi)
-                            <ul class=" mb-0">
-                                <li><strong>📌 Nomor Rancangan:</strong>
-                                    {{ $selectedFasilitasi->rancangan->no_rancangan }}</li>
-                                <li><strong>📖 Tentang:</strong> {{ $selectedFasilitasi->rancangan->tentang }}
-                                </li>
-                                <li><strong>🏛 Perangkat Daerah:</strong>
-                                    {{ $selectedFasilitasi->rancangan->user->perangkatDaerah->nama_perangkat_daerah }}
-                                </li>
-                            </ul>
+                            <div class="table-responsive modal-table"> <!-- Tabel responsif di HP -->
+                                <table class="table table-sm table-bordered">
+                                    <tbody>
+                                        <tr>
+                                            <th class="w-25">📌 Nomor Rancangan</th>
+                                            <td class="text-wrap">{{ $selectedFasilitasi->rancangan->no_rancangan }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th class="w-25">📖 Tentang</th>
+                                            <td class="text-wrap">{{ $selectedFasilitasi->rancangan->tentang }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="w-25">🏛 Perangkat Daerah</th>
+                                            <td class="text-wrap">
+                                                {{ $selectedFasilitasi->rancangan->user->perangkatDaerah->nama_perangkat_daerah }}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Alert Peringatan -->
                             <div class="alert alert-danger mt-3 p-2">
-                                <i class="bi bi-exclamation-triangle-fill"></i> <strong>Pastikan
-                                    rancangan
-                                    yang akan diperbarui sudah benar!</strong> Perubahan status <u>tidak
-                                    dapat
-                                    dibatalkan</u> setelah diperbarui.
+                                <i class="bi bi-exclamation-triangle-fill"></i> <strong>Pastikan rancangan yang akan
+                                    diperbarui sudah benar!</strong>
+                                Perubahan status <u>tidak dapat dibatalkan</u> setelah diperbarui.
                             </div>
                         @endif
                         {{-- 🔽 Pilih Status (Dropdown) --}}
@@ -224,16 +238,17 @@
                                     </span>
                                 </button>
                             @endif
+
+                            <button type="button mt-2" class="btn btn-warning btn-block" data-dismiss="modal"
+                                wire:click="resetModal">
+                                <i class="bi bi-arrow-left-circle"></i> Batal
+                            </button>
                         @endif
                     @endif
                 </div>
 
                 {{-- 🔙 Tombol Batal --}}
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary btn-block" data-dismiss="modal"
-                        wire:click="resetModal">
-                        <i class="bi bi-arrow-left-circle"></i> Batal
-                    </button>
                 </div>
             </div>
         </div>

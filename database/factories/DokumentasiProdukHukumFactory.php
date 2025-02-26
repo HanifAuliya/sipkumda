@@ -22,18 +22,20 @@ class DokumentasiProdukHukumFactory extends Factory
 
     public function definition(): array
     {
-        return [
-            'rancangan_id' => RancanganProdukHukum::factory(), // Relasi ke RancanganProdukHukum (satu rancangan, satu dokumentasi)
-            'nomor' => $this->faker->unique()->numerify('###'), // Nomor unik (3 digit angka)
-            'tahun' => $this->faker->year(), // Tahun dari input
-            'tanggal' => $this->faker->date(), // Tanggal publikasi
-            'file_produk_hukum' => $this->faker->optional()->word() . '.pdf', // Path file produk hukum opsional
-            'nomor_berita_daerah' => $this->faker->numerify('###') . '/BD/' . now()->year,
-            'tanggal_berita_daerah' => $this->faker->date(), // Tahun berita daerah
-            'perangkat_daerah_id' => PerangkatDaerah::inRandomOrder()->first()->id ?? PerangkatDaerah::first()->id,
+        $nomor = $this->faker->unique()->numberBetween(1, 999); // Nomor unik (3 digit)
+        $tahun = $this->faker->year; // Tahun acak
 
-            'created_at' => now(),
-            'updated_at' => now(),
+        return [
+            'rancangan_id' => RancanganProdukHukum::factory(), // Foreign key ke rancangan
+            'nomor' => $nomor, // Nomor unik (3 digit)
+            'tahun' => $tahun, // Tahun
+            'tanggal_pengarsipan' => $this->faker->date, // Tanggal pengarsipan
+            'file_produk_hukum' => $this->faker->filePath(), // Path file dummy
+            'nomor_tahun_berita' => sprintf('%03d/%04d', $nomor, $tahun), // Format: 012/2025
+            'tanggal_penetapan' => $this->faker->date, // Tanggal penetapan
+            'perangkat_daerah_id' => PerangkatDaerah::inRandomOrder()->first()->id ?? PerangkatDaerah::factory(),
+            'jenis_dokumentasi' => $this->faker->randomElement(['Peraturan Bupati', 'Surat Keputusan', 'Dokumen Pendukung']),
+            'tentang_dokumentasi' => $this->faker->sentence(6), // Kalimat acak tentang dokumentasi
         ];
     }
 }

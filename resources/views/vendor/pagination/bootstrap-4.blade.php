@@ -1,5 +1,19 @@
 @if ($paginator->hasPages())
-    <nav>
+    <nav class="d-flex flex-column align-items-center">
+        {{-- Informasi jumlah hasil --}}
+        <div>
+            <p class="small text-muted">
+                {!! __('Showing') !!}
+                <span class="fw-semibold">{{ $paginator->firstItem() }}</span>
+                {!! __('to') !!}
+                <span class="fw-semibold">{{ $paginator->lastItem() }}</span>
+                {!! __('of') !!}
+                <span class="fw-semibold">{{ $paginator->total() }}</span>
+                {!! __('results') !!}
+            </p>
+        </div>
+
+        {{-- Pagination --}}
         <ul class="pagination justify-content-center">
             {{-- Tombol Sebelumnya --}}
             @if ($paginator->onFirstPage())
@@ -8,7 +22,8 @@
                 </li>
             @else
                 <li class="page-item">
-                    <button type="button" class="page-link" wire:click="previousPage('{{ $paginator->getPageName() }}')"
+                    <button type="button" class="page-link"
+                        wire:click="previousPage('{{ $paginator->getPageName() }}')"
                         wire:loading.attr="disabled">&lsaquo;</button>
                 </li>
             @endif

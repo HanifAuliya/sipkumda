@@ -43,7 +43,10 @@
                         <div class="row">
                             {{-- Input Tanggal Nota --}}
                             <div class="mb-3 col-md-6">
-                                <label for="tanggalNota" class="form-label font-weight-bold">Tanggal Nota</label>
+                                <label for="tanggalNota" class="form-control-label font-weight-bold">Tanggal Nota
+                                    <small class="text-muted d-block">Pastikan Isi dengan benar karena akan di cetak
+                                        dalam nota dinas hasil.</small>
+                                </label>
                                 <input type="date" class="form-control" wire:model="tanggalNota" required />
                                 @error('tanggalNota')
                                     <span class="text-danger">{{ $message }}</span>
@@ -52,7 +55,10 @@
 
                             {{-- Input Nomor Nota --}}
                             <div class="mb-3 col-md-6">
-                                <label for="nomorNota" class="form-label font-weight-bold">Nomor Nota</label>
+                                <label for="nomorNota" class="form-control-label font-weight-bold">Nomor Nota
+                                    <small class="text-muted d-block">Pastikan Isi dengan benar karena akan di cetak
+                                        dalam nota dinas hasil.</small>
+                                </label>
                                 <input type="text" class="form-control" wire:model="nomorNota"
                                     placeholder="Masukkan Nomor Nota (misal: NOTA-2023-001)" required />
                                 @error('nomorNota')

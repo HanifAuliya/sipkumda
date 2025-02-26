@@ -40,24 +40,22 @@ class DokumentasiExport implements FromCollection, WithHeadings, WithTitle, With
                     $q->whereYear('jenis_rancangan', $this->jenisRancangan);
                 });
             })
-            ->when($this->tahun, function ($q) { // Filter tahun
-                $q->whereHas('rancangan', function ($qr) {
-                    $qr->whereYear('tanggal_pengajuan', $this->tahun);
-                });
+            ->when($this->tahun, function ($q) { // Filter tahun dari dokumentasi_produk_hukum
+                $q->where('tahun', $this->tahun);
             })
             ->get()
             ->map(function ($dokumentasi, $index) {
                 return [
                     'No' => $index + 1,
                     'Nomor Produk Hukum' => $dokumentasi->nomor_formatted,
-                    'Nomor Fasilitasi Rancangan' => $dokumentasi->rancangan->no_rancangan,
-                    'Jenis Produk Hukum' => $dokumentasi->rancangan->jenis_rancangan,
-                    'Tentang' => $dokumentasi->rancangan->tentang,
+                    'Nomor Fasilitasi Rancangan' => $dokumentasi->rancangan->no_rancangan ?? 'Dokumen sebelum ada sistem',
+                    'Jenis Produk Hukum' => $dokumentasi->jenis_dokumentasi,
+                    'Tentang' => $dokumentasi->tentang_dokumentasi,
                     'Perangkat Daerah' => $dokumentasi->perangkatDaerah->nama_perangkat_daerah,
-                    'Tanggal Pengarsipan' => \Carbon\Carbon::parse($dokumentasi->tanggal)->translatedFormat('d F Y'),
                     'File Rancangan' => $dokumentasi->file_produk_hukum ? '=HYPERLINK("' . url('/view-private/dokumentasi/file_produk_hukum/' . basename($dokumentasi->file_produk_hukum)) . '", "Lihat Produk Hukum")' : 'Tidak Ada',
-                    'Nomor Berita Daerah' => $dokumentasi->nomor_berita_daerah,
-                    'Tanggal Berita Daerah' => $dokumentasi->tanggal_berita_daerah,
+                    'Tanggal Penetapan' => \Carbon\Carbon::parse($dokumentasi->tanggal_penetapan)->translatedFormat('d F Y'),
+                    'Nomor Tahun Berita Daerah' => $dokumentasi->nomor_tahun_berita,
+                    'Tanggal Pengarsipan' => \Carbon\Carbon::parse($dokumentasi->tanggal_pengarsipan)->translatedFormat('d F Y'),
                 ];
             });
     }
@@ -71,10 +69,10 @@ class DokumentasiExport implements FromCollection, WithHeadings, WithTitle, With
             'Jenis Produk Hukum',
             'Tentang',
             'Perangkat Daerah',
-            'Tanggal Pengarsipan',
             'File Rancangan',
-            'Nomor Berita Daerah',
-            'Tanggal Berita Daerah',
+            'Tanggal Penetapan',
+            'Nomor Tahun Berita Daerah',
+            'Tanggal Pengarsipan',
         ];
     }
 
@@ -88,14 +86,14 @@ class DokumentasiExport implements FromCollection, WithHeadings, WithTitle, With
         return [
             'A' => 5,  // No
             'B' => 20, // Nomor Produk Hukum
-            'C' => 25, // Jenis Produk Hukum
-            'D' => 50, // Tentang
-            'E' => 25, // Nomor Produk Hukum
+            'C' => 25, // Nomor Fasilitasi
+            'D' => 25, // Jenis Fasilitasi
+            'E' => 40, // Tentang Fasilitasi
             'F' => 30, // Perangkat Daerah
-            'G' => 20, // Tanggal Pengarsipan
-            'H' => 30, // File Rancangan
+            'G' => 20, // File Rancangan
+            'H' => 30, // Tanggal Penetepan
             'I' => 20, // Nomor Berita Daerah
-            'J' => 20, // Tanggal Berita Daerah
+            'J' => 20, // Tanggal Pengarsipan
         ];
     }
 
@@ -125,7 +123,7 @@ class DokumentasiExport implements FromCollection, WithHeadings, WithTitle, With
                 ],
             ],
             // 🔹 Hyperlink (F-H dan M-N) diberi warna biru & garis bawah miring mulai baris ke-3
-            "H2:H{$highestRow}" => [
+            "G2:G{$highestRow}" => [
                 'font' => [
                     'underline' => Font::UNDERLINE_SINGLE,
                     'color' => ['rgb' => '0000FF'], // Warna biru

@@ -7,12 +7,12 @@
                 <div class="d-flex flex-column align-items-start">
                     <span class="text-white d-none d-md-block" id="full-text">
                         <span class="typing-text-heading full-text-heading">
-                            Sistem Informasi Produk Hukum Daerah
+                            Sistem Fasilitasi Produk Hukum Daerah
                         </span>
                     </span>
                     <span class="text-white d-block d-md-none" id="short-text">
                         <span class="typing-text-heading short-text-heading">
-                            SIPKUMDA
+                            SIFKUMDA
                         </span>
                     </span>
                 </div>

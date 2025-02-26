@@ -19,7 +19,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="description" content="Start your development with a Dashboard for Bootstrap 4." />
     <meta name="SIPKUMDA" content="Creative Tim" />
-    <title>@yield('title', 'Default Title') | Sistem Informasi Produk Hukum Daerah Hulu Sungai Tengah</title>
+    <title>@yield('title', 'Default Title') | Sistem Fasilitasi Produk Hukum Daerah Hulu Sungai Tengah</title>
     {{-- Favicon --}}
     <link rel="icon" href="{{ asset('assets/img/brand/favicon.ico') }}" type="image/png" />
 
@@ -59,10 +59,10 @@
                     <img src="{{ asset('assets/img/brand/loading_screen.png') }}" alt="Logo" class="img-fluid" />
                 </div>
             </div>
-            <h1 class="sipkumda-title m-0">SIPKUMDA HST</h1>
+            <h1 class="sipkumda-title m-0">SIFKUMDA HST</h1>
             {{-- Text Content Below --}}
             <p class="typing-animation-loading m-0 mt-2">
-                Sistem Informasi Produk Hukum Daerah
+                Sistem Fasilitasi Produk Hukum Daerah
             </p>
         </div>
     </div>

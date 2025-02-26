@@ -26,9 +26,14 @@
         <div class="card-header d-flex justify-content-between align-items-center">
             <div>
                 <h3 class="mb-0">Daftar Rancanganku</h3>
-                <small>Pastikan perhatikan tab di bawah!</small>x
+                <small>Pastikan perhatikan tab di bawah!</small>
             </div>
-            @livewire('perangkat-daerah.rancangan.ajukan-rancangan')
+            <div class="d-flex align-items-center">
+                {{-- Livewire Component --}}
+                <livewire:rancangan.bahan-penting-dropdown />
+                {{-- Menggunakan sintaks <livewire> --}}
+                <livewire:perangkat-daerah.rancangan.ajukan-rancangan />
+            </div>
         </div>
 
         {{-- Tabs --}}

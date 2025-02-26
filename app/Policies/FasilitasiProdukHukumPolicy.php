@@ -80,7 +80,7 @@ class FasilitasiProdukHukumPolicy
     public function delete(User $user, FasilitasiProdukHukum $fasilitasi): bool
     {
         // Hanya Admin yang bisa menghapus fasilitasi
-        return $user->hasRole('Admin', 'Verifikator');
+        return $user->hasRole(['Admin', 'Verifikator']);
     }
 
     /**

@@ -208,10 +208,13 @@
                 confirmButtonText: 'Ya, Hapus!',
                 cancelButtonText: 'Batal'
             }).then((result) => {
-                Livewire.dispatch('deleteFasilitasi', {
-                    id: id
-                }); // Kirim event ke Livewire
+                if (result.isConfirmed) {
+                    Livewire.dispatch('deleteFasilitasi', {
+                        id: id
+                    }); // Kirim event ke Livewire hanya jika dikonfirmasi
+                }
             });
         }
     </script>
+
 </div>

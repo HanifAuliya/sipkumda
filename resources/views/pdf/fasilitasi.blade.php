@@ -46,6 +46,7 @@
 <body>
 
     <div class="title">Daftar Fasilitasi Produk Hukum</div>
+    <p class="text-center">Dihasilkan pada: {{ \Carbon\Carbon::now()->translatedFormat('d F Y H:i') }}</p>
 
     <table>
         <thead>

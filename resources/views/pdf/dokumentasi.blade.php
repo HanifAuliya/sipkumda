@@ -32,7 +32,7 @@
         }
 
         th {
-            background-color: #BDBDBD;
+            background-color: #B4C6E7;
             text-align: center;
         }
 
@@ -40,12 +40,17 @@
             word-wrap: break-word;
             max-width: 200px;
         }
+
+        .text-danger {
+            color: red;
+        }
     </style>
 </head>
 
 <body>
 
     <div class="title">Dokumentasi Produk Hukum</div>
+    <p class="text-center">Dihasilkan pada: {{ \Carbon\Carbon::now()->translatedFormat('d F Y H:i') }}</p>
 
     <table>
         <thead>
@@ -56,9 +61,9 @@
                 <th>Jenis Produk Hukum</th>
                 <th class="wrap-text">Tentang</th>
                 <th class="wrap-text">Perangkat Daerah</th>
+                <th>Tanggal Penetapan</th>
+                <th>Nomor/Tahun Berita Daerah</th>
                 <th>Tanggal Pengarsipan</th>
-                <th>Nomor Berita Daerah</th>
-                <th>Tanggal Berita Daerah</th>
             </tr>
         </thead>
         <tbody>
@@ -66,13 +71,15 @@
                 <tr>
                     <td>{{ $index + 1 }}</td>
                     <td>{{ $dokumentasi->nomor_formatted }}</td>
-                    <td>{{ optional($dokumentasi->rancangan)->no_rancangan }}</td>
-                    <td>{{ optional($dokumentasi->rancangan)->jenis_rancangan }}</td>
-                    <td class="wrap-text">{{ optional($dokumentasi->rancangan)->tentang }}</td>
+                    <td class="{{ empty($dokumentasi->rancangan->no_rancangan) ? 'text-danger' : '' }}">
+                        {{ $dokumentasi->rancangan->no_rancangan ?? 'Dokumen sebelum ada sistem' }}
+                    </td>
+                    <td>{{ $dokumentasi->jenis_dokumentasi }}</td>
+                    <td class="wrap-text">{{ $dokumentasi->tentang_dokumentasi }}</td>
                     <td class="wrap-text">{{ optional($dokumentasi->perangkatDaerah)->nama_perangkat_daerah }}</td>
-                    <td>{{ \Carbon\Carbon::parse($dokumentasi->tanggal)->translatedFormat('d F Y') }}</td>
-                    <td>{{ $dokumentasi->nomor_berita_daerah }}</td>
-                    <td>{{ $dokumentasi->tanggal_berita_daerah }}</td>
+                    <td>{{ $dokumentasi->tanggal_penetapan }}</td>
+                    <td>{{ $dokumentasi->nomor_tahun_berita }}</td>
+                    <td>{{ \Carbon\Carbon::parse($dokumentasi->tanggal_pengarsipan)->translatedFormat('d F Y') }}</td>
                 </tr>
             @endforeach
         </tbody>

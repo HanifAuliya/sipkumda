@@ -31,8 +31,6 @@ class MasterData extends Component
         return Excel::download(new MasterDataExport($tahun, $jenis), 'MasterData.xlsx');
     }
 
-
-
     public function mount()
     {
         $this->tahun = date('Y'); // Set default tahun sekarang
@@ -107,8 +105,6 @@ class MasterData extends Component
                 })->paginate(10);
         }
     }
-
-
 
     public function render()
     {

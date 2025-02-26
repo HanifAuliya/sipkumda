@@ -50,8 +50,6 @@ class PersetujuanMenunggu extends Component
         }
         $this->catatan = $this->selectedRancangan->catatan_berkas ?? '';
         $this->statusBerkas = $this->selectedRancangan->status_berkas ?? '';
-
-        $this->dispatch('openModalPersetujuan');
     }
 
     public function updateStatus()
