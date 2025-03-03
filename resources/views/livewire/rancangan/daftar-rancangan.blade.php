@@ -196,7 +196,11 @@
                                                     wire:click="showDetail({{ $rancangan->id_rancangan }})"
                                                     class="btn btn-info btn-sm" data-target="#detailModal"
                                                     data-toggle="modal">
-                                                    <i class="bi bi-eye-fill"></i>
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-danger btn-sm"
+                                                    onclick="confirmDelete({{ $rancangan->id_rancangan }})">
+                                                    <i class="bi bi-trash-fill"></i>
                                                 </button>
                                             @else
                                                 <small class="text-danger">Perlu Izin!</small>
@@ -574,6 +578,26 @@
             });
 
         });
+    </script>
+    <script>
+        function confirmDelete(id) {
+            Swal.fire({
+                title: 'Apakah Anda yakin?',
+                text: "Data yang dihapus tidak dapat dikembalikan!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Livewire.dispatch('deleteRancangan', {
+                        id: id
+                    }); // Kirim event ke Livewire hanya jika dikonfirmasi
+                }
+            });
+        }
     </script>
 
 </div>

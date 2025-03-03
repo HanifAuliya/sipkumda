@@ -298,7 +298,6 @@ class Dokumentasi extends Component
         }
     }
 
-
     public function render()
     {
         $query = DokumentasiProdukHukum::with('rancangan', 'perangkatDaerah')

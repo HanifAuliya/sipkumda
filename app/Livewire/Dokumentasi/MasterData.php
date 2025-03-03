@@ -19,6 +19,7 @@ class MasterData extends Component
     use WithPagination;
 
     public $tahun;
+    public $tahunList;
     public $jenis; // Pastikan default berupa array
     public $dataType = 'Rancangan';
     public $search = '';
@@ -34,8 +35,17 @@ class MasterData extends Component
     public function mount()
     {
         $this->tahun = date('Y'); // Set default tahun sekarang
+
+        // Ambil tahun unik dari semua tabel yang terkait
+        $this->tahunList = RancanganProdukHukum::selectRaw('YEAR(tanggal_pengajuan) as tahun')
+            ->distinct()
+            ->orderBy('tahun', 'desc')
+            ->pluck('tahun')
+            ->toArray();
+
         $this->jenis = "all"; // Simpan "all" sebagai string, bukan array
     }
+
 
     public function loadData($type)
     {

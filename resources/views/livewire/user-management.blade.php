@@ -129,12 +129,12 @@
                                 @forelse ($users as $index => $user)
                                     <tr>
                                         <td>{{ $users->firstItem() + $index }}</td>
-                                        <td class="wrap-text-td-50">{{ $user->nama_user }}</td>
+                                        <td class="text-wrap">{{ $user->nama_user }}</td>
                                         <td>{{ $user->NIP }}</td>
-                                        <td class="still-text">{{ $user->email }}</td>
-                                        <td class="wrap-text-td-50">
+                                        <td class="text-wrap">{{ $user->email }}</td>
+                                        <td class="text-wrap">
                                             {{ $user->perangkatDaerah->nama_perangkat_daerah ?? 'N/A' }}</td>
-                                        <td class="wrap-text">{{ $user->getRoleNames()->implode(', ') }}</td>
+                                        <td class="text-wrap">{{ $user->getRoleNames()->implode(', ') }}</td>
                                         <td>
                                             @if ($isAdmin)
                                                 <button wire:click="edit({{ $user->id }})"
@@ -142,8 +142,8 @@
                                                     data-target="#editUserModal">
                                                     <i class="bi bi-pencil-fill"></i>
                                                 </button>
-                                                <button wire:click="delete({{ $user->id }})"
-                                                    class="btn btn-danger btn-sm">
+                                                <button type="button" class="btn btn-danger btn-sm"
+                                                    onclick="confirmDelete({{ $user->id }})">
                                                     <i class="bi bi-trash-fill"></i>
                                                 </button>
                                             @else
@@ -158,30 +158,8 @@
                                 @endforelse
                             </tbody>
                         </table>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center flex-wrap">
-                        <div class="mb-2 mb-md-0">
-                            Menampilkan {{ $users->firstItem() }} hingga {{ $users->lastItem() }} dari
-                            {{ $users->total() }}
-                            data
-                        </div>
-                        <div class="d-flex justify-content-center w-100 w-md-auto">
+                        <div class="mt-3">
                             {{ $users->links('pagination::bootstrap-4') }}
-                        </div>
-                    </div>
-
-                    <div class="card-footer">
-                        <div class="row">
-                            <div class="col-sm-12 col-md-5">
-                                <div class="dataTables_info" id="userTable_info" role="status" aria-live="polite">
-                                    {{-- DataTables will automatically populate info here --}}
-                                </div>
-                            </div>
-                            <div class="col-sm-12 col-md-7">
-                                <div class="dataTables_paginate paging_simple_numbers" id="userTable_paginate">
-                                    {{-- Pagination controls will be dynamically inserted by DataTables here --}}
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -194,9 +172,7 @@
                             <form wire:submit.prevent="store">
                                 <div class="modal-header">
                                     <h5 class="modal-title" id="addUserModalLabel">Tambah Pengguna</h5>
-                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                        <span aria-hidden="true">&times;</span>
-                                    </button>
+
                                 </div>
                                 <div class="modal-body">
                                     <div class="row">
@@ -267,10 +243,21 @@
                                     </div>
                                 </div>
                                 <div class="modal-footer">
-                                    <button type="button" class="btn btn-outline-danger" data-dismiss="modal"><i
-                                            class="bi bi-x-lg"></i> Tutup</button>
-                                    <button type="submit" class="btn btn-outline-success">
-                                        <i class="bi bi-box-arrow-down"></i> Simpan</button>
+                                    <!-- Tombol Tutup -->
+                                    <button type="button" class="btn btn-outline-danger" data-dismiss="modal">
+                                        <i class="bi bi-x-lg"></i> Tutup
+                                    </button>
+
+                                    <!-- Tombol Simpan dengan wire:loading -->
+                                    <button type="submit" class="btn btn-outline-success"
+                                        wire:loading.attr="disabled">
+                                        <span wire:loading.remove wire:target="store">
+                                            <i class="bi bi-box-arrow-down"></i> Simpan
+                                        </span>
+                                        <span wire:loading wire:target="store">
+                                            <i class="spinner-border spinner-border-sm"></i> Menyimpan...
+                                        </span>
+                                    </button>
                                 </div>
                             </form>
                         </div>
@@ -286,9 +273,6 @@
                             <form wire:submit.prevent="update">
                                 <div class="modal-header">
                                     <h5 class="modal-title" id="editUserModalLabel">Edit Pengguna</h5>
-                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                        <span aria-hidden="true">&times;</span>
-                                    </button>
                                 </div>
                                 <div class="modal-body">
                                     <div class="row">
@@ -373,36 +357,25 @@
             </div>
         </div>
 
-        {{-- sweet alert --}}
         <script>
-            window.addEventListener('swal:user', function(event) {
-
-                const data = event.detail[0];
-
-                $('#addUserModal').modal('hide'); // Tutup modal
-                $('#editUserModal').modal('hide'); // Tutup modal
-                // Tampilkan SweetAlert
+            function confirmDelete(id) {
                 Swal.fire({
-                    icon: data.type,
-                    title: data.title,
-                    text: data.message,
-                    showConfirmButton: true,
+                    title: 'Apakah Anda yakin?',
+                    text: "Data yang dihapus tidak dapat dikembalikan!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Ya, Hapus!',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Livewire.dispatch('deleteUser', {
+                            id: id
+                        }); // Kirim event ke Livewire hanya jika dikonfirmasi
+                    }
                 });
-
-            });
-            window.addEventListener('swal:error', function(event) {
-
-                const data = event.detail[0];
-
-                // Tampilkan SweetAlert
-                Swal.fire({
-                    icon: data.type,
-                    title: data.title,
-                    text: data.message,
-                    showConfirmButton: true,
-                });
-
-            });
+            }
         </script>
     </div>
 </div>

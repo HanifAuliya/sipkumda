@@ -43,6 +43,9 @@ class UserManagement extends Component
         'perPage' => ['except' => '10'], // Untuk jumlah data per halaman
         'page' => ['except' => 1],     // Untuk pagination
     ];
+
+    protected $listeners = ['refreshTable' => '$refresh', 'deleteUser' => 'delete'];
+
     public function mount()
     {
         $this->isAdmin = Auth::user()->hasRole('Super Admin');
@@ -92,11 +95,11 @@ class UserManagement extends Component
         try {
             $validated = $this->validate([
                 'nama_user' => 'required|string|max:255',
-                'NIP' => 'required|string|max:50|unique:users,NIP',
-                'email' => 'required|email|lowercase|max:100|unique:users,email',
+                'NIP' => 'required|string|size:18|unique:users,NIP',
+                'email' => 'required|email:rfc,dns|lowercase|max:100|unique:users,email',
                 'password' => 'nullable|string|min:8|confirmed',
                 'role' => 'required|exists:roles,name',
-                'perangkat_daerah_id' => 'nullable|exists:perangkat_daerah,id',
+                'perangkat_daerah_id' => 'required|exists:perangkat_daerah,id',
             ]);
 
             // Buat password acak
@@ -120,8 +123,9 @@ class UserManagement extends Component
             // Kirim password ke email pengguna
             Mail::to($validated['email'])->send(new \App\Mail\SendPasswordToUser($generatedPassword));
 
+            $this->dispatch('closeModal', 'addUserModal');
             // Dispatch success event
-            $this->dispatch('swal:user', [
+            $this->dispatch('swal:modal', [
                 'type' => 'success',
                 'title' => 'Berhasil!',
                 'message' => 'Pengguna berhasil ditambahkan!',
@@ -168,8 +172,20 @@ class UserManagement extends Component
             // Validasi input
             $validated = $this->validate([
                 'nama_user' => 'required|string|max:255',
-                'NIP' => 'required|string|max:50|unique:users,NIP,' . $user->id,
-                'email' => 'required|email|lowercase|max:100|unique:users,email,' . $user->id,
+                'NIP' => [
+                    'required',
+                    'string',
+                    'size:18', // Harus tepat 18 karakter
+                    'unique:users,NIP,' . $user->id, // Pastikan unik kecuali untuk user yang sedang diedit
+                ],
+                'email' => [
+                    'required',
+                    'email:rfc,dns', // Memeriksa format email yang valid dan domain yang valid
+                    'lowercase', // Memastikan email disimpan dalam huruf kecil
+                    'max:100', // Batasan panjang email maksimal 100 karakter
+                    'unique:users,email,' . $user->id, // Pastikan email unik, kecuali untuk user yang sedang diedit
+                ],
+                'perangkat_daerah_id' => 'required|exists:perangkat_daerah,id',
                 'role' => 'required|string|exists:roles,name', // Pastikan role ada di tabel roles
             ]);
 
@@ -178,6 +194,7 @@ class UserManagement extends Component
                 'nama_user' => $validated['nama_user'],
                 'NIP' => $validated['NIP'],
                 'email' => $validated['email'],
+                'perangkat_daerah_id' => $validated['perangkat_daerah_id'],
             ]);
 
             // Tetapkan role ke pengguna menggunakan Spatie
@@ -186,8 +203,9 @@ class UserManagement extends Component
             // Reset input
             $this->resetInput();
 
+            $this->dispatch('closeModal', 'editUserModal');
             // Dispatch notifikasi sukses
-            $this->dispatch('swal:user', [
+            $this->dispatch('swal:modal', [
                 'type' => 'success',
                 'title' => 'Berhasil!',
                 'message' => 'Pengguna berhasil diperbarui.',
@@ -206,18 +224,22 @@ class UserManagement extends Component
 
     public function delete($id)
     {
+        // Pastikan hanya admin yang bisa menghapus
         if (!$this->isAdmin) {
             abort(403, 'Anda tidak memiliki izin untuk menghapus pengguna.');
         }
 
+        // Hapus user berdasarkan ID
         User::destroy($id);
-        // Dispatch success event
+
+        // Kirim event ke frontend untuk menampilkan notifikasi sukses
         $this->dispatch('swal:user', [
             'type' => 'success',
             'title' => 'Dihapus',
             'message' => 'Pengguna berhasil dihapus!',
         ]);
     }
+
 
     public function resetInput()
     {
@@ -234,13 +256,12 @@ class UserManagement extends Component
         $this->resetValidation();
     }
 
-
-
     public function render()
     {
         $users = User::with(['roles', 'perangkatDaerah']) // Eager loading relasi roles dan perangkat daerah
             ->when($this->search, function ($query) {
                 $query->where('nama_user', 'like', '%' . $this->search . '%')
+                    ->orWhere('NIP', 'like', '%' . $this->search . '%')
                     ->orWhere('email', 'like', '%' . $this->search . '%');
             })
             ->when($this->roleFilter, function ($query) {

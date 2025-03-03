@@ -115,7 +115,7 @@
         <livewire:notification-modal.verifikator.rancangan.pilih-peneliti />
 
         {{-- Modal Revisi Rancanganan --}}
-        <livewire:notification-modal.peneliti.rancangan.notificationrevisi />
+        <livewire:notification-modal.peneliti.rancangan.notification-revisi />
 
         {{-- Notification Modal Script --}}
         <script>
@@ -170,6 +170,17 @@
                         toast: true,
                     });
                 });
+                window.addEventListener('swal:error', function(event) {
+                    const data = event.detail[0];
+                    // Tampilkan SweetAlert
+                    Swal.fire({
+                        icon: data.type,
+                        title: data.title,
+                        text: data.message,
+                        showConfirmButton: true,
+                    });
+
+                });
 
                 // sweet alert global delete degnan toast
                 window.addEventListener('swal:toast', function(event) {
@@ -218,8 +229,8 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
 
     {{-- Charts --}}
-    <script src="{{ asset('assets/vendor/chart.js/dist/Chart.min.js') }}"></script>
-    <script src="{{ asset('assets/vendor/chart.js/dist/Chart.extension.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 
     @livewireScripts
 

@@ -1385,7 +1385,7 @@ canvas {
 
 /* Dark Mode untuk Footer */
 .dark-mode .footer {
-    background-color: var(--dark-card) !important;
+    background-color: transparent !important;
     color: var(--dark-text) !important;
 }
 

@@ -58,13 +58,16 @@
         {{-- Perangkat Daerah --}}
         <div class="form-group">
             <label for="perangkat_daerah_id" class="form-control-label">{{ __('Perangkat Daerah') }}</label>
-            <div class="input-group">
-                <span class="input-group-text">
-                    <i class="bi bi-building"></i> {{-- Icon Perangkat Daerah --}}
-                </span>
+            <div class="input-group input-group-alternative">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">
+                        <i class="bi bi-building"></i> {{-- Icon Perangkat Daerah --}}
+                    </span>
+                </div>
                 <input type="text" class="form-control"
                     value="{{ $daftar_perangkat_daerah->where('id', $perangkat_daerah_id)->first()?->nama_perangkat_daerah }}"
                     readonly>
+
             </div>
             @error('perangkat_daerah_id')
                 <span class="text-danger text-sm mt-2">{{ $message }}</span>
@@ -88,7 +91,13 @@
 
         {{-- Save Button --}}
         <div class="form-group text-right">
-            <button type="submit" class="btn btn-default">{{ __('Save') }}</button>
+            <button type="submit" class="btn btn-default" wire:loading.attr="disabled" wire:target="updateProfile">
+                <span wire:loading wire:target="updateProfile">
+                    <i class="fa fa-spinner fa-spin"></i>
+                </span>
+                <i class="bi bi-floppy2-fill mr-2"></i>
+                {{ __('Save') }}
+            </button>
         </div>
     </form>
 </div>

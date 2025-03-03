@@ -6,6 +6,7 @@ use App\Models\RancanganProdukHukum;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
+use Carbon\Carbon;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\RancanganProdukHukum>
@@ -19,25 +20,28 @@ class RancanganProdukHukumFactory extends Factory
      */
     public function definition(): array
     {
-        return [
-            'slug' => Str::uuid(), // Generate UUID sebagai slug
-            'no_rancangan' => $this->faker->unique()->numerify('RANC-#####'), // Nomor rancangan unik
-            'jenis_rancangan' => $this->faker->randomElement(['Peraturan Bupati', 'Surat Keputusan']), // Jenis rancangan
-            'tentang' => $this->faker->sentence(), // Deskripsi tentang rancangan
-            'nota_dinas_pd' =>  $this->faker->optional()->word() . '.pdf', // Default kosong, akan terisi saat rancangan disetujui
-            'nomor_nota' => $this->faker->optional()->numerify('NOTA-#####'), // Nomor nota opsional
-            'tanggal_nota' => $this->faker->optional()->dateTimeBetween('-1 month', 'now'), // Tanggal nota 
+        $bulanRandom = rand(1, 6); // Pilih bulan antara Januari - Juni 2025
+        $tanggalPengajuan = Carbon::create(2025, $bulanRandom, rand(1, 28), rand(8, 17), rand(0, 59), rand(0, 59));
 
-            'rancangan' => $this->faker->optional()->word() . '.pdf', // Opsional file rancangan
-            'matrik' => $this->faker->optional()->word() . '.pdf', // Opsional file matrik
-            'bahan_pendukung' => $this->faker->optional()->word() . '.pdf', // Opsional bahan pendukung
-            'tanggal_pengajuan' => $this->faker->dateTimeBetween('-1 year', 'now'), // Tanggal pengajuan dalam 1 tahun terakhir
-            'id_user' => User::factory(), // Relasi ke User
-            'status_berkas' => 'Menunggu Persetujuan', // Default status
-            'status_rancangan' => 'Dalam Proses', // Default status rancangan
-            'catatan_berkas' => null, // Default kosong
-            'tanggal_berkas_disetujui' => null, // Akan terisi jika disetujui
-            'tanggal_rancangan_disetujui' => null, // Akan terisi jika status rancangan disetujui
+        return [
+            'slug' => Str::uuid(),
+            'no_rancangan' => $this->faker->unique()->numerify('RANC-#####'),
+            'jenis_rancangan' => $this->faker->randomElement(['Peraturan Bupati', 'Surat Keputusan']),
+            'tentang' => $this->faker->sentence(),
+            'nota_dinas_pd' => $this->faker->optional()->word() . '.pdf',
+            'nomor_nota' => $this->faker->optional()->numerify('NOTA-#####'),
+            'tanggal_nota' => $tanggalPengajuan->copy()->addDays(rand(1, 7)), // Nota keluar dalam 1 minggu setelah pengajuan
+
+            'rancangan' => $this->faker->optional()->word() . '.pdf',
+            'matrik' => $this->faker->optional()->word() . '.pdf',
+            'bahan_pendukung' => $this->faker->optional()->word() . '.pdf',
+            'tanggal_pengajuan' => $tanggalPengajuan, // Tanggal pengajuan dalam 6 bulan pertama tahun 2025
+            'id_user' => User::factory(),
+            'status_berkas' => 'Menunggu Persetujuan',
+            'status_rancangan' => 'Dalam Proses',
+            'catatan_berkas' => null,
+            'tanggal_berkas_disetujui' => null,
+            'tanggal_rancangan_disetujui' => $tanggalPengajuan->copy()->addDays(rand(7, 14)), // Disetujui 1-2 minggu setelah pengajuan
             'created_at' => now(),
             'updated_at' => now(),
         ];

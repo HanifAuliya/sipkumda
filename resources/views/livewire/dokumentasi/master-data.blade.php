@@ -24,10 +24,12 @@
                     </div>
                     <select class="form-control bg-white" wire:model.live="tahun">
                         <option value="">Semua Tahun</option> {{-- Opsi tambahan --}}
-                        @foreach (range(date('Y'), 2010) as $year)
+                        @foreach ($tahunList as $year)
                             <option value="{{ $year }}">Data Tahun {{ $year }}</option>
                         @endforeach
                     </select>
+
+
                 </div>
             </div>
 
@@ -188,9 +190,13 @@
                             @forelse ($selectedData as $index => $data)
                                 <tr>
                                     <td>{{ $index + 1 }}</td>
-                                    <td>{{ $data->no_rancangan ?? $data->rancangan->no_rancangan }}</td>
-                                    <td>{{ $data->jenis_rancangan ?? $data->rancangan->jenis_rancangan }}</td>
-                                    <td class="wrap-text w-50">{{ $data->tentang ?? $data->rancangan->tentang }}</td>
+                                    <td>{{ $data->no_rancangan ?? ($data->rancangan->no_rancangan ?? 'Data Sebelum ada Sistem') }}
+                                    </td>
+                                    <td>{{ $data->jenis_rancangan ?? ($data->rancangan->jenis_rancangan ?? $data->jenis_dokumentasi) }}
+                                    </td>
+                                    <td class="wrap-text w-50">
+                                        {{ $data->tentang ?? ($data->rancangan->tentang ?? $data->tentang_dokumentasi) }}
+                                    </td>
                                     <td>{{ $data->user->nama_user ?? $data->rancangan->user->nama_user }}</td>
                                 </tr>
                             @empty

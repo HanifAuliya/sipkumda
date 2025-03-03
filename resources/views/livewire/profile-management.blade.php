@@ -1,23 +1,22 @@
 @section('header', 'Atur Profil')
 @section('title', 'Profilku')
 
-<div class="row">
+<div class="row justify-content-center">
     {{-- Profile Information --}}
-    <div class="col-12">
+    <div class="col-md-6 col-12">
         <div class="card shadow-sm">
             <div class="card-header">
-                <h3 class="text-default mb-0">{{ __('Informasi Profile') }}</h3>
-                <p class="text-muted mt-2">{{ __('Perbarui informasi profil akun dan alamat email Anda..') }}</p>
+                <h3 class="text-default mb-0">{{ __('Informasi Profil') }}</h3>
+                <p class="text-muted mt-2">{{ __('Perbarui informasi profil akun dan alamat email Anda.') }}</p>
             </div>
             <div class="card-body">
-                @livewire('profile.update-profile-information')
-
+                <livewire:profile.update-profile-information />
             </div>
         </div>
     </div>
 
     {{-- Update Password --}}
-    <div class="col-12">
+    <div class="col-md-6 col-12">
         <div class="card shadow-sm">
             <div class="card-header">
                 <h3 class="text-default mb-0">{{ __('Update Password') }}</h3>
@@ -26,39 +25,8 @@
                 </p>
             </div>
             <div class="card-body">
-                @livewire('profile.update-password')
+                <livewire:profile.update-password />
             </div>
         </div>
     </div>
-
-    {{-- Delete Account --}}
-    <div class="col-12">
-        <div class="card shadow-sm">
-            <div class="card-header bg-transparent text-white">
-                <h3 class="mb-0">{{ __('Delete Account') }}</h3>
-            </div>
-            <div class="card-body">
-                <livewire:profile.delete-user />
-            </div>
-        </div>
-    </div>
-
-    <script>
-        window.addEventListener('swal:modal', function(event) {
-            // Ambil elemen pertama dari array
-            const data = event.detail[0];
-
-            $('#confirmDeleteModal').modal('hide'); // Tutup modal
-            // $('.modal-backdrop').remove(); // Hapus backdrop modal
-
-            // Tampilkan SweetAlert
-            Swal.fire({
-                icon: data.type,
-                title: data.title,
-                text: data.message,
-                showConfirmButton: true,
-            });
-        });
-    </script>
-
 </div>

@@ -74,10 +74,10 @@ class SingleJenisExport implements FromCollection, WithHeadings, WithTitle, With
 
                         'Nomor Dokumen'      => optional($data->dokumentasi)->nomor_formatted ?? '-',
                         'Tahun Dokumen'      => optional($data->dokumentasi)->tahun ?? '-',
-                        'tanggal_publikasi' => optional($data->dokumentasi)->tanggal ? Carbon::parse($data->dokumentasi->tanggal)->format('Y/m/d') : '-',
+                        'Tanggal Penetapan' => optional($data->dokumentasi)->tanggal_penetapan ? Carbon::parse($data->dokumentasi->tanggal_penetapan)->format('Y/m/d') : '-',
                         'File Produk Hukum'  => optional($data->dokumentasi)->file_produk_hukum ? '=HYPERLINK("' . url('/view-private/produk-hukum/' . basename($data->dokumentasi->file_produk_hukum)) . '", "Lihat Produk Hukum")' : 'Tidak Ada',
-                        'Nomor Berita Daerah' => optional($data->dokumentasi)->nomor_berita_daerah ?? '-',
-                        'Tanggal Berita Daerah' => optional($data->dokumentasi)->tanggal_berita_daerah ?? '-',
+                        'Nomor Tahun Berita Daerah' => optional($data->dokumentasi)->nomor_tahun_berita ?? '-',
+                        'Tanggal Pengarsipan' => optional($data->dokumentasi)->tanggal_pengarsipan ? Carbon::parse($data->dokumentasi->tanggal_pengarsipan)->format('Y/m/d') : '-',
 
                     ]];
                 }
@@ -117,10 +117,10 @@ class SingleJenisExport implements FromCollection, WithHeadings, WithTitle, With
 
                         'Nomor Dokumen'      => optional($data->dokumentasi)->nomor_formatted ?? '-',
                         'Tahun Dokumen'      => optional($data->dokumentasi)->tahun ?? '-',
-                        'tanggal_publikasi' => optional($data->dokumentasi)->tanggal ? Carbon::parse($data->dokumentasi->tanggal)->format('Y/m/d') : '-',
+                        'Tanggal Penetapan' => optional($data->dokumentasi)->tanggal_penetapan ? Carbon::parse($data->dokumentasi->tanggal_penetapan)->format('Y/m/d') : '-',
                         'File Produk Hukum'  => optional($data->dokumentasi)->file_produk_hukum ? '=HYPERLINK("' . url('/view-private/produk-hukum/' . basename($data->dokumentasi->file_produk_hukum)) . '", "Lihat Produk Hukum")' : 'Tidak Ada',
-                        'Nomor Berita Daerah' => optional($data->dokumentasi)->nomor_berita_daerah ?? '-',
-                        'Tanggal Berita Daerah' => optional($data->dokumentasi)->tanggal_berita_daerah ?? '-',
+                        'Nomor Tahun Berita Daerah' => optional($data->dokumentasi)->nomor_tahun_berita ?? '-',
+                        'Tanggal Pengarsipan' => optional($data->dokumentasi)->tanggal_pengarsipan ? Carbon::parse($data->dokumentasi->tanggal_pengarsipan)->format('Y/m/d') : '-',
 
                     ];
                 });
@@ -162,10 +162,10 @@ class SingleJenisExport implements FromCollection, WithHeadings, WithTitle, With
             'Nomor Nita Dinas Dikeluarkan',
             'Nomor Produk Hukum',
             'Tahun Produk Hukum',
-            'Tanggal Produk Hukum',
+            'Tanggal Penetepan',
             'File Produk Hukum',
-            'Nomor Berita Daerah',
-            'Tanggal Berita Daerah',
+            'Nomor Tahun Berita Daerah',
+            'Tanggal Pengarsipan',
         ];
     }
 

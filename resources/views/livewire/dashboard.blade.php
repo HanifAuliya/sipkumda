@@ -121,7 +121,7 @@
                     <div class="row">
                         <div class="col">
                             <h5 class="card-title text-uppercase text-muted mb-0">
-                                Dokumentasi Produk Hukum
+                                Arsip Produk Hukum
                             </h5>
                             <span class="h2 font-weight-bold mb-0" id="jumlahDokumentasi">0</span> Data
                         </div>
@@ -189,84 +189,272 @@
 
     </div>
 
-    <div class="card" style=" min-height: 300px; ">
-        <div class="card-body">
-            <div class="chart-container">
-                <canvas id="chart-rancangan" class="chart-canvas"></canvas>
+
+    <div class="row">
+        {{-- Pie Chart - Jenis Rancangan --}}
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 chart-card ">
+                <div class="card-header">
+                    <h3 class="mb-0">Total Rancangan</h3>
+                </div>
+                <div class="card-body d-flex justify-content-center align-items-center">
+                    <canvas id="pieChart" style="max-width: 280px; max-height: 280px;"></canvas>
+                </div>
             </div>
         </div>
+
+
+        {{-- Bar Chart - Jumlah Pengajuan per Bulan --}}
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 chart-card " style="max-height: 300px;">
+                <div class="card-header">
+                    <h3 class="mb-0">Pengajuan Rancangan (Tahun ini)</h3>
+                </div>
+                <div class="card-body">
+                    <canvas id="barChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-md-12">
+            <div class="card shadow-sm border-0 chart-card">
+                <div class="card-header d-flex justify-content-between align-items-center" style=" max-height: 300px;">
+                    <h3 class="mb-0">📈 Lama Pembuatan Rancangan (Hari)</h3>
+                </div>
+                <div class="card-body">
+                    <canvas id="lineChart"></canvas>
+                </div>
+            </div>
+        </div>
+
     </div>
 
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            var ctx = document.getElementById("chart-rancangan").getContext("2d");
+            let pieCtx = document.getElementById('pieChart').getContext('2d');
+            let barCtx = document.getElementById('barChart').getContext('2d');
 
-            var chartData = {
-                labels: {!! json_encode(array_keys($chartData)) !!}, // Nama bulan di X
-                datasets: [{
-                    label: "Jumlah Pengajuan Rancangan Tahun {{ \Carbon\Carbon::now()->year }}",
-                    backgroundColor: "rgba(255,99,132,0.2)",
-                    borderColor: "rgba(255,99,132,1)",
-                    borderWidth: 2,
-                    pointBackgroundColor: "rgba(255,99,132,1)",
-                    pointBorderColor: "#fff",
-                    pointRadius: 5, // Ukuran titik pada garis
-                    fill: true,
-                    tension: 0.4, // Membuat garis lebih smooth
-                    data: {!! json_encode(array_values($chartData)) !!}
-                }]
-            };
+            let pieChart, barChart;
 
-            var chartOptions = {
-                responsive: true,
-                maintainAspectRatio: false,
-                animation: {
-                    duration: 2000, // Durasi animasi dalam 2 detik
-                    easing: "easeInOutQuart",
-                    from: 0
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: "Jumlah Pengajuan Rancangan"
-                        }
+            function updateCharts(chartData) {
+                console.log("📊 Data Chart.js diterima:", chartData); // Debugging
+
+                if (pieChart) pieChart.destroy();
+                if (barChart) barChart.destroy();
+
+                // Pie Chart
+                pieChart = new Chart(pieCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: chartData.pie.labels,
+                        datasets: [{
+                            data: chartData.pie.data,
+                            backgroundColor: ['rgba(54, 162, 235, 0.8)', 'rgba(255, 206, 86, 0.8)'],
+                            hoverOffset: 5
+                        }]
                     },
-                    x: {
-                        title: {
-                            display: true,
-                            text: "Bulan"
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        animation: {
+                            duration: 1500, // Memperlambat animasi agar lebih smooth
+                            easing: 'easeOutQuart' // Efek animasi lebih smooth
                         }
                     }
-                }
-            };
+                });
 
-            var chartCreated = false;
+                // Warna untuk Bar Chart
+                const colors = {
+                    rancanganBupati: 'rgba(54, 162, 235, 0.8)', // Biru untuk Peraturan Bupati
+                    keputusanBupati: 'rgba(255, 99, 132, 0.8)' // Merah untuk Surat Keputusan
+                };
 
-            // Intersection Observer untuk mendeteksi saat chart muncul di viewport
-            var observer = new IntersectionObserver(function(entries) {
+                // Bar Chart (Stacked)
+                barChart = new Chart(barCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: chartData.labels,
+                        datasets: [{
+                                label: 'Peraturan Bupati',
+                                data: chartData.rancangan_bupati,
+                                backgroundColor: colors.rancanganBupati,
+                                borderColor: colors.rancanganBupati.replace('0.8', '1'),
+                                borderWidth: 1
+                            },
+                            {
+                                label: 'Surat Keputusan',
+                                data: chartData.keputusan_bupati,
+                                backgroundColor: colors.keputusanBupati,
+                                borderColor: colors.keputusanBupati.replace('0.8', '1'),
+                                borderWidth: 1
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        animation: {
+                            duration: 1200,
+                            easing: 'easeOutBack'
+                        },
+                        scales: {
+                            x: {
+                                stacked: true // Mengaktifkan tampilan Stacked untuk sumbu X
+                            },
+                            y: {
+                                stacked: true, // Mengaktifkan tampilan Stacked untuk sumbu Y
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 5, // Mengatur skala Y agar kelipatan 5
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // Tambahkan efek fade-in setelah chart muncul
+                document.querySelector('.chart-container').classList.add('show-chart');
+            }
+
+            // Efek animasi saat discroll menggunakan Intersection Observer API
+            const observer = new IntersectionObserver(entries => {
                 entries.forEach(entry => {
-                    if (entry.isIntersecting && !chartCreated) {
-                        chartCreated =
-                            true; // Set agar chart hanya dibuat sekali saat pertama kali terlihat
-                        new Chart(ctx, {
-                            type: "line",
-                            data: chartData,
-                            options: chartOptions
-                        });
+                    if (entry.isIntersecting) {
+                        updateCharts(@json($chartData));
+                        observer.unobserve(entry.target); // Hentikan observer setelah muncul
                     }
                 });
             }, {
                 threshold: 0.5
-            }); // 50% dari chart harus terlihat sebelum animasi dimulai
+            });
 
-            // Observasi elemen chart
-            observer.observe(document.getElementById("chart-rancangan"));
+            observer.observe(document.querySelector('.chart-container'));
+
+            // Event dari Livewire untuk memperbarui data saat tahun diubah
+            window.livewire.on('refreshChart', (chartData) => {
+                updateCharts(chartData);
+            });
         });
     </script>
 
+    <style>
+        /* Tambahkan efek fade-in saat chart muncul */
+        .chart-container {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: opacity 1s ease-out, transform 1s ease-out;
+        }
 
+        .chart-container.show-chart {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
 
-    {{-- EndPage Content --}}
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            let lineCtx = document.getElementById('lineChart').getContext('2d');
+            let lineChart;
+
+            function updateLineChart(chartData) {
+
+                if (lineChart) lineChart.destroy();
+
+                // Warna untuk setiap tahap
+                const colors = {
+                    rancangan: 'rgba(54, 162, 235, 0.8)', // Biru
+                    revisi: 'rgba(255, 159, 64, 0.8)', // Orange
+                    fasilitasi: 'rgba(75, 192, 192, 0.8)', // Hijau
+                    dokumentasi: 'rgba(153, 102, 255, 0.8)' // Ungu
+                };
+
+                // Line Chart
+                lineChart = new Chart(lineCtx, {
+                    type: 'line',
+                    data: {
+                        labels: chartData.labels,
+                        datasets: [{
+                                label: 'Rancangan Disetujui',
+                                data: chartData.rancangan,
+                                backgroundColor: colors.rancangan,
+                                borderColor: colors.rancangan.replace('0.8', '1'),
+                                fill: false,
+                                tension: 0.4
+                            },
+                            {
+                                label: 'Revisi Selesai',
+                                data: chartData.revisi,
+                                backgroundColor: colors.revisi,
+                                borderColor: colors.revisi.replace('0.8', '1'),
+                                fill: false,
+                                tension: 0.4
+                            },
+                            {
+                                label: 'Fasilitasi Divalidasi',
+                                data: chartData.fasilitasi,
+                                backgroundColor: colors.fasilitasi,
+                                borderColor: colors.fasilitasi.replace('0.8', '1'),
+                                fill: false,
+                                tension: 0.4
+                            },
+                            {
+                                label: 'Dokumentasi Arsip',
+                                data: chartData.dokumentasi,
+                                backgroundColor: colors.dokumentasi,
+                                borderColor: colors.dokumentasi.replace('0.8', '1'),
+                                fill: false,
+                                tension: 0.4
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        animation: {
+                            duration: 1000,
+                            easing: 'easeInOutCubic'
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 5, // Sesuaikan dengan data (misalnya kelipatan 5 atau 10)
+                                    maxTicksLimit: 10 // Batasi jumlah label agar tidak terlalu ramai
+                                }
+                            }
+                        }
+
+                    }
+                });
+            }
+
+            // Load pertama kali
+            updateLineChart(@json($lineChartData));
+
+            // Event dari Livewire
+            window.livewire.on('refreshLineChart', (chartData) => {
+                updateLineChart(chartData);
+            });
+        });
+    </script>
+    <style>
+        .chart-card {
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chart-card .card-body {
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+
 </div>

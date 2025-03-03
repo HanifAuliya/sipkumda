@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use App\Models\Revisi;
 use App\Models\RancanganProdukHukum;
 use App\Models\User;
+use carbon\Carbon;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Revisi>
@@ -21,28 +22,26 @@ class RevisiFactory extends Factory
 
     public function definition()
     {
+        // Ambil rancangan dengan tanggal yang sudah disetujui
+        $rancangan = RancanganProdukHukum::whereNotNull('tanggal_rancangan_disetujui')
+            ->inRandomOrder()
+            ->first();
+
+        // Konversi tanggal ke Carbon sebelum menggunakan copy()
+        $tanggalPenelitiDitunjuk = $rancangan ? Carbon::parse($rancangan->tanggal_rancangan_disetujui)->addDays(rand(1, 5)) : now();
+
         return [
-            'id_rancangan' => RancanganProdukHukum::factory(), // Relasi ke RancanganProdukHukum (satu rancangan, satu revisi)
-            'revisi_rancangan' => $this->faker->optional()->word() . '.pdf', // Opsional file revisi rancangan
-            'revisi_matrik' => $this->faker->optional()->word() . '.pdf', // Opsional file revisi matrik
-            'id_user' => User::factory(), // Relasi ke User (peneliti yang melakukan revisi)
-            'status_revisi' => $this->faker->randomElement([
-                'Belum Tahap Revisi',
-                'Menunggu Peneliti',
-                'Proses Revisi',
-                'Direvisi',
-            ]), // Status revisi
-            'status_validasi' => $this->faker->randomElement([
-                'Belum Tahap Validasi',
-                'Menunggu Validasi',
-                'Diterima',
-                'Ditolak',
-            ]), // Status validasi
-            'catatan_revisi' => $this->faker->optional()->sentence(), // Opsional catatan revisi
-            'catatan_validasi' => $this->faker->optional()->sentence(), // Opsional catatan validasi
-            'tanggal_peneliti_ditunjuk' => $this->faker->optional()->dateTimeBetween('-6 months', 'now'),
-            'tanggal_revisi' => $this->faker->optional()->dateTimeBetween('-3 months', 'now'),
-            'tanggal_validasi' => $this->faker->optional()->dateTimeBetween('-1 months', 'now'),
+            'id_rancangan' => $rancangan->id_rancangan,
+            'revisi_rancangan' => $this->faker->optional()->word() . '.pdf',
+            'revisi_matrik' => $this->faker->optional()->word() . '.pdf',
+            'id_user' => User::factory(),
+            'status_revisi' => 'Menunggu Peneliti',
+            'status_validasi' => 'Menunggu Validasi',
+            'catatan_revisi' => $this->faker->optional()->sentence(),
+            'catatan_validasi' => $this->faker->optional()->sentence(),
+            'tanggal_peneliti_ditunjuk' => $tanggalPenelitiDitunjuk,
+            'tanggal_revisi' => $tanggalPenelitiDitunjuk->copy()->addDays(rand(3, 7)), // Revisi selesai dalam 3-7 hari
+            'tanggal_validasi' => $tanggalPenelitiDitunjuk->copy()->addDays(rand(7, 14)), // Validasi selesai dalam 1-2 minggu
             'created_at' => now(),
             'updated_at' => now(),
         ];

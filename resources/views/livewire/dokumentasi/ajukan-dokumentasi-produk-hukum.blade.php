@@ -6,13 +6,13 @@
                 <i class="bi bi-folder-plus mr-2"></i> Tambah Dokumentasi
             </button>
             <div class="dropdown-menu" aria-labelledby="dropdownTambahDokumentasi">
-                <!-- Tambah Dokumentasi dari Rancangan -->
+                {{-- <!-- Tambah Dokumentasi dari Rancangan --> --}}
                 <a class="dropdown-item" href="#" data-toggle="modal" data-target="#modalTambahDokumentasi">
-                    <i class="bi bi-folder-plus mr-2"></i> Tambah Arsip Dokumentasi
+                    <i class="bi bi-folder-plus  mr-2"></i> Tambah Arsip Dokumentasi
                 </a>
-                <!-- Tambah Dokumentasi Manual -->
+                {{-- <!-- Tambah Dokumentasi Manual --> --}}
                 <a class="dropdown-item" href="#" data-toggle="modal" data-target="#modalTambahManual">
-                    <i class="bi bi-folder-symlink"></i></i> Tambah Arsip Sebelum ada Sistem
+                    <i class="bi bi-folder-symlink  mr-2"></i> Tambah Arsip Sebelum ada Sistem
                 </a>
             </div>
         </div>
@@ -69,31 +69,21 @@
                                 {{-- Nomor Berita Daerah --}}
                                 <div class="form-group">
                                     <label>Nomor Berita Daerah</label>
-                                    <input type="text" class="form-control" wire:model.defer="nomor_berita"
-                                        placeholder="Contoh: 12" maxlength="2"
-                                        oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,2)">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" wire:model.defer="nomor_berita"
+                                            placeholder="Contoh: 12" maxlength="2"
+                                            oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,2)">
+                                        <input type="text" class="form-control text-center" value="/"
+                                            disabled>
+                                        <input type="text" class="form-control" wire:model.defer="tahun_berita"
+                                            placeholder="Contoh: 2025" maxlength="4"
+                                            oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,4)">
+
+                                    </div>
                                     @error('nomor_berita')
                                         <small class="text-danger">{{ $message }}</small>
                                     @enderror
-                                </div>
-
-                                {{-- Tahun Berita Daerah --}}
-                                <div class="form-group">
-                                    <label>Tahun Berita Daerah</label>
-                                    <input type="text" class="form-control" wire:model.defer="tahun_berita"
-                                        placeholder="Contoh: 2025" maxlength="4"
-                                        oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,4)">
                                     @error('tahun_berita')
-                                        <small class="text-danger">{{ $message }}</small>
-                                    @enderror
-                                </div>
-
-                                {{-- Tanggal Pengarsipan --}}
-                                <div class="form-group">
-                                    <label>Tanggal Pengarsipan</label>
-                                    <input type="date" class="form-control"
-                                        wire:model.defer="tanggal_pengarsipan">
-                                    @error('tanggal_pengarsipan')
                                         <small class="text-danger">{{ $message }}</small>
                                     @enderror
                                 </div>
@@ -201,7 +191,6 @@
                     <div class="form-group">
                         <label>Nomor Tahun Berita Daerah</label>
                         <div class="input-group">
-                            <small>contoh : 12/2025</small>
                             <input type="text" class="form-control" wire:model.defer="nomor_berita"
                                 placeholder="Contoh: 12" maxlength="2"
                                 oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,2)">

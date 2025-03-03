@@ -35,6 +35,9 @@ class DaftarRancangan extends Component
         'sortDirection' => ['except' => 'asc'],
     ];
 
+    protected $listeners = ['refreshTable' => '$refresh', 'deleteRancangan' => 'delete'];
+
+
     // Memuat data opsi tahun dari database
     public function getTahunOptionsProperty()
     {
@@ -121,6 +124,38 @@ class DaftarRancangan extends Component
     {
         $this->selectedRancangan = null;
     }
+
+    public function delete($id)
+    {
+        // Pastikan hanya Admin atau Verifikator yang dapat menghapus
+        if (!$this->isAdmin && !$this->isVerifier) {
+            abort(403, 'Anda tidak memiliki izin untuk menghapus rancangan.');
+        }
+
+        // Cari rancangan
+        $rancangan = RancanganProdukHukum::find($id);
+
+        // Jika rancangan tidak ditemukan
+        if (!$rancangan) {
+            $this->dispatch('swal:error', [
+                'type' => 'error',
+                'title' => 'Tidak Ditemukan',
+                'message' => 'Rancangan tidak ditemukan.',
+            ]);
+            return;
+        }
+
+        // Hapus rancangan
+        $rancangan->delete();
+
+        // Kirim event ke frontend untuk notifikasi sukses
+        $this->dispatch('swal:modal', [
+            'type' => 'success',
+            'title' => 'Dihapus',
+            'message' => 'Rancangan berhasil dihapus!',
+        ]);
+    }
+
 
     public function exportPDF()
     {
