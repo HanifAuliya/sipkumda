@@ -1,83 +1,78 @@
-@extends('layouts.guestauth')
+<x-guest-layout>
 
-@section('title', 'Login')
+    {{-- Kanan - Form Login --}}
+    <div class="ml-2 col-md-5 d-flex justify-content-center align-items-center bg-white shadow-sm rounded-5">
+        <div class="p-5 rounded-3" style="max-width: 500px; width: 100%;">
+            {{-- Header --}}
+            <div class="text-center mb-4">
+                <h3 class="fw-bold">Login</h3>
+                <p class="text-muted small">Dengan NIP</p>
+            </div>
 
-@section('content')
-    <div class="container mt--200 pb-5">
-        <div class="row justify-content-center">
-            <div class="col-lg-5 col-md-7">
-                <div class="card bg-secondary border-0 mb-0">
-                    {{-- Card Header --}}
-                    <div class="card-header bg-transparent text-center">
-                        <h3 class="text-default mb-0">Login</h3>
-                    </div>
-                    <div class="card-body px-lg-5 py-lg-5">
+            {{-- Form Login --}}
+            <form method="POST" action="{{ route('login') }}">
+                @csrf
 
-                        <div class="text-center text-muted mb-4">
-                            <small>Silahkan Login dengan NIP dan password</small>
-                        </div>
-                        <form method="POST" action="{{ route('login') }}">
-                            @csrf
-                            {{-- NIP Input --}}
-                            <div class="form-group">
-                                <div class="input-group input-group-merge input-group-alternative">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text"><i class="ni ni-badge"></i></span>
-                                        {{-- Ganti Ikon jika diperlukan --}}
-                                    </div>
-                                    <input type="text" name="NIP" class="form-control" placeholder="Masukkan NIP">
-                                </div>
-                            </div>
-
-                            {{-- Password Input --}}
-                            <div class="form-group">
-                                <div class="input-group input-group-merge input-group-alternative">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text"><i class="ni ni-lock-circle-open"></i></span>
-                                    </div>
-                                    <input type="password" name="password" class="form-control" placeholder="Password">
-                                </div>
-                            </div>
-                            @if (session('error'))
-                                <div class="alert alert-danger">
-                                    {{ session('error') }}
-                                </div>
-                            @endif
-
-                            @if ($errors->any())
-                                <div class="alert alert-danger alert-dismissible fade show text-center">
-                                    @foreach ($errors->all() as $error)
-                                        <strong class="font-weight-300 d-block">{{ $error }}</strong>
-                                    @endforeach
-                                    <button type="button" class="close" data-dismiss="alert" aria-label="Tutup">
-                                        <span aria-hidden="true">&times;</span>
-                                    </button>
-                                </div>
-                            @endif
-                            {{-- Remember Me --}}
-                            <div class="custom-control custom-control-alternative custom-checkbox">
-                                <input type="checkbox" name="remember" id="remember" class="custom-control-input">
-                                <label class="custom-control-label" for="remember">
-                                    <span>Remember Me</span>
-                                </label>
-                            </div>
-                            {{-- Submit Button --}}
-                            <div class="text-center">
-                                <button type="submit" class="btn btn-default my-4">Login</button>
-                            </div>
-                        </form>
+                {{-- NIP Input --}}
+                <div class="mb-4">
+                    <div class="input-group">
+                        <input type="text" name="NIP" id="NIP" class="form-control" placeholder="NIP"
+                            required>
                     </div>
                 </div>
-                <div class="row mt-3">
-                    <div class="col-6">
-                        <a href="{{ route('password.request') }}" class="text-light">
-                            <small>Lupa password?</small>
-                        </a>
 
+                {{-- Password Input --}}
+                <div class="mb-3">
+                    <div class="input-group">
+                        <input type="password" name="password" id="password" class="form-control"
+                            placeholder="Masukkan Password" required>
+                        <button type="button" class="btn btn-outline-secondary d-none" id="togglePassword">
+                            <i class="bi bi-eye"></i>
+                        </button>
                     </div>
                 </div>
+
+                @if (session('error'))
+                    <p class="text-danger small mb-2">
+                        {{ session('error') }}
+                    </p>
+                @endif
+
+
+
+                @if ($errors->any())
+                    <div class="alert alert-danger alert-dismissible fade show text-center">
+                        @foreach ($errors->all() as $error)
+                            <strong class="font-weight-300 d-block">{{ $error }}</strong>
+                        @endforeach
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
+                    </div>
+                @endif
+
+                {{-- Link Lupa Password --}}
+                <div class="text-end mb-3">
+                    <a href="{{ route('password.request') }}" class="text-decoration-none text-dark">
+                        <small>Lupa password?</small>
+                    </a>
+                </div>
+
+                {{-- Submit Button --}}
+                <div class="text-center">
+                    <button type="submit" class="btn btn-dark w-100">Login</button>
+                </div>
+
+                {{-- Info Tambahan --}}
+                <p class="text-danger small text-center mt-3">
+                    Login website ini hanya untuk perangkat daerah dan pegawai Bagian Hukum HST.
+                </p>
+            </form>
+
+            {{-- Footer --}}
+            <div class="text-center mt-4 small text-muted">
+                © Bagian Hukum Sekretariat Daerah Kabupaten Hulu Sungai Tengah
             </div>
         </div>
     </div>
 
-@endsection
+
+</x-guest-layout>

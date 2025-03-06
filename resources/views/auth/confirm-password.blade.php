@@ -23,10 +23,6 @@
     {{-- Bootstrap & Icons --}}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css"
         integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
-
-    {{-- DataTables CSS --}}
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css" />
 
     {{-- Argon CSS --}}
     <link rel="stylesheet" href="{{ asset('../assets/css/argon.css?v=1.2.0') }}" type="text/css" />
@@ -45,7 +41,7 @@
                     </div>
                     <div class="card-body">
                         <div class="mb-4 text-muted">
-                            {{ __('Please confirm your password before accessing the profile page.') }}
+                            {{ __('Harap konfirmasikan kata sandi Anda sebelum mengakses halaman profil.') }}
                         </div>
 
                         <form method="POST" action="{{ route('password.confirm') }}">

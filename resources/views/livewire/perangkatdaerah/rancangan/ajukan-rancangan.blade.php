@@ -73,7 +73,7 @@
                                 <label class="font-weight-bold form-control-label">
                                     <i class="bi bi-file-earmark-pdf text-primary"></i>
                                     {{ ucfirst(str_replace('_', ' ', $fileField)) }}
-                                    <small class="text-muted d-block">Unggah dokumen dalam format PDF (max:
+                                    <small class="text-muted d-block">Unggah dokumen dalam format (max:
                                         5MB).</small>
                                 </label>
 

@@ -41,7 +41,7 @@
     {{-- Sweet alert --}}
     <link href="https://cdn.jsdelivr.net/npm/@sweetalert2/themes/bootstrap-4/bootstrap-4.css" rel="stylesheet">
     {{-- Argon CSS --}}
-    <link rel="stylesheet" href="{{ asset('assets/css/argon.css?v=1.2.0') }}" type="text/css" />
+    <link rel="stylesheet" href="{{ asset('assets/css/argon.css') }}" type="text/css" />
 
     {{-- Custom CSS --}}
     <link rel="stylesheet" href="{{ asset('assets/css/sipkumda.css') }}" />
@@ -230,6 +230,8 @@
 
     {{-- Charts --}}
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
 
 
     @livewireScripts

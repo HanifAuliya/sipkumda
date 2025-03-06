@@ -64,60 +64,6 @@
         </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-
-            Livewire.on('openModal', (modalId) => {
-                $(`#${modalId}`).modal('show');
-            });
-
-            // Listener untuk menutup modal
-            Livewire.on('closeModal', (modalId) => {
-                $(`#${modalId}`).modal('hide');
-            });
-
-            // Membuka Modal
-            window.Livewire.on('openUploadUlangBerkasModal', () => {
-                $('#uploadUlangBerkasModal').modal('show');
-            });
-
-            // Menmutup Modal
-            window.Livewire.on('closeUploadUlangBerkasModal', () => {
-                $('#uploadUlangBerkasModal').modal('hide');
-            });
-
-        });
-        // Berhasil
-        window.addEventListener('swal:modal', function(event) {
-            // Ambil elemen pertama dari array
-            const data = event.detail[0];
-
-            $('#ajukanRancanganModal').modal('hide'); // Tutup modal
-            // $('.modal-backdrop').remove(); // Hapus backdrop modal
-
-            // Tampilkan SweetAlert
-            Swal.fire({
-                icon: data.type,
-                title: data.title,
-                text: data.message,
-                showConfirmButton: true,
-            });
-        });
-
-        // Gagal
-        window.addEventListener('swal:error', function(event) {
-            // Ambil elemen pertama dari array
-            const data = event.detail[0];
-
-            // Tampilkan SweetAlert
-            Swal.fire({
-                icon: data.type,
-                title: data.title,
-                text: data.message,
-                showConfirmButton: true,
-            });
-        });
-    </script>
     {{-- Script untuk Zoom dan Fullscreen --}}
     <script>
         // Fungsi Toggle Fullscreen

@@ -93,7 +93,7 @@
                     </div>
 
                     {{-- Tabel Data --}}
-                    <div class="table-responsive">
+                    <div class="table-responsive modal-table">
                         <table class="table">
                             <thead>
                                 <tr>
@@ -131,8 +131,8 @@
                                         <td>{{ $users->firstItem() + $index }}</td>
                                         <td class="text-wrap">{{ $user->nama_user }}</td>
                                         <td>{{ $user->NIP }}</td>
-                                        <td class="text-wrap">{{ $user->email }}</td>
-                                        <td class="text-wrap">
+                                        <td class="text-wrap w-25">{{ $user->email }}</td>
+                                        <td class="text-wrap w-25">
                                             {{ $user->perangkatDaerah->nama_perangkat_daerah ?? 'N/A' }}</td>
                                         <td class="text-wrap">{{ $user->getRoleNames()->implode(', ') }}</td>
                                         <td>

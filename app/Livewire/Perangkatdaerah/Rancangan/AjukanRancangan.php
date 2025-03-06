@@ -29,10 +29,10 @@ class AjukanRancangan extends Component
     protected $rules = [
         'jenisRancangan' => 'required',
         'tentang' => 'required|string|max:255',
-        'rancangan' => 'required|mimes:pdf|max:5120',
-        'matrik' => 'required|mimes:pdf,doc,docx,xls,xlsx|max:5120',
-        'nota_dinas_pd' => 'required|mimes:pdf|max:5120',
-        'bahanPendukung' => 'nullable|mimes:pdf|max:5120',
+        'rancangan' => 'required|mimes:doc,docx|max:5120', // Hanya format Word
+        'matrik' => 'required|mimes:doc,docx|max:5120', // Hanya format Word
+        'nota_dinas_pd' => 'required|mimes:pdf|max:5120', // PDF
+        'bahanPendukung' => 'nullable|mimes:pdf|max:5120', // PDF opsional
         'tanggalNota' => 'required|date',
         'nomorNota' => 'required|string|unique:rancangan_produk_hukum,nomor_nota|max:50',
     ];
@@ -45,12 +45,34 @@ class AjukanRancangan extends Component
         // Folder utama
         $mainFolder = 'rancangan';
 
-        // Simpan file ke dalam subfolder masing-masing di storage private
-        $rancanganPath = $this->rancangan->store("$mainFolder/rancangan", 'local');
-        $matrikPath = $this->matrik->store("$mainFolder/matrik", 'local');
-        $notaDinasPath = $this->nota_dinas_pd->store("$mainFolder/nota_dinas", 'local');
+        // Format Nama File
+        $filePrefix = str_replace(' ', '_', strtolower($this->jenisRancangan)) . '_' . str_replace('/', '-', $this->nomorNota);
+
+        // Simpan file dengan nama yang mengandung identitas
+        $rancanganPath = $this->rancangan->storeAs(
+            "$mainFolder/rancangan",
+            "{$filePrefix}_rancangan." . $this->rancangan->extension(),
+            'local'
+        );
+
+        $matrikPath = $this->matrik->storeAs(
+            "$mainFolder/matrik",
+            "{$filePrefix}_matrik." . $this->matrik->extension(),
+            'local'
+        );
+
+        $notaDinasPath = $this->nota_dinas_pd->storeAs(
+            "$mainFolder/nota_dinas",
+            "{$filePrefix}_nota_dinas.pdf",
+            'local'
+        );
+
         $bahanPendukungPath = $this->bahanPendukung
-            ? $this->bahanPendukung->store("$mainFolder/bahan_pendukung", 'local')
+            ? $this->bahanPendukung->storeAs(
+                "$mainFolder/bahan_pendukung",
+                "{$filePrefix}_bahan_pendukung.pdf",
+                'local'
+            )
             : null;
 
         // Simpan data ke database
@@ -58,54 +80,42 @@ class AjukanRancangan extends Component
             'id_user' => auth()->id(),
             'jenis_rancangan' => $this->jenisRancangan,
             'tentang' => $this->tentang,
-            'rancangan' => $this->rancangan->store('rancangan/rancangan', 'local'),
-            'matrik' => $this->matrik->store('rancangan/matrik', 'local'),
-            'nota_dinas_pd' => $this->nota_dinas_pd->store('rancangan/nota_dinas', 'local'),
-            'bahan_pendukung' => $this->bahanPendukung
-                ? $this->bahanPendukung->store('rancangan/bahan_pendukung', 'local')
-                : null,
+            'rancangan' => $rancanganPath,
+            'matrik' => $matrikPath,
+            'nota_dinas_pd' => $notaDinasPath,
+            'bahan_pendukung' => $bahanPendukungPath,
             'status_berkas' => 'Menunggu Persetujuan',
             'status_rancangan' => 'Dalam Proses',
             'tanggal_pengajuan' => now(),
-            'tanggal_nota' => $this->tanggalNota, // Menyimpan tanggal nota
-            'nomor_nota' => $this->nomorNota, // Menyimpan nomor nota
+            'tanggal_nota' => $this->tanggalNota,
+            'nomor_nota' => $this->nomorNota,
         ]);
 
         // Tambahkan status revisi ke tabel revisi
         Revisi::create([
-            'id_rancangan' => $rancangan->id_rancangan, // Hubungkan ke rancangan
-            'status_revisi' => 'Belum Tahap Revisi', // Status awal
-            'status_validasi' => 'Belum Tahap Validasi', // Status awal
-            'catatan_revisi' => null, // Catatan awal
+            'id_rancangan' => $rancangan->id_rancangan,
+            'status_revisi' => 'Belum Tahap Revisi',
+            'status_validasi' => 'Belum Tahap Validasi',
+            'catatan_revisi' => null,
         ]);
 
+        // Kirim notifikasi ke Admin dan Verifikator
+        Notification::send(User::role(['Admin'])->get(), new RancanganBaruNotification([
+            'title' => 'Rancangan Menunggu Persetujuan Berkas',
+            'message' => auth()->user()->nama_user . ' telah menambahkan rancangan baru dengan nomor ' . $rancangan->nomor_nota . '. Silahkan Periksa dan Lakukan Verifikasi Berkas',
+            'slug' => $rancangan->slug,
+            'type' => 'admin_persetujuan',
+        ]));
 
-        // Kirim notifikasi ke Admin
-        Notification::send(
-            User::role(['Admin'])->get(),
-            new RancanganBaruNotification([
-                'title' => 'Rancangan Menunggu Persetujuan Berkas',
-                'message' => auth()->user()->nama_user . ' telah menambahkan rancangan baru dengan nomor ' . $rancangan->no_rancangan . '. Silahkan Periksa dan Lakukan Verifikasi Berkas',
-                'slug' => $rancangan->slug, // Slug untuk memuat modal
-                'type' => 'admin_persetujuan', // Tipe notifikasi untuk membedakan modal
-            ])
-        );
+        Notification::send(User::role(['Verifikator'])->get(), new RancanganBaruNotification([
+            'title' => 'Rancangan Baru Telah Ditambahkan',
+            'message' => auth()->user()->nama_user . ' telah menambahkan rancangan baru dengan nomor ' . $rancangan->nomor_nota . '.',
+            'slug' => $rancangan->slug,
+            'type' => 'verifikator_detail',
+        ]));
 
-        // Kirim notifikasi ke Verifikator
-        Notification::send(
-            User::role(['Verifikator'])->get(),
-            new RancanganBaruNotification([
-                'title' => 'Rancangan Baru Telah Ditambahkan',
-                'message' => auth()->user()->nama_user . ' telah menambahkan rancangan baru dengan nomor ' . $rancangan->no_rancangan . '.',
-                'slug' => $rancangan->slug, // Data slug untuk memuat modal
-                'type' => 'verifikator_detail', // Tipe notifikasi
-            ])
-        );
-
-        // Emit notifikasi sukses ke pengguna
+        // Emit event sukses
         $this->dispatch('refreshNotifications');
-
-        // Dispatch success event
         $this->dispatch('rancanganDiperbarui');
 
         $this->reset();
@@ -115,8 +125,10 @@ class AjukanRancangan extends Component
             'title' => 'Berhasil!',
             'message' => 'Rancangan berhasil ditambahkan!',
         ]);
-    }
 
+        // 🔥 Tutup modal setelah reset
+        $this->dispatch('closeModal', 'ajukanRancanganModal');
+    }
     public function removeFile($fileField)
     {
         $this->reset($fileField); // Menghapus file yang sudah diunggah

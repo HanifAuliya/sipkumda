@@ -1,0 +1,50 @@
+body {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.shadow-sm {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1) !important;
+}
+/* Animasi */
+.animated-logo {
+    opacity: 0;
+    transform: translateY(-20px);
+    animation: fadeInUp 1s ease-out forwards;
+}
+
+.animated-title {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 1s ease-out forwards;
+    animation-delay: 0.5s;
+}
+
+.animated-description {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 1s ease-out forwards;
+    animation-delay: 1s;
+}
+
+@keyframes fadeInUp {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Efek Hover: Tombol lebih gelap saat dihover */
+.btn-hover-effect:hover {
+    background-color: #212529 !important; /* Warna lebih gelap saat hover */
+    transform: scale(1.02); /* Sedikit membesar */
+    transition: all 0.2s ease-in-out;
+}
+
+/* Efek Klik: Tombol sedikit mengecil */
+.btn-hover-effect:active {
+    transform: scale(0.98); /* Mengecil sedikit saat diklik */
+}

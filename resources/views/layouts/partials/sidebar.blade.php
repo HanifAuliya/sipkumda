@@ -21,7 +21,7 @@
                         <a class="nav-link {{ Route::currentRouteName() == 'dashboard' ? 'active' : '' }}"
                             href="{{ route('dashboard') }}">
                             <i class="bi bi-window-fullscreen"></i>
-                            <span class="nav-link-text text">Dashboard</span>
+                            <span class="nav-link-text">Dashboard</span>
                         </a>
                     </li>
                 </ul>
@@ -87,6 +87,13 @@
                                 href="{{ route('admin.persetujuan') }}">
                                 <i class="bi bi-clipboard2-check"></i>
                                 <span class="nav-link-text">Persetujuan Berkas</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ Route::currentRouteName() == 'bahan-penting' ? 'active' : '' }} rancangan"
+                                href="{{ route('bahan-penting') }}">
+                                <i class="bi bi-list-task"></i>
+                                <span class="nav-link-text">Template Bahan Penting </span>
                             </a>
                         </li>
                     @endif

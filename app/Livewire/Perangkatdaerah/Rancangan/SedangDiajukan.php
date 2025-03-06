@@ -46,7 +46,8 @@ class SedangDiajukan extends Component
         $this->nomorNota = $rancangan->nomor_nota;
 
         // Emit event untuk membuka modal
-        $this->dispatch('openUploadUlangBerkasModal');
+        // 🔥 Tutup modal setelah reset
+        $this->dispatch('openModal', 'uploadUlangBerkasModal');
     }
 
     // Logika upload ulang berkas
@@ -136,7 +137,8 @@ class SedangDiajukan extends Component
 
         // Reset form dan tutup modal
         $this->reset(['fileRancangan', 'fileMatrik', 'fileNotaDinas', 'fileBahanPendukung', 'hapusBahanPendukung']);
-        $this->dispatch('closeUploadUlangBerkasModal');
+        // 🔥 Tutup modal setelah reset
+        $this->dispatch('closeModal', 'uploadUlangBerkasModal');
     }
 
     public function resetError($field)
@@ -196,83 +198,6 @@ class SedangDiajukan extends Component
         $this->resetPage(); // Reset ke halaman pertama jika jumlah per halaman berubah
     }
 
-    public function calculateProgress($idRancangan)
-    {
-        // Ambil data rancangan berdasarkan ID
-        $rancangan = RancanganProdukHukum::with('revisi')->find($idRancangan);
-
-        if (!$rancangan) {
-            return 0; // Jika rancangan tidak ditemukan, progress 0%
-        }
-
-        // Inisialisasi nilai progress
-        $progress = 0;
-
-        // Bobot tiap status
-        $bobotBerkas = 30; // Bobot untuk status berkas
-        $bobotRevisi = 30; // Bobot untuk status revisi
-        $bobotValidasi = 30; // Bobot untuk status validasi
-        $bobotRancangan = 10; // Bobot untuk status rancangan (Dalam Proses)
-
-        // Periksa status rancangan
-        switch ($rancangan->status_rancangan) {
-            case 'Dalam Proses':
-                $progress += $bobotRancangan * 0.5; // 50% dari bobot jika dalam proses
-                break;
-            case 'Ditolak':
-                $progress += 0; // Tidak ada progress untuk status ini
-                break;
-            case 'Disetujui':
-                $progress += $bobotRancangan; // 100% jika status rancangan disetujui
-                break;
-        }
-
-        // Periksa status berkas
-        if ($rancangan->status_berkas === 'Disetujui') {
-            $progress += $bobotBerkas; // Tambahkan progress sesuai bobot jika status berkas "Disetujui"
-        }
-
-        // Periksa status revisi
-        $revisi = $rancangan->revisi->first(); // Ambil revisi terkait
-        if ($revisi) {
-            // Hitung berdasarkan status revisi
-            switch ($revisi->status_revisi) {
-                case 'Belum Tahap Revisi':
-                    $progress += 0; // Tidak ada progress untuk status ini
-                    break;
-                case 'Menunggu Peneliti':
-                    $progress += $bobotRevisi * 0.25; // 25% progress untuk status ini
-                    break;
-                case 'Proses Revisi':
-                    $progress += $bobotRevisi * 0.5; // 50% progress untuk status ini
-                    break;
-                case 'Direvisi':
-                    $progress += $bobotRevisi; // 100% progress untuk status ini
-                    break;
-            }
-
-            // Hitung berdasarkan status validasi
-            switch ($revisi->status_validasi) {
-                case 'Belum Tahap Validasi':
-                    $progress += 0; // Tidak ada progress untuk status ini
-                    break;
-                case 'Menunggu Validasi':
-                    $progress += $bobotValidasi * 0.5; // 50% progress untuk status ini
-                    break;
-                case 'Diterima':
-                    $progress += $bobotValidasi; // 100% progress untuk status ini
-                    break;
-                case 'Ditolak':
-                    $progress += 0; // Tidak ada progress untuk status ini
-                    break;
-            }
-        }
-
-        // Kembalikan nilai progress
-        return min($progress, 100); // Pastikan progress tidak lebih dari 100%
-    }
-
-
     public function render()
     {
         $query = RancanganProdukHukum::with(['user', 'perangkatDaerah', 'revisi'])
@@ -289,11 +214,6 @@ class SedangDiajukan extends Component
 
         // Ambil data dengan pagination
         $rancangan = $query->paginate($this->perPage);
-
-        // Hitung progress untuk setiap rancangan
-        foreach ($rancangan as $item) {
-            $item->progress = $this->calculateProgress($item->id_rancangan);
-        }
 
         return view('livewire.perangkatdaerah.rancangan.sedang-diajukan', compact('rancangan'));
     }

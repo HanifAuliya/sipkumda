@@ -173,10 +173,12 @@
                                         class="badge-{{ $fasilitasi->status_bupati === 'Selesai' ? 'success' : 'danger' }} badge-pill">
                                         {{ $fasilitasi->status_bupati }}</span></td>
                                 <td>
-                                    <button class="btn btn-danger btn-sm"
-                                        onclick="confirmDelete({{ $fasilitasi->id }})">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
+                                    @if (Auth::user()->hasRole('Admin') || Auth::user()->hasRole('Verifikator'))
+                                        <button class="btn btn-danger btn-sm"
+                                            onclick="confirmDelete({{ $fasilitasi->id }})">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    @endif
                                 </td>
                             </tr>
 

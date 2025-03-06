@@ -94,25 +94,8 @@
                                     {{ $item->revisi->last()->status_revisi }}
                                 </mark>
                             </p>
-                            {{-- Progress Bar --}}
-                            <div class="progress-wrapper mt--1">
-                                <div class="progress-info d-flex justify-content-between">
-                                    <div class="progress-label">
-                                        <span>Progress Pengajuan Rancangan</span>
-                                    </div>
-                                    <div class="progress-percentage">
-                                        <span>{{ $item->progress ?? 0 }}%</span>
-                                    </div>
-                                </div>
-                                <div class="progress">
-                                    <div class="progress-bar {{ $item->progress == 100 ? 'bg-success' : ($item->progress >= 50 ? 'bg-warning' : 'bg-danger') }} progress-bar-striped"
-                                        role="progressbar" aria-valuenow="{{ $item->progress ?? 0 }}" aria-valuemin="0"
-                                        aria-valuemax="100" style="width: {{ $item->progress ?? 0 }}%;">
-                                    </div>
-                                </div>
-                            </div>
                             @if ($item->status_berkas === 'Menunggu Persetujuan')
-                                <div class="alert alert-warning alert-dismissible fade show mb-2" role="alert">
+                                <div class="alert alert-warning alert-dismissible fade show mb-2 mt-4" role="alert">
                                     <span class="alert-icon"><i class="bi bi-send"></i></span>
                                     <span class="alert-text">
                                         Rancangan <strong>{{ $item->status_berkas }}!</strong> Tunggu Admin memeriksa
@@ -189,9 +172,8 @@
 
                         <div class="mt-2">
                             <div class="dropdown">
-                                <button class="btn btn-neutral dropdown-toggle" type="button"
-                                    id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true"
-                                    aria-expanded="false">
+                                <button class="btn btn-neutral dropdown-toggle" type="button" id="dropdownMenuButton"
+                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     <i class="bi bi-gear"></i> Kelola Rancangan
                                 </button>
                                 <div class="dropdown-menu shadow-lg" aria-labelledby="dropdownMenuButton">
