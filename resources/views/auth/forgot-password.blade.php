@@ -45,21 +45,24 @@
                             aria-hidden="true"></span>
                     </button>
                 </div>
-
-                {{-- Script untuk Menonaktifkan Tombol setelah Diklik --}}
-                <script>
-                    document.getElementById('resetPasswordButton').addEventListener('click', function() {
+            </form>
+            <script>
+                document.addEventListener("DOMContentLoaded", function() {
+                    document.getElementById('resetPasswordButton').addEventListener('click', function(event) {
                         let button = document.getElementById('resetPasswordButton');
                         let text = document.getElementById('resetText');
                         let spinner = document.getElementById('resetSpinner');
 
-                        // Nonaktifkan tombol & tampilkan spinner
+                        // Nonaktifkan tombol agar tidak diklik berulang kali
                         button.disabled = true;
                         text.textContent = "Mengirim...";
                         spinner.classList.remove('d-none');
+
+                        // Form tetap dikirim ke server
+                        button.closest("form").submit();
                     });
-                </script>
-            </form>
+                });
+            </script>
 
             {{-- Kembali ke Login --}}
             <div class="text-center mt-3">

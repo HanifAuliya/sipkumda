@@ -57,9 +57,8 @@
             </nav>
 
             <a class="btn-getstarted" href="{{ Auth::check() ? route('dashboard') : route('login') }}">
-                Login
+                {{ Auth::check() ? 'Dashboard' : 'Login' }}
             </a>
-
         </div>
     </header>
 
@@ -97,16 +96,19 @@
                     </div>
 
                     <div class="col-xl-4 col-md-4" data-aos="fade-up" data-aos-delay="300">
-                        <div class="icon-box">
-                            <i class="bi bi-person-lock"></i>
-                            {{-- Ikon login yang lebih sesuai --}}
-                            <h3>Panduan Login</h3>
-                            <p class="desc-text">
-                                Pelajari cara masuk ke sistem dan mengakses fitur SIFKUMDA.
-                                Klik di sini untuk login.
-                            </p>
-                        </div>
+                        <a href="{{ asset('assets/document/SIFKUMDA-PanduanLogin.pdf') }}" target="_blank"
+                            class="text-decoration-none">
+                            <div class="icon-box">
+                                <i class="bi bi-person-lock"></i> {{-- Ikon Login --}}
+                                <h3>Panduan Login</h3>
+                                <p class="desc-text">
+                                    Pelajari cara masuk ke sistem dan mengakses fitur SIFKUMDA.<br>
+                                    <strong>Klik di sini untuk membuka panduan.</strong>
+                                </p>
+                            </div>
+                        </a>
                     </div>
+
                 </div>
             </div>
         </section>

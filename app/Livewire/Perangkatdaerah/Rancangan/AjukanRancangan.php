@@ -37,7 +37,6 @@ class AjukanRancangan extends Component
         'nomorNota' => 'required|string|unique:rancangan_produk_hukum,nomor_nota|max:50',
     ];
 
-
     public function submit()
     {
         $this->validate();
@@ -102,7 +101,7 @@ class AjukanRancangan extends Component
         // Kirim notifikasi ke Admin dan Verifikator
         Notification::send(User::role(['Admin'])->get(), new RancanganBaruNotification([
             'title' => 'Rancangan Menunggu Persetujuan Berkas',
-            'message' => auth()->user()->nama_user . ' telah menambahkan rancangan baru dengan nomor ' . $rancangan->nomor_nota . '. Silahkan Periksa dan Lakukan Verifikasi Berkas',
+            'message' => auth()->user()->nama_user . ' telah menambahkan rancangan baru dengan nomor ' . $rancangan->no_rancangan . '. Silahkan Periksa dan Lakukan Verifikasi Berkas, anda bisa ke halaman Persetujuan Berkas di bagian Rancangan Produk Hukum',
             'slug' => $rancangan->slug,
             'type' => 'admin_persetujuan',
         ]));

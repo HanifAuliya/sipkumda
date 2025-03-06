@@ -67,18 +67,26 @@
                             </div>
                         </div>
 
+                        <div class="mb-3">
+                            <label for="nomorNota" class="form-control-label font-weight-bold text-warning">Perhatikan
+                                Ini , Untuk matrik download file yang ada di Template (Bahan Penting)
+                                <small class="text-muted d-block">File Rancangan dan Matrik berupa word selain itu
+                                    PDF</small>
+                            </label>
+                        </div>
+
                         {{-- Input File (Rancangan, Matrik, Nota Dinas, Bahan Pendukung) --}}
                         @foreach (['rancangan', 'matrik', 'nota_dinas_pd', 'bahanPendukung'] as $fileField)
                             <div class="mb-4">
                                 <label class="font-weight-bold form-control-label">
-                                    <i class="bi bi-file-earmark-pdf text-primary"></i>
+                                    <i class="bi bi-file-earmark text-primary"></i>
                                     {{ ucfirst(str_replace('_', ' ', $fileField)) }}
-                                    <small class="text-muted d-block">Unggah dokumen dalam format (max:
+                                    <small class="text-muted d-block">Unggah dokumen (max:
                                         5MB).</small>
                                 </label>
 
                                 <input type="file" class="form-control" wire:model="{{ $fileField }}"
-                                    accept="application/pdf" wire:change="resetError('{{ $fileField }}')"
+                                    accept=".pdf, .doc, .docx" wire:change="resetError('{{ $fileField }}')"
                                     {{ $$fileField ? 'disabled' : '' }}
                                     style="{{ $$fileField ? 'background-color: #e9ecef; cursor: not-allowed; opacity: 0.6;' : '' }}">
 

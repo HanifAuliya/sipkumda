@@ -218,7 +218,7 @@
     <script src="{{ asset('assets/vendor/jquery-scroll-lock/dist/jquery-scrollLock.min.js') }}"></script>
 
     {{-- Argon JS --}}
-    <script src="{{ asset('assets/js/argon.js?v=1.2.0') }}"></script>
+    <script src="{{ asset('assets/js/argon.js') }}"></script>
     <script src="{{ asset('assets/js/sipkumda.js') }}"></script>
 
     {{-- JavaScript untuk mengontrol tampilan detail --}}

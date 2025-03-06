@@ -6,10 +6,14 @@ use Livewire\Component;
 
 class Rancanganku extends Component
 {
-    public $tab = 'sedang_diajukan'; // Default tab
+    public $activeTab = 'sedang_diajukan'; // Default tab
 
-    protected $queryString = ['tab']; // Masukkan 'tab' ke dalam query string
+    protected $queryString = ['activeTab']; // Masukkan 'tab' ke dalam query string
 
+    public function switchTab($tab)
+    {
+        $this->activeTab = $tab;
+    }
 
     public function render()
     {

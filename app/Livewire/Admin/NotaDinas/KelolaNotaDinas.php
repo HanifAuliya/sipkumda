@@ -134,7 +134,7 @@ class KelolaNotaDinas extends Component
         if ($user) {
             $user->notify(new ValidationResultNotification([
                 'title' => "📝 Nota Dinas Fasilitasi Telah Dibuat!",
-                'message' => "Nota Dinas untuk fasilitasi Rancangan {$fasilitasi->rancangan->no_ranncangan} Anda dengan nomor **{$this->nomorNota}** telah dibuat. Kamu bisa cetak di Aksi ⚙️-> Cetak Nota Dinas, atau Kamu ke halaman Nota lalu cetak !🔥 . Sekarang Anda dapat Mengajukan Fasilitasi secara daring. ",
+                'message' => "Nota Dinas untuk fasilitasi Rancangan {$fasilitasi->rancangan->no_ranncangan} Anda dengan nomor **{$this->nomorNota}** telah dibuat. Kamu bisa cetak di Aksi ⚙️-> Cetak Nota Dinas, atau Kamu ke halaman Nota lalu cetak ! . Sekarang Anda dapat Mengajukan Fasilitasi secara daring. ",
                 'type' => 'nota_dinas_user',
                 'slug' => $fasilitasi->rancangan->slug,
             ]));

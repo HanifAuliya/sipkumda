@@ -25,10 +25,10 @@
         </div>
     </div>
 
+    @forelse ($rancangan as $item)
+        {{-- Daftar Rnacnagan --}}
+        <div id="sedangDiajukanContent">
 
-    {{-- Daftar Rnacnagan --}}
-    <div id="sedangDiajukanContent">
-        @forelse ($rancangan as $item)
             {{-- Card Tab Sedang Diajukan --}}
             <div class="card p-3 shadow-sm border mb-3">
                 <div class="row">
@@ -108,11 +108,12 @@
                             @endif
 
                             @if ($item->status_berkas === 'Ditolak')
-                                <div class="alert alert-danger alert-dismissible fade show mb-2" role="alert">
+                                <div class="alert alert-danger alert-dismissible fade show mb-2 mt-4" role="alert">
                                     <span class="alert-icon"><i class="bi bi-clipboard-x"></i></span>
                                     <span class="alert-text">
                                         <strong>{{ $item->status_berkas }}!</strong> Rancangan telah
-                                        {{ $item->status_berkas }}. Silahkan lakukan ke kelola rancangan >> Upload
+                                        {{ $item->status_berkas }}. Ke Bagian kanan => ⚙️ kelola
+                                        rancangan => Upload
                                         Ulang Berkas.
                                     </span>
                                     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
@@ -122,7 +123,7 @@
                             @endif
 
                             @if ($item->revisi->isNotEmpty() && $item->revisi->last()->status_revisi === 'Menunggu Peneliti')
-                                <div class="alert alert-primary alert-dismissible fade show mb-2" role="alert">
+                                <div class="alert alert-primary alert-dismissible fade show mb-2 mt-4" role="alert">
                                     <span class="alert-icon"><i class="bi bi-person-plus-fill"></i></span>
                                     <span class="alert-text">
                                         <strong>Info!</strong> Menunggu dipilihkan peneliti untuk rancangan ini.
@@ -134,7 +135,7 @@
                             @endif
 
                             @if ($item->revisi->isNotEmpty() && $item->revisi->last()->status_revisi === 'Proses Revisi')
-                                <div class="alert alert-default alert-dismissible fade show mb-2" role="alert">
+                                <div class="alert alert-default alert-dismissible fade show mb-2 mt-4" role="alert">
                                     <span class="alert-icon"><i class="bi bi-pencil-square"></i></span>
                                     <span class="alert-text">
                                         <strong>Proses!</strong> Rancangan sedang dalam proses revisi.
@@ -545,11 +546,11 @@
                     </div>
                 </div>
             </div>
-    </div>
+        </div>
 
 
-@empty
-    <p class="text-center info-text">Tidak ada data rancangan sedang diajukan.</p>
+    @empty
+        <p class="text-center info-text">Tidak ada data rancangan sedang diajukan.</p>
     @endforelse
 
     {{-- pagination --}}
@@ -593,19 +594,26 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="mb-3">
+                            <label for="nomorNota" class="form-control-label font-weight-bold text-warning">Perhatikan
+                                Ini , Untuk matrik download file yang ada di Template (Bahan Penting)
+                                <small class="text-muted d-block">File Rancangan dan Matrik berupa word selain itu
+                                    PDF</small>
+                            </label>
+                        </div>
 
                         {{-- Input File (Nota Dinas, Rancangan, Matrik, Bahan Pendukung) --}}
                         @foreach (['fileNotaDinas', 'fileRancangan', 'fileMatrik', 'fileBahanPendukung'] as $fileField)
                             <div class="mb-4">
                                 <label class="font-weight-bold form-control-label">
-                                    <i class="bi bi-file-earmark-pdf text-primary"></i>
+                                    <i class="bi bi-file-earmark text-primary"></i>
                                     {{ ucfirst(str_replace('_', ' ', $fileField)) }}
                                     <small class="text-muted d-block">Unggah dokumen dalam format PDF (max:
                                         5MB).</small>
                                 </label>
 
                                 <input type="file" class="form-control" wire:model="{{ $fileField }}"
-                                    accept="application/pdf" wire:change="resetError('{{ $fileField }}')"
+                                    accept=".pdf, .doc, .docx" wire:change="resetError('{{ $fileField }}')"
                                     {{ $$fileField ? 'disabled' : '' }}
                                     style="{{ $$fileField ? 'background-color: #e9ecef; cursor: not-allowed; opacity: 0.6;' : '' }}">
 
@@ -665,5 +673,4 @@
             </div>
         </div>
     </div>
-
 </div>

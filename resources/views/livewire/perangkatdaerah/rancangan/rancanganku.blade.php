@@ -36,32 +36,48 @@
             </div>
         </div>
 
-        {{-- Tabs --}}
+        {{-- Tabs Navigasi --}}
         <div class="card-body">
             <ul class="nav nav-pills nav-fill flex-column flex-md-row" role="tablist">
                 <li class="nav-item">
-                    <a class="nav-link {{ $tab == 'sedang_diajukan' ? 'active' : '' }}" href="#"
-                        wire:click.prevent="$set('tab', 'sedang_diajukan')">
-                        <i class="ni ni-send mr-2"></i> Sedang Diajukan
+                    <a href="#" class="nav-link {{ $activeTab === 'sedang_diajukan' ? 'active' : '' }}"
+                        wire:click.prevent="switchTab('sedang_diajukan')">
+
+                        {{-- Teks tombol saat loading --}}
+                        <span wire:loading wire:target="switchTab('sedang_diajukan')"
+                            class="spinner-border spinner-border-sm text-light"></span>
+                        <span wire:loading wire:target="switchTab('sedang_diajukan')">Memuat Data...</span>
+                        <span wire:loading.remove wire:target="switchTab('sedang_diajukan')">
+                            <i class="ni ni-send mr-2"></i> Sedang Diajukan
+                        </span>
                     </a>
                 </li>
+
                 <li class="nav-item">
-                    <a class="nav-link {{ $tab == 'riwayat_pengajuan' ? 'active' : '' }}" href="#"
-                        wire:click.prevent="$set('tab', 'riwayat_pengajuan')">
-                        <i class="ni ni-check-bold mr-2"></i> Riwayat Pengajuan
+                    <a href="#" class="nav-link {{ $activeTab === 'riwayat_pengajuan' ? 'active' : '' }}"
+                        wire:click.prevent="switchTab('riwayat_pengajuan')">
+
+                        {{-- Teks tombol saat loading --}}
+                        <span wire:loading wire:target="switchTab('riwayat_pengajuan')"
+                            class="spinner-border spinner-border-sm text-light"></span>
+                        <span wire:loading wire:target="switchTab('riwayat_pengajuan')">Memuat Data...</span>
+                        <span wire:loading.remove wire:target="switchTab('riwayat_pengajuan')">
+                            <i class="ni ni-check-bold mr-2"></i> Pengajuan Diterima
+                        </span>
                     </a>
                 </li>
             </ul>
 
-            {{-- Content --}}
+            {{-- Tab Content --}}
             <div class="tab-content mt-3">
-                @if ($tab == 'sedang_diajukan')
+                @if ($activeTab === 'sedang_diajukan')
                     <livewire:perangkat-daerah.rancangan.sedang-diajukan />
-                @elseif ($tab == 'riwayat_pengajuan')
+                @elseif ($activeTab === 'riwayat_pengajuan')
                     <livewire:perangkat-daerah.rancangan.riwayat-pengajuan />
                 @endif
             </div>
         </div>
+
     </div>
 
     {{-- Script untuk Zoom dan Fullscreen --}}

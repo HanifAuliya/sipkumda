@@ -92,7 +92,6 @@ var Layout = (function () {
     }
 
     $("body").on("click", "[data-action]", function (e) {
-        console.log("Toggler clicked, action:", $(this).data("action"));
         e.preventDefault();
 
         var $this = $(this);

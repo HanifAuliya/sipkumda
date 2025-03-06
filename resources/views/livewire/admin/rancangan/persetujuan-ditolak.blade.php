@@ -90,7 +90,8 @@
                             </h4>
 
                             <p class="info-text mb-1 small">
-                                Pengajuan Rancangan Tahun {{ now()->year }}
+                                Pengajuan Rancangan Tahun
+                                {{ \Carbon\Carbon::parse($item->tanggal_pengajuan)->year }}
                             </p>
                             <div class="mt-2">
                                 {{-- Tombol Tindakan --}}
@@ -143,18 +144,6 @@
                 data-backdrop="static" data-keyboard="false" data-backdrop="static" data-keyboard="false">
                 <div class="modal-dialog modal-xl no-style-modal" role="document">
                     <div class="modal-content">
-                        {{--  Header Modal  --}}
-                        <div class="modal-header flex-column align-items-start"
-                            style="border-bottom: 2px solid #dee2e6;">
-                            <h4 class="modal-title w-100 mb-2">Detail Rancangan</h4>
-                            <p class="description mb-0 w-100 info-text">
-                                Silakan cek informasi rancangan di bawah ini, termasuk file yang diajukan.
-                            </p>
-                            <button type="button" class="close position-absolute" style="top: 10px; right: 10px;"
-                                data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
                         {{--  Body Modal  --}}
                         @if ($selectedRancangan)
                             <div class="row mt-3">
@@ -327,8 +316,14 @@
                                                         </td>
                                                     </tr>
                                                 </tbody>
-
                                             </table>
+                                            {{-- Footer Modal --}}
+                                            <div class=" d-flex justify-content-end mt-3">
+                                                <button type="button" class="btn btn-warning" data-dismiss="modal">
+                                                    Tutup Detail Rancangan
+                                                </button>
+                                            </div>
+
                                         </div>
                                     </div>
                                 </div>
@@ -344,9 +339,6 @@
                                 </div>
                             </div>
                         @endif
-                        {{-- Footer Modal --}}
-                        <button type="button" class="btn btn-neutral" data-dismiss="modal">Tutup Detail
-                            Rancangan</button>
                     </div>
                 </div>
             </div>

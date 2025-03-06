@@ -197,7 +197,7 @@
                 <div class="card-header">
                     <h3 class="mb-0">Total Rancangan</h3>
                 </div>
-                <div class="card-body d-flex justify-content-center align-items-center">
+                <div class="card-body d-flex justify-content-center align-items-center chart-container">
                     <canvas id="pieChart" style="max-width: 280px; max-height: 280px;"></canvas>
                 </div>
             </div>
@@ -210,9 +210,10 @@
                 <div class="card-header">
                     <h3 class="mb-0">Pengajuan Rancangan (Tahun ini)</h3>
                 </div>
-                <div class="card-body">
+                <div class="card-body" style="min-height: 350px;">
                     <canvas id="barChart"></canvas>
                 </div>
+
             </div>
         </div>
 
@@ -264,13 +265,26 @@
                     }
                 });
 
-                // Warna untuk Bar Chart
                 const colors = {
                     rancanganBupati: 'rgba(54, 162, 235, 0.8)', // Biru untuk Peraturan Bupati
                     keputusanBupati: 'rgba(255, 99, 132, 0.8)' // Merah untuk Surat Keputusan
                 };
 
-                // Bar Chart (Stacked)
+
+                console.log("🔄 Membuat ulang Bar Chart...");
+
+                // **Hapus Chart Lama Jika Ada**
+                if (barChart) barChart.destroy();
+                // **Cek apakah data memiliki panjang yang sama**
+                if (chartData.labels.length !== chartData.rancangan_bupati.length ||
+                    chartData.labels.length !== chartData.keputusan_bupati.length) {
+                    console.error("❌ ERROR: Data Bar Chart tidak sinkron!", chartData);
+                    return;
+                }
+
+
+
+                // **Buat Bar Chart (Stacked)**
                 barChart = new Chart(barCtx, {
                     type: 'bar',
                     data: {
@@ -300,18 +314,21 @@
                         },
                         scales: {
                             x: {
-                                stacked: true // Mengaktifkan tampilan Stacked untuk sumbu X
+                                stacked: true
                             },
                             y: {
-                                stacked: true, // Mengaktifkan tampilan Stacked untuk sumbu Y
+                                stacked: true,
                                 beginAtZero: true,
                                 ticks: {
-                                    stepSize: 5, // Mengatur skala Y agar kelipatan 5
+                                    stepSize: 5
                                 }
                             }
                         }
                     }
                 });
+
+                console.log("✅ Bar Chart berhasil dibuat!");
+
 
                 // Tambahkan efek fade-in setelah chart muncul
                 document.querySelector('.chart-container').classList.add('show-chart');
@@ -350,9 +367,14 @@
             opacity: 1;
             transform: translateY(0);
         }
+
+        #barChart {
+            width: 100% !important;
+            height: 300px !important;
+            display: block !important;
+        }
     </style>
 
-    </script>
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {

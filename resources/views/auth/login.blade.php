@@ -22,14 +22,9 @@
                 </div>
 
                 {{-- Password Input --}}
-                <div class="mb-3">
-                    <div class="input-group">
-                        <input type="password" name="password" id="password" class="form-control"
-                            placeholder="Masukkan Password" required>
-                        <button type="button" class="btn btn-outline-secondary d-none" id="togglePassword">
-                            <i class="bi bi-eye"></i>
-                        </button>
-                    </div>
+                <div class="mb-3 position-relative">
+                    <input type="password" name="password" id="password" class="form-control"
+                        placeholder="Masukkan Password" required>
                 </div>
 
                 @if (session('error'))
@@ -37,7 +32,6 @@
                         {{ session('error') }}
                     </p>
                 @endif
-
 
 
                 @if ($errors->any())
@@ -58,7 +52,11 @@
 
                 {{-- Submit Button --}}
                 <div class="text-center">
-                    <button type="submit" class="btn btn-dark w-100">Login</button>
+                    <button type="submit" id="loginButton" class="btn btn-dark w-100">
+                        <span id="loginText">Login</span>
+                        <span id="loginSpinner" class="spinner-border spinner-border-sm d-none" role="status"
+                            aria-hidden="true"></span>
+                    </button>
                 </div>
 
                 {{-- Info Tambahan --}}
@@ -67,6 +65,24 @@
                 </p>
             </form>
 
+            <script>
+                document.addEventListener("DOMContentLoaded", function() {
+                    // Tombol login loading effect
+                    document.getElementById('loginButton').addEventListener('click', function(event) {
+                        let button = document.getElementById('loginButton');
+                        let text = document.getElementById('loginText');
+                        let spinner = document.getElementById('loginSpinner');
+
+                        // Nonaktifkan tombol dan tampilkan spinner
+                        button.disabled = true;
+                        text.textContent = "Logging in...";
+                        spinner.classList.remove('d-none');
+
+                        // Kirim form
+                        button.closest("form").submit();
+                    });
+                });
+            </script>
             {{-- Footer --}}
             <div class="text-center mt-4 small text-muted">
                 © Bagian Hukum Sekretariat Daerah Kabupaten Hulu Sungai Tengah

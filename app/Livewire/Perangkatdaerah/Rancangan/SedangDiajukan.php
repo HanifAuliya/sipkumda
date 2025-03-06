@@ -22,6 +22,7 @@ class SedangDiajukan extends Component
     public $search = '';
     public $perPage = 3; // Default: 3 data per halaman
 
+    public $jenisRancangan;
     public $selectedRancanganId;
     public $selectedRancangan;
     public $fileRancangan; // File rancangan
@@ -55,8 +56,8 @@ class SedangDiajukan extends Component
     {
         // Validasi input file
         $this->validate([
-            'fileRancangan' => 'required|mimes:pdf|max:2048', // File rancangan wajib
-            'fileMatrik' => 'required|mimes:pdf|max:2048', // File matrik wajib
+            'fileRancangan' => 'required|mimes:doc,docx|max:2048', // File rancangan wajib
+            'fileMatrik' => 'required|mimes:doc,docx|max:2048', // File matrik wajib
             'fileNotaDinas' => 'required|mimes:pdf|max:2048', // File nota dinas wajib
             'fileBahanPendukung' => 'nullable|mimes:pdf|max:2048', // File bahan pendukung opsional
             'tanggalNota' => 'required|date', // Tanggal Nota
@@ -87,21 +88,51 @@ class SedangDiajukan extends Component
             Storage::delete($rancangan->nota_dinas_pd);
         }
 
-        // Simpan file baru ke dalam folder penyimpanan
-        $rancanganPath = $this->fileRancangan->store('rancangan/rancangan', 'local');
-        $matrikPath = $this->fileMatrik->store('rancangan/matrik', 'local');
-        $notaDinasPath = $this->fileNotaDinas->store('rancangan/nota_dinas', 'local');
+        // Folder utama
+        $mainFolder = 'rancangan';
 
-        // Jika checkbox bahan pendukung di centang, hapus file lama
+        // Format Nama File Sama dengan Saat Pengajuan Awal
+        $filePrefix = str_replace(' ', '_', strtolower($this->jenisRancangan)) . '_' . str_replace('/', '-', $this->nomorNota);
+
+        // Simpan file baru ke dalam folder penyimpanan dengan nama yang sama jika ada file baru
+        $rancanganPath = $this->fileRancangan
+            ? $this->fileRancangan->storeAs(
+                "$mainFolder/rancangan",
+                basename($rancangan->rancangan) ?? "{$filePrefix}_rancangan." . $this->fileRancangan->extension(),
+                'local'
+            )
+            : $rancangan->rancangan; // Gunakan file lama jika tidak ada file baru
+
+        $matrikPath = $this->fileMatrik
+            ? $this->fileMatrik->storeAs(
+                "$mainFolder/matrik",
+                basename($rancangan->matrik) ?? "{$filePrefix}_matrik." . $this->fileMatrik->extension(),
+                'local'
+            )
+            : $rancangan->matrik; // Gunakan file lama jika tidak ada file baru
+
+        $notaDinasPath = $this->fileNotaDinas
+            ? $this->fileNotaDinas->storeAs(
+                "$mainFolder/nota_dinas",
+                basename($rancangan->nota_dinas_pd) ?? "{$filePrefix}_nota_dinas.pdf",
+                'local'
+            )
+            : $rancangan->nota_dinas_pd; // Gunakan file lama jika tidak ada file baru
+
+        // Jika checkbox bahan pendukung dicentang, hapus file lama
         if ($this->hapusBahanPendukung) {
             if ($rancangan->bahan_pendukung) {
                 Storage::delete($rancangan->bahan_pendukung);
             }
             $bahanPendukungPath = null;
         } else {
-            // Jika bahan pendukung baru diunggah, gunakan file baru
+            // Jika bahan pendukung baru diunggah, gunakan file baru dengan nama lama
             $bahanPendukungPath = $this->fileBahanPendukung
-                ? $this->fileBahanPendukung->store('rancangan/bahan_pendukung', 'local')
+                ? $this->fileBahanPendukung->storeAs(
+                    "$mainFolder/bahan_pendukung",
+                    basename($rancangan->bahan_pendukung) ?? "{$filePrefix}_bahan_pendukung." . $this->fileBahanPendukung->extension(),
+                    'local'
+                )
                 : $rancangan->bahan_pendukung; // Gunakan file lama jika tidak ada file baru
         }
 
