@@ -117,7 +117,7 @@
                                     <div class="dropdown-menu shadow-lg">
                                         <a class="dropdown-item d-flex align-items-center" href="#"
                                             wire:click.prevent="loadDetailRevisi({{ $item->id_rancangan }})">
-                                            <i class="bi bi-info-circle"></i> Lihat Detail Revisi
+                                            <i class="bi bi-info-circle"></i> Lihat Detail Penelitian
                                         </a>
                                         <a href="#" class="dropdown-item d-flex align-items-center"
                                             wire:click.prevent="selectRevisi({{ $item->revisi->last()->id_revisi ?? 'null' }})">
@@ -155,30 +155,15 @@
                         </button>
                     </div>
                     <div class="modal-body">
-                        {{-- Input File Revisi Rancangan --}}
-                        <div class="mb-4">
-                            <label for="revisiRancangan" class="font-weight-bold form-control-label">
-                                <i class="bi bi-file-earmark-pdf text-primary"></i> File Revisi Rancangan
-                                <small class="text-muted d-block">Unggah dokumen rancangan dalam format PDF (max:
-                                    2MB).</small>
-                            </label>
-                            <input type="file" class="form-control" wire:model="revisiRancangan" accept=".pdf" />
-                            <div wire:loading wire:target="revisiRancangan" class="text-info mt-2">
-                                <i class="spinner-border spinner-border-sm"></i> Mengunggah...
-                            </div>
-                            @error('revisiRancangan')
-                                <span class="text-danger">{{ $message }}</span>
-                            @enderror
-                        </div>
-
                         {{-- Input File Revisi Matrik --}}
                         <div class="mb-4">
                             <label for="revisiMatrik" class="font-weight-bold form-control-label">
                                 <i class="bi bi-file-earmark-pdf text-primary"></i> File Revisi Matrik
-                                <small class="text-muted d-block">Unggah dokumen rancangan dalam format PDF (max:
-                                    10 MB).</small>
+                                <small class="text-muted d-block">Unggah dokumen rancangan dalam format Word (max:
+                                    20 MB).</small>
                             </label>
-                            <input type="file" class="form-control" wire:model="revisiMatrik" />
+                            <input type="file" class="form-control" wire:model="revisiMatrik"
+                                accept=".doc, .docx" />
                             <div wire:loading wire:target="revisiMatrik" class="text-info mt-2">
                                 <i class="spinner-border spinner-border-sm"></i> Mengunggah...
                             </div>
@@ -365,17 +350,13 @@
                                 </div>
                             </div>
 
-                            {{-- Detail Revisi --}}
+                            {{-- Detail Penelitian --}}
                             <div class="col-md-6 mb-4">
                                 <div class="card shadow-sm">
                                     <div class="card-header">
-                                        <h4 class="mb-0">Detail Revisi</h4>
+                                        <h4 class="mb-0">Detail Penelitian</h4>
                                     </div>
                                     <div class="card-body">
-                                        <p class="description info-text mb-3">
-                                            Pastikan file yang diajukan sudah lengkap dan sesuai. Anda dapat mengunduh
-                                            file untuk memverifikasinya.
-                                        </p>
                                         <table class="table table-sm table-borderless">
                                             <tbody>
                                                 <tr>
@@ -412,21 +393,6 @@
                                                     <th class="info-text w-25">Tanggal Peneliti Ditunjuk</th>
                                                     <td class="wrap-text w-75">
                                                         {{ $selectedRevisi->tanggal_peneliti_ditunjuk ? \Carbon\Carbon::parse($selectedRevisi->tanggal_peneliti_ditunjuk)->translatedFormat('d F Y, H:i') : 'Belum Ditentukan' }}
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <th class="info-text w-25">Revisi Rancangan</th>
-                                                    <td class="wrap-text w-75">
-                                                        @if ($selectedRevisi->revisi_rancangan)
-                                                            <a href="{{ url('/view-private/revisi/rancangan/' . basename($selectedRevisi->revisi_rancangan)) }}"
-                                                                target="_blank" class="d-flex align-items-center">
-                                                                <i
-                                                                    class="bi bi-file-earmark-text mr-2 text-primary"></i>
-                                                                Lihat Revisi
-                                                            </a>
-                                                        @else
-                                                            <span class="text-muted">Data Tidak Ada</span>
-                                                        @endif
                                                     </td>
                                                 </tr>
                                                 <tr>

@@ -19,7 +19,7 @@ class DaftarRancangan extends Component
     public $search = '';
     public $jenisRancangan = '';
     public $tahun = ''; // Menyimpan tahun yang dipilih
-    public $perPage = 5;
+    public $perPage = 10;
     public $sortField = 'id_rancangan';
     public $sortDirection = 'asc';
     public $selectedRancangan;
@@ -117,7 +117,7 @@ class DaftarRancangan extends Component
         $this->selectedRancangan = $rancangan;
 
         // Tampilkan modal
-        $this->dispatch('show-modal', ['modalId' => 'detailModal']);
+        $this->dispatch('openModal', 'detailModal');
     }
 
     public function resetDetail()
@@ -200,9 +200,9 @@ class DaftarRancangan extends Component
         $query = RancanganProdukHukum::with(['user.perangkatDaerah', 'revisi']);
 
         // **Filter berdasarkan peran pengguna**
-        if (auth()->user()->hasRole('Perangkat Daerah')) {
-            $query->where('id_user', auth()->id());
-        }
+        // if (auth()->user()->hasRole('Perangkat Daerah')) {
+        //     $query->where('id_user', auth()->id());
+        // }
 
         // **Filter pencarian (tentang & nomor rancangan)**
         if (!empty($this->search)) {

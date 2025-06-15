@@ -125,17 +125,17 @@
                                         <div class="card-header">
                                             <h4 class="mb-0">Informasi Utama</h4>
                                         </div>
-                                        <div class="card-body">
+                                        <div class="card-body table-responsive modal-table mt--3">
                                             <table class="table table-sm table-borderless">
                                                 <tbody>
                                                     <tr>
                                                         <th class="info-text w-25">Nomor</th>
-                                                        <td class="wrap-text w-75">
+                                                        <td class="text-wrap w-75">
                                                             {{ $selectedRancangan->no_rancangan ?? 'N/A' }}</td>
                                                     </tr>
                                                     <tr>
                                                         <th class="info-text w-25">Jenis</th>
-                                                        <td class="wrap-text w-75">
+                                                        <td class="text-wrap w-75">
                                                             <mark
                                                                 class="badge-{{ $selectedRancangan->jenis_rancangan === 'Peraturan Bupati' ? 'primary' : '' }} badge-pill">
                                                                 {{ $selectedRancangan->jenis_rancangan ?? 'N/A' }}
@@ -144,29 +144,29 @@
                                                     </tr>
                                                     <tr>
                                                         <th class="info-text w-25">Tentang</th>
-                                                        <td class="wrap-text w-75">
+                                                        <td class="text-wrap w-75">
                                                             {{ $selectedRancangan->tentang ?? 'N/A' }}</td>
                                                     </tr>
                                                     <tr>
                                                         <th class="info-text w-25">Tanggal Pengajuan</th>
-                                                        <td class="wrap-text w-75">
+                                                        <td class="text-wrap w-75">
                                                             {{ $selectedRancangan->tanggal_pengajuan ? \Carbon\Carbon::parse($selectedRancangan->tanggal_pengajuan)->translatedFormat('d F Y, H:i') : 'N/A' }}
                                                         </td>
                                                     </tr>
                                                     <tr>
                                                         <th class="info-text w-25">User Pengaju</th>
-                                                        <td class="wrap-text w-75">
+                                                        <td class="text-wrap w-75">
                                                             {{ $selectedRancangan->user->nama_user ?? 'N/A' }}</td>
                                                     </tr>
                                                     <tr>
                                                         <th class="info-text w-25">Perangkat Daerah</th>
-                                                        <td class="wrap-text w-75">
+                                                        <td class="text-wrap w-75">
                                                             {{ $selectedRancangan->user->perangkatDaerah->nama_perangkat_daerah ?? 'N/A' }}
                                                         </td>
                                                     </tr>
                                                     <tr>
                                                         <th>Nomor Nota</th>
-                                                        <td class="wrap-text-td-70 ">
+                                                        <td class="text-wrap-td-70 ">
                                                             {{ $selectedRancangan->nomor_nota ?? 'N/A' }}
                                                         </td>
                                                     </tr>
@@ -178,7 +178,7 @@
                                                     </tr>
                                                     <tr>
                                                         <th class="info-text w-25">Status Rancangan</th>
-                                                        <td class="wrap-text w-75">
+                                                        <td class="text-wrap w-75">
                                                             <mark
                                                                 class="badge-{{ $selectedRancangan->status_rancangan === 'Disetujui' ? 'success' : ($selectedRancangan->status_rancangan === 'Ditolak' ? 'danger' : 'warning') }} badge-pill">
                                                                 {{ $selectedRancangan->status_rancangan ?? 'N/A' }}
@@ -187,7 +187,7 @@
                                                     </tr>
                                                     <tr>
                                                         <th class="info-text w-25">Nota Dinas</th>
-                                                        <td class="wrap-text w-75">
+                                                        <td class="text-wrap w-75">
                                                             @if ($selectedRancangan->nota_dinas_pd)
                                                                 <a href="{{ url('/view-private/rancangan/nota_dinas/' . basename($selectedRancangan->nota_dinas_pd)) }}"
                                                                     target="_blank">
@@ -202,7 +202,7 @@
                                                     </tr>
                                                     <tr>
                                                         <th class="info-text w-25">File Rancangan</th>
-                                                        <td class="wrap-text w-75">
+                                                        <td class="text-wrap w-75">
                                                             @if ($selectedRancangan->rancangan)
                                                                 <a href="{{ url('/view-private/rancangan/rancangan/' . basename($selectedRancangan->rancangan)) }}"
                                                                     target="_blank">
@@ -217,7 +217,7 @@
                                                     </tr>
                                                     <tr>
                                                         <th class="info-text w-25">Matrik</th>
-                                                        <td class="wrap-text w-75">
+                                                        <td class="text-wrap w-75">
                                                             @if ($selectedRancangan->matrik)
                                                                 <a href="{{ url('/view-private/rancangan/matrik/' . basename($selectedRancangan->matrik)) }}"
                                                                     target="_blank">
@@ -232,7 +232,7 @@
                                                     </tr>
                                                     <tr>
                                                         <th class="info-text w-25">Bahan Pendukung</th>
-                                                        <td class="wrap-text w-75">
+                                                        <td class="text-wrap w-75">
                                                             @if ($selectedRancangan->bahan_pendukung)
                                                                 <a href="{{ url('/view-private/rancangan/bahan_pendukung/' . basename($selectedRancangan->bahan_pendukung)) }}"
                                                                     target="_blank">
@@ -248,7 +248,7 @@
 
                                                     <tr>
                                                         <th class="info-text w-25">Status Berkas</th>
-                                                        <td class="wrap-text w-75">
+                                                        <td class="text-wrap w-75">
                                                             <mark
                                                                 class="badge badge-{{ $selectedRancangan->status_berkas === 'Disetujui' ? 'success' : ($selectedRancangan->status_berkas === 'Ditolak' ? 'danger' : 'warning') }} badge-pill">
                                                                 {{ $selectedRancangan->status_berkas ?? 'N/A' }}
@@ -257,7 +257,7 @@
                                                     </tr>
                                                     <tr>
                                                         <th class="info-text w-25">Tanggal Berkas Disetujui</th>
-                                                        <td class="wrap-text w-75">
+                                                        <td class="text-wrap w-75">
                                                             {{ $selectedRancangan->tanggal_berkas_disetujui
                                                                 ? \Carbon\Carbon::parse($selectedRancangan->tanggal_berkas_disetujui)->translatedFormat('d F Y, H:i')
                                                                 : 'Belum disetujui' }}
@@ -265,7 +265,7 @@
                                                     </tr>
                                                     <tr>
                                                         <th class="info-text w-25">Catatan Berkas</th>
-                                                        <td class="wrap-text w-75">
+                                                        <td class="text-wrap w-75">
                                                             {{ $selectedRancangan->catatan_berkas ?? 'Tidak Ada Catatan' }}
                                                         </td>
                                                     </tr>

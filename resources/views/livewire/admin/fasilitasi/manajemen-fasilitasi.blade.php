@@ -1,20 +1,20 @@
 @section('title', 'Manajemen Fasilitasi')
 
+
 @section('manual')
     <div class="card  mb--2">
         <div class="card-header d-flex justify-content-between align-items-center">
             <div class="d-flex flex-column">
-                <h3 class="mb-0">Manajemen Fasilitasi</h3>
+                <h3 class="mb-0">Menu Manajemen Fasilitasi</h3>
                 <p class="description">
-                    © Hak Cipta Bagian Hukum Sekretariat Daerah Kabupaten Hulu
-                    Sungai Tengah.
+                    Fasilitasi Produk Hukum
                 </p>
             </div>
 
             {{-- Tombol untuk Verifikator --}}
-            <button class="btn btn-outline-warning">
-                <i class="bi bi-info-circle"></i> Panduan
-            </button>
+            <a href="{{ route('dashboard') }}" class="btn btn-outline-primary">
+                <i class="bi bi-skip-backward mr-2"></i> Kembali
+            </a>
         </div>
     </div>
 @endsection
@@ -78,30 +78,42 @@
                                 <td>{{ $loop->iteration }}</td>
                                 <td>{{ $fasilitasi->rancangan->no_rancangan }}</td>
                                 <td>{{ $fasilitasi->rancangan->jenis_rancangan }}</td>
-                                <td>
-                                    <span
-                                        class="badge-{{ $fasilitasi->status_paraf_koordinasi === 'Selesai' ? 'success' : 'danger' }} badge pill">
-                                        {{ $fasilitasi->status_paraf_koordinasi }}
-                                    </span>
+                                <td class="text-wrap">
+                                    @if ($fasilitasi->status_paraf_koordinasi === 'Selesai' && $fasilitasi->tanggal_paraf_koordinasi)
+                                        Selesai
+                                        ({{ \Carbon\Carbon::parse($fasilitasi->tanggal_paraf_koordinasi)->translatedFormat('d F Y') }})
+                                    @else
+                                        <span class="badge badge-danger">Belum Selesai</span>
+                                    @endif
                                 </td>
-                                <td>
-                                    <span
-                                        class="badge-{{ $fasilitasi->status_asisten === 'Selesai' ? 'success' : 'danger' }} badge pill">
-                                        {{ $fasilitasi->status_asisten }}
-                                    </span>
+
+                                <td class="text-wrap">
+                                    @if ($fasilitasi->status_asisten === 'Selesai' && $fasilitasi->tanggal_asisten)
+                                        Selesai
+                                        ({{ \Carbon\Carbon::parse($fasilitasi->tanggal_asisten)->translatedFormat('d F Y') }})
+                                    @else
+                                        <span class="badge badge-danger">Belum Selesai</span>
+                                    @endif
                                 </td>
-                                <td>
-                                    <span
-                                        class=" badge-{{ $fasilitasi->status_sekda === 'Selesai' ? 'success' : 'danger' }} badge pill">
-                                        {{ $fasilitasi->status_sekda }}
-                                    </span>
+
+                                <td class="text-wrap">
+                                    @if ($fasilitasi->status_sekda === 'Selesai' && $fasilitasi->tanggal_sekda)
+                                        Selesai
+                                        ({{ \Carbon\Carbon::parse($fasilitasi->tanggal_sekda)->translatedFormat('d F Y') }})
+                                    @else
+                                        <span class="badge badge-danger">Belum Selesai</span>
+                                    @endif
                                 </td>
-                                <td>
-                                    <span
-                                        class="badge-{{ $fasilitasi->status_bupati === 'Selesai' ? 'success' : 'danger' }} badge pill">
-                                        {{ $fasilitasi->status_bupati }}
-                                    </span>
+
+                                <td class="text-wrap">
+                                    @if ($fasilitasi->status_bupati === 'Selesai' && $fasilitasi->tanggal_bupati)
+                                        Selesai
+                                        ({{ \Carbon\Carbon::parse($fasilitasi->tanggal_bupati)->translatedFormat('d F Y') }})
+                                    @else
+                                        <span class="badge badge-danger">Belum Selesai</span>
+                                    @endif
                                 </td>
+
 
                                 <td>
                                     @php
@@ -160,7 +172,7 @@
                     @else
                         {{-- 🔹 Informasi Rancangan --}}
                         @if ($selectedFasilitasi)
-                            <div class="table-responsive modal-table"> <!-- Tabel responsif di HP -->
+                            <div class="table-responsive modal-table mt--3"> <!-- Tabel responsif di HP -->
                                 <table class="table table-sm table-bordered">
                                     <tbody>
                                         <tr>

@@ -1,15 +1,3 @@
-{{--
-=========================================================
-* Argon Dashboard - v1.2.0
-=========================================================
-* Product Page: https://www.creative-tim.com/product/argon-dashboard
-
-* Copyright  Creative Tim (http://www.creative-tim.com)
-* Coded by www.creative-tim.com
-
-=========================================================
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
---}}
 <!DOCTYPE html>
 <html>
 
@@ -194,6 +182,17 @@
                         showConfirmButton: false,
                         position: 'top-end',
                         toast: true,
+                    });
+                });
+
+                window.addEventListener('swal:reset', function(event) {
+                    const data = event.detail[0];
+
+                    Swal.fire({
+                        icon: data.type || 'info',
+                        title: data.title || 'Informasi',
+                        text: data.message || 'Tidak ada pesan yang diterima.',
+                        showConfirmButton: true,
                     });
                 });
             });

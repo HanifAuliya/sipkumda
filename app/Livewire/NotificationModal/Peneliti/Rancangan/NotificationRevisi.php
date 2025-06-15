@@ -24,9 +24,8 @@ class NotificationRevisi extends Component
     public $catatanRevisi;
 
     protected $rules = [
-        'revisiRancangan' => 'required|mimes:pdf|max:2048',
-        'revisiMatrik' => 'required|mimes:pdf|max:2048',
-        'catatanRevisi' => 'required|string|max:1000',
+        'revisiMatrik' => 'required|mimes:pdf|max:20480',
+        'catatanRevisi' => 'required|string|max:20480',
     ];
 
     protected $listeners = [

@@ -118,6 +118,22 @@
                                             <i class="bi bi-info-lg text-warning" style="font-size: 2rem;"></i>
                                         @break
 
+                                        @case('pengajuan_fasilitasi')
+                                            <i class="bi bi-file-earmark" style="font-size: 2rem;"></i>
+                                        @break
+
+                                        @case('fasilitasi_diterima')
+                                            <i class="bi bi-file-earmark-check text-success" style="font-size: 2rem;"></i>
+                                        @break
+
+                                        @case('fasilitasi_ditolak')
+                                            <i class="bi bi-file-x text-danger" style="font-size: 2rem;"></i>
+                                        @break
+
+                                        @case('fasilitasi_verifikasi')
+                                            <i class="bi-question-square text-warning" style="font-size: 2rem;"></i>
+                                        @break
+
                                         @default
                                             <i class="bi bi-app-indicator fs-1 text-default" style="font-size: 2rem;"></i>
                                     @endswitch

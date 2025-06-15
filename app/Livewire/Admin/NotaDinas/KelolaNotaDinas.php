@@ -29,6 +29,7 @@ class KelolaNotaDinas extends Component
     public $tandaTanganId;
     public $tanggalNota;
     public $nomorInputan;
+    public $kepada;
     public $fasilitasiList = [];
     public $tandaTanganList = [];
 
@@ -77,6 +78,7 @@ class KelolaNotaDinas extends Component
             'fasilitasiId' => 'required|exists:fasilitasi_produk_hukum,id',
             'tandaTanganId' => 'required|exists:tanda_tangan,id',
             'nomorInputan' => 'required|numeric|digits_between:1,3',
+            'kepada' => 'required|string|max:255', // Tambahkan validasi untuk "Kepada"
         ]);
 
         $fasilitasi = FasilitasiProdukHukum::find($this->fasilitasiId);
@@ -114,17 +116,18 @@ class KelolaNotaDinas extends Component
             'nomor_nota' => $this->nomorNota,
             'tanggal_nota' => now(),
             'tanda_tangan_id' => $this->tandaTanganId,
+            'kepada' => $this->kepada, // Tambahkan "Kepada"
         ]);
+
 
         // 🔥 Pastikan loadData() dipanggil setelah simpan
         $this->loadData();
 
-
         // 🔥 Kirim notifikasi ke **Verifikator** bahwa Nota Dinas telah dibuat
         $verifikator = User::role('Verifikator')->get(); // Ambil semua user dengan role Verifikator
         Notification::send($verifikator, new ValidationResultNotification([
-            'title' => "📝 Nota Dinas Baru Telah Dibuat!",
-            'message' => "Nota Dinas dengan nomor **{$this->nomorNota}**untuk rancangan dengan nomor{$fasilitasi->rancangan->no_ranncangan} telah dibuat dan disimpan dalam sistem. Mohon cek dan pantau fasilitasi lebih lanjut. ",
+            'title' => "Nota Dinas Baru Telah Dibuat!",
+            'message' => "Nota Dinas dengan nomor {$this->nomorNota} untuk rancangan dengan nomor {$fasilitasi->rancangan->no_rancangan} telah dibuat dan disimpan dalam sistem. Mohon cek dan pantau fasilitasi lebih lanjut.",
             'type' => 'nota_dinas_dibuat',
             'slug' => $fasilitasi->rancangan->slug,
         ]));
@@ -133,13 +136,12 @@ class KelolaNotaDinas extends Component
         $user = $fasilitasi->rancangan->user;
         if ($user) {
             $user->notify(new ValidationResultNotification([
-                'title' => "📝 Nota Dinas Fasilitasi Telah Dibuat!",
-                'message' => "Nota Dinas untuk fasilitasi Rancangan {$fasilitasi->rancangan->no_ranncangan} Anda dengan nomor **{$this->nomorNota}** telah dibuat. Kamu bisa cetak di Aksi ⚙️-> Cetak Nota Dinas, atau Kamu ke halaman Nota lalu cetak ! . Sekarang Anda dapat Mengajukan Fasilitasi secara daring. ",
+                'title' => "Nota Dinas Fasilitasi Telah Dibuat!",
+                'message' => "Nota Dinas untuk fasilitasi Rancangan {$fasilitasi->rancangan->no_rancangan} Anda dengan nomor {$this->nomorNota} telah dibuat. Kamu bisa cetak di Aksi ⚙️-> Cetak Nota Dinas, atau Kamu ke halaman Nota lalu cetak!",
                 'type' => 'nota_dinas_user',
                 'slug' => $fasilitasi->rancangan->slug,
             ]));
         }
-
 
         // 🔥 Tampilkan notifikasi sukses
         $this->dispatch('swal:modal', [
@@ -148,13 +150,13 @@ class KelolaNotaDinas extends Component
             'message' => "Nota Dinas dengan Nomor {$this->nomorNota} berhasil dibuat!",
         ]);
 
-
         // 🔥 Reset nilai setelah data difilter ulang
         $this->reset();
 
         // 🔥 Tutup modal setelah reset
         $this->dispatch('closeModal', 'modalTambahNota');
     }
+
 
     public function resetForm()
     {

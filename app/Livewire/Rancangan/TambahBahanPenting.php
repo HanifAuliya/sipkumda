@@ -18,7 +18,7 @@ class TambahBahanPenting extends Component
 
     protected $rules = [
         'buttonName' => 'required|string|max:255',
-        'file' => 'required|file|mimes:doc,docx,pdf|max:2048',
+        'file' => 'required|file|mimes:doc,docx,pdf|max:20480',
     ];
     protected $listeners = ['deleteConfirmed' => 'deleteMaterial'];
 

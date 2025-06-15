@@ -34,8 +34,7 @@ class RiwayatRevisi extends Component
     ];
 
     protected $rules = [
-        'revisiRancangan' => 'required|mimes:pdf|max:2048', // Maks 2MB
-        'revisiMatrik' => 'required|mimes:pdf|max:2048',    // Maks 2MB
+        'revisiMatrik' => 'required|mimes:pdf|max:20480',    // Maks 2MB
         'catatanRevisi' => 'nullable|string|max:1000',
     ];
 
@@ -46,13 +45,13 @@ class RiwayatRevisi extends Component
             $this->dispatch('swal:modal', [
                 'type' => 'error',
                 'title' => 'Kesalahan',
-                'message' => 'Detail revisi tidak ditemukan.',
+                'message' => 'Detail Penelitian tidak ditemukan.',
             ]);
             return;
         }
 
         // Emit untuk membuka modal
-        $this->dispatch('openDetailRevisiModal');
+        $this->dispatch('openModal', 'detailRevisiModal');
     }
 
     public function openUploadRevisi($idRancangan)
@@ -76,8 +75,6 @@ class RiwayatRevisi extends Component
         $this->reset(['revisiRancangan', 'revisiMatrik', 'catatanRevisi']);
         $this->dispatch('openModal', 'uploadRevisiModal');
     }
-
-
 
     public function uploadUlangRevisi()
     {
@@ -105,26 +102,50 @@ class RiwayatRevisi extends Component
             return;
         }
 
-        // Hapus file lama jika ada
-        if ($revisi->revisi_rancangan) {
-            Storage::disk('local')->delete($revisi->revisi_rancangan);
-        }
-        if ($revisi->revisi_matrik) {
-            Storage::disk('local')->delete($revisi->revisi_matrik);
+        // Ambil informasi dari relasi rancangan
+        $rancangan = $revisi->rancangan;
+        if (!$rancangan) {
+            $this->dispatch('swal:modal', [
+                'type' => 'error',
+                'title' => 'Kesalahan',
+                'message' => 'Data rancangan tidak ditemukan.',
+            ]);
+            return;
         }
 
-        // Simpan file baru ke storage
-        $revisiRancanganPath = $this->revisiRancangan->store('revisi/rancangan', 'local');
-        $revisiMatrikPath = $this->revisiMatrik->store('revisi/matrik', 'local');
+        // Format Nama File Agar Konsisten
+        $safeNoRancangan = str_replace('/', '-', $rancangan->no_rancangan); // Ganti "/" agar aman untuk nama file
+        $safeTentang = str_replace(' ', '_', strtolower($rancangan->tentang)); // Ubah spasi ke "_" & huruf kecil
 
-        // Perbarui data revisi di database
-        $revisi->update([
-            'revisi_rancangan' => $revisiRancanganPath,
-            'revisi_matrik' => $revisiMatrikPath,
-            'catatan_revisi' => $this->catatanRevisi,
-            'status_validasi' => 'Menunggu Validasi',
-            'tanggal_revisi' => now(),
-        ]);
+        // Hapus file lama jika ada (hanya jika file baru diunggah)
+        if ($this->revisiMatrik) {
+            if ($revisi->revisi_matrik) {
+                Storage::disk('local')->delete($revisi->revisi_matrik);
+            }
+
+            // Simpan file baru dengan nama yang mengandung identitas rancangan
+            $revisiMatrikPath = $this->revisiMatrik->storeAs(
+                'revisi/matrik',
+                "{$safeNoRancangan}_{$safeTentang}_revisi_matrik." . $this->revisiMatrik->extension(),
+                'local'
+            );
+
+            // Perbarui data revisi hanya untuk revisi matrik
+            $revisi->update([
+                'revisi_matrik' => $revisiMatrikPath,
+                'catatan_revisi' => $this->catatanRevisi,
+                'status_validasi' => 'Menunggu Validasi',
+                'tanggal_revisi' => now(),
+            ]);
+        } else {
+            // Jika tidak ada file yang diunggah, hanya perbarui catatan revisi
+            $revisi->update([
+                'catatan_revisi' => $this->catatanRevisi,
+                'status_validasi' => 'Menunggu Validasi',
+                'tanggal_revisi' => now(),
+            ]);
+        }
+
 
         // Emit notifikasi sukses
         $this->dispatch('swal:modal', [
@@ -136,6 +157,7 @@ class RiwayatRevisi extends Component
         $this->resetForm();
         $this->dispatch('closeModal', 'uploadRevisiModal');
     }
+
 
     public function resetRevisi($id)
     {

@@ -112,12 +112,12 @@
                         <div class="dropdown">
                             <button type="button" class="btn btn btn-neutral dropdown-toggle" data-toggle="dropdown"
                                 aria-expanded="false">
-                                <i class="bi bi-gear"></i> Kelola Revisi
+                                <i class="bi bi-gear"></i> Kelola Validasi
                             </button>
                             <div class="dropdown-menu shadow-lg">
                                 <a class="dropdown-item d-flex align-items-center" href="#"
                                     wire:click.prevent="loadDetailValidasi({{ $item->id_rancangan }})">
-                                    <i class="bi bi-info-circle"></i> Lihat Detail Revisi
+                                    <i class="bi bi-info-circle"></i> Lihat Detail Penelitian
                                 </a>
                                 {{-- Reset Revisi --}}
                                 <a class="dropdown-item text-danger d-flex align-items-center"
@@ -151,7 +151,7 @@
                                 <div class="card-header">
                                     <h4 class="mb-0">Informasi Utama</h4>
                                 </div>
-                                <div class="card-body">
+                                <div class="card-body modal-table mt--3">
                                     <table class="table table-sm table-borderless">
                                         <tbody>
                                             <tr>
@@ -286,13 +286,13 @@
                             </div>
                         </div>
 
-                        {{-- Detail Revisi --}}
+                        {{-- Detail Penelitian --}}
                         <div class="col-md-6 mb-4">
                             <div class="card shadow-sm">
                                 <div class="card-header">
-                                    <h4 class="mb-0">Detail Revisi</h4>
+                                    <h4 class="mb-0">Detail Penelitian</h4>
                                 </div>
-                                <div class="card-body">
+                                <div class="card-body modal-table mt--3">
                                     <table class="table table-sm table-borderless">
                                         <tbody>
                                             <tr>
@@ -330,20 +330,6 @@
                                                 <th class="info-text w-25">Tanggal Peneliti Ditunjuk</th>
                                                 <td class="wrap-text w-75">
                                                     {{ $selectedRancangan->revisi->last()->tanggal_peneliti_ditunjuk ? \Carbon\Carbon::parse($selectedRancangan->revisi->last()->tanggal_peneliti_ditunjuk)->translatedFormat('d F Y, H:i') : 'Belum Ditentukan' }}
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <th class="info-text w-25">Revisi Rancangan</th>
-                                                <td class="wrap-text w-75">
-                                                    @if ($selectedRancangan->revisi->last() && $selectedRancangan->revisi->last()->revisi_rancangan)
-                                                        <a href="{{ url('/view-private/revisi/rancangan/' . basename($selectedRancangan->revisi->last()->revisi_rancangan)) }}"
-                                                            target="_blank" class="d-flex align-items-center">
-                                                            <i class="bi bi-file-earmark-text mr-2 text-primary"></i>
-                                                            Lihat Revisi
-                                                        </a>
-                                                    @else
-                                                        <span class="text-muted">Data Tidak Ada</span>
-                                                    @endif
                                                 </td>
                                             </tr>
                                             <tr>

@@ -110,7 +110,7 @@ class ManajemenFasilitasi extends Component
         $user = $this->selectedFasilitasi->rancangan->user;
         if ($user) {
             $user->notify(new StatusFasilitasiNotification([
-                'title' => "📜 Status Fasilitasi No. {$this->selectedFasilitasi->rancangan->no_rancangan} Diperbarui!",
+                'title' => "Status Fasilitasi No. {$this->selectedFasilitasi->rancangan->no_rancangan} Diperbarui!",
                 'message' => "Status fasilitasi Anda telah diperbarui, *{$statusField}* Telah Selesai. Silakan cek detailnya pada sistem.",
                 'slug' => $this->selectedFasilitasi->rancangan->slug,
                 'type' => 'update_fasilitasi',
@@ -122,7 +122,7 @@ class ManajemenFasilitasi extends Component
         if ($verifikators->count()) {
             foreach ($verifikators as $verifikator) {
                 $verifikator->notify(new StatusFasilitasiNotification([
-                    'title' => "📜 Status Fasilitasi Diperbarui",
+                    'title' => " Status Fasilitasi Diperbarui",
                     'message' => "Fasilitasi dengan Nomor Rancangan *{$this->selectedFasilitasi->rancangan->no_rancangan}* telah diperbarui, *{$statusField}* Selesai. Mohon lakukan pengecekan jika diperlukan.",
                     'slug' => $this->selectedFasilitasi->rancangan->slug,
                     'type' => 'update_fasilitasi',

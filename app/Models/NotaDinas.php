@@ -17,6 +17,7 @@ class NotaDinas extends Model
         'tanggal_nota',
         'file_nota_dinas',
         'tanda_tangan_id',
+        'kepada',
         'nomor_inputan'
     ];
 

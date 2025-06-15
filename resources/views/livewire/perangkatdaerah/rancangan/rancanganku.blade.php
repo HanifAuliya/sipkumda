@@ -5,17 +5,16 @@
     <div class="card  mb--2">
         <div class="card-header d-flex justify-content-between align-items-center">
             <div class="d-flex flex-column">
-                <h3 class="mb-0">Panduan Rancanganku</h3>
+                <h3 class="mb-0">Menu Rancanganku</h3>
                 <p class="description">
-                    © Hak Cipta Bagian Hukum Sekretariat Daerah Kabupaten Hulu
-                    Sungai Tengah.
+                    Pengajuan Rancangan Produk Hukum
                 </p>
             </div>
 
             {{-- Tombol untuk Verifikator --}}
-            <button class="btn btn-outline-warning">
-                <i class="bi bi-info-circle"></i> Panduan
-            </button>
+            <a href="{{ route('dashboard') }}" class="btn btn-outline-primary">
+                <i class="bi bi-skip-backward mr-2"></i> Kembali
+            </a>
         </div>
     </div>
 @endsection
@@ -23,18 +22,21 @@
 <div>
     <div class="card shadow-sm">
         {{-- Header --}}
-        <div class="card-header d-flex justify-content-between align-items-center">
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
             <div>
                 <h3 class="mb-0">Daftar Rancanganku</h3>
                 <small>Pastikan perhatikan tab di bawah!</small>
             </div>
-            <div class="d-flex align-items-center">
+            <div class="d-flex align-items-center flex-wrap gap-2">
                 {{-- Livewire Component --}}
                 <livewire:rancangan.bahan-penting-dropdown />
+
                 {{-- Menggunakan sintaks <livewire> --}}
                 <livewire:perangkat-daerah.rancangan.ajukan-rancangan />
             </div>
         </div>
+
+
 
         {{-- Tabs Navigasi --}}
         <div class="card-body">

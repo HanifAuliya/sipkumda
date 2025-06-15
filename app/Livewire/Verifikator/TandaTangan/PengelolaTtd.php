@@ -43,7 +43,7 @@ class PengelolaTtd extends Component
     {
         if ($this->file_ttd) {
             $this->validate([
-                'file_ttd' => 'image|mimes:png|max:2048', // Hanya menerima PNG dengan maksimal 2MB
+                'file_ttd' => 'image|mimes:png|max:20480', // Hanya menerima PNG dengan maksimal 2MB
             ]);
             $this->file_ttd_preview = $this->file_ttd->temporaryUrl(); // Simpan preview file
         }
@@ -56,7 +56,7 @@ class PengelolaTtd extends Component
             'nama_ttd' => 'required|string|max:100',
             'nip_ttd' => 'required|string|max:50|unique:tanda_tangan,nip_ttd', // Wajib ada NIP
             'jabatan' => 'required|string|max:100',
-            'file_ttd' => 'required|image|mimes:png|max:2048', // Hanya menerima PNG dengan maksimal 2MB
+            'file_ttd' => 'required|image|mimes:png|max:20480', // Hanya menerima PNG dengan maksimal 2MB
             'status' => 'required|in:Aktif,Tidak Aktif',
         ]);
 
@@ -106,7 +106,7 @@ class PengelolaTtd extends Component
             'nama_ttd' => 'required|string|max:100',
             'nip_ttd' => 'required|string|max:50|unique:tanda_tangan,nip_ttd,' . $this->editId, // Ubah dari 'nip' ke 'nip_ttd'
             'jabatan' => 'required|string|max:100',
-            'file_ttd' => 'nullable|image|mimes:png|max:2048',
+            'file_ttd' => 'nullable|image|mimes:png|max:20480',
             'status' => 'required|in:Aktif,Tidak Aktif',
         ]);
 

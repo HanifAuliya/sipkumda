@@ -62,14 +62,15 @@ class AjukanDokumentasiProdukHukum extends Component
         $this->validate([
             'rancanganId' => 'required|exists:fasilitasi_produk_hukum,id',
             'nomor' => 'required|numeric|digits_between:1,3',
-            'nomor_berita' => 'required|numeric|digits:2', // Nomor harus 2 digit
-            'tahun_berita' => 'required|numeric|digits:4', // Tahun harus 4 digit
+            'nomor_berita' => 'nullable|numeric|digits:2', // Nomor harus 2 digit
+            'tahun_berita' => 'nullable|numeric|digits:4', // Tahun harus 4 digit
             'tanggal_penetapan' => 'required|date',
-            'file_produk_hukum' => 'required|mimes:pdf|max:5120',
+            'file_produk_hukum' => 'required|mimes:pdf|max:20480',
         ]);
 
         // Gabungkan nomor_berita dan tahun_berita menjadi nomor_tahun_berita
-        $nomor_tahun_berita = "{$this->nomor_berita}/{$this->tahun_berita}";
+        $nomor_tahun_berita = (empty($this->nomor_berita) ? '-' : $this->nomor_berita) . '/' . (empty($this->tahun_berita) ? '-' : $this->tahun_berita);
+
 
         // Buat nama file sesuai format yang diinginkan**
         $jenisDokumenFormatted = str_replace(' ', '_', $this->jenis_dokumentasi); // Ganti spasi dengan underscore
@@ -78,14 +79,40 @@ class AjukanDokumentasiProdukHukum extends Component
         // Simpan file ke storage dengan nama baru**
         $path = $this->file_produk_hukum->storeAs('dokumentasi/file_produk_hukum', $namaFile, 'local');
 
-        // Ambil rancangan terkait
-        $rancangan = FasilitasiProdukHukum::find($this->rancanganId)->rancangan;
+        // Ambil Fasilitasi berdasarkan ID yang dipilih
+        $fasilitasi = FasilitasiProdukHukum::find($this->rancanganId);
+
+        // Pastikan fasilitasi valid
+        if (!$fasilitasi) {
+            $this->dispatch('swal:modal', [
+                'type' => 'error',
+                'title' => 'Kesalahan!',
+                'message' => 'Data fasilitasi tidak ditemukan.',
+            ]);
+            return;
+        }
+
+        // Ambil rancangan dari fasilitasi
+        $rancangan = $fasilitasi->rancangan;
+
+        if (!$rancangan) {
+            $this->dispatch('swal:modal', [
+                'type' => 'error',
+                'title' => 'Kesalahan!',
+                'message' => 'Data rancangan tidak ditemukan.',
+            ]);
+            return;
+        }
+
+        // Debugging - Cek apakah rancangan valid
+        // dd($rancangan->id_rancangan);
+
 
         // Simpan data ke database
         DokumentasiProdukHukum::create([
-            'rancangan_id' => $this->rancanganId,
-            'nomor' => now()->year,
-            'tahun' => 'required|numeric|digits:4', // Tahun harus 4 digit
+            'rancangan_id' => $rancangan->id_rancangan,
+            'nomor' => $this->nomor,
+            'tahun' => now()->year,
             'nomor_tahun_berita' => $nomor_tahun_berita,
             'tanggal_pengarsipan' => now(),
             'tanggal_penetapan' => $this->tanggal_penetapan,
@@ -146,7 +173,7 @@ class AjukanDokumentasiProdukHukum extends Component
             'nomor_berita' => 'required|numeric|digits:2', // Nomor harus 2 digit
             'tahun_berita' => 'required|numeric|digits:4', // Tahun harus 4 digit
             'tanggal_penetapan' => 'required|date',
-            'file_produk_hukum' => 'required|mimes:pdf|max:5120',
+            'file_produk_hukum' => 'required|mimes:pdf|max:20480',
             'perangkat_daerah_id' => 'required|exists:perangkat_daerah,id',
             'jenis_dokumentasi' => 'required|string|max:255', // Validasi untuk jenis_dokumentasi
             'tentang_dokumentasi' => 'required|string', // Validasi untuk tentang_dokumentasi

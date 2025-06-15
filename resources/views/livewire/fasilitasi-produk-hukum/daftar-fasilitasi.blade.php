@@ -1,3 +1,23 @@
+@section('title', 'Daftar Fasilitasi')
+
+
+@section('manual')
+    <div class="card  mb--2">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div class="d-flex flex-column">
+                <h3 class="mb-0">Menu Daftar Fasilitasi</h3>
+                <p class="description">
+                    Fasilitasi Rancangan Produk Hukum
+                </p>
+            </div>
+
+            {{-- Tombol untuk Verifikator --}}
+            <a href="{{ route('dashboard') }}" class="btn btn-outline-primary">
+                <i class="bi bi-skip-backward mr-2"></i> Kembali
+            </a>
+        </div>
+    </div>
+@endsection
 <div>
     <div class="card shadow border-0">
         <div class="card-header d-flex justify-content-between align-items-center">
@@ -21,6 +41,24 @@
             {{-- 🔍 Pencarian --}}
             <div class="row align-items-center mt-4">
 
+
+                {{-- Search Bar --}}
+                <div class="col-md-4 position-relative">
+                    {{-- Loading Spinner (di atas input) --}}
+                    <div wire:loading wire:target="search"
+                        class="text-sm text-muted position-absolute w-100  text-primary" style="top: -22px;">
+                        <div class="spinner-border spinner-border-sm text-primary mr-2" role="status"></div>Mencari...
+                    </div>
+
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text"><i class="ni ni-zoom-split-in"></i></span>
+                        </div>
+                        <input type="text" class="form-control" wire:model.live="search"
+                            placeholder="Cari tentang, Nomor Rancangan...">
+                    </div>
+                </div>
+
                 {{-- Filter Tahun --}}
                 <div class="col-md-3 position-relative">
                     {{-- Loading Spinner (di atas filter) --}}
@@ -43,25 +81,8 @@
                     </div>
                 </div>
 
-                {{-- Search Bar --}}
-                <div class="col-md-3 position-relative">
-                    {{-- Loading Spinner (di atas input) --}}
-                    <div wire:loading wire:target="search"
-                        class="text-sm text-muted position-absolute w-100  text-primary" style="top: -22px;">
-                        <div class="spinner-border spinner-border-sm text-primary mr-2" role="status"></div>Mencari...
-                    </div>
-
-                    <div class="input-group">
-                        <div class="input-group-prepend">
-                            <span class="input-group-text"><i class="ni ni-zoom-split-in"></i></span>
-                        </div>
-                        <input type="text" class="form-control" wire:model.live="search"
-                            placeholder="Cari tentang, Nomor Rancangan...">
-                    </div>
-                </div>
-
                 {{-- Per Page Dropdown --}}
-                <div class="col-md-3 position-relative">
+                <div class="col-md-2 position-relative">
                     {{-- Loading Spinner (di atas dropdown) --}}
                     <div wire:loading wire:target="perPage"
                         class="text-sm text-muted position-absolute w-100 text-primary" style="top: -22px;">
@@ -118,10 +139,10 @@
                             <th>Status Berkas</th>
                             <th>Status Validasi</th>
                             <th>Tanggal Fasilitasi</th>
-                            <th>Paraf</th>
-                            <th>Asisten</th>
-                            <th>Sekda</th>
-                            <th>Bupati</th>
+                            <th>Paraf Kordinasi</th>
+                            <th>Paraf Asisten</th>
+                            <th>Paraf Sekda</th>
+                            <th>Paraf Bupati</th>
                             @if (Auth::user()->hasRole('Admin') || Auth::user()->hasRole('Verifikator'))
                                 <th>Aksi</th>
                             @endif
@@ -160,26 +181,50 @@
                                 </td>
                                 <td>{{ \Carbon\Carbon::parse($fasilitasi->tanggal_fasilitasi)->translatedFormat('d F Y') }}
                                 </td>
-                                <td><span
-                                        class="badge-{{ $fasilitasi->status_paraf_koordinasi === 'Selesai' ? 'success' : 'danger' }} badge-pill">
-                                        {{ $fasilitasi->status_paraf_koordinasi }}</span></td>
-                                <td><span
-                                        class="badge-{{ $fasilitasi->status_asisten === 'Selesai' ? 'success' : 'danger' }} badge-pill">
-                                        {{ $fasilitasi->status_asisten }}</span></td>
-                                <td><span
-                                        class="badge-{{ $fasilitasi->status_sekda === 'Selesai' ? 'success' : 'danger' }} badge-pill">
-                                        {{ $fasilitasi->status_sekda }}</span></td>
-                                <td><span
-                                        class="badge-{{ $fasilitasi->status_bupati === 'Selesai' ? 'success' : 'danger' }} badge-pill">
-                                        {{ $fasilitasi->status_bupati }}</span></td>
-                                <td>
-                                    @if (Auth::user()->hasRole('Admin') || Auth::user()->hasRole('Verifikator'))
+                                <td class="text-wrap">
+                                    @if ($fasilitasi->status_paraf_koordinasi === 'Selesai' && $fasilitasi->tanggal_paraf_koordinasi)
+                                        Selesai
+                                        ({{ \Carbon\Carbon::parse($fasilitasi->tanggal_paraf_koordinasi)->translatedFormat('d F Y') }})
+                                    @else
+                                        <span class="badge badge-danger">Belum Selesai</span>
+                                    @endif
+                                </td>
+
+                                <td class="text-wrap">
+                                    @if ($fasilitasi->status_asisten === 'Selesai' && $fasilitasi->tanggal_asisten)
+                                        Selesai
+                                        ({{ \Carbon\Carbon::parse($fasilitasi->tanggal_asisten)->translatedFormat('d F Y') }})
+                                    @else
+                                        <span class="badge badge-danger">Belum Selesai</span>
+                                    @endif
+                                </td>
+
+                                <td class="text-wrap">
+                                    @if ($fasilitasi->status_sekda === 'Selesai' && $fasilitasi->tanggal_sekda)
+                                        Selesai
+                                        ({{ \Carbon\Carbon::parse($fasilitasi->tanggal_sekda)->translatedFormat('d F Y') }})
+                                    @else
+                                        <span class="badge badge-danger">Belum Selesai</span>
+                                    @endif
+                                </td>
+
+                                <td class="text-wrap">
+                                    @if ($fasilitasi->status_bupati === 'Selesai' && $fasilitasi->tanggal_bupati)
+                                        Selesai
+                                        ({{ \Carbon\Carbon::parse($fasilitasi->tanggal_bupati)->translatedFormat('d F Y') }})
+                                    @else
+                                        <span class="badge badge-danger">Belum Selesai</span>
+                                    @endif
+                                </td>
+
+                                @if (Auth::user()->hasRole('Admin') || Auth::user()->hasRole('Verifikator'))
+                                    <td>
                                         <button class="btn btn-danger btn-sm"
                                             onclick="confirmDelete({{ $fasilitasi->id }})">
                                             <i class="bi bi-trash"></i>
                                         </button>
-                                    @endif
-                                </td>
+                                    </td>
+                                @endif
                             </tr>
 
                         @empty
@@ -191,7 +236,7 @@
                 </table>
                 {{-- ⏪ Pagination --}}
                 <div class="mt-3">
-                    {{ $fasilitasiList->links() }}
+                    {{ $fasilitasiList->links('pagination::bootstrap-4') }}
                 </div>
             </div>
         </div>

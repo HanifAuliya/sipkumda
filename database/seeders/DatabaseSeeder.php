@@ -25,11 +25,11 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
         ]);
 
-        RancanganProdukHukum::factory()
-            ->count(25) // Buat 10 rancangan
-            ->has(Revisi::factory(), 'revisi') // Setiap rancangan punya 1 revisi
-            ->has(FasilitasiProdukHukum::factory(), 'fasilitasi') // Setiap rancangan punya 1 fasilitasi
-            ->has(DokumentasiProdukHukum::factory(), 'dokumentasi') // Setiap rancangan punya 1 dokumentasi
-            ->create();
+        // RancanganProdukHukum::factory()
+        //     ->count(25) // Buat 10 rancangan
+        //     ->has(Revisi::factory(), 'revisi') // Setiap rancangan punya 1 revisi
+        //     ->has(FasilitasiProdukHukum::factory(), 'fasilitasi') // Setiap rancangan punya 1 fasilitasi
+        //     ->has(DokumentasiProdukHukum::factory(), 'dokumentasi') // Setiap rancangan punya 1 dokumentasi
+        //     ->create();
     }
 }

@@ -1,5 +1,22 @@
-@section('header', 'Atur Profil')
-@section('title', 'Profilku')
+@section('title', 'Atur Profil')
+@section('manual')
+    <div class="card  mb--2">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div class="d-flex flex-column">
+                <h3 class="mb-0">Menu Atur Profile</h3>
+                <p class="description">
+                    Profile
+                </p>
+            </div>
+
+            {{-- Tombol untuk Verifikator --}}
+            <a href="{{ route('dashboard') }}" class="btn btn-outline-primary">
+                <i class="bi bi-skip-backward mr-2"></i> Kembali
+            </a>
+
+        </div>
+    </div>
+@endsection
 
 <div class="row justify-content-center">
     {{-- Profile Information --}}

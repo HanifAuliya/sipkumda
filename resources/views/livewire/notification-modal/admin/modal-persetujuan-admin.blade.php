@@ -10,7 +10,7 @@
                             <div class="card-header">
                                 <h4 class="mb-0">Informasi Utama</h4>
                             </div>
-                            <div class="card-body">
+                            <div class="card-body table-responsive modal-table mt--3">
                                 <table class="table table-sm table-borderless">
                                     <tbody>
                                         <tr>

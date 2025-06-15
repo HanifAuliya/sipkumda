@@ -82,7 +82,7 @@
                                     <i class="bi bi-file-earmark text-primary"></i>
                                     {{ ucfirst(str_replace('_', ' ', $fileField)) }}
                                     <small class="text-muted d-block">Unggah dokumen (max:
-                                        5MB).</small>
+                                        20MB).</small>
                                 </label>
 
                                 <input type="file" class="form-control" wire:model="{{ $fileField }}"

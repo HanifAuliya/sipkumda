@@ -50,6 +50,7 @@ class PersetujuanMenunggu extends Component
         }
         $this->catatan = $this->selectedRancangan->catatan_berkas ?? '';
         $this->statusBerkas = $this->selectedRancangan->status_berkas ?? '';
+        $this->dispatch('openModal', 'modalPersetujuan');
     }
 
     public function updateStatus()
@@ -77,8 +78,8 @@ class PersetujuanMenunggu extends Component
                 Notification::send(
                     $verifikator, // Semua verifikator
                     new PersetujuanRancanganNotification([
-                        'title' => "🎉📜 Berkas Rancangan No. {$this->selectedRancangan->no_rancangan} Disetujui! 🔍",
-                        'message' => "✅ Berkas Rancangan dengan nomor *{$this->selectedRancangan->no_rancangan}* telah berhasil *disetujui*! 🏆🎊 Harap segera *memilih peneliti* untuk melanjutkan proses berikutnya. ⏳⚖️",
+                        'title' => "Berkas Rancangan No. {$this->selectedRancangan->no_rancangan} Disetujui! ",
+                        'message' => " Berkas Rancangan dengan nomor *{$this->selectedRancangan->no_rancangan}* telah berhasil disetujui!  Harap segera *memilih peneliti* untuk melanjutkan proses berikutnya. ",
                         'slug' => $this->selectedRancangan->slug, // Slug untuk modal detail
                         'type' => 'pilih_peneliti', // Tipe notifikasi untuk verifikator
                     ])
@@ -94,12 +95,12 @@ class PersetujuanMenunggu extends Component
                 $this->selectedRancangan->user, // User yang mengajukan rancangan
                 new PersetujuanRancanganNotification([
                     'title' => $this->statusBerkas === 'Disetujui'
-                        ? "✅📜 Berkas Rancangan No. {$this->selectedRancangan->no_rancangan} Disetujui!"
-                        : "❌📜 Berkas Rancangan No. {$this->selectedRancangan->no_rancangan} Ditolak!",
+                        ? " Berkas Rancangan No. {$this->selectedRancangan->no_rancangan} Disetujui!"
+                        : " Berkas Rancangan No. {$this->selectedRancangan->no_rancangan} Ditolak!",
 
                     'message' => $this->statusBerkas === 'Disetujui'
-                        ? "🎉 Selamat! Berkas Rancangan Anda telah *disetujui* ✅. Proses selanjutnya adalah *penugasan Peneliti* 🔍. Mohon menunggu pemilihan peneliti."
-                        : "⚠️ Mohon maaf, Berkas Rancangan Anda *ditolak* ❌. Silakan periksa *catatan revisi* 📝 dan lakukan perbaikan sebelum mengajukan ulang. Semangat! 💪😊",
+                        ? " Selamat! Berkas Rancangan Anda telah *disetujui* . Proses selanjutnya adalah *penugasan Peneliti* . Mohon menunggu pemilihan peneliti."
+                        : " Mohon maaf, Berkas Rancangan Anda *ditolak* . Silakan periksa *catatan revisi* 📝 dan lakukan perbaikan sebelum mengajukan ulang. ",
 
                     'slug' => $this->selectedRancangan->slug, // Slug untuk modal detail
                     'type' => $this->statusBerkas === 'Disetujui' ? 'persetujuan_diterima' : 'persetujuan_ditolak', // Tentukan tipe notifikasi
@@ -111,8 +112,9 @@ class PersetujuanMenunggu extends Component
             // reset
             $this->resetForm();
 
+            $this->dispatch('closeModal', 'modalPersetujuan');
 
-            $this->dispatch('swal:modal', [
+            $this->dispatch('swal:toast', [
                 'type' => 'success',
                 'message' => 'Status rancangan berhasil diperbarui!',
             ]);

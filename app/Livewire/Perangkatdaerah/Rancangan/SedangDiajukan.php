@@ -56,10 +56,10 @@ class SedangDiajukan extends Component
     {
         // Validasi input file
         $this->validate([
-            'fileRancangan' => 'required|mimes:doc,docx|max:2048', // File rancangan wajib
-            'fileMatrik' => 'required|mimes:doc,docx|max:2048', // File matrik wajib
-            'fileNotaDinas' => 'required|mimes:pdf|max:2048', // File nota dinas wajib
-            'fileBahanPendukung' => 'nullable|mimes:pdf|max:2048', // File bahan pendukung opsional
+            'fileRancangan' => 'required|mimes:doc,docx|max:20480', // File rancangan wajib
+            'fileMatrik' => 'required|mimes:doc,docx|max:20480', // File matrik wajib
+            'fileNotaDinas' => 'required|mimes:pdf|max:20480', // File nota dinas wajib
+            'fileBahanPendukung' => 'nullable|mimes:pdf|max:20480', // File bahan pendukung opsional
             'tanggalNota' => 'required|date', // Tanggal Nota
             'nomorNota' => 'required|string|max:255', // Nomor Nota
         ]);

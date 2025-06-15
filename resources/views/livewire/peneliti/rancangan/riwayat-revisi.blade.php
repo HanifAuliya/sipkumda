@@ -158,7 +158,7 @@
                             <div class="dropdown-menu shadow-lg">
                                 <a class="dropdown-item d-flex align-items-center" href="#"
                                     wire:click.prevent="loadDetailRevisi({{ $item->id_rancangan }})">
-                                    <i class="bi bi-info-circle"></i> Lihat Detail Revisi
+                                    <i class="bi bi-info-circle"></i> Lihat Detail Penelitian
                                 </a>
                                 {{-- Upload Ulang Berkas --}}
                                 @if ($item->revisi->last()->status_validasi === 'Ditolak')
@@ -338,11 +338,11 @@
                                 </div>
                             </div>
 
-                            {{-- Detail Revisi --}}
+                            {{-- Detail Penelitian --}}
                             <div class="col-md-6 mb-4">
                                 <div class="card shadow-sm">
                                     <div class="card-header">
-                                        <h4 class="mb-0">Detail Revisi</h4>
+                                        <h4 class="mb-0">Detail Penelitian</h4>
                                     </div>
                                     <div class="card-body">
                                         <table class="table table-sm table-borderless">
@@ -393,7 +393,7 @@
                                                 </tr>
                                                 <tr>
                                                     <th class="info-text w-25">Revisi Rancangan</th>
-                                                    <td class="wrap-text w-75">
+                                                    <td class="text-wrap w-75">
                                                         @if ($selectedRevisi->revisi_rancangan)
                                                             <a href="{{ url('/view-private/revisi/rancangan/' . basename($selectedRevisi->revisi_rancangan)) }}"
                                                                 target="_blank" class="d-flex align-items-center">
@@ -448,7 +448,7 @@
                                             </div>
                                             <div class="text-right"> <button type="button"
                                                     class="btn btn-outline-warning" data-dismiss="modal">Tutup
-                                                    Detail Revisi</button>
+                                                    Detail Penelitian</button>
                                             </div>
                                         </div>
                                     @endif
@@ -463,21 +463,14 @@
                                             </div>
                                             <div class="text-right"> <button type="button"
                                                     class="btn btn-outline-warning" data-dismiss="modal">Tutup
-                                                    Detail Revisi</button>
+                                                    Detail Penelitian</button>
                                             </div>
                                         </div>
                                     @endif
                                     <div class="card-body mt--2">
-                                        {{-- Alert Peneliti Sudah Dipilih --}}
-                                        <div class="alert alert-primary" role="alert">
-                                            <i class="bi bi-info-circle"></i>
-                                            Revisi sedang
-                                            <strong>{{ $selectedRevisi->status_revisi }}.</strong>
-                                            Silahkan Tunggu Verifikator melakukan <strong>Validasi</strong> Revisi !
-                                        </div>
                                         <div class="text-right"> <button type="button"
                                                 class="btn btn-outline-warning" data-dismiss="modal">Tutup
-                                                Detail Revisi</button>
+                                                Detail Penelitian</button>
                                         </div>
                                     </div>
                                 </div>
@@ -511,28 +504,12 @@
                 </div>
                 <form wire:submit.prevent="uploadUlangRevisi">
                     <div class="modal-body">
-                        {{-- Input File Revisi Rancangan --}}
-                        <div class="mb-4">
-                            <label for="revisiRancangan" class="form-control-label">
-                                <i class="bi bi-file-earmark-pdf text-primary"></i> File Revisi Rancangan
-                                <small class="text-muted d-block">Unggah dokumen rancangan dalam format PDF (max: 10
-                                    MB).</small>
-                            </label>
-                            <input type="file" class="form-control" wire:model="revisiRancangan" accept=".pdf">
-                            {{-- Indikator Loading --}}
-                            <div wire:loading wire:target="revisiRancangan" class="text-info mt-2">
-                                <i class="spinner-border spinner-border-sm"></i> Mengunggah file revisi rancangan...
-                            </div>
-                            @error('revisiRancangan')
-                                <span class="text-danger">{{ $message }}</span>
-                            @enderror
-                        </div>
 
                         {{-- Input File Revisi Matrik --}}
                         <div class="mb-4">
                             <label for="revisiMatrik" class="form-control-label">
                                 <i class="bi bi-file-earmark-pdf text-primary"></i> File Revisi Matrik
-                                <small class="text-muted d-block">Unggah dokumen matrik dalam format PDF (max: 10
+                                <small class="text-muted d-block">Unggah dokumen matrik dalam format PDF (max: 20
                                     MB).</small>
                             </label>
                             <input type="file" class="form-control" wire:model="revisiMatrik" accept=".pdf">

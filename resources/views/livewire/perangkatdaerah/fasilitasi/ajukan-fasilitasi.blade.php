@@ -66,7 +66,8 @@
                                 {{-- Penjelasan tambahan --}}
                                 <small class="form-text text-muted">
                                     Upload file rancangan hasil revisi dari peneliti yang telah diperbaiki dan
-                                    diterapkan untuk pengajuan rancangan.
+                                    diterapkan untuk pengajuan rancangan dengan format <small class="text-danger">PDF
+                                        max:20mb</small>.
                                 </small>
 
                                 {{-- Loading saat file diunggah --}}

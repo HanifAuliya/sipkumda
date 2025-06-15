@@ -1,13 +1,49 @@
+{{-- Header --}}
+@section('title', 'Validasi Pengajuan Rancangan')
+@section('manual')
+    <div class="card  mb--2">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div class="d-flex flex-column">
+                <h3 class="mb-0">Menu Validasi Pengajuan Rancangan</h3>
+                <p class="description">
+                    Pengajuan Rancangan Produk Hukum
+                </p>
+            </div>
+
+            {{-- Tombol untuk Verifikator --}}
+            <a href="{{ route('dashboard') }}" class="btn btn-outline-primary">
+                <i class="bi bi-skip-backward mr-2"></i> Kembali
+            </a>
+        </div>
+    </div>
+@endsection
 <div>
     {{-- Searching --}}
-    <div class="d-flex justify-content-between mb-3">
-        <input type="text" class="form-control w-50" placeholder="Cari berdasarkan No Rancangan atau Tentang"
-            wire:model.debounce.500ms="search">
-        <select class="form-control w-25" wire:model="perPage">
-            <option value="5">5 Data</option>
-            <option value="10">10 Data</option>
-            <option value="20">20 Data</option>
-        </select>
+    {{-- Searching dan PerPage --}}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        {{-- Searching --}}
+        <div class="input-group w-50">
+            <div class="input-group-prepend">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
+            </div>
+            <input type="text" class="form-control" placeholder="Cari berdasarkan No Rancangan atau Tentang"
+                wire:model.live="search">
+        </div>
+
+        {{-- Per Page Dropdown --}}
+        <div class="col-md-3">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="ni ni-bullet-list-67"></i></span>
+                </div>
+                <select class="form-control" wire:model.live="perPage">
+                    <option value="3">3 Data per Halaman</option>
+                    <option value="5">5 Data per Halaman</option>
+                    <option value="10">10 Data per Halaman</option>
+                    <option value="50">50 Data per Halaman</option>
+                </select>
+            </div>
+        </div>
     </div>
 
     {{-- Daftar Rancangan --}}
@@ -116,11 +152,8 @@
                                     <div class="card-header">
                                         <h4 class="mb-0">Informasi Utama</h4>
                                     </div>
-                                    <div class="card-body">
-                                        <p class="description info-text mb-3">
-                                            Berikut adalah informasi dasar dari rancangan yang diajukan. Pastikan semua
-                                            informasi sudah sesuai.
-                                        </p>
+                                    <div class="card-body  modal-table mt--3">
+
                                         <table class="table table-sm table-borderless">
                                             <tbody>
                                                 <tr>
@@ -175,7 +208,8 @@
                                                         @if ($selectedRancangan->nota_dinas_pd)
                                                             <a href="{{ url('/view-private/rancangan/nota_dinas/' . basename($selectedRancangan->nota_dinas_pd)) }}"
                                                                 target="_blank" class="d-flex align-items-center">
-                                                                <i class="bi bi-file-earmark-pdf mr-2 text-warning"></i>
+                                                                <i
+                                                                    class="bi bi-file-earmark-pdf mr-2 text-warning"></i>
                                                                 Lihat Nota
                                                             </a>
                                                         @else
@@ -189,7 +223,8 @@
                                                         @if ($selectedRancangan->rancangan)
                                                             <a href="{{ url('/view-private/rancangan/rancangan/' . basename($selectedRancangan->rancangan)) }}"
                                                                 target="_blank" class="d-flex align-items-center">
-                                                                <i class="bi bi-file-earmark-pdf mr-2 text-primary"></i>
+                                                                <i
+                                                                    class="bi bi-file-earmark-pdf mr-2 text-primary"></i>
                                                                 Lihat Rancangan
                                                             </a>
                                                         @else
@@ -203,7 +238,8 @@
                                                         @if ($selectedRancangan->matrik)
                                                             <a href="{{ url('/view-private/rancangan/matrik/' . basename($selectedRancangan->matrik)) }}"
                                                                 target="_blank" class="d-flex align-items-center">
-                                                                <i class="bi bi-file-earmark-pdf mr-2 text-success"></i>
+                                                                <i
+                                                                    class="bi bi-file-earmark-pdf mr-2 text-success"></i>
                                                                 Lihat Matrik
                                                             </a>
                                                         @else
@@ -255,13 +291,13 @@
                                 </div>
                             </div>
 
-                            {{-- Detail Revisi --}}
+                            {{-- Detail Penelitian --}}
                             <div class="col-md-6 mb-4">
                                 <div class="card shadow-sm">
                                     <div class="card-header">
-                                        <h4 class="mb-0">Detail Revisi</h4>
+                                        <h4 class="mb-0">Detail Penelitian</h4>
                                     </div>
-                                    <div class="card-body">
+                                    <div class="card-body modal-table mt--3">
                                         <table class="table table-sm table-borderless">
                                             <tbody>
                                                 <tr>
@@ -300,21 +336,6 @@
                                                     <th class="info-text w-25">Tanggal Peneliti Ditunjuk</th>
                                                     <td class="wrap-text w-75">
                                                         {{ $selectedRancangan->revisi->last()->tanggal_peneliti_ditunjuk ? \Carbon\Carbon::parse($selectedRancangan->revisi->last()->tanggal_peneliti_ditunjuk)->translatedFormat('d F Y, H:i') : 'Belum Ditentukan' }}
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <th class="info-text w-25">Revisi Rancangan</th>
-                                                    <td class="wrap-text w-75">
-                                                        @if ($selectedRancangan->revisi->last() && $selectedRancangan->revisi->last()->revisi_rancangan)
-                                                            <a href="{{ url('/view-private/revisi/rancangan/' . basename($selectedRancangan->revisi->last()->revisi_rancangan)) }}"
-                                                                target="_blank" class="d-flex align-items-center">
-                                                                <i
-                                                                    class="bi bi-file-earmark-text mr-2 text-primary"></i>
-                                                                Lihat Revisi
-                                                            </a>
-                                                        @else
-                                                            <span class="text-muted">Data Tidak Ada</span>
-                                                        @endif
                                                     </td>
                                                 </tr>
                                                 <tr>

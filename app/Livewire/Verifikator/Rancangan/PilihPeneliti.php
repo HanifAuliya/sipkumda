@@ -11,6 +11,10 @@ class PilihPeneliti extends Component
 
     protected $queryString = ['activeTab']; // Masukkan 'tab' ke dalam query string\
 
+    public function switchTab($tab)
+    {
+        $this->activeTab = $tab;
+    }
 
 
     public function render()

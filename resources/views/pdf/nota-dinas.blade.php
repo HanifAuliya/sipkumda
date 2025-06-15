@@ -187,8 +187,7 @@
             <tr>
                 <td>Kepada Yth.</td>
                 <td>: </td>
-                <td> &nbsp;Kepala
-                    {{ $notaDinas->fasilitasi->rancangan->user->perangkatDaerah->nama_perangkat_daerah }}</td>
+                <td> &nbsp;{{ $notaDinas->kepada }}</td>
             </tr>
             <tr>
                 <td>Dari</td>
@@ -217,8 +216,8 @@
         </table>
         <div class="single-line"></div>
 
-        <p style="margin-left: 115px; text-indent: -10;">
-            - Sehubungan dengan Nota Dinas Kepala
+        <p style="margin-left: 115px; ">
+            Sehubungan dengan Nota Dinas Kepala
             {{ $notaDinas->fasilitasi->rancangan->user->perangkatDaerah->nama_perangkat_daerah }} Nomor:
             {{ $notaDinas->fasilitasi->rancangan->nomor_nota }}
             tanggal {{ $notaDinas->fasilitasi->rancangan->tanggal_nota }}
@@ -254,7 +253,7 @@
             </li>
         </ol>
 
-        <p style="margin-left: 125px; text-indent: -20px">
+        <p style="margin-left: 125px; ">
             - Demikian disampaikan, untuk bahan selanjutnya.
         </p>
     </div>

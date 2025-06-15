@@ -55,8 +55,8 @@ class PersetujuanFasilitasiMenunggu extends Component
                 $verifikators = User::role('Verifikator')->get(); // Ambil semua user dengan role Verifikator
                 foreach ($verifikators as $verifikator) {
                     $verifikator->notify(new PersetujuanRancanganNotification([
-                        'title' => "⏳📜 Fasilitasi Baru Menunggu Validasi!",
-                        'message' => "🔍 Fasilitasi rancangan dengan nomor *{$this->selectedFasilitasi->rancangan->no_rancangan}* telah *disesuaikan* dengan hasil koreksi ✏️📑. Harap menunggu proses validasi selanjutnya. ⚖️⏳",
+                        'title' => " Fasilitasi Baru Menunggu Validasi!",
+                        'message' => " Fasilitasi rancangan dengan nomor {$this->selectedFasilitasi->rancangan->no_rancangan} telah disesuaikan dengan hasil koreksi. Silahkan cek dan validasi di halaman Validasi Fasilitasi. ",
                         'slug' => $this->selectedFasilitasi->rancangan->slug,
                         'type' => 'fasilitasi_verifikasi',
 
@@ -69,12 +69,12 @@ class PersetujuanFasilitasiMenunggu extends Component
             // Kirim notifikasi ke Perangkat Daerah
             $this->selectedFasilitasi->rancangan->user->notify(new PersetujuanRancanganNotification([
                 'title' => $this->statusBerkas === 'Disetujui'
-                    ? "🎉📜 Fasilitasi Rancangan No. {$this->selectedFasilitasi->rancangan->no_rancangan} Disetujui! ✅"
-                    : "❌📜 Fasilitasi Rancangan No. {$this->selectedFasilitasi->rancangan->no_rancangan} Ditolak!",
+                    ? "Fasilitasi Rancangan No. {$this->selectedFasilitasi->rancangan->no_rancangan} Disetujui! "
+                    : " Fasilitasi Rancangan No. {$this->selectedFasilitasi->rancangan->no_rancangan} Ditolak!",
 
                 'message' => $this->statusBerkas === 'Disetujui'
-                    ? "🎊 Selamat! Fasilitasi Anda dengan nomor *{$this->selectedFasilitasi->rancangan->no_rancangan}* telah *disetujui* ✅. Mohon menunggu proses validasi selanjutnya 🔄📋."
-                    : "⚠️ Mohon maaf, fasilitasi Anda dengan nomor *{$this->selectedFasilitasi->rancangan->no_rancangan}* *ditolak* ❌. Silakan periksa *catatan koreksi* 📝 dan sesuaikan revisi sesuai instruksi yang diberikan 🔄✏️. Semangat! 💪😊",
+                    ? " Selamat! Fasilitasi Anda dengan nomor {$this->selectedFasilitasi->rancangan->no_rancangan} telah disetujui . Mohon menunggu proses validasi selanjutnya ."
+                    : " Mohon maaf, fasilitasi Anda dengan nomor {$this->selectedFasilitasi->rancangan->no_rancangan} ditolak . Silakan periksa catatan koreksi  dan sesuaikan revisi sesuai instruksi yang diberikan . Semangat! ",
 
                 'slug' => $this->selectedFasilitasi->rancangan->slug,
                 'type' => $this->statusBerkas === 'Disetujui' ? 'fasilitasi_diterima' : 'fasilitasi_ditolak',

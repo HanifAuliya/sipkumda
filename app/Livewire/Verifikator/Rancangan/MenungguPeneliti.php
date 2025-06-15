@@ -42,7 +42,7 @@ class MenungguPeneliti extends Component
     {
 
         $this->selectedRancangan = RancanganProdukHukum::find($id);
-        $this->dispatch('openModalPilihPeneliti');
+        $this->dispatch('openModal', 'modalPilihPeneliti');
     }
 
     public function assignPeneliti()
@@ -85,7 +85,7 @@ class MenungguPeneliti extends Component
         ]));
 
         // Tutup modal dan tampilkan notifikasi sukses
-        $this->dispatch('closeModalPilihPeneliti');
+        $this->dispatch('closeModal', 'modalPilihPeneliti');
         $this->dispatch('swal:modal', [
             'type' => 'success',
             'title' => 'Peneliti Dipilih',

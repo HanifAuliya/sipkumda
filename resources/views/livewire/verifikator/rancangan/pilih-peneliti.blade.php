@@ -4,17 +4,17 @@
     <div class="card  mb--2">
         <div class="card-header d-flex justify-content-between align-items-center">
             <div class="d-flex flex-column">
-                <h3 class="mb-0">Panduan Pilih Peneliti</h3>
+                <h3 class="mb-0">Menu Pilih Peneliti</h3>
                 <p class="description">
-                    © Hak Cipta Bagian Hukum Sekretariat Daerah Kabupaten Hulu
-                    Sungai Tengah.
+                    Pengajuan Rancangan Produk Hukum
                 </p>
             </div>
 
             {{-- Tombol untuk Verifikator --}}
-            <button class="btn btn-outline-warning">
-                <i class="bi bi-info-circle"></i> Panduan
-            </button>
+            <a href="{{ route('dashboard') }}" class="btn btn-outline-primary">
+                <i class="bi bi-skip-backward mr-2"></i> Kembali
+            </a>
+
         </div>
     </div>
 @endsection
@@ -30,28 +30,49 @@
         </div>
         <div class="card-body">
 
-            {{-- Tabs --}}
             <ul class="nav nav-pills nav-fill flex-column flex-md-row" role="tablist">
                 <li class="nav-item">
-                    <a class="nav-link {{ $activeTab == 'menunggu-peneliti' ? 'active' : '' }}" href="#"
-                        wire:click.prevent="$set('activeTab', 'menunggu-peneliti')">
-                        <i class="ni ni-send mr-2"></i> Menunggu Peneliti
+                    <a href="#" class="nav-link {{ $activeTab === 'menunggu-peneliti' ? 'active' : '' }}"
+                        wire:click.prevent="switchTab('menunggu-peneliti')">
+
+                        {{-- Teks saat loading --}}
+                        <span wire:loading wire:target="switchTab('menunggu-peneliti')"
+                            class="spinner-border spinner-border-sm text-light"></span>
+                        <span wire:loading wire:target="switchTab('menunggu-peneliti')">Memuat Data...</span>
+                        <span wire:loading.remove wire:target="switchTab('menunggu-peneliti')">
+                            <i class="ni ni-send mr-2"></i> Menunggu Peneliti
+                        </span>
                     </a>
                 </li>
+
                 <li class="nav-item">
-                    <a class="nav-link {{ $activeTab == 'peneliti-ditugaskan' ? 'active' : '' }}" href="#"
-                        wire:click.prevent="$set('activeTab', 'peneliti-ditugaskan')">
-                        <i class="ni ni-check-bold mr-2"></i> Peneliti Ditugaskan
+                    <a href="#" class="nav-link {{ $activeTab === 'peneliti-ditugaskan' ? 'active' : '' }}"
+                        wire:click.prevent="switchTab('peneliti-ditugaskan')">
+
+                        {{-- Teks saat loading --}}
+                        <span wire:loading wire:target="switchTab('peneliti-ditugaskan')"
+                            class="spinner-border spinner-border-sm text-light"></span>
+                        <span wire:loading wire:target="switchTab('peneliti-ditugaskan')">Memuat Data...</span>
+                        <span wire:loading.remove wire:target="switchTab('peneliti-ditugaskan')">
+                            <i class="ni ni-check-bold mr-2"></i> Peneliti Ditugaskan
+                        </span>
                     </a>
                 </li>
+
                 <li class="nav-item">
-                    <a class="nav-link {{ $activeTab == 'daftar-peneliti' ? 'active' : '' }}" href="#"
-                        wire:click.prevent="$set('activeTab', 'daftar-peneliti')">
-                        <i class="ni ni-single-02 mr-2"></i> Daftar Penelitian Berlangsung
+                    <a href="#" class="nav-link {{ $activeTab === 'daftar-peneliti' ? 'active' : '' }}"
+                        wire:click.prevent="switchTab('daftar-peneliti')">
+
+                        {{-- Teks saat loading --}}
+                        <span wire:loading wire:target="switchTab('daftar-peneliti')"
+                            class="spinner-border spinner-border-sm text-light"></span>
+                        <span wire:loading wire:target="switchTab('daftar-peneliti')">Memuat Data...</span>
+                        <span wire:loading.remove wire:target="switchTab('daftar-peneliti')">
+                            <i class="ni ni-single-02 mr-2"></i> Daftar Penelitian Berlangsung
+                        </span>
                     </a>
                 </li>
             </ul>
-
 
 
             {{-- Tab Content --}}
@@ -61,7 +82,7 @@
                 @elseif ($activeTab === 'peneliti-ditugaskan')
                     @livewire('verifikator.rancangan.peneliti-ditugaskan')
                 @elseif ($activeTab === 'daftar-peneliti')
-                    @livewire('verifikator.rancangan.daftar-peneliti')
+                    @livewire('verifikator.rancangan.daftarpeneliti')
                 @endif
             </div>
         </div>
@@ -121,34 +142,5 @@
                 });
             }
         }
-    </script>
-    {{-- Script --}}
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            window.Livewire.on('openModalPilihPeneliti', () => {
-                $('#modalPilihPeneliti').modal('show');
-            });
-
-            window.Livewire.on('closeModalPilihPeneliti', () => {
-                $('#modalPilihPeneliti').modal('hide');
-            });
-
-            // Sweeet Alert 2
-            window.Livewire.on('swal:modal', (data) => {
-
-                // Jika data adalah array, akses elemen pertama
-                if (Array.isArray(data)) {
-                    data = data[0];
-                }
-
-                Swal.fire({
-                    icon: data.type || 'info',
-                    title: data.title || 'Informasi',
-                    text: data.message || 'Tidak ada pesan yang diterima.',
-                    showConfirmButton: true,
-                });
-            });
-
-        });
     </script>
 </div>

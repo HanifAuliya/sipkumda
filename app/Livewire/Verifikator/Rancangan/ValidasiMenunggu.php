@@ -97,6 +97,7 @@ class ValidasiMenunggu extends Component
         // Kirim pesan sukses
         $this->dispatch('swal:modal', [
             'type' => 'success',
+            'title' => 'Berhasil',
             'message' => "Rancangan berhasil divalidasi sebagai '{$this->statusValidasi}'.",
         ]);
 

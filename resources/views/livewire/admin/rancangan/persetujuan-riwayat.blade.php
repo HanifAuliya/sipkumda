@@ -136,18 +136,6 @@
                 data-backdrop="static" data-keyboard="false">
                 <div class="modal-dialog modal-xl no-style-modal" role="document">
                     <div class="modal-content">
-                        {{--  Header Modal  --}}
-                        <div class="modal-header flex-column align-items-start"
-                            style="border-bottom: 2px solid #dee2e6;">
-                            <h4 class="modal-title w-100 mb-2">Detail Rancangan</h4>
-                            <p class="description mb-0 w-100 info-text">
-                                Silakan cek informasi rancangan di bawah ini, termasuk file yang diajukan.
-                            </p>
-                            <button type="button" class="close position-absolute" style="top: 10px; right: 10px;"
-                                data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
 
                         @if ($selectedRancangan)
                             <div class="row mt-3">
@@ -157,7 +145,7 @@
                                         <div class="card-header">
                                             <h4 class="mb-0">Informasi Utama</h4>
                                         </div>
-                                        <div class="card-body">
+                                        <div class="card-body table-responsive modal-table mt--2">
                                             <table class="table table-sm table-borderless">
                                                 <tbody>
                                                     <tr>
@@ -230,7 +218,7 @@
                                         <div class="card-header">
                                             <h4 class="mb-0">File Persetujuan</h4>
                                         </div>
-                                        <div class="card-body">
+                                        <div class="card-body table-responsive modal-table mt--2">
                                             <table class="table table-sm table-borderless">
                                                 <tbody>
                                                     <tr>
@@ -319,6 +307,14 @@
                                                     </tr>
                                                 </tbody>
                                             </table>
+
+                                        </div>
+                                        {{-- Footer Modal --}}
+                                        <div class="card-body ">
+                                            <div class="text-right"> <button type="button"
+                                                    class="btn btn-outline-warning" data-dismiss="modal">Tutup
+                                                    Detail Persetujuan</button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -334,9 +330,7 @@
                                 </div>
                             </div>
                         @endif
-                        {{-- Footer Modal --}}
-                        <button type="button" class="btn btn-neutral" data-dismiss="modal">Tutup Detail
-                            Rancangan</button>
+
                     </div>
                 </div>
             </div>

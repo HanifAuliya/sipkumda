@@ -27,7 +27,7 @@ class PersetujuanRiwayat extends Component
     public function openModal($id)
     {
         $this->selectedRancangan = RancanganProdukHukum::with(['user', 'perangkatDaerah'])->find($id);
-        $this->dispatch('openModalPersetujuan');
+        $this->dispatch('openModal', 'modalPersetujuan');
     }
 
     public function setSelectedRancangan($id)

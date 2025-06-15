@@ -47,8 +47,27 @@
                             Sungai Tengah.
                         </p>
                     </div>
-                    {{-- Tombol Read More --}}
-                    <a href="#" class="btn btn-outline-default mt-3 mt-md-0">Read More</a>
+                    {{-- Tentukan file panduan berdasarkan role pengguna --}}
+                    @php
+                        $panduanPath = '';
+
+                        if (auth()->user()->hasRole('Peneliti')) {
+                            $panduanPath = asset('assets/document/Manual_Pengguna-Peneliti-SIFKUMDA.pdf');
+                        } elseif (auth()->user()->hasRole('Admin')) {
+                            $panduanPath = asset('assets/document/Manual_Pengguna-Admin-SIFKUMDA.pdf');
+                        } elseif (auth()->user()->hasRole('Verifikator')) {
+                            $panduanPath = asset('assets/document/Manual_Pengguna-Verifikator-SIFKUMDA.pdf');
+                        } elseif (auth()->user()->hasRole('Perangkat Daerah')) {
+                            $panduanPath = asset('assets/document/Manual_Pengguna-Perangkat_Daerah-SIFKUMDA.pdf');
+                        }
+                    @endphp
+
+                    @if ($panduanPath)
+                        <a href="{{ $panduanPath }}" target="_blank" class="btn btn-outline-default mt-3 mt-md-0">
+                            <i class="bi bi-file-earmark-text mr-2"></i> Baca Panduan
+                        </a>
+                    @endif
+
                 </div>
             </div>
         </div>
@@ -186,9 +205,7 @@
                 observer.observe(document.getElementById("jumlahRancangan"));
             });
         </script>
-
     </div>
-
 
     <div class="row">
         {{-- Pie Chart - Jenis Rancangan --}}
@@ -203,7 +220,6 @@
             </div>
         </div>
 
-
         {{-- Bar Chart - Jumlah Pengajuan per Bulan --}}
         <div class="col-md-6">
             <div class="card shadow-sm border-0 chart-card " style="max-height: 300px;">
@@ -216,7 +232,6 @@
 
             </div>
         </div>
-
 
         <div class="col-md-12">
             <div class="card shadow-sm border-0 chart-card">
@@ -239,7 +254,7 @@
             let pieChart, barChart;
 
             function updateCharts(chartData) {
-                console.log("📊 Data Chart.js diterima:", chartData); // Debugging
+                // console.log("📊 Data Chart.js diterima:", chartData); // Debugging
 
                 if (pieChart) pieChart.destroy();
                 if (barChart) barChart.destroy();
@@ -271,7 +286,7 @@
                 };
 
 
-                console.log("🔄 Membuat ulang Bar Chart...");
+                // console.log("🔄 Membuat ulang Bar Chart...");
 
                 // **Hapus Chart Lama Jika Ada**
                 if (barChart) barChart.destroy();
@@ -327,7 +342,7 @@
                     }
                 });
 
-                console.log("✅ Bar Chart berhasil dibuat!");
+                // console.log("✅ Bar Chart berhasil dibuat!");
 
 
                 // Tambahkan efek fade-in setelah chart muncul

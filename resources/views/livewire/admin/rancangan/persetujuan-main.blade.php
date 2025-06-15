@@ -1,27 +1,22 @@
-@section('title', 'Verifikasi Berkas')
+@section('title', 'Pengecekan Berkas')
 
 @section('manual')
     <div class="card  mb--2">
         <div class="card-header d-flex justify-content-between align-items-center">
             <div class="d-flex flex-column">
-                <h3 class="mb-0">Panduan Verifikasi Berkas</h3>
+                <h3 class="mb-0">Menu Pengecekan Berkas Rancangan</h3>
                 <p class="description">
-                    © Hak Cipta Bagian Hukum Sekretariat Daerah Kabupaten Hulu
-                    Sungai Tengah.
+                    Pengajuan Rancangan Produk Hukum
                 </p>
             </div>
 
             {{-- Tombol untuk Verifikator --}}
-            <button class="btn btn-outline-warning">
-                <i class="bi bi-info-circle"></i> Panduan
-            </button>
+            <a href="{{ route('dashboard') }}" class="btn btn-outline-primary">
+                <i class="bi bi-skip-backward mr-2"></i> Kembali
+            </a>
+
         </div>
     </div>
-@endsection
-
-@section('actions')
-    <a href="#" class="btn btn-sm btn-neutral">New</a>
-    <a href="#" class="btn btn-sm btn-neutral">Filters</a>
 @endsection
 
 <div class="card shadow-sm">
@@ -39,20 +34,43 @@
         <ul class="nav nav-pills nav-fill flex-column flex-md-row" role="tablist">
             <li class="nav-item">
                 <a href="#" class="nav-link {{ $activeTab === 'menunggu' ? 'active' : '' }}"
-                    wire:click.prevent="set('activeTab','menunggu')">
-                    <i class="ni ni-send mr-2"></i>Berkas Menunggu Persetujuan
+                    wire:click.prevent="switchTab('menunggu')">
+
+                    {{-- Teks tombol saat loading --}}
+                    <span wire:loading wire:target="switchTab('menunggu')"
+                        class="spinner-border spinner-border-sm text-light"></span>
+                    <span wire:loading wire:target="switchTab('menunggu')">Memuat Data...</span>
+                    <span wire:loading.remove wire:target="switchTab('menunggu')">
+                        <i class="ni ni-send mr-2"></i> Berkas Menunggu Persetujuan
+                    </span>
                 </a>
             </li>
+
             <li class="nav-item">
                 <a href="#" class="nav-link {{ $activeTab === 'ditolak' ? 'active' : '' }}"
-                    wire:click.prevent="set('activeTab','ditolak')">
-                    <i class="ni ni-fat-remove mr-2"></i>Berkas Rancangan Ditolak
+                    wire:click.prevent="switchTab('ditolak')">
+
+                    {{-- Teks tombol saat loading --}}
+                    <span wire:loading wire:target="switchTab('ditolak')"
+                        class="spinner-border spinner-border-sm text-light"></span>
+                    <span wire:loading wire:target="switchTab('ditolak')">Memuat Data...</span>
+                    <span wire:loading.remove wire:target="switchTab('ditolak')">
+                        <i class="ni ni-fat-remove mr-2"></i> Berkas Rancangan Ditolak
+                    </span>
                 </a>
             </li>
+
             <li class="nav-item">
                 <a href="#" class="nav-link {{ $activeTab === 'riwayat' ? 'active' : '' }}"
-                    wire:click.prevent="set('activeTab','riwayat')">
-                    <i class="ni ni-check-bold mr-2"></i>Berkas Rancangan Disetujui
+                    wire:click.prevent="switchTab('riwayat')">
+
+                    {{-- Teks tombol saat loading --}}
+                    <span wire:loading wire:target="switchTab('riwayat')"
+                        class="spinner-border spinner-border-sm text-light"></span>
+                    <span wire:loading wire:target="switchTab('riwayat')">Memuat Data...</span>
+                    <span wire:loading.remove wire:target="switchTab('riwayat')">
+                        <i class="ni ni-check-bold mr-2"></i> Berkas Rancangan Disetujui
+                    </span>
                 </a>
             </li>
         </ul>
@@ -107,51 +125,4 @@
         }
     </script>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Membuka Modal
-            window.Livewire.on('openModalPersetujuan', () => {
-                $('#modalPersetujuan').modal('show');
-            });
-            window.Livewire.on('openModalDetailPersetujuan', () => {
-                $('#modalDetailPersetujuan').modal('show');
-            });
-
-            // Menmutup Modal
-            window.Livewire.on('closeModalPersetujuan', () => {
-                $('#modalPersetujuan').modal('hide');
-            });
-
-            // Sweeet Alert 2
-            window.addEventListener('swal:modal', function(event) {
-
-                const data = event.detail[0];
-                $('#modalPersetujuan').modal('hide');
-
-                // Tampilkan SweetAlert
-                Swal.fire({
-                    icon: data.type, // Bisa 'success', 'error', 'warning', 'info', atau 'question'
-                    title: data.title, // Judul dari toast
-                    text: data.message, // Pesan tambahan (opsional)
-                    toast: true, // Mengaktifkan toast
-                    position: 'top-end', // Posisi toast ('top', 'top-start', 'top-end', 'center', 'bottom', dll.)
-                    showConfirmButton: false, // Tidak menampilkan tombol konfirmasi
-                    timer: 5000, // Waktu toast tampil (dalam milidetik)
-                    timerProgressBar: true, // Menampilkan progress bar pada timer
-                });
-            });
-
-            window.addEventListener('swal:reset', function(event) {
-                const data = event.detail[0];
-
-                $('#resetStatusModal').modal('hide');
-                Swal.fire({
-                    icon: data.type || 'info',
-                    title: data.title || 'Informasi',
-                    text: data.message || 'Tidak ada pesan yang diterima.',
-                    showConfirmButton: true,
-                });
-            });
-        });
-    </script>
 </div>

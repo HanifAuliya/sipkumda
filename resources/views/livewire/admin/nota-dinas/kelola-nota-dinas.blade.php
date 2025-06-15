@@ -1,3 +1,23 @@
+{{-- Header --}}
+@section('title', 'Nota Dinas')
+@section('manual')
+    <div class="card  mb--2">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div class="d-flex flex-column">
+                <h3 class="mb-0">Nota Dinas</h3>
+                <p class="description">
+                    Pengajuan Rancangan Produk Hukum
+                </p>
+            </div>
+
+            {{-- Tombol untuk Verifikator --}}
+            <a href="{{ route('dashboard') }}" class="btn btn-outline-primary">
+                <i class="bi bi-skip-backward mr-2"></i> Kembali
+            </a>
+        </div>
+    </div>
+@endsection
+
 <div>
     <div class="card shadow">
         {{-- Header --}}
@@ -109,9 +129,8 @@
                                     </td>
                                     @can('delete', $nota)
                                         <td>
-                                            <button class="btn btn-danger btn-sm" onclick="confirmDelete({{ $nota->id }})">
-                                                <i class="bi bi-trash"></i> Hapus
-                                            </button>
+                                            <button class="btn btn-danger " onclick="confirmDelete({{ $nota->id }})">
+                                                <i class="bi bi-trash"></i></button>
                                         </td>
                                     @endcan
                                 @else
@@ -130,7 +149,7 @@
                     </tbody>
                 </table>
                 <div class="mt-3">
-                    {{ $notaDinasList->links() }}
+                    {{ $notaDinasList->links('pagination::bootstrap-4') }}
                 </div>
             </div>
         </div>
@@ -194,13 +213,24 @@
                                 <input type="text" id="nomor_inputan" class="form-control text-center"
                                     wire:model="nomorInputan" placeholder="###" maxlength="3"
                                     oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,3)">
-                                <input type="text" class="form-control text-center" value="/NDPB/KUM/2025" disabled>
+                                <input type="text" class="form-control text-center" value="/NDPB/KUM/2025"
+                                    disabled>
                             </div>
 
                             @error('nomorInputan')
                                 <small class="text-danger">{{ $message }}</small>
                             @enderror
                         </div>
+                        <div class="form-group">
+                            <label for="kepada">Kepada</label>
+                            <small class="form-text text-muted">*contoh : Kepala Bagian Hukum ...</small>
+                            <input type="text" class="form-control" id="kepada" wire:model.defer="kepada"
+                                placeholder="Masukkan penerima nota dinas">
+                            @error('kepada')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+
 
                     </div>
 

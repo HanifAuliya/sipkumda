@@ -29,10 +29,10 @@ class AjukanRancangan extends Component
     protected $rules = [
         'jenisRancangan' => 'required',
         'tentang' => 'required|string|max:255',
-        'rancangan' => 'required|mimes:doc,docx|max:5120', // Hanya format Word
-        'matrik' => 'required|mimes:doc,docx|max:5120', // Hanya format Word
-        'nota_dinas_pd' => 'required|mimes:pdf|max:5120', // PDF
-        'bahanPendukung' => 'nullable|mimes:pdf|max:5120', // PDF opsional
+        'rancangan' => 'required|mimes:doc,docx|max:20480', // Hanya format Word
+        'matrik' => 'required|mimes:doc,docx|max:20480', // Hanya format Word
+        'nota_dinas_pd' => 'required|mimes:pdf|max:20480', // PDF
+        'bahanPendukung' => 'nullable|mimes:pdf|max:20480', // PDF opsional
         'tanggalNota' => 'required|date',
         'nomorNota' => 'required|string|unique:rancangan_produk_hukum,nomor_nota|max:50',
     ];
@@ -101,7 +101,7 @@ class AjukanRancangan extends Component
         // Kirim notifikasi ke Admin dan Verifikator
         Notification::send(User::role(['Admin'])->get(), new RancanganBaruNotification([
             'title' => 'Rancangan Menunggu Persetujuan Berkas',
-            'message' => auth()->user()->nama_user . ' telah menambahkan rancangan baru dengan nomor ' . $rancangan->no_rancangan . '. Silahkan Periksa dan Lakukan Verifikasi Berkas, anda bisa ke halaman Persetujuan Berkas di bagian Rancangan Produk Hukum',
+            'message' => auth()->user()->nama_user . ' telah menambahkan rancangan baru dengan nomor ' . $rancangan->no_rancangan . '. Silahkan Periksa dan Lakukan Verifikasi Berkas, di halaman Persetujuan Berkas di bagian Rancangan Produk Hukum',
             'slug' => $rancangan->slug,
             'type' => 'admin_persetujuan',
         ]));

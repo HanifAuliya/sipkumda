@@ -28,7 +28,7 @@ class PersetujuanDitolak extends Component
     public function openModal($id)
     {
         $this->selectedRancangan = RancanganProdukHukum::with(['user', 'perangkatDaerah'])->find($id);
-        $this->dispatch('openModalDetailPersetujuan');
+        $this->dispatch('openModal', 'modalDetailPersetujuan');
     }
 
     public $listeners = [
@@ -91,7 +91,7 @@ class PersetujuanDitolak extends Component
         // Emit notifikasi sukses ke pengguna
         $this->dispatch('refreshNotifications');
 
-        $this->dispatch('swal:modal', [
+        $this->dispatch('swal:toast', [
             'type' => 'success',
             'message' => 'Status rancangan berhasil diperbarui!',
         ]);
@@ -149,6 +149,7 @@ class PersetujuanDitolak extends Component
                 'title' => 'Status Berhasil Direset',
                 'message' => 'Status rancangan telah direset ke Menunggu Persetujuan.',
             ]);
+            $this->dispatch('colse', 'resetStatusModal');
         } catch (\Exception $e) {
             // SweetAlert error jika terjadi kesalahan
             $this->dispatch('swal:reset', [

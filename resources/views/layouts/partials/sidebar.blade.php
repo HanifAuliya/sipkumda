@@ -111,7 +111,7 @@
                             <a class="nav-link {{ Route::currentRouteName() == 'revisi.rancangan' ? 'active' : '' }} rancangan"
                                 href="{{ route('revisi.rancangan') }}">
                                 <i class="bi bi-pencil-square"></i>
-                                <span class="nav-link-text">Upload Revisi</span>
+                                <span class="nav-link-text">Upload Penelitian</span>
                             </a>
                         </li>
                     @endif

@@ -42,7 +42,7 @@
                         <th>Tentang</th>
                         <th>Status Berkas Fasilitasi</th>
                         <th>Status Validasi Fasilitasi</th>
-                        <th>Klik Informasi</th>
+                        <th>Informasi Fasilitasi</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -50,7 +50,7 @@
                     @forelse ($fasilitasiBerlangsung as $fasilitasi)
                         <tr>
                             <td class="wrap-text">{{ $fasilitasi->rancangan->no_rancangan }}</td>
-                            <td class="wrap-text w-75">{{ $fasilitasi->rancangan->tentang }}</td>
+                            <td class="wrap-text w-50">{{ $fasilitasi->rancangan->tentang }}</td>
                             <td class="wrap-text w-25">
                                 <mark
                                     class="badge-{{ $fasilitasi->status_berkas_fasilitasi === 'Disetujui' ? 'success' : ($fasilitasi->status_berkas_fasilitasi === 'Ditolak' ? 'danger' : 'warning') }} badge-pill">
@@ -69,18 +69,42 @@
                                     {{ $fasilitasi->status_validasi_fasilitasi ?? 'N/A' }}
                                 </mark>
                             </td>
-                            <td class="wrap-text">
-                                <!-- Tombol untuk Memicu Toast -->
-                                <button type="button" class="btn btn-sm btn-outline-primary showToastBtn"
-                                    data-status="{{ $fasilitasi->status_berkas_fasilitasi }}"
-                                    data-validasi="{{ $fasilitasi->status_validasi_fasilitasi }}"
-                                    data-nota="{{ optional($fasilitasi->notaDinas)->id ? 'true' : 'false' }}">
-                                    Lihat Status
-                                </button>
-                            </td>
+                            <td class="text-wrap w-50">
+                                @php
+                                    $status = $fasilitasi->status_berkas_fasilitasi;
+                                    $validasi = $fasilitasi->status_validasi_fasilitasi;
+                                    $nota = $fasilitasi->notaDinas ? true : false;
+                                    $status_paraf_koordinasi = $fasilitasi->status_paraf_koordinasi ?? null;
+                                    $status_asisten = $fasilitasi->status_asisten ?? null;
+                                    $status_sekda = $fasilitasi->status_sekda ?? null;
+                                    $status_bupati = $fasilitasi->status_bupati ?? null;
+                                    $message = '';
 
+                                    if ($status === 'Menunggu Persetujuan' && $validasi === 'Belum Tahap Validasi') {
+                                        $message =
+                                            'Harap Sabar! Fasilitasi Rancangan Menunggu Persetujuan Dari Peneliti.';
+                                    } elseif ($status === 'Ditolak' && $validasi === 'Belum Tahap Validasi') {
+                                        $message =
+                                            'Fasilitasi Rancangan Ditolak ❌! Silahkan Upload Ulang. Anda bisa ke kolom Aksi tekan tombol ⚙️ -> pilih Upload Ulang Fasilitasi! 😏';
+                                    } elseif ($status === 'Ditolak' && $validasi === 'Ditolak') {
+                                        $message =
+                                            'Harap Periksa Fasilitasi Anda sesuai dengan catatan pengajuan Rancangan sebelumnya, perbaiki dan upload ulang. Anda bisa ke kolom Aksi tekan tombol ⚙️ -> pilih Upload Ulang Fasilitasi! 😏';
+                                    } elseif ($status === 'Disetujui' && $validasi === 'Menunggu Validasi') {
+                                        $message =
+                                            'Fasilitasi Rancangan Telah Disetujui ✅, Menunggu Konfirmasi dari Verifikator. Mohon Ditunggu 🙂!';
+                                    } elseif ($validasi === 'Diterima' && !$nota) {
+                                        $message =
+                                            'Validasi Diterima ✅, Menunggu Nota Dinas Dibuat. Harap sabar ya!🤌';
+                                    } elseif ($validasi === 'Diterima' && $nota) {
+                                        $message =
+                                            'Nota Dinas Telah Dibuat 🗒️. Kamu bisa cetak di Aksi ⚙️-> Cetak Nota Dinas!. Sekarang Anda dapat Mengajukan Fasilitasi secara daring. Dan pantau di Detail Fasilitasi Status berkas yang diajukan secara dari sudah sampai mana';
+                                    }
+
+                                @endphp
+                                {{ $message }}
+                            </td>
                             {{--  Container Toast  --}}
-                            <div class="position-fixed toast-container top-0 right-0 p-3">
+                            {{-- <div class="position-fixed toast-container top-0 right-0 p-3">
                                 <div id="statusToast" class="toast hide" role="alert" aria-live="assertive"
                                     aria-atomic="true" data-delay="20000">
                                     <div class="toast-header">
@@ -97,7 +121,7 @@
                                         <span id="toastMessage">Menunggu Persetujuan...</span>
                                     </div>
                                 </div>
-                            </div>
+                            </div> --}}
                             <td>
                                 <div class="dropdown position-static">
                                     <button type="button" class="btn btn btn-neutral dropdown-toggle"
@@ -316,7 +340,6 @@
                                 $selectedFasilitasi->status_validasi_fasilitasi === 'Belum Tahap Validasi')
                             <div class="alert alert-warning alert-dismissible fade show d-flex align-items-center mb-2 mt-2"
                                 role="alert">
-                                <i class="bi bi-hourglass-split mr-2"></i>
                                 <span class="alert-text">
                                     <strong>⏳ Harap Sabar!</strong> Fasilitasi Rancangan Menunggu Persetujuan Dari
                                     Peneliti.
@@ -331,7 +354,6 @@
                                 $selectedFasilitasi->status_validasi_fasilitasi === 'Belum Tahap Validasi')
                             <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center mb-2 mt-2"
                                 role="alert">
-                                <i class="bi bi-x-circle mr-2"></i>
                                 <span class="alert-text">
                                     <strong>❌ Fasilitasi Rancangan Ditolak!</strong> Silahkan Upload Ulang.
                                     Anda bisa ke kolom <strong>Aksi ⚙️</strong> -> pilih <strong>Upload Ulang
@@ -347,10 +369,9 @@
                                 $selectedFasilitasi->status_validasi_fasilitasi === 'Ditolak')
                             <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center mb-2 mt-2"
                                 role="alert">
-                                <i class="bi bi-exclamation-triangle mr-2"></i>
                                 <span class="alert-text">
                                     <strong>⚠️ Fasilitasi Ditolak!</strong>
-                                    Harap periksa fasilitasi Anda sesuai catatan pengajuan sebelumnya 📑, lakukan
+                                    Harap periksa fasilitasi Anda sesuai catatan pengajuan sebelumnya , lakukan
                                     perbaikan dan upload ulang.
                                     Anda bisa ke kolom <strong>Aksi ⚙️</strong> -> pilih <strong>Upload Ulang
                                         Fasilitasi</strong>! 😏
@@ -365,7 +386,6 @@
                                 $selectedFasilitasi->status_validasi_fasilitasi === 'Menunggu Validasi')
                             <div class="alert alert-primary alert-dismissible fade show d-flex align-items-center mb-2 mt-2"
                                 role="alert">
-                                <i class="bi bi-shield-check mr-2"></i>
                                 <span class="alert-text">
                                     <strong>✅ Fasilitasi Rancangan Telah Disetujui!</strong>
                                     Menunggu Konfirmasi dari Verifikator. Mohon Ditunggu 🙂!
@@ -380,7 +400,6 @@
                                 optional($selectedFasilitasi->notaDinas)->id === null)
                             <div class="alert alert-info alert-dismissible fade show d-flex align-items-center mb-2 mt-2"
                                 role="alert">
-                                <i class="bi bi-journal-check mr-2"></i>
                                 <span class="alert-text">
                                     <strong>✅ Validasi Diterima!</strong>
                                     Menunggu Nota Dinas Dibuat. Harap sabar ya! 🤌
@@ -393,12 +412,11 @@
                         @elseif ($selectedFasilitasi->status_validasi_fasilitasi === 'Diterima' && optional($selectedFasilitasi->notaDinas)->id)
                             <div class="alert alert-success alert-dismissible fade show d-flex align-items-center mb-2 mt-2"
                                 role="alert">
-                                <i class="bi bi-file-earmark-text mr-2"></i>
                                 <span class="alert-text">
-                                    <strong>🗒️ Nota Dinas Telah Dibuat!</strong>
+                                    <strong>🗒️Nota Dinas Telah Dibuat!</strong>
                                     Kamu bisa cetak di <strong>Aksi ⚙️ -> Cetak Nota Dinas</strong>, atau pergi ke
-                                    halaman Nota dan cari Nota kamu!🔥
-                                    Sekarang Anda dapat Mengajukan Fasilitasi secara daring. 📑⚖️
+                                    halaman Nota dan cari Nota kamu!
+                                    Sekarang Anda dapat Mengajukan Fasilitasi secara daring.
                                 </span>
                                 <button type="button" class="close ml-auto" data-dismiss="alert"
                                     aria-label="Close">

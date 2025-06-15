@@ -14,7 +14,7 @@
                                 <div class="card-header">
                                     <h5 class="mb-0 ">Informasi Utama</h5>
                                 </div>
-                                <div class="card-body">
+                                <div class="card-body table-responsive modal-table mt--3">
                                     <table class="table table-sm table-borderless">
                                         <tbody>
                                             <tr>
@@ -130,8 +130,7 @@
                                                     @if (isset($rancangan->nota_dinas_pd))
                                                         <a href="{{ url('/view-private/rancangan/nota_dinas/' . basename($rancangan->nota_dinas_pd)) }}"
                                                             target="_blank" class="d-flex align-items-center">
-                                                            <i class="bi bi-file-earmark-pdf mr-2"
-                                                                style="font-size: 1.5rem; color: #ffc107;"></i>
+                                                            <i class="bi bi-file-earmark-pdf mr-2 text-warning"></i>
                                                             <span>Lihat Nota</span>
                                                         </a>
                                                     @else
@@ -145,8 +144,7 @@
                                                     @if (isset($rancangan->rancangan))
                                                         <a href="{{ url('/view-private/rancangan/rancangan/' . basename($rancangan->rancangan)) }}"
                                                             target="_blank" class="d-flex align-items-center">
-                                                            <i class="bi bi-file-earmark-pdf mr-2"
-                                                                style="font-size: 1.5rem; color: #007bff;"></i>
+                                                            <i class="bi bi-file-earmark-word mr-2 text-primary"></i>
                                                             <span>Lihat Rancangan</span>
                                                         </a>
                                                     @else
@@ -160,8 +158,7 @@
                                                     @if (isset($rancangan->matrik))
                                                         <a href="{{ url('/view-private/rancangan/matrik/' . basename($rancangan->matrik)) }}"
                                                             target="_blank" class="d-flex align-items-center">
-                                                            <i class="bi bi-file-earmark-pdf mr-2"
-                                                                style="font-size: 1.5rem; color: #28a745;"></i>
+                                                            <i class="bi bi-file-earmark-word mr-2 text-success"></i>
                                                             <span>Lihat Matrik</span>
                                                         </a>
                                                     @else
@@ -175,8 +172,7 @@
                                                     @if (isset($rancangan->bahan_pendukung))
                                                         <a href="{{ url('/view-private/rancangan/bahan_pendukung/' . basename($rancangan->bahan_pendukung)) }}"
                                                             target="_blank" class="d-flex align-items-center">
-                                                            <i class="bi bi-file-earmark-pdf mr-2"
-                                                                style="font-size: 1.5rem; color: #dc3545;"></i>
+                                                            <i class="bi bi-file-earmark-pdf mr-2 text-danger"></i>
                                                             <span>Lihat Bahan</span>
                                                         </a>
                                                     @else
@@ -199,9 +195,9 @@
                         <div class="col-md-6 mb-2">
                             <div class="card mb-3">
                                 <div class="card-header">
-                                    <h5 class="mb-0 ">Revisi</h5>
+                                    <h5 class="mb-0 ">Hasil Penelitian</h5>
                                 </div>
-                                <div class="card-body">
+                                <div class="card-body table-responsive modal-table mt--3">
                                     @if ($rancangan && $rancangan->revisi->isNotEmpty())
                                         @foreach ($rancangan->revisi as $revisi)
                                             <table class="table table-sm table-borderless">
@@ -270,30 +266,14 @@
                                                     </tr>
                                                     @if (!auth()->user()->hasRole('Perangkat Daerah'))
                                                         <tr>
-                                                            <th class="info-text w-25">Revisi Rancangan</th>
-                                                            <td class="wrap-text w-75">
-                                                                @if (isset($revisi->revisi_rancangan))
-                                                                    <a href="{{ url('/view-private/revisi/rancangan/' . basename($revisi->revisi_rancangan)) }}"
-                                                                        target="_blank"
-                                                                        class="d-flex align-items-center">
-                                                                        <i class="bi bi-file-earmark-pdf mr-2"
-                                                                            style="font-size: 1.5rem; color: #007bff;"></i>
-                                                                        <span>Lihat Revisi Rancangan</span>
-                                                                    </a>
-                                                                @else
-                                                                    <span style="color: #6c757d;">Data Tidak Ada</span>
-                                                                @endif
-                                                            </td>
-                                                        </tr>
-                                                        <tr>
                                                             <th class="info-text w-25">Revisi Matrik</th>
                                                             <td class="wrap-text w-75">
                                                                 @if (isset($revisi->revisi_matrik))
                                                                     <a href="{{ url('/view-private/revisi/matrik/' . basename($revisi->revisi_matrik)) }}"
                                                                         target="_blank"
                                                                         class="d-flex align-items-center">
-                                                                        <i class="bi bi-file-earmark-pdf mr-2"
-                                                                            style="font-size: 1.5rem; color: #28a745;"></i>
+                                                                        <i
+                                                                            class="bi bi-file-earmark-word mr-2 text-success"></i>
                                                                         <span>Lihat Matrik Revisi</span>
                                                                     </a>
                                                                 @else

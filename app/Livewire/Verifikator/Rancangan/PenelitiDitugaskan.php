@@ -52,7 +52,7 @@ class PenelitiDitugaskan extends Component
         ])->findOrFail($idRevisi);
 
         // Dispatch untuk membuka modal
-        $this->dispatch('openModalPilihPeneliti');
+        $this->dispatch('openModal', 'modalPilihPeneliti');
     }
     public function pilihUlangPeneliti($idRancangan, $idPeneliti)
     {

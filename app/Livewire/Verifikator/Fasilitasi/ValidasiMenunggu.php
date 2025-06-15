@@ -84,8 +84,8 @@ class ValidasiMenunggu extends Component
             $user = $this->selectedFasilitasi->rancangan->user;
             if ($user) {
                 $user->notify(new ValidationResultNotification([
-                    'title' => "✅📜 Fasilitasi Anda dengan No. {$this->selectedFasilitasi->rancangan->no_rancangan} Telah Diterima!",
-                    'message' => "Selamat! 🎉 Fasilitasi Anda telah berhasil divalidasi dan diterima ✅. Mohon menunggu proses *pembuatan Nota Dinas* 📝⚖️ sebelum melanjutkan ke tahap berikutnya.",
+                    'title' => "Fasilitasi Anda dengan No. {$this->selectedFasilitasi->rancangan->no_rancangan} Telah Diterima!",
+                    'message' => "Selamat!  Fasilitasi Anda telah berhasil divalidasi dan diterima. Mohon menunggu proses pembuatan Nota Dinas  sebelum melanjutkan ke tahap berikutnya.",
                     'type' => 'fasilitasi_diterima',
                     'slug' => $this->selectedFasilitasi->rancangan->slug,
                 ]));
@@ -93,8 +93,8 @@ class ValidasiMenunggu extends Component
             // 🔥 Kirim notifikasi ke semua Admin
             $admins = User::role('Admin')->get(); // Ambil semua user dengan role Admin
             Notification::send($admins, new ValidationResultNotification([
-                'title' => '✅📜 Fasilitasi No. ' . $this->selectedFasilitasi->rancangan->no_rancangan . ' Telah Diterima!',
-                'message' => "🎉 Fasilitasi dengan nomor **{$this->selectedFasilitasi->rancangan->no_rancangan}** telah *divalidasi dan diterima* ✅. Harap segera buatkan Nota dan Catat *pencatatan pengajuan* ⚖️📑.",
+                'title' => 'Fasilitasi No. ' . $this->selectedFasilitasi->rancangan->no_rancangan . ' Telah Diterima!',
+                'message' => " Fasilitasi dengan nomor {$this->selectedFasilitasi->rancangan->no_rancangan} telah divalidasi dan diterima . Harap segera buatkan Nota dan Catat pencatatan pengajuan.",
                 'type' => 'fasilitasi_diterima_admin',
                 'slug' => $this->selectedFasilitasi->rancangan->slug,
 
@@ -106,8 +106,8 @@ class ValidasiMenunggu extends Component
                 $peneliti = User::find($penelitiId);
                 if ($peneliti) {
                     $peneliti->notify(new ValidationResultNotification([
-                        'title' => "📑🔍 Fasilitasi No. {$this->selectedFasilitasi->rancangan->no_rancangan} Lanjut ke Tahap Berikutnya!",
-                        'message' => "Fasilitasi rancangan yang telah Anda teliti kini telah diterima ✅. Harap pantau perkembangan selanjutnya terkait *pencatatan pengajuan rancangan* dan persiapan tahap lanjutan. 📝⚖️",
+                        'title' => " Fasilitasi No. {$this->selectedFasilitasi->rancangan->no_rancangan} Lanjut ke Tahap Berikutnya!",
+                        'message' => "Fasilitasi rancangan yang telah Anda teliti kini telah diterima. Bisa di cek di tab Riwayat Persetujuan Fasilitasi untuk memantau fasilitasi.",
                         'type' => 'fasilitasi_lanjut_peneliti',
                         'slug' => $this->selectedFasilitasi->rancangan->slug,
                     ]));
@@ -132,8 +132,8 @@ class ValidasiMenunggu extends Component
                 // 🔥 Pastikan instance User ditemukan sebelum memanggil notify()
                 if ($peneliti) {
                     $peneliti->notify(new ValidationResultNotification([
-                        'title' => "🚫📜 Fasilitasi No. '{$this->selectedFasilitasi->rancangan->no_rancangan}' Ditolak",
-                        'message' => "❌😔 Fasilitasi ini telah ditolak. Status berkas kini *Ditolak*. Mohon periksa kembali berkas yang telah Anda teliti 🔍 dan lakukan revisi sesuai catatan yang diberikan. Perangkat Daerah akan mengunggah ulang berkas untuk diperbaiki. Tetap semangat! 💪😊",
+                        'title' => " Fasilitasi No. '{$this->selectedFasilitasi->rancangan->no_rancangan}' Ditolak",
+                        'message' => "Fasilitasi ini telah ditolak. Status berkas kini *Ditolak*. Mohon periksa kembali berkas yang telah Anda teliti  dan lakukan revisi sesuai catatan yang diberikan. Perangkat Daerah akan mengunggah ulang berkas untuk diperbaiki. Tetap semangat!",
                         'slug' => $this->selectedFasilitasi->rancangan->slug,
                         'type' => 'fasilitasi_ditolak',
                     ]));
@@ -144,8 +144,8 @@ class ValidasiMenunggu extends Component
             $user = $this->selectedFasilitasi->rancangan->user;
             if ($user) {
                 $user->notify(new ValidationResultNotification([
-                    'title' => '📜✨ Fasilitasi No. ' . $this->selectedFasilitasi->rancangan->no_rancangan . ' Telah Diterima!',
-                    'message' => "⚠️😞 Berkas fasilitasi Anda ditolak! Harap periksa catatan pengajuan rancangan 📝 dan ajukan ulang dengan perbaikan yang diperlukan. Jangan khawatir, Anda bisa melakukannya! 💪😊",
+                    'title' => ' Fasilitasi No. ' . $this->selectedFasilitasi->rancangan->no_rancangan . ' Telah Diterima!',
+                    'message' => " Berkas fasilitasi Anda ditolak! Harap periksa catatan pengajuan rancangan  dan ajukan ulang dengan perbaikan yang diperlukan. Jangan khawatir, Anda bisa melakukannya! ",
                     'type' => 'fasilitasi_diterima',
                     'slug' => $this->selectedFasilitasi->rancangan->slug,
                 ]));

@@ -153,7 +153,7 @@
                                         <div class="card-header">
                                             <h4 class="mb-0">Informasi Utama</h4>
                                         </div>
-                                        <div class="card-body">
+                                        <div class="card-body table-responsive modal-table mt--2">
                                             <table class="table table-sm table-borderless">
                                                 <tbody>
                                                     <tr>
@@ -228,7 +228,7 @@
                                         <div class="card-header">
                                             <h4 class="mb-0">File Persetujuan</h4>
                                         </div>
-                                        <div class="card-body">
+                                        <div class="card-body table-responsive modal-table mt--2">
                                             <table class="table table-sm table-borderless">
                                                 <tbody>
                                                     <tr>
@@ -317,13 +317,13 @@
                                                     </tr>
                                                 </tbody>
                                             </table>
-                                            {{-- Footer Modal --}}
-                                            <div class=" d-flex justify-content-end mt-3">
-                                                <button type="button" class="btn btn-warning" data-dismiss="modal">
-                                                    Tutup Detail Rancangan
-                                                </button>
+                                        </div>
+                                        {{-- Footer Modal --}}
+                                        <div class="card-body ">
+                                            <div class="text-right"> <button type="button"
+                                                    class="btn btn-outline-warning" data-dismiss="modal">Tutup
+                                                    Detail Persetujuan</button>
                                             </div>
-
                                         </div>
                                     </div>
                                 </div>

@@ -32,10 +32,10 @@ class MenungguRevisi extends Component
     }
 
     protected $rules = [
-        'revisiRancangan' => 'required|file|max:10240|mimes:pdf',
-        'revisiMatrik' => 'required|file|max:10240|mimes:pdf,doc,docx,xls,xlsx|max:5120',
+        'revisiMatrik' => 'required|file|max:20480|mimes:doc,docx', // Tetap wajib
         'catatanRevisi' => 'required|string|max:1000',
     ];
+
     public function loadDetailRevisi($id)
     {
         $this->selectedRevisi = Revisi::with('rancangan.user')->find($id);
@@ -43,13 +43,13 @@ class MenungguRevisi extends Component
             $this->dispatch('swal:modal', [
                 'type' => 'error',
                 'title' => 'Kesalahan',
-                'message' => 'Detail revisi tidak ditemukan.',
+                'message' => 'Detail Penelitian tidak ditemukan.',
             ]);
             return;
         }
 
         // Emit untuk membuka modal
-        $this->dispatch('openDetailRevisiModal');
+        $this->dispatch('openModal', 'detailRevisiModal');
     }
     public function selectRevisi($id)
     {
@@ -68,7 +68,7 @@ class MenungguRevisi extends Component
         $this->selectedRevisiId = $id;
 
         // Emit event untuk membuka modal
-        $this->dispatch('openUploadRevisiModal');
+        $this->dispatch('openModal', 'uploadRevisiModal');
     }
 
 
@@ -82,12 +82,26 @@ class MenungguRevisi extends Component
             return;
         }
 
-        // Simpan file ke storage private
-        $revisiRancanganPath = $this->revisiRancangan->store('revisi/rancangan', 'local');
-        $revisiMatrikPath = $this->revisiMatrik->store('revisi/matrik', 'local');
+        // Ambil informasi dari relasi rancangan
+        $rancangan = $revisi->rancangan;
+        if (!$rancangan) {
+            session()->flash('error', 'Data rancangan tidak ditemukan.');
+            return;
+        }
 
+        // Format Nama File
+        $safeNoRancangan = str_replace('/', '-', $rancangan->no_rancangan); // Ganti "/" agar aman untuk nama file
+        $safeTentang = str_replace(' ', '_', strtolower($rancangan->tentang)); // Hilangkan spasi & ubah ke lowercase
+
+        // Simpan hanya file revisi matrik dengan nama yang mengandung identitas
+        $revisiMatrikPath = $this->revisiMatrik->storeAs(
+            'revisi/matrik',
+            "{$safeNoRancangan}_{$safeTentang}_revisi_matrik." . $this->revisiMatrik->extension(),
+            'local'
+        );
+
+        // Update hanya field revisi_matrik tanpa mengubah revisi_rancangan
         $revisi->update([
-            'revisi_rancangan' => $revisiRancanganPath,
             'revisi_matrik' => $revisiMatrikPath,
             'catatan_revisi' => $this->catatanRevisi,
             'status_validasi' => 'Menunggu Validasi',
@@ -97,8 +111,8 @@ class MenungguRevisi extends Component
         // Kirim notifikasi ke user yang mengajukan rancangan
         $user = $revisi->rancangan->user;
         $user->notify(new RevisiValidationNotification([
-            'title' => 'Revisi Rancangan anda dengan nonmor' . $revisi->rancangan->no_rancangan . " Telah dikirm",
-            'message' => 'Revisi untuk rancangan Anda telah berhasil diunggah dan menunggu validasi. Silahkan tunggu informasi selanjutnya',
+            'title' => 'Revisi Matrik untuk rancangan dengan nomor ' . $revisi->rancangan->no_rancangan . " telah dikirim",
+            'message' => 'Revisi matrik untuk rancangan Anda telah berhasil diunggah dan menunggu validasi. Silahkan tunggu informasi selanjutnya',
             'slug' => $revisi->rancangan->slug,
             'type' => 'revisi_dikirim'
         ]));
@@ -107,8 +121,8 @@ class MenungguRevisi extends Component
         $verifikators = User::role('verifikator')->get();
         foreach ($verifikators as $verifikator) {
             $verifikator->notify(new RevisiValidationNotification([
-                'title' => "Revisi Rancangan " . $revisi->rancangan->no_rancangan . " Baru Menunggu Validasi ",
-                'message' => 'Rancangan tentang ' . $revisi->rancangan->tentang . "menunggu validasi, Silahkan Periksa dan Validasi",
+                'title' => "Revisi Matrik Rancangan " . $revisi->rancangan->no_rancangan . " Baru Menunggu Validasi",
+                'message' => 'Rancangan tentang ' . $revisi->rancangan->tentang . " menunggu validasi, Silahkan Periksa dan Validasi",
                 'slug' => $revisi->rancangan->slug,
                 'type' => 'validasi_revisi'
             ]));
@@ -117,15 +131,16 @@ class MenungguRevisi extends Component
         // Emit notifikasi sukses ke pengguna
         $this->dispatch('refreshNotifications');
 
-        $this->dispatch('swal:modal', [
+        $this->dispatch('swal:toast', [
             'type' => 'success',
-            'message' => 'Revisi berhasil diunggah dan dikirim untuk validasi.',
+            'message' => 'Revisi matrik berhasil diunggah dan dikirim untuk validasi.',
         ]);
 
-        $this->dispatch('closeUploadRevisiModal');
+        $this->dispatch('closeModal', 'uploadRevisiModal');
 
         $this->resetForm();
     }
+
 
     public function resetForm()
     {

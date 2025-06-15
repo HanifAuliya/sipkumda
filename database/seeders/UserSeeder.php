@@ -37,9 +37,9 @@ class UserSeeder extends Seeder
 
         // Buat User Admin
         $admin = User::firstOrCreate([
-            'email' => 'admin@example.com', // Email unik
+            'email' => 'amadcoyz@gmail.com', // Email unik
         ], [
-            'nama_user' => 'Admin',
+            'nama_user' => 'Muhammad Sayuti',
             'NIP' => 'admin',
             'password' => bcrypt('password'), // Default password
             'email_verified_at' => Carbon::now(), // Set email_verified_at
@@ -51,7 +51,7 @@ class UserSeeder extends Seeder
         $verifikator = User::firstOrCreate([
             'email' => 'verifikator@example.com', // Email unik
         ], [
-            'nama_user' => 'Verifikator User',
+            'nama_user' => 'Taufik Rahman, S.H.',
             'NIP' => 'verifikator',
             'password' => bcrypt('password'), // Default password
             'email_verified_at' => Carbon::now(), // Set email_verified_at
@@ -59,7 +59,7 @@ class UserSeeder extends Seeder
         ]);
         $verifikator->assignRole($verifikatorRole);
 
-        // Buat User Perangkat Daerah
+        //Buat User Perangkat Daerah
         $perangkatDaerah = User::firstOrCreate([
             'email' => 'perangkatdaerah@example.com', // Email unik
         ], [
@@ -73,9 +73,9 @@ class UserSeeder extends Seeder
 
         // Buat User Peneliti
         $peneliti = User::firstOrCreate([
-            'email' => 'peneliti@example.com', // Email unik
+            'email' => 'tahmidillah10@gmail.com', // Email unik
         ], [
-            'nama_user' => 'Peneliti User',
+            'nama_user' => 'Tahmidillah, S.H.I.',
             'NIP' => 'peneliti',
             'password' => bcrypt('password'), // Default password
             'email_verified_at' => Carbon::now(), // Set email_verified_at
@@ -83,16 +83,27 @@ class UserSeeder extends Seeder
         ]);
         $peneliti->assignRole($penelitiRole);
 
-        // Buat User Tamu
-        $tamu = User::firstOrCreate([
-            'email' => 'tamu@example.com', // Email unik
+        $peneliti2 = User::firstOrCreate([
+            'email' => 'hst@gmail.com', // Email unik
         ], [
-            'nama_user' => 'Tamu User',
-            'NIP' => 'tamu',
+            'nama_user' => 'Sahruji, S.H.',
+            'NIP' => 'peneliti2',
             'password' => bcrypt('password'), // Default password
             'email_verified_at' => Carbon::now(), // Set email_verified_at
             'perangkat_daerah_id' => PerangkatDaerah::inRandomOrder()->first()->id ?? null, // Perangkat Daerah Acak
         ]);
-        $tamu->assignRole($tamuRole);
+        $peneliti2->assignRole($penelitiRole);
+
+        // Buat User Tamu
+        // $tamu = User::firstOrCreate([
+        //     'email' => 'tamu@example.com', // Email unik
+        // ], [
+        //     'nama_user' => 'Tamu User',
+        //     'NIP' => 'tamu',
+        //     'password' => bcrypt('password'), // Default password
+        //     'email_verified_at' => Carbon::now(), // Set email_verified_at
+        //     'perangkat_daerah_id' => PerangkatDaerah::inRandomOrder()->first()->id ?? null, // Perangkat Daerah Acak
+        // ]);
+        // $tamu->assignRole($tamuRole);
     }
 }

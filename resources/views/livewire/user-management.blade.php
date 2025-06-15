@@ -1,44 +1,27 @@
-@section('header', 'Kelola User')
-@section('title', 'Manage User')
+@section('title', 'Kelola User')
 
-@section('breadcrumb')
-    <nav aria-label="breadcrumb" class="d-none d-md-inline-block ml-md-4">
-        <ol class="breadcrumb breadcrumb-links bg-gradient-green">
+@section('manual')
+    <div class="card  mb--2">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div class="d-flex flex-column">
+                <h3 class="mb-0">Menu Kelola User </h3>
+                <p class="description">
+                    Kelola User (Tambah ,Hapus , Edit)
+                </p>
+            </div>
 
-            <li class="breadcrumb-item">
-                <a href="{{ route('dashboard') }}" class="text-white">
-                    <i class="fas fa-home"></i>
-                </a>
-            </li>
-            <li class="breadcrumb-item">
-                <a href="{{ route('user.management') }}" class="text-white">Daftar Pengguna</a>
-            </li>
-            <li class="breadcrumb-item active text-white" aria-current="page">Tables</li>
-        </ol>
-    </nav>
+            {{-- Tombol untuk Verifikator --}}
+            <a href="{{ route('dashboard') }}" class="btn btn-outline-primary">
+                <i class="bi bi-skip-backward mr-2"></i> Kembali
+            </a>
+
+        </div>
+    </div>
 @endsection
-
-@section('actions')
-    <a href="#" class="btn btn-sm btn-neutral">New</a>
-    <a href="#" class="btn btn-sm btn-neutral">Filters</a>
-@endsection
-
 <div>
 
     <div class="row mb-1">
         <div class="col-12">
-            {{-- Header Card --}}
-            <div class="card  mb-3">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h3 class="mb-0">Manajemen Pengguna</h3>
-                    @if ($isAdmin)
-                        <button class="btn btn-default" wire:click="resetInput" data-toggle="modal"
-                            data-target="#addUserModal">
-                            Tambah Pengguna
-                        </button>
-                    @endif
-                </div>
-            </div>
 
             <div class="card">
                 <div class="card-header">

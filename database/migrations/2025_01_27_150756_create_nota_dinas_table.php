@@ -19,6 +19,7 @@ return new class extends Migration
             $table->date('tanggal_nota'); // Tanggal pembuatan nota dinas
             $table->string('file_nota_dinas', 255)->nullable(); // Path file nota dinas
             $table->unsignedBigInteger('tanda_tangan_id'); // Foreign key ke tabel tanda_tangan
+            $table->string('kepada', 100); // Nomor nota dinas
             $table->timestamps();
 
             // Foreign key constraints

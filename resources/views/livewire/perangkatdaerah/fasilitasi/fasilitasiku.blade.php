@@ -4,17 +4,16 @@
     <div class="card  mb--2">
         <div class="card-header d-flex justify-content-between align-items-center">
             <div class="d-flex flex-column">
-                <h3 class="mb-0">Panduan Verifikasi Berkas</h3>
+                <h3 class="mb-0">Menu Fasilitasiku</h3>
                 <p class="description">
-                    © Hak Cipta Bagian Hukum Sekretariat Daerah Kabupaten Hulu
-                    Sungai Tengah.
+                    Fasilitasi Rancangan Produk Hukum
                 </p>
             </div>
 
             {{-- Tombol untuk Verifikator --}}
-            <button class="btn btn-outline-warning">
-                <i class="bi bi-info-circle"></i> Panduan
-            </button>
+            <a href="{{ route('dashboard') }}" class="btn btn-outline-primary">
+                <i class="bi bi-skip-backward mr-2"></i> Kembali
+            </a>
         </div>
     </div>
 @endsection
@@ -105,67 +104,5 @@
         });
     </script>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
 
-            function initializeToastButtons() {
-                setTimeout(() => { // Tambahkan delay agar elemen sudah dirender oleh Livewire
-                    document.querySelectorAll(".showToastBtn").forEach((button) => {
-                        button.removeEventListener("click", handleToastClick);
-                        button.addEventListener("click", handleToastClick);
-                    });
-                }, 300); // Beri jeda 300ms untuk memastikan elemen sudah tersedia
-            }
-
-            function handleToastClick(event) {
-                let button = event.currentTarget;
-                let status = button.getAttribute("data-status");
-                let validasi = button.getAttribute("data-validasi");
-                let nota = button.getAttribute("data-nota");
-
-
-                let message =
-                    "Status tidak diketahui, harap hubungin admin";
-
-                if (status === 'Menunggu Persetujuan' && validasi === 'Belum Tahap Validasi') {
-                    message = "Harap Sabar! Fasilitasi Rancangan Menunggu Persetujuan Dari Peneliti.";
-                } else if (status === 'Ditolak' && validasi === 'Belum Tahap Validasi') {
-                    message =
-                        "Fasilitasi Rancangan Ditolak ❌! Silahkan Upload Ulang. Anda bisa ke kolom Aksi tekan tombol ⚙️ -> pilih Upload Ulang Fasilitasi! 😏";
-                } else if (status === 'Ditolak' && validasi === 'Ditolak') {
-                    message =
-                        "Harap Periksa Fasilitasi anda sesuai dengan catatan pengajuan Rancangan anda sebelumnya , perbaiki dan upload ulang. Anda bisa ke kolom Aksi tekan tombol ⚙️ -> pilih Upload Ulang Fasilitasi! 😏";
-                } else if (status === 'Disetujui' && validasi === 'Menunggu Validasi') {
-                    message =
-                        "Fasilitasi Rancangan Telah Disetujui ✅, Menunggu Konfirmasi dari Verifikator. Mohon Ditunggu 🙂!";
-                } else if (validasi === 'Diterima' && nota === 'false') {
-                    message = "Validasi Diterima ✅, Menunggu Nota Dinas Dibuat. Harap sabar ya!🤌 ";
-                } else if (validasi === 'Diterima' && nota === 'true') {
-                    message =
-                        "Nota Dinas Telah Dibuat 🗒️. Kamu bisa cetak di Aksi ⚙️-> Cetak Nota Dinas, atau Kamu ke halaman Nota lalu cetak !🔥. Sekarang Anda dapat Mengajukan Fasilitasi secara daring. 📑⚖️";
-                }
-
-                let toastElement = document.getElementById("statusToast");
-                if (toastElement) {
-                    document.getElementById("toastMessage").innerText = message;
-                    $(toastElement).toast("show");
-                } else {
-                    console.error("Elemen toast tidak ditemukan!");
-                }
-            }
-
-            // Inisialisasi saat pertama kali halaman dimuat
-            initializeToastButtons();
-
-            // Inisialisasi ulang setelah setiap perubahan Livewire
-            Livewire.hook("message.processed", (message, component) => {
-                initializeToastButtons();
-            });
-
-            // Jika menggunakan event Livewire
-            Livewire.on("refreshToastButtons", () => {
-                initializeToastButtons();
-            });
-        });
-    </script>
 </div>

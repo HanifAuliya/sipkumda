@@ -138,7 +138,7 @@
                                 <div class="alert alert-default alert-dismissible fade show mb-2 mt-4" role="alert">
                                     <span class="alert-icon"><i class="bi bi-pencil-square"></i></span>
                                     <span class="alert-text">
-                                        <strong>Proses!</strong> Rancangan sedang dalam proses revisi.
+                                        <strong>Proses!</strong> Rancangan sedang dalam proses penelitian.
                                     </span>
                                     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                                         <span aria-hidden="true">&times;</span>
@@ -218,18 +218,18 @@
                                         <div class="card-header">
                                             <h5 class="mb-0 ">Informasi Utama</h5>
                                         </div>
-                                        <div class="card-body">
+                                        <div class="card-body table-responsive modal-table mt--3">
                                             <table class="table table-sm table-borderless">
                                                 <tbody>
                                                     <tr>
                                                         <th class="info-text w-25">Nomor</th>
-                                                        <td class="wrap-text w-75">
+                                                        <td class="text-wrap w-75">
                                                             {{ $item->no_rancangan ?? 'N/A' }}
                                                         </td>
                                                     </tr>
                                                     <tr>
                                                         <th class="info-text w-25">Jenis</th>
-                                                        <td class="wrap-text w-75">
+                                                        <td class="text-wrap w-75">
                                                             @if ($item && $item->jenis_rancangan)
                                                                 <mark
                                                                     class="badge-{{ $item->jenis_rancangan === 'Peraturan Bupati' ? 'primary' : '' }} badge-pill">
@@ -242,13 +242,13 @@
                                                     </tr>
                                                     <tr>
                                                         <th class="info-text w-25">Tentang</th>
-                                                        <td class="wrap-text w-75">
+                                                        <td class="text-wrap w-75">
                                                             {{ $item->tentang ?? 'N/A' }}
                                                         </td>
                                                     </tr>
                                                     <tr>
                                                         <th class="info-text w-25">Tanggal Pengajuan</th>
-                                                        <td class="wrap-text w-75">
+                                                        <td class="text-wrap w-75">
                                                             {{ $item->tanggal_pengajuan
                                                                 ? \Carbon\Carbon::parse($item->tanggal_pengajuan)->translatedFormat('d F Y, H:i')
                                                                 : 'N/A' }}
@@ -256,31 +256,31 @@
                                                     </tr>
                                                     <tr>
                                                         <th class="info-text w-25">User Pengaju</th>
-                                                        <td class="wrap-text w-75">
+                                                        <td class="text-wrap w-75">
                                                             {{ $item->user->nama_user ?? 'N/A' }}
                                                         </td>
                                                     </tr>
                                                     <tr>
                                                         <th class="info-text w-25">Perangkat Daerah</th>
-                                                        <td class="wrap-text w-75">
+                                                        <td class="text-wrap w-75">
                                                             {{ $item->user->perangkatDaerah->nama_perangkat_daerah ?? 'N/A' }}
                                                         </td>
                                                     </tr>
                                                     <tr>
                                                         <th class="info-text w-25">Nomor Nota</th>
-                                                        <td class="wrap-text w-75">
+                                                        <td class="text-wrap w-75">
                                                             {{ $item->nomor_nota ?? 'N/A' }}
                                                         </td>
                                                     </tr>
                                                     <tr>
                                                         <th class="info-text w-25">Tanggal Nota</th>
-                                                        <td class="wrap-text w-75">
+                                                        <td class="text-wrap w-75">
                                                             {{ $item->tanggal_nota ? \Carbon\Carbon::parse($item->tanggal_nota)->translatedFormat('d F Y') : 'N/A' }}
                                                         </td>
                                                     </tr>
                                                     <tr>
                                                         <th class="info-text w-25">Status Rancangan</th>
-                                                        <td class="wrap-text w-75">
+                                                        <td class="text-wrap w-75">
                                                             @if ($item && $item->status_rancangan)
                                                                 <mark
                                                                     class="badge-{{ $item->status_rancangan === 'Disetujui'
@@ -297,7 +297,7 @@
                                                     </tr>
                                                     <tr>
                                                         <th class="info-text w-25">Tanggal Rancangan disetujui</th>
-                                                        <td class="wrap-text w-75">
+                                                        <td class="text-wrap w-75">
                                                             {{ $item->tanggal_rancangan_disetujui
                                                                 ? \Carbon\Carbon::parse($item->tanggal_rancangan_disetujui)->translatedFormat('d F Y, H:i')
                                                                 : 'N/A' }}
@@ -306,21 +306,21 @@
                                                     <tr>
                                                         <th class="info-text w-25">Status Berkas</th>
                                                         @if ($item && $item->status_berkas)
-                                                            <td class="wrap-text w-75">
+                                                            <td class="text-wrap w-75">
                                                                 <mark
                                                                     class="badge-{{ $item->status_berkas === 'Disetujui' ? 'success' : ($item->status_berkas === 'Ditolak' ? 'danger' : 'warning') }} badge-pill">
                                                                     {{ $item->status_berkas }}
                                                                 </mark>
                                                             </td>
                                                         @else
-                                                            <td class="wrap-text w-75">
+                                                            <td class="text-wrap w-75">
                                                                 <span class="badge badge-secondary">N/A</span>
                                                             </td>
                                                         @endif
                                                     </tr>
                                                     <tr>
                                                         <th class="info-text w-25">Tanggal Berkas Disetujui</th>
-                                                        <td class="wrap-text w-75">
+                                                        <td class="text-wrap w-75">
                                                             {{ $item->tanggal_berkas_disetujui
                                                                 ? \Carbon\Carbon::parse($item->tanggal_berkas_disetujui)->translatedFormat('d F Y, H:i')
                                                                 : 'N/A' }}
@@ -328,12 +328,12 @@
                                                     </tr>
                                                     <tr>
                                                         <th class="info-text w-25">Nota Dinas</th>
-                                                        <td class="wrap-text w-75">
+                                                        <td class="text-wrap w-75">
                                                             @if (isset($item->nota_dinas_pd))
                                                                 <a href="{{ url('/view-private/rancangan/nota_dinas/' . basename($item->nota_dinas_pd)) }}"
                                                                     target="_blank" class="d-flex align-items-center">
-                                                                    <i class="bi bi-file-earmark-pdf mr-2"
-                                                                        style="font-size: 1.5rem; color: #ffc107;"></i>
+                                                                    <i
+                                                                        class="bi bi-file-earmark-pdf mr-2 text-warning"></i>
                                                                     <span>Lihat Nota</span>
                                                                 </a>
                                                             @else
@@ -343,12 +343,12 @@
                                                     </tr>
                                                     <tr>
                                                         <th class="info-text w-25">File Rancangan</th>
-                                                        <td class="wrap-text w-75">
+                                                        <td class="text-wrap w-75">
                                                             @if (isset($item->rancangan))
                                                                 <a href="{{ url('/view-private/rancangan/rancangan/' . basename($item->rancangan)) }}"
                                                                     target="_blank" class="d-flex align-items-center">
-                                                                    <i class="bi bi-file-earmark-pdf mr-2"
-                                                                        style="font-size: 1.5rem; color: #007bff;"></i>
+                                                                    <i
+                                                                        class="bi bi-file-earmark-word mr-2 text-primary"></i>
                                                                     <span>Lihat Rancangan</span>
                                                                 </a>
                                                             @else
@@ -358,12 +358,12 @@
                                                     </tr>
                                                     <tr>
                                                         <th class="info-text w-25">Matrik</th>
-                                                        <td class="wrap-text w-75">
+                                                        <td class="text-wrap w-75">
                                                             @if (isset($item->matrik))
                                                                 <a href="{{ url('/view-private/rancangan/matrik/' . basename($item->matrik)) }}"
                                                                     target="_blank" class="d-flex align-items-center">
-                                                                    <i class="bi bi-file-earmark-pdf mr-2"
-                                                                        style="font-size: 1.5rem; color: #28a745;"></i>
+                                                                    <i
+                                                                        class="bi bi-file-earmark-word mr-2 text-success"></i>
                                                                     <span>Lihat Matrik</span>
                                                                 </a>
                                                             @else
@@ -373,12 +373,12 @@
                                                     </tr>
                                                     <tr>
                                                         <th class="info-text w-25">Bahan Pendukung</th>
-                                                        <td class="wrap-text w-75">
+                                                        <td class="text-wrap w-75">
                                                             @if (isset($item->bahan_pendukung))
                                                                 <a href="{{ url('/view-private/rancangan/bahan_pendukung/' . basename($item->bahan_pendukung)) }}"
                                                                     target="_blank" class="d-flex align-items-center">
-                                                                    <i class="bi bi-file-earmark-pdf mr-2"
-                                                                        style="font-size: 1.5rem; color: #dc3545;"></i>
+                                                                    <i
+                                                                        class="bi bi-file-earmark-pdf mr-2 text-danger"></i>
                                                                     <span>Lihat Bahan</span>
                                                                 </a>
                                                             @else
@@ -388,7 +388,7 @@
                                                     </tr>
                                                     <tr>
                                                         <th class="info-text w-25">Catatan Berkas</th>
-                                                        <td class="wrap-text w-75">
+                                                        <td class="text-wrap w-75">
                                                             {{ $item->catatan_berkas ?? 'Tidak Ada Catatan' }}
                                                         </td>
                                                     </tr>
@@ -401,16 +401,16 @@
                                 <div class="col-md-6 mb-2">
                                     <div class="card mb-3">
                                         <div class="card-header">
-                                            <h5 class="mb-0 ">Informasi Utama</h5>
+                                            <h5 class="mb-0 ">Informasi Hasil Penelitian</h5>
                                         </div>
-                                        <div class="card-body">
+                                        <div class="card-body table-responsive modal-table mt--3">
                                             @if ($item && $item->revisi->isNotEmpty())
                                                 @foreach ($item->revisi as $revisi)
                                                     <table class="table table-sm table-borderless">
                                                         <tbody>
                                                             <tr>
                                                                 <th class="info-text w-25">Status Revisi</th>
-                                                                <td class="wrap-text w-75">
+                                                                <td class="text-wrap w-75">
                                                                     <mark
                                                                         class="badge-{{ $revisi->status_revisi === 'Direvisi'
                                                                             ? 'success'
@@ -427,7 +427,7 @@
                                                             </tr>
                                                             <tr>
                                                                 <th class="info-text w-25">Status Validasi Revisi</th>
-                                                                <td class="wrap-text w-75">
+                                                                <td class="text-wrap w-75">
                                                                     <mark
                                                                         class="badge-{{ $revisi->status_validasi === 'Diterima'
                                                                             ? 'success'
@@ -442,7 +442,7 @@
                                                             </tr>
                                                             <tr>
                                                                 <th class="info-text w-25">Tanggal Revisi</th>
-                                                                <td class="wrap-text w-75">
+                                                                <td class="text-wrap w-75">
                                                                     {{ $revisi->tanggal_revisi
                                                                         ? \Carbon\Carbon::parse($revisi->tanggal_revisi)->translatedFormat('d F Y, H:i')
                                                                         : 'N/A' }}
@@ -450,7 +450,7 @@
                                                             </tr>
                                                             <tr>
                                                                 <th class="info-text w-25">Tanggal Validasi</th>
-                                                                <td class="wrap-text w-75">
+                                                                <td class="text-wrap w-75">
                                                                     {{ $revisi->tanggal_validasi
                                                                         ? \Carbon\Carbon::parse($revisi->tanggal_validasi)->translatedFormat('d F Y, H:i')
                                                                         : 'N/A' }}
@@ -458,58 +458,40 @@
                                                             </tr>
                                                             <tr>
                                                                 <th class="info-text w-25">Peneliti</th>
-                                                                <td class="wrap-text w-75">
+                                                                <td class="text-wrap w-75">
                                                                     {{ $revisi->peneliti->nama_user ?? 'Belum Ditentukan' }}
                                                                 </td>
                                                             </tr>
                                                             <tr>
                                                                 <th class="info-text w-25">Tanggal Peneliti Ditunjuk
                                                                 </th>
-                                                                <td class="wrap-text w-75">
+                                                                <td class="text-wrap w-75">
                                                                     {{ $revisi->tanggal_peneliti_ditunjuk
                                                                         ? \Carbon\Carbon::parse($revisi->tanggal_peneliti_ditunjuk)->translatedFormat('d F Y H:i')
                                                                         : 'N/A' }}
                                                                 </td>
                                                             </tr>
-                                                            @if (!auth()->user()->hasRole('Perangkat Daerah'))
-                                                                <tr>
-                                                                    <th class="info-text w-25">Revisi Rancangan</th>
-                                                                    <td class="wrap-text w-75">
-                                                                        @if (isset($revisi->revisi_rancangan))
-                                                                            <a href="{{ url('/view-private/revisi/rancangan/' . basename($revisi->revisi_rancangan)) }}"
-                                                                                target="_blank"
-                                                                                class="d-flex align-items-center">
-                                                                                <i class="bi bi-file-earmark-pdf mr-2"
-                                                                                    style="font-size: 1.5rem; color: #007bff;"></i>
-                                                                                <span>Lihat Revisi Rancangan</span>
-                                                                            </a>
-                                                                        @else
-                                                                            <span style="color: #6c757d;">Data Tidak
-                                                                                Ada</span>
-                                                                        @endif
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <th class="info-text w-25">Revisi Matrik</th>
-                                                                    <td class="wrap-text w-75">
-                                                                        @if (isset($revisi->revisi_matrik))
-                                                                            <a href="{{ url('/view-private/revisi/matrik/' . basename($revisi->revisi_matrik)) }}"
-                                                                                target="_blank"
-                                                                                class="d-flex align-items-center">
-                                                                                <i class="bi bi-file-earmark-pdf mr-2"
-                                                                                    style="font-size: 1.5rem; color: #28a745;"></i>
-                                                                                <span>Lihat Matrik Revisi</span>
-                                                                            </a>
-                                                                        @else
-                                                                            <span style="color: #6c757d;">Data Tidak
-                                                                                Ada</span>
-                                                                        @endif
-                                                                    </td>
-                                                                </tr>
-                                                            @endif
+                                                            <tr>
+                                                                <th class="info-text w-25">Revisi Matrik</th>
+                                                                <td class="text-wrap w-75">
+                                                                    @if (isset($revisi->revisi_matrik))
+                                                                        <a href="{{ url('/view-private/revisi/matrik/' . basename($revisi->revisi_matrik)) }}"
+                                                                            target="_blank"
+                                                                            class="d-flex align-items-center">
+                                                                            <i
+                                                                                class="bi bi-file-earmark-word mr-2 text-success"></i>
+                                                                            <span>Lihat Matrik Revisi</span>
+                                                                        </a>
+                                                                    @else
+                                                                        <span style="color: #6c757d;">Data Tidak
+                                                                            Ada</span>
+                                                                    @endif
+                                                                </td>
+                                                            </tr>
+
                                                             <tr>
                                                                 <th class="info-text w-25">Catatan Revisi</th>
-                                                                <td class="wrap-text w-75">
+                                                                <td class="text-wrap w-75">
                                                                     {{ $revisi->catatan_revisi ?? 'Tidak Ada Catatan' }}
                                                                 </td>
                                                             </tr>
@@ -609,7 +591,7 @@
                                     <i class="bi bi-file-earmark text-primary"></i>
                                     {{ ucfirst(str_replace('_', ' ', $fileField)) }}
                                     <small class="text-muted d-block">Unggah dokumen dalam format PDF (max:
-                                        5MB).</small>
+                                        20MB).</small>
                                 </label>
 
                                 <input type="file" class="form-control" wire:model="{{ $fileField }}"

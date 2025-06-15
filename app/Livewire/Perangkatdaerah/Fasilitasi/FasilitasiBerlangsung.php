@@ -56,7 +56,7 @@ class FasilitasiBerlangsung extends Component
     public function uploadUlangRevisi()
     {
         $this->validate([
-            'fileRancanganUlang' => 'required|file|mimes:pdf|max:2048',
+            'fileRancanganUlang' => 'required|file|mimes:pdf|max:20480',
         ]);
 
         // Temukan fasilitasi berdasarkan ID

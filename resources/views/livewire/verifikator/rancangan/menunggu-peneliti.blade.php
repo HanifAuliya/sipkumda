@@ -119,16 +119,6 @@
         @endforelse
 
         <div class="d-flex justify-content-between align-items-center flex-wrap">
-            <div class="mb-2 mb-md-0">
-                @if ($rancangan->total() > 0)
-                    Menampilkan {{ $rancangan->firstItem() }} hingga
-                    {{ $rancangan->lastItem() }} dari
-                    {{ $rancangan->total() }}
-                    data
-                @else
-                    Tidak ada data yang tersedia.
-                @endif
-            </div>
             <div class="d-flex justify-content-center w-100 w-md-auto">
                 {{ $rancangan->links('pagination::bootstrap-4') }}
             </div>
@@ -149,22 +139,19 @@
                                 <div class="card-header">
                                     <h4 class="mb-0">Informasi Utama</h4>
                                 </div>
-                                <div class="card-body">
-                                    <p class="description info-text mb-3">Berikut adalah informasi dasar dari
-                                        rancangan
-                                        yang
-                                        diajukan. Pastikan semua informasi sudah sesuai.</p>
+                                <div class="card-body modal-table mt--3">
+
                                     <table class="table table-sm table-borderless">
                                         <tbody>
                                             <tr>
                                                 <th class="info-text w-25">Nomor</th>
-                                                <td class="wrap-text w-75">
+                                                <td class="text-wrap w-75">
                                                     {{ $selectedRancangan->no_rancangan ?? 'N/A' }}
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <th class="info-text w-25">Jenis</th>
-                                                <td class="wrap-text w-75">
+                                                <td class="text-wrap w-75">
                                                     <mark
                                                         class="badge-{{ $selectedRancangan->jenis_rancangan === 'Peraturan Bupati' ? 'primary' : '' }} badge-pill">
                                                         {{ $selectedRancangan->jenis_rancangan ?? 'N/A' }}
@@ -173,31 +160,31 @@
                                             </tr>
                                             <tr>
                                                 <th class="info-text w-25">Tentang</th>
-                                                <td class="wrap-text w-75">
+                                                <td class="text-wrap w-75">
                                                     {{ $selectedRancangan->tentang ?? 'N/A' }}
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <th class="info-text w-25">Tanggal Pengajuan</th>
-                                                <td class="wrap-text w-75">
+                                                <td class="text-wrap w-75">
                                                     {{ $selectedRancangan->tanggal_pengajuan ? \Carbon\Carbon::parse($selectedRancangan->tanggal_pengajuan)->translatedFormat('d F Y, H:i') : 'N/A' }}
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <th class="info-text w-25">User Pengaju</th>
-                                                <td class="wrap-text w-75">
+                                                <td class="text-wrap w-75">
                                                     {{ $selectedRancangan->user->nama_user ?? 'N/A' }}
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <th class="info-text w-25">Perangkat Daerah</th>
-                                                <td class="wrap-text w-75">
+                                                <td class="text-wrap w-75">
                                                     {{ $selectedRancangan->user->perangkatDaerah->nama_perangkat_daerah ?? 'N/A' }}
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <th class="info-text w-25">Status Rancangan</th>
-                                                <td class="wrap-text w-75">
+                                                <td class="text-wrap w-75">
                                                     <mark
                                                         class="badge-{{ $selectedRancangan->status_rancangan === 'Disetujui' ? 'success' : ($selectedRancangan->status_rancangan === 'Ditolak' ? 'danger' : 'warning') }} badge-pill">
                                                         {{ $selectedRancangan->status_rancangan ?? 'N/A' }}
@@ -206,7 +193,7 @@
                                             </tr>
                                             <tr>
                                                 <th class="info-text w-25">Nota Dinas</th>
-                                                <td class="wrap-text w-75">
+                                                <td class="text-wrap w-75">
                                                     @if ($selectedRancangan->nota_dinas_pd)
                                                         <a href="{{ url('/view-private/rancangan/nota_dinas/' . basename($selectedRancangan->nota_dinas_pd)) }}"
                                                             target="_blank">
@@ -220,7 +207,7 @@
                                             </tr>
                                             <tr>
                                                 <th class="info-text w-25">File Rancangan</th>
-                                                <td class="wrap-text w-75">
+                                                <td class="text-wrap w-75">
                                                     @if ($selectedRancangan->rancangan)
                                                         <a href="{{ url('/view-private/rancangan/rancangan/' . basename($selectedRancangan->rancangan)) }}"
                                                             target="_blank">
@@ -234,7 +221,7 @@
                                             </tr>
                                             <tr>
                                                 <th class="info-text w-25">Matrik</th>
-                                                <td class="wrap-text w-75">
+                                                <td class="text-wrap w-75">
                                                     @if ($selectedRancangan->matrik)
                                                         <a href="{{ url('/view-private/rancangan/matrik/' . basename($selectedRancangan->matrik)) }}"
                                                             target="_blank">
@@ -248,7 +235,7 @@
                                             </tr>
                                             <tr>
                                                 <th class="info-text w-25">Bahan Pendukung</th>
-                                                <td class="wrap-text w-75">
+                                                <td class="text-wrap w-75">
                                                     @if ($selectedRancangan->bahan_pendukung)
                                                         <a href="{{ url('/view-private/rancangan/bahan_pendukung/' . basename($selectedRancangan->bahan_pendukung)) }}"
                                                             target="_blank">
@@ -262,7 +249,7 @@
                                             </tr>
                                             <tr>
                                                 <th class="info-text w-25">Status Berkas</th>
-                                                <td class="wrap-text w-75">
+                                                <td class="text-wrap w-75">
                                                     <mark
                                                         class="badge-{{ $selectedRancangan->status_berkas === 'Disetujui' ? 'success' : ($selectedRancangan->status_berkas === 'Ditolak' ? 'danger' : 'warning') }} badge-pill">
                                                         {{ $selectedRancangan->status_berkas ?? 'N/A' }}
@@ -271,7 +258,7 @@
                                             </tr>
                                             <tr>
                                                 <th class="info-text w-25">Tanggal Berkas Disetujui</th>
-                                                <td class="wrap-text w-75">
+                                                <td class="text-wrap w-75">
                                                     {{ $selectedRancangan->tanggal_berkas_disetujui
                                                         ? \Carbon\Carbon::parse($selectedRancangan->tanggal_berkas_disetujui)->translatedFormat('d F Y, H:i')
                                                         : 'N/A' }}
@@ -280,7 +267,7 @@
 
                                             <tr>
                                                 <th class="info-text w-25">Catatan Berkas</th>
-                                                <td class="wrap-text w-75">
+                                                <td class="text-wrap w-75">
                                                     {{ $selectedRancangan->catatan_berkas ?? 'Tidak Ada Catatan' }}
                                                 </td>
                                             </tr>
@@ -291,17 +278,13 @@
                             </div>
                         </div>
 
-                        {{--  Detail Revisi --}}
+                        {{--  Detail Penelitian --}}
                         <div class="col-md-6 mb-4">
                             <div class="card shadow-sm">
                                 <div class="card-header">
-                                    <h4 class="mb-0">Detail Revisi</h4>
+                                    <h4 class="mb-0">Detail Penelitian</h4>
                                 </div>
-                                <div class="card-body">
-                                    <p class="description info-text mb-3">Pastikan file yang diajukan sudah lengkap
-                                        dan
-                                        sesuai.
-                                        Anda dapat mengunduh file untuk memverifikasinya.</p>
+                                <div class="card-body modal-table mt--3">
                                     <table class="table table-sm table-borderless">
                                         <tbody>
                                             @foreach ($selectedRancangan->revisi as $revisi)
@@ -333,24 +316,6 @@
                                                     </td>
                                                 </tr>
                                                 <tr>
-                                                    <th>Revisi Rancangan</th>
-                                                    <td class="info-text">
-                                                        @if ($revisi->revisi_rancangan)
-                                                            <a href="{{ asset('storage/' . $revisi->revisi_rancangan) }}"
-                                                                target="_blank" class="d-flex align-items-center">
-                                                                <i
-                                                                    class="bi bi-file-earmark-text mr-2 text-primary"></i>
-                                                                <span>Download Revisi</span>
-                                                            </a>
-                                                        @else
-                                                            <span class="text-muted d-flex align-items-center">
-                                                                <i class="bi bi-file-earmark-x mr-2 text-danger"></i>
-                                                                <span>Revisi Tidak Tersedia</span>
-                                                            </span>
-                                                        @endif
-                                                    </td>
-                                                </tr>
-                                                <tr>
                                                     <th>Revisi Matrik</th>
                                                     <td class="info-text">
                                                         @if ($revisi->revisi_matrik)
@@ -370,65 +335,66 @@
                                                 </tr>
                                                 <tr>
                                                     <th>Catatan Revisi</th>
-                                                    <td class="wrap-text">
+                                                    <td class="text-wrap">
                                                         {{ $revisi->catatan_revisi ?? 'Tidak Ada Catatan' }}
                                                     </td>
                                                 </tr>
                                             @endforeach
                                         </tbody>
                                     </table>
-                                </div>
-                                {{-- Select Dropdown dengan Select2 --}}
-                                <div class="card-body">
-                                    {{-- Penjelasan Pilihan Peneliti --}}
-                                    @if ($selectedRancangan && $selectedRancangan->revisi->first()?->id_user)
-                                        {{-- Alert Peneliti Sudah Dipilih --}}
-                                        <div class="alert alert-default" role="alert">
-                                            <i class="bi bi-info-circle"></i>
-                                            Peneliti
-                                            <strong>{{ $selectedRancangan->revisi->first()?->peneliti->nama_user }}</strong>
-                                            telah ditetapkan sebagai peneliti.
-                                            Silahkan cek menu <strong>Peneliti Ditugaskan</strong> untuk informasi
-                                            lebih lanjut.
+                                    {{-- Select Dropdown dengan Select2 --}}
+                                    <div class="card-body">
+                                        {{-- Penjelasan Pilihan Peneliti --}}
+                                        @if ($selectedRancangan && $selectedRancangan->revisi->first()?->id_user)
+                                            {{-- Alert Peneliti Sudah Dipilih --}}
+                                            <div class="alert alert-default" role="alert">
+                                                <i class="bi bi-info-circle"></i>
+                                                Peneliti
+                                                <strong>{{ $selectedRancangan->revisi->first()?->peneliti->nama_user }}</strong>
+                                                telah ditetapkan sebagai peneliti.
+                                                Silahkan cek menu <strong>Peneliti Ditugaskan</strong> untuk informasi
+                                                lebih lanjut.
+                                            </div>
+                                        @else
+                                            {{-- Form Pilih Peneliti --}}
+                                            <p class="info-text description">
+                                                Silahkan pilih peneliti dari daftar di bawah ini untuk menugaskan
+                                                rancangan yang sedang diproses.
+                                            </p>
+                                            <div class="form-group">
+                                                <label for="peneliti">
+                                                    <h4>Pilih Peneliti</h4>
+                                                </label>
+                                                {{-- Dropdown dengan Select2 --}}
+                                                <select id="peneliti" class="form-control select2"
+                                                    wire:model="selectedPeneliti">
+                                                    <option hidden>Pilih Peneliti...</option>
+                                                    @foreach ($listPeneliti as $peneliti)
+                                                        <option value="{{ $peneliti->id }}">
+                                                            {{ $peneliti->nama_user }}</option>
+                                                    @endforeach
+                                                </select>
+                                                @error('selectedPeneliti')
+                                                    <span class="text-danger">{{ $message }}</span>
+                                                @enderror
+                                            </div>
+                                        @endif
+                                        <div class="text-right">
+                                            {{-- Tombol Batal --}}
+                                            <button class="btn btn-outline-warning" data-dismiss="modal"
+                                                wire:click="resetDetail">
+                                                <i class="bi bi-x-circle"></i> Batal
+                                            </button>
+                                            {{-- Tombol Simpan dengan wire:loading --}}
+                                            <button class="btn btn-outline-default" wire:click="assignPeneliti"
+                                                wire:loading.attr="disabled">
+                                                <i class="bi bi-person-add" wire:loading.remove></i>
+                                                <span wire:loading.remove>Pilih Peneliti</span>
+                                                <i class="spinner-border spinner-border-sm text-light"
+                                                    wire:loading></i>
+                                                <span wire:loading>Memproses...</span>
+                                            </button>
                                         </div>
-                                    @else
-                                        {{-- Form Pilih Peneliti --}}
-                                        <p class="info-text description">
-                                            Silahkan pilih peneliti dari daftar di bawah ini untuk menugaskan
-                                            rancangan yang sedang diproses.
-                                        </p>
-                                        <div class="form-group">
-                                            <label for="peneliti">
-                                                <h4>Pilih Peneliti</h4>
-                                            </label>
-                                            {{-- Dropdown dengan Select2 --}}
-                                            <select id="peneliti" class="form-control select2"
-                                                wire:model="selectedPeneliti">
-                                                <option hidden>Pilih Peneliti...</option>
-                                                @foreach ($listPeneliti as $peneliti)
-                                                    <option value="{{ $peneliti->id }}">
-                                                        {{ $peneliti->nama_user }}</option>
-                                                @endforeach
-                                            </select>
-                                            @error('selectedPeneliti')
-                                                <span class="text-danger">{{ $message }}</span>
-                                            @enderror
-                                        </div>
-                                    @endif
-                                    <div class="text-right">
-                                        {{-- Tombol Batal --}}
-                                        <button class="btn btn-outline-warning" data-dismiss="modal"
-                                            wire:click="resetDetail">
-                                            <i class="bi bi-x-circle"></i> Batal
-                                        </button>
-                                        {{-- Tombol Simpan dengan wire:loading --}}
-                                        <button class="btn btn-outline-default" wire:click="assignPeneliti"
-                                            wire:loading.attr="disabled">
-                                            <i class="bi bi-person-add" wire:loading.remove></i>
-                                            <span wire:loading.remove>Pilih Peneliti</span>
-                                            <i class="spinner-border spinner-border-sm text-light" wire:loading></i>
-                                            <span wire:loading>Memproses...</span>
-                                        </button>
                                     </div>
                                 </div>
                             </div>

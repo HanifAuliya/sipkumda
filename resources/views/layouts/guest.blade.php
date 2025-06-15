@@ -61,24 +61,24 @@
 
                 {{-- Judul Besar SIPKUMDA dengan Animasi --}}
                 <div class="text-center animated-title">
-                    <h1 class="fw-bold text-warning fs-3 fs-md-1">SIFKUMDA</h1>
-                    <h5 class="text-muted fs-6 fs-md-4">Sistem Fasilitasi Produk Hukum Daerah</h5>
+                    <h1 class="fw-bold text-warning display-5 display-md-3 mb-2">SIFKUMDA</h1>
+                    <h5 class="text-muted fs-6 fs-md-5">Sistem Fasilitasi Produk Hukum Daerah</h5>
                 </div>
 
                 {{-- Penjelasan dengan Animasi --}}
-                <div class="text-center mt-3 animated-description">
-                    <h1 class="mb-3 fs-2 fs-md-3">Transparan, Efisien, dan Terintegrasi</h1>
-                    <p class="text-muted fs-7 fs-md-5">
-                        Platform digital yang mempermudah <span class="text-primary fw-semibold">pengajuan</span>,
-                        <span class="text-primary fw-semibold">revisi</span>, dan <span
-                            class="text-primary fw-semibold">fasilitasi</span>
-                        produk hukum daerah secara elektronik.
+                <div class="text-center mt-4 animated-description">
+                    <p class="text-muted fs-6 fs-md-5">
+                        Platform digital yang mempermudah
+                        <span class="text-primary fw-semibold">pengajuan</span>,
+                        <span class="text-primary fw-semibold">fasilitasi</span>, dan
+                        <span class="text-primary fw-semibold">dokumentasi</span> produk hukum daerah secara elektronik.
                         Dengan sistem ini, setiap perangkat daerah dapat mengelola dan memantau rancangan produk hukum
                         secara lebih <span class="text-primary fw-semibold">transparan</span>,
                         <span class="text-primary fw-semibold">efisien</span>, dan
                         <span class="text-primary fw-semibold">terintegrasi</span>.
                     </p>
                 </div>
+
 
             </div>
             {{ $slot }}

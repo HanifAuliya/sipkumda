@@ -88,23 +88,6 @@
                                 </table>
                             @endif
 
-                            {{-- Input File Revisi Rancangan --}}
-                            <div class="mb-4">
-                                <label for="revisiRancangan" class="font-weight-bold form-control-label">
-                                    <i class="bi bi-file-earmark-pdf text-primary"></i> File Revisi Rancangan
-                                    <small class="text-muted d-block">Unggah dokumen rancangan dalam format PDF
-                                        (max:
-                                        2MB).</small>
-                                </label>
-                                <input type="file" class="form-control" wire:model="revisiRancangan"
-                                    accept=".pdf" />
-                                <div wire:loading wire:target="revisiRancangan" class="text-info mt-2">
-                                    <i class="spinner-border spinner-border-sm"></i> Mengunggah...
-                                </div>
-                                @error('revisiRancangan')
-                                    <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                            </div>
 
                             {{-- Input File Revisi Matrik --}}
                             <div class="mb-4">

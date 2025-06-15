@@ -1,20 +1,20 @@
 @section('title', 'Persetujuan Fasilitasi')
 
+
 @section('manual')
     <div class="card  mb--2">
         <div class="card-header d-flex justify-content-between align-items-center">
             <div class="d-flex flex-column">
-                <h3 class="mb-0">Panduan Verifikasi Berkas</h3>
+                <h3 class="mb-0">Menu Persetujuan Fasilitasi</h3>
                 <p class="description">
-                    © Hak Cipta Bagian Hukum Sekretariat Daerah Kabupaten Hulu
-                    Sungai Tengah.
+                    Fasilitasi Rancangan Produk Hukum
                 </p>
             </div>
 
             {{-- Tombol untuk Verifikator --}}
-            <button class="btn btn-outline-warning">
-                <i class="bi bi-info-circle"></i> Panduan
-            </button>
+            <a href="{{ route('dashboard') }}" class="btn btn-outline-primary">
+                <i class="bi bi-skip-backward mr-2"></i> Kembali
+            </a>
         </div>
     </div>
 @endsection
@@ -39,8 +39,7 @@
                 <li class="nav-item">
                     <a href="#" class="nav-link {{ $activeTab === 'riwayat-persetujuan' ? 'active' : '' }}"
                         wire:click.prevent="switchTab('riwayat-persetujuan')">
-                        <i class="bi bi-clock-history"></i> Riwayat Fasilitasi
-                        Riwayat Persetujuan
+                        <i class="bi bi-clock-history"></i> Riwayat Persetujuan Fasilitasi
                     </a>
                 </li>
             </ul>

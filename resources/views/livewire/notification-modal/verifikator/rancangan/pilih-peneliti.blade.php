@@ -12,11 +12,8 @@
                                     <div class="card-header">
                                         <h4 class="mb-0">Informasi Utama</h4>
                                     </div>
-                                    <div class="card-body">
-                                        <p class="description info-text mb-3">Berikut adalah informasi dasar dari
-                                            rancangan
-                                            yang
-                                            diajukan. Pastikan semua informasi sudah sesuai.</p>
+                                    <div class="card-body table-responsive modal-table mt--3">
+
                                         <table class="table table-sm table-borderless">
                                             <tbody>
                                                 <tr>
@@ -148,17 +145,13 @@
                                 </div>
                             </div>
 
-                            {{--  Detail Revisi --}}
+                            {{--  Detail Penelitian --}}
                             <div class="col-md-6 mb-4">
                                 <div class="card shadow-sm">
                                     <div class="card-header">
-                                        <h4 class="mb-0">Detail Revisi</h4>
+                                        <h4 class="mb-0">Detail Penelitian</h4>
                                     </div>
-                                    <div class="card-body">
-                                        <p class="description info-text mb-3">Pastikan file yang diajukan sudah lengkap
-                                            dan
-                                            sesuai.
-                                            Anda dapat mengunduh file untuk memverifikasinya.</p>
+                                    <div class="card-body table-responsive modal-table mt--3">
                                         <table class="table table-sm table-borderless">
                                             <tbody>
                                                 @foreach ($selectedRancangan->revisi as $revisi)
@@ -189,25 +182,6 @@
                                                         <th class="info-text w-25">Tanggal Peneliti Ditunjuk</th>
                                                         <td class="wrap-text w-75">
                                                             {{ $revisi->tanggal_peneliti_ditunjuk ? \Carbon\Carbon::parse($revisi->tanggal_peneliti_ditunjuk)->translatedFormat('d F Y, H:i') : 'Belum Ditentukan' }}
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th class="info-text w-25">Revisi Rancangan</th>
-                                                        <td class="wrap-text w-75">
-                                                            @if ($revisi->revisi_rancangan)
-                                                                <a href="{{ asset('storage/' . $revisi->revisi_rancangan) }}"
-                                                                    target="_blank" class="d-flex align-items-center">
-                                                                    <i
-                                                                        class="bi bi-file-earmark-text mr-2 text-primary"></i>
-                                                                    <span>Download Revisi</span>
-                                                                </a>
-                                                            @else
-                                                                <span class="text-muted d-flex align-items-center">
-                                                                    <i
-                                                                        class="bi bi-file-earmark-x mr-2 text-danger"></i>
-                                                                    <span>Revisi Tidak Tersedia</span>
-                                                                </span>
-                                                            @endif
                                                         </td>
                                                     </tr>
                                                     <tr>

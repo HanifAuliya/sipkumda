@@ -1,7 +1,23 @@
-@section('title', 'Revisi Rancangan')
-
 {{-- Header --}}
-@section('header', 'Menu Revisi')
+@section('title', 'Menu Penelitian')
+
+@section('manual')
+    <div class="card  mb--2">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div class="d-flex flex-column">
+                <h3 class="mb-0">Menu Penelitian</h3>
+                <p class="description">
+                    Pengajuan Rancangan Produk Hukum
+                </p>
+            </div>
+
+            {{-- Tombol untuk Verifikator --}}
+            <a href="{{ route('dashboard') }}" class="btn btn-outline-primary">
+                <i class="bi bi-skip-backward mr-2"></i> Kembali
+            </a>
+        </div>
+    </div>
+@endsection
 <div>
     <div class="card shadow-sm">
         {{-- Header --}}
@@ -49,7 +65,7 @@
     </div>
 
     <script>
-        function confirmDelete(id) {
+        function confirmResetRevisi(id) {
             Swal.fire({
                 title: 'Apakah Anda yakin?',
                 text: "Data yang dihapus tidak bisa dikembalikan!",
@@ -61,7 +77,7 @@
                 cancelButtonText: 'Batal'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    Livewire.dispatch('deleteConfirmed', {
+                    Livewire.dispatch('resetRevisiConfirmed', {
                         id: id
                     }); // Kirim ID sebagai objek
                 }
@@ -70,18 +86,6 @@
     </script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-
-            window.Livewire.on('openUploadRevisiModal', () => {
-                $('#uploadRevisiModal').modal('show');
-            });
-
-            window.Livewire.on('openDetailRevisiModal', () => {
-                $('#detailRevisiModal').modal('show');
-            });
-
-            window.Livewire.on('closeUploadRevisiModal', () => {
-                $('#uploadRevisiModal').modal('hide');
-            });
 
             window.addEventListener('swal:modal', function(event) {
                 const data = event.detail[0];

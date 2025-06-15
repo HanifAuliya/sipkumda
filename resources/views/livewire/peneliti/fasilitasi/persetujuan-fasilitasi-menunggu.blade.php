@@ -64,11 +64,6 @@
                                     data-target="#modalDetailFasilitasi" data-toggle="modal">
                                     <i class="bi bi-check2-square"></i> Verifikasi Berkas Fasilitasi
                                 </a>
-                                {{-- Hapus Pengajuan --}}
-                                <a class="dropdown-item text-danger d-flex align-items-center"
-                                    onclick="confirmDeleteValidasi({{ $fasilitasi->id }})">
-                                    <i class="bi bi-arrow-counterclockwise"></i> Hapus Pengajuan Fasilitasi
-                                </a>
                             </div>
                         </div>
                     </td>

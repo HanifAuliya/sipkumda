@@ -174,7 +174,7 @@ class Dokumentasi extends Component
             'nomor_berita' => 'required|numeric', // Nomor harus 2 digit
             'tahun_berita' => 'required|numeric|digits:4', // Tahun harus 4 digit
             'tanggal_penetapan' => 'required|date',
-            'file_produk_hukum' => 'nullable|mimes:pdf|max:5120',
+            'file_produk_hukum' => 'nullable|mimes:pdf|max:20480',
         ]);
 
         // Gabungkan nomor_berita dan tahun_berita menjadi nomor_tahun_berita
