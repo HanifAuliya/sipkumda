@@ -170,11 +170,10 @@
 
                 });
 
-                // sweet alert global delete degnan toast
                 window.addEventListener('swal:toast', function(event) {
                     const data = event.detail[0];
                     Swal.fire({
-                        icon: data.type, // 'success', 'error', 'warning', etc.
+                        icon: data.type,
                         title: data.title,
                         text: data.message,
                         timer: 7000,
@@ -182,8 +181,11 @@
                         showConfirmButton: false,
                         position: 'top-end',
                         toast: true,
+                        width: '450px', // <-- Tambahkan ini, sesuaikan ukurannya
+                        padding: '1.25rem', // Memberi ruang lebih di dalam
                     });
                 });
+
 
                 window.addEventListener('swal:reset', function(event) {
                     const data = event.detail[0];

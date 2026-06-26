@@ -33,6 +33,9 @@ use App\Livewire\Peneliti\Fasilitasi\PersetujuanFasilitasiMain;
 use App\Models\RancanganProdukHukum;
 use App\Models\DokumentasiProdukHukum;
 
+use App\Http\Controllers\Admin\PrediksiController;
+
+
 Route::get('/', function () {
     return view('welcome', [
         // Hitung jumlah Surat Keputusan dari tabel Dokumentasi Produk Hukum
@@ -166,8 +169,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/export-dokumentasi', [DokumentasiExportController::class, 'export'])->name('export.dokumentasi');
     Route::get('/export-dokumentasi-pdf', [DokumentasiPdfController::class, 'export'])->name('export.dokumentasi.pdf');
 });
-
-
 
 Route::get('/test-500', function () {
     abort(500); // Memaksa Laravel untuk menampilkan halaman error 500

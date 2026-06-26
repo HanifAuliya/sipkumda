@@ -264,7 +264,7 @@
             alt="Tanda Tangan" class="ttd">
         <p class="name" style="margin-top: 55px">{{ $notaDinas->tandaTangan->nama_ttd }}</p>
         <p style="margin-top: -10px">{{ $notaDinas->tandaTangan->jabatan }}</p>
-        <p style="margin-top: -10px">{{ $notaDinas->tandaTangan->nip_ttd }}</p>
+        <p style="margin-top: -10px">NIP. {{ $notaDinas->tandaTangan->nip_ttd }}</p>
     </div>
 </body>
 

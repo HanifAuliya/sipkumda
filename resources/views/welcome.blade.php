@@ -27,6 +27,8 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/glightbox/3.2.0/css/glightbox.min.css" rel="stylesheet" />
 
     {{-- Main CSS File --}}
+    @vite(['resources/js/app.js'])
+
     <link href="{{ asset('assets/css/main.css') }}" rel="stylesheet" />
 </head>
 

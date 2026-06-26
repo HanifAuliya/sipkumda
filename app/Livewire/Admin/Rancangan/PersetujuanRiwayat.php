@@ -46,6 +46,7 @@ class PersetujuanRiwayat extends Component
                 'status_berkas' => 'Menunggu Persetujuan',
                 'catatan_berkas' => null,
                 'tanggal_berkas_disetujui' => null, // Reset tanggal jika status direset
+                'hasil_prediksi_kelengkapan' => null, // ← tambahkan ini
             ]);
 
             // Reset status revisi terkait rancangan

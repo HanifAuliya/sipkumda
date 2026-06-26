@@ -549,26 +549,22 @@
                     <h5 class="modal-title" id="uploadUlangBerkasModalLabel">Upload Ulang Berkas Ditolak</h5>
                 </div>
                 <form wire:submit.prevent="uploadUlangBerkas">
-                    {{-- Modal Body --}}
                     <div class="modal-body">
+
                         <div class="row">
-                            <!-- Input Tanggal Nota -->
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="tanggalNota" class="form-label font-weight-bold">Tanggal Nota</label>
-                                    <input type="date" id="tanggalNota" class="form-control"
-                                        wire:model="tanggalNota" required />
+                                    <label class="form-label font-weight-bold">Tanggal Nota</label>
+                                    <input type="date" class="form-control" wire:model="tanggalNota" required />
                                     @error('tanggalNota')
                                         <span class="text-danger">{{ $message }}</span>
                                     @enderror
                                 </div>
                             </div>
-
-                            <!-- Input Nomor Nota -->
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="nomorNota" class="form-label font-weight-bold">Nomor Nota</label>
-                                    <input type="text" id="nomorNota" class="form-control" wire:model="nomorNota"
+                                    <label class="form-label font-weight-bold">Nomor Nota</label>
+                                    <input type="text" class="form-control" wire:model="nomorNota"
                                         placeholder="Masukkan Nomor Nota" required />
                                     @error('nomorNota')
                                         <span class="text-danger">{{ $message }}</span>
@@ -576,74 +572,159 @@
                                 </div>
                             </div>
                         </div>
+
                         <div class="mb-3">
-                            <label for="nomorNota" class="form-control-label font-weight-bold text-warning">Perhatikan
-                                Ini , Untuk matrik download file yang ada di Template (Bahan Penting)
-                                <small class="text-muted d-block">File Rancangan dan Matrik berupa word selain itu
-                                    PDF</small>
+                            <label class="form-control-label font-weight-bold text-warning">
+                                <i class="bi bi-exclamation-triangle mr-1"></i>
+                                Perhatikan: Untuk matrik gunakan template yang tersedia (Bahan Penting).
+                                <small class="text-muted d-block">File Rancangan dan Matrik berupa Word (.docx), selain
+                                    itu PDF.</small>
                             </label>
                         </div>
 
-                        {{-- Input File (Nota Dinas, Rancangan, Matrik, Bahan Pendukung) --}}
+                        {{-- Upload File --}}
                         @foreach (['fileNotaDinas', 'fileRancangan', 'fileMatrik', 'fileBahanPendukung'] as $fileField)
                             <div class="mb-4">
                                 <label class="font-weight-bold form-control-label">
                                     <i class="bi bi-file-earmark text-primary"></i>
                                     {{ ucfirst(str_replace('_', ' ', $fileField)) }}
-                                    <small class="text-muted d-block">Unggah dokumen dalam format PDF (max:
-                                        20MB).</small>
+                                    @if ($fileField !== 'fileBahanPendukung')
+                                        <span class="text-danger">*</span>
+                                    @else
+                                        <span class="text-muted font-weight-normal">(opsional)</span>
+                                    @endif
+                                    <small class="text-muted d-block font-weight-normal">Maks: 20MB.</small>
                                 </label>
 
                                 <input type="file" class="form-control" wire:model="{{ $fileField }}"
-                                    accept=".pdf, .doc, .docx" wire:change="resetError('{{ $fileField }}')"
+                                    accept=".pdf,.doc,.docx" wire:change="resetError('{{ $fileField }}')"
                                     {{ $$fileField ? 'disabled' : '' }}
-                                    style="{{ $$fileField ? 'background-color: #e9ecef; cursor: not-allowed; opacity: 0.6;' : '' }}">
+                                    style="{{ $$fileField ? 'background-color:#e9ecef;cursor:not-allowed;opacity:0.6;' : '' }}">
 
-                                {{-- Indikator Loading --}}
-                                <div wire:loading wire:target="{{ $fileField }}" class="text-info mt-2">
+                                <div wire:loading wire:target="{{ $fileField }}" class="text-info mt-2 small">
                                     <i class="spinner-border spinner-border-sm"></i> Mengunggah...
                                 </div>
 
-                                {{-- Preview file & tombol hapus --}}
                                 @if ($$fileField)
                                     <div class="mt-2 p-2 border rounded bg-light d-flex align-items-center">
-                                        <i class="bi bi-file-earmark-pdf text-danger mr-2"></i>
-                                        <span class="flex-grow-1">{{ $$fileField->getClientOriginalName() }}</span>
+                                        <i class="bi bi-file-earmark-check text-success mr-2"></i>
+                                        <span
+                                            class="flex-grow-1 small">{{ $$fileField->getClientOriginalName() }}</span>
                                         <button type="button" class="btn btn-sm btn-outline-danger ml-2"
                                             wire:click="removeFile('{{ $fileField }}')">
-                                            <i class="bi bi-trash"></i> Hapus File
+                                            <i class="bi bi-trash"></i> Hapus
                                         </button>
                                     </div>
                                 @endif
 
                                 @error($fileField)
-                                    <span class="text-danger">{{ $message }}</span>
+                                    <span class="text-danger small">{{ $message }}</span>
                                 @enderror
                             </div>
                         @endforeach
 
-                        {{-- Checkbox Hapus Bahan Pendukung Lama --}}
+                        {{-- Checkbox hapus bahan pendukung --}}
                         <div class="form-check mb-3">
                             <input class="form-check-input" type="checkbox" id="hapusBahanPendukung"
                                 wire:model="hapusBahanPendukung">
                             <label class="form-check-label" for="hapusBahanPendukung">
-                                Hapus Bahan Pendukung Lama <small class="info-text"> (Centang ini apabila anda tidak
-                                    menggunakan bahan pendukung)</small>
+                                Hapus Bahan Pendukung Lama
+                                <small class="info-text">(Centang ini apabila Anda tidak menggunakan bahan
+                                    pendukung)</small>
                             </label>
                         </div>
+
+                        {{-- ===== HASIL PEMERIKSAAN AI ===== --}}
+
+                        {{-- Loading: AI sedang memeriksa setelah file terupload --}}
+                        <div wire:loading
+                            wire:target="updatedFileRancangan,updatedFileMatrik,updatedFileNotaDinas,cekKelengkapanUlang">
+                            <div class="alert alert-light border d-flex align-items-center">
+                                <div class="spinner-border spinner-border-sm text-primary mr-3" role="status"></div>
+                                <div>
+                                    <strong>Memeriksa kelengkapan berkas...</strong>
+                                    <div class="small text-muted">AI sedang menganalisis dokumen Anda.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Gagal hubungi API --}}
+                        @if ($gagalCekUlang)
+                            <div class="alert alert-secondary d-flex align-items-center mb-3">
+                                <i class="bi bi-wifi-off mr-3 text-secondary"></i>
+                                <div>
+                                    <strong>Pemeriksaan AI tidak tersedia</strong>
+                                    <div class="small text-muted">
+                                        Server AI tidak dapat dihubungi. Anda tetap bisa mengajukan,
+                                        Admin akan melakukan verifikasi manual.
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
+                        {{-- Hasil: LENGKAP --}}
+                        @if ($sudahDicekUlang && $hasilPrediksiUlang === 'Lengkap')
+                            <div class="alert alert-success mb-3">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-check-circle-fill mr-3 text-success"
+                                        style="font-size:1.5rem;"></i>
+                                    <div>
+                                        <strong>Berkas Terdeteksi Lengkap ✓</strong>
+                                        <div class="small mt-1">
+                                            Semua indikator dokumen terdeteksi oleh AI.
+                                            Anda dapat langsung mengajukan ulang.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
+                        {{-- Hasil: TIDAK LENGKAP --}}
+                        @if ($sudahDicekUlang && $hasilPrediksiUlang === 'Tidak Lengkap')
+                            <div class="alert alert-warning mb-3">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="bi bi-exclamation-triangle-fill mr-3 text-warning"
+                                        style="font-size:1.5rem;"></i>
+                                    <div>
+                                        <strong>Berkas Terdeteksi Belum Lengkap</strong>
+                                        <div class="small mt-1">
+                                            AI mendeteksi beberapa indikator yang belum terpenuhi.
+                                            Anda <strong>tetap dapat mengajukan</strong>, namun Admin
+                                            kemungkinan akan meminta perbaikan kembali.
+                                        </div>
+                                    </div>
+                                </div>
+                                @if (count($catatanKurangUlang) > 0)
+                                    <hr class="my-2">
+                                    <p class="mb-1 small font-weight-bold">
+                                        <i class="bi bi-list-ul mr-1"></i>Indikator yang belum terpenuhi:
+                                    </p>
+                                    <ul class="mb-0 pl-4 small">
+                                        @foreach ($catatanKurangUlang as $catatan)
+                                            <li>{{ $catatan }}</li>
+                                        @endforeach
+                                    </ul>
+                                @endif
+                            </div>
+                        @endif
+
                     </div>
 
-                    {{-- Modal Footer --}}
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline-warning" data-dismiss="modal"
                             wire:click="resetForm">
-                            <i class="bi bi-x"></i>
-                            Batal
+                            <i class="bi bi-x"></i> Batal
                         </button>
                         <button type="submit" class="btn btn-outline-default" wire:loading.attr="disabled"
+                            wire:target="uploadUlangBerkas,cekKelengkapanUlang"
                             {{ empty($tanggalNota) || empty($nomorNota) || empty($fileNotaDinas) || empty($fileRancangan) ? 'disabled' : '' }}>
                             <span wire:loading.remove wire:target="uploadUlangBerkas">
-                                <i class="bi bi-upload"></i> Upload Ulang
+                                <i class="bi bi-upload"></i>
+                                @if ($sudahDicekUlang && $hasilPrediksiUlang === 'Tidak Lengkap')
+                                    Tetap Ajukan Ulang
+                                @else
+                                    Upload Ulang
+                                @endif
                             </span>
                             <span wire:loading wire:target="uploadUlangBerkas">
                                 <i class="spinner-border spinner-border-sm"></i> Memproses...
@@ -651,7 +732,6 @@
                         </button>
                     </div>
                 </form>
-
             </div>
         </div>
     </div>

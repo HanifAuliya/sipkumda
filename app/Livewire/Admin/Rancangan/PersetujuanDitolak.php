@@ -109,9 +109,10 @@ class PersetujuanDitolak extends Component
 
             // Reset status rancangan
             $rancangan->update([
-                'status_berkas' => 'Menunggu Persetujuan',
-                'catatan_berkas' => null,
-                'tanggal_berkas_disetujui' => null, // Reset tanggal jika status direset
+                'status_berkas'              => 'Menunggu Persetujuan',
+                'catatan_berkas'             => null,
+                'tanggal_berkas_disetujui'   => null,
+                'hasil_prediksi_kelengkapan' => null, // ← tambahkan ini
             ]);
 
             // Reset status revisi terkait rancangan

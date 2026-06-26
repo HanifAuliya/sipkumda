@@ -22,7 +22,17 @@
 
     <div class="row mb-1">
         <div class="col-12">
-
+            <div class="card  mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">Manajemen Pengguna</h3>
+                    @if ($isAdmin)
+                        <button class="btn btn-default" wire:click="resetInput" data-toggle="modal"
+                            data-target="#addUserModal">
+                            Tambah Pengguna
+                        </button>
+                    @endif
+                </div>
+            </div>
             <div class="card">
                 <div class="card-header">
                     <h3 class="mb-0">Daftar Pengguna SIPKUMDA</h3>

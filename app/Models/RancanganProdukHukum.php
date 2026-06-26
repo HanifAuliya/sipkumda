@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -29,7 +30,8 @@ class RancanganProdukHukum extends Model
         'status_rancangan',
         'catatan_berkas',
         'tanggal_nota',
-        'nomor_nota'
+        'nomor_nota',
+        'hasil_prediksi_kelengkapan',
     ];
 
     // Mutator untuk nomor rancangan otomatis
@@ -47,20 +49,47 @@ class RancanganProdukHukum extends Model
         //     // Format nomor rancangan: PB-2024-001
         //     $rancangan->no_rancangan = sprintf('%s-%d-%03d', $jenis, $tahun, $count);
         // });
-        static::creating(function ($rancangan) {
-            $tahun = now()->year;
+        static::creating(function ($model) {
 
-            // Konversi nilai enum menjadi singkatan
-            $jenis = $rancangan->jenis_rancangan;
-            $singkatan = $jenis === 'Surat Keputusan' ? 'SK' : 'PB';
+            DB::transaction(function () use ($model) {
 
-            // Hitung jumlah rancangan untuk jenis dan tahun ini
-            $count = self::where('jenis_rancangan', $jenis)
-                ->whereYear('created_at', $tahun)
-                ->count() + 1;
+                $tahun = now()->year;
 
-            // Format nomor rancangan: SK-2024-001
-            $rancangan->no_rancangan = sprintf('%s-%d-%03d', $singkatan, $tahun, $count);
+                $map = [
+                    'Surat Keputusan' => 'SK',
+                    'Peraturan Bupati' => 'PB',
+                ];
+
+                if (!isset($map[$model->jenis_rancangan])) {
+                    throw new \Exception("Jenis rancangan tidak valid.");
+                }
+
+                $singkatan = $map[$model->jenis_rancangan];
+
+                // Ambil nomor terakhir tahun & jenis yang sama
+                $last = self::where('jenis_rancangan', $model->jenis_rancangan)
+                    ->whereYear('created_at', $tahun)
+                    ->orderByDesc('id_rancangan')
+                    ->lockForUpdate()
+                    ->first();
+
+                $nextNumber = 1;
+
+                if ($last) {
+                    $parts = explode('-', $last->no_rancangan);
+                    $nextNumber = (int) end($parts) + 1;
+                }
+
+                $model->no_rancangan = sprintf(
+                    '%s-%d-%03d',
+                    $singkatan,
+                    $tahun,
+                    $nextNumber
+                );
+
+                // Generate slug UUID
+                $model->slug = Str::uuid();
+            });
         });
 
         static::creating(function ($model) {

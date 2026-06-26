@@ -28,10 +28,10 @@
                 <small>Pastikan perhatikan tab di bawah!</small>
             </div>
             <div class="d-flex align-items-center flex-wrap gap-2">
-                {{-- Livewire Component --}}
+                {{-- bahan penting --}}
                 <livewire:rancangan.bahan-penting-dropdown />
 
-                {{-- Menggunakan sintaks <livewire> --}}
+                {{-- ajukan rancangan --}}
                 <livewire:perangkat-daerah.rancangan.ajukan-rancangan />
             </div>
         </div>
