@@ -12,7 +12,7 @@ use App\Models\Revisi;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-// Prediksi ML — hit Flask API /extract lalu /predict
+// Cek kelengkapan berkas (ekstraksi teks Word/PDF)
 use App\Services\KelengkapanBerkasChecker;
 
 

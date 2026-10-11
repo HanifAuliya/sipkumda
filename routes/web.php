@@ -170,9 +170,5 @@ Route::middleware('auth')->group(function () {
     Route::get('/export-dokumentasi-pdf', [DokumentasiPdfController::class, 'export'])->name('export.dokumentasi.pdf');
 });
 
-Route::get('/test-500', function () {
-    abort(500); // Memaksa Laravel untuk menampilkan halaman error 500
-});
-
 
 require __DIR__ . '/auth.php';
