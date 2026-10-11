@@ -1,66 +1,82 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# SIPKUMDA — Sistem Informasi Produk Hukum Daerah
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Aplikasi web untuk mengelola alur pengajuan, penelitian, fasilitasi, hingga dokumentasi produk hukum daerah (Peraturan Bupati dan Surat Keputusan) di lingkungan Pemerintah Kabupaten Hulu Sungai Tengah.
 
-## About Laravel
+Sistem ini menggantikan proses manual berbasis berkas fisik menjadi alur digital yang terlacak: setiap rancangan dapat dipantau statusnya, direvisi, disetujui, lalu terdokumentasi secara terpusat.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Fitur Utama
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- **Pengajuan rancangan** produk hukum oleh Perangkat Daerah, lengkap dengan unggah berkas (rancangan, matriks, nota dinas, bahan pendukung).
+- **Cek kelengkapan berkas otomatis** — dokumen Word/PDF yang diunggah diekstrak teksnya lalu diperiksa kelengkapannya sebelum diajukan.
+- **Alur persetujuan bertahap**: persetujuan Admin → Verifikator memilih Peneliti → revisi oleh Peneliti → validasi.
+- **Fasilitasi produk hukum**, termasuk pengelolaan tanda tangan dan pembuatan nota dinas.
+- **Dokumentasi & master data** produk hukum dengan ekspor ke **Excel** dan **PDF**.
+- **Notifikasi real-time** untuk setiap perubahan status.
+- **Manajemen pengguna berbasis peran** (role & permission).
+- Halaman publik berisi statistik jumlah rancangan dan produk hukum yang terdokumentasi.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Peran Pengguna
 
-## Learning Laravel
+| Peran | Akses utama |
+|---|---|
+| Super Admin | Seluruh sistem, manajemen pengguna |
+| Admin | Persetujuan rancangan, manajemen fasilitasi, bahan penting |
+| Verifikator | Pemilihan peneliti, validasi rancangan & fasilitasi, kelola TTD |
+| Peneliti | Revisi rancangan, persetujuan fasilitasi |
+| Perangkat Daerah | Mengajukan rancangan & fasilitasi, memantau status |
+| Tamu | Akses terbatas (lihat data) |
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Teknologi
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+- **Backend:** Laravel 11, PHP 8.2
+- **Frontend:** Livewire 3, Alpine.js, Tailwind CSS, Vite
+- **Tabel data:** Rappasoft Laravel Livewire Tables
+- **Otorisasi:** Spatie Laravel Permission
+- **Dokumen:** DomPDF, Laravel Excel, PHPWord, PDF Parser
+- **Real-time:** Pusher + Laravel Echo
+- **Testing:** Pest
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Instalasi
 
-## Laravel Sponsors
+Prasyarat: PHP 8.2+, Composer, Node.js, dan MySQL atau SQLite.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+```bash
+git clone https://github.com/HanifAuliya/sipkumda.git
+cd sipkumda
 
-### Premium Partners
+composer install
+npm install
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+cp .env.example .env
+php artisan key:generate
+```
 
-## Contributing
+Atur koneksi database (dan kredensial Pusher jika ingin notifikasi real-time) di `.env`, lalu:
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```bash
+php artisan migrate --seed
+php artisan storage:link
+```
 
-## Code of Conduct
+Jalankan aplikasi:
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```bash
+npm run dev
+php artisan serve
+```
 
-## Security Vulnerabilities
+Buka `http://localhost:8000`. Seeder membuat akun contoh untuk setiap peran (lihat `database/seeders/UserSeeder.php`).
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Struktur Singkat
 
-## License
+```
+app/
+├── Livewire/          # Komponen per peran (Admin, Verifikator, Peneliti, PerangkatDaerah, ...)
+├── Models/            # RancanganProdukHukum, FasilitasiProdukHukum, DokumentasiProdukHukum, ...
+├── Services/          # KelengkapanBerkasChecker (cek kelengkapan berkas)
+└── Http/Controllers/  # Ekspor PDF/Excel, template, profil
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Lisensi
+
+Dirilis di bawah lisensi MIT.
