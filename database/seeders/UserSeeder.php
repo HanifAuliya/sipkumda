@@ -29,7 +29,7 @@ class UserSeeder extends Seeder
         ], [
             'nama_user' => 'Super Admin ',
             'NIP' => 'superadmin',
-            'password' => bcrypt('bagianhukumhst'), // Default password
+            'password' => bcrypt(env('SEED_SUPERADMIN_PASSWORD') ?: 'password'), // Atur di .env
             'email_verified_at' => Carbon::now(), // Set email_verified_at
             'perangkat_daerah_id' => PerangkatDaerah::inRandomOrder()->first()->id ?? null, // Perangkat Daerah Acak
         ]);
@@ -37,7 +37,7 @@ class UserSeeder extends Seeder
 
         // Buat User Admin
         $admin = User::firstOrCreate([
-            'email' => 'amadcoyz@gmail.com', // Email unik
+            'email' => 'admin@example.com', // Email unik
         ], [
             'nama_user' => 'Muhammad Sayuti',
             'NIP' => 'admin',
@@ -73,7 +73,7 @@ class UserSeeder extends Seeder
 
         // Buat User Peneliti
         $peneliti = User::firstOrCreate([
-            'email' => 'tahmidillah10@gmail.com', // Email unik
+            'email' => 'peneliti@example.com', // Email unik
         ], [
             'nama_user' => 'Tahmidillah, S.H.I.',
             'NIP' => 'peneliti',
@@ -84,7 +84,7 @@ class UserSeeder extends Seeder
         $peneliti->assignRole($penelitiRole);
 
         $peneliti2 = User::firstOrCreate([
-            'email' => 'hst@gmail.com', // Email unik
+            'email' => 'peneliti2@example.com', // Email unik
         ], [
             'nama_user' => 'Sahruji, S.H.',
             'NIP' => 'peneliti2',
