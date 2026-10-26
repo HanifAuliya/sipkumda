@@ -27,7 +27,6 @@ class FasilitasiBerlangsung extends Component
 
     public $search = ''; // Pencarian
     public $perPage = 10; // Default jumlah item per halaman
-    public $selectedFasilitasi = null;
 
     // Upload Ulang
     public $fasilitasiId;
@@ -36,21 +35,14 @@ class FasilitasiBerlangsung extends Component
     protected $listeners = ['refresh' => 'refreshFasilitasi'];
 
 
-    public function openDetailFasilitasi($fasilitasiId)
-    {
-        $this->selectedFasilitasi = FasilitasiProdukHukum::with('rancangan')->findOrFail($fasilitasiId);
-
-        // Dispatch event untuk membuka modal di JavaScript
-        $this->dispatch('openModalDetailFasilitasi');
-    }
-
     public function openUploadUlangRevisi($id)
     {
-        $this->fasilitasiId = $id;
+        // Hanya fasilitasi milik pengguna yang sedang login
+        $this->fasilitasiId = FasilitasiProdukHukum::milik(auth()->id())->findOrFail($id)->id;
         $this->reset('fileRancanganUlang'); // Reset input file agar tidak ada file lama
 
         // Buka modal upload ulang
-        $this->dispatch('openModalUploadUlangFasilitasi');
+        $this->dispatch('openModal', 'modalUploadUlangFasilitasi');
     }
 
     public function uploadUlangRevisi()
@@ -60,7 +52,7 @@ class FasilitasiBerlangsung extends Component
         ]);
 
         // Temukan fasilitasi berdasarkan ID
-        $fasilitasi = FasilitasiProdukHukum::findOrFail($this->fasilitasiId);
+        $fasilitasi = FasilitasiProdukHukum::milik(auth()->id())->findOrFail($this->fasilitasiId);
 
         // Hapus file lama dari storage jika ada
         if ($fasilitasi->file_rancangan) {
@@ -85,7 +77,7 @@ class FasilitasiBerlangsung extends Component
             $query->where('name', 'Peneliti');
         })->first();
 
-        Notification::send(
+        if ($peneliti) Notification::send(
             $peneliti,
             new StatusFasilitasiNotification([
                 'title' => "Upload Ulang Berkas Fasilitasi untuk Rancangan {$fasilitasi->rancangan->no_rancangan}",
@@ -103,7 +95,7 @@ class FasilitasiBerlangsung extends Component
         $this->resetPage();
 
         // Tutup modal dan tampilkan notifikasi sukses
-        $this->dispatch('closeModalUploadUlangFasilitasi');
+        $this->dispatch('closeModal', 'modalUploadUlangFasilitasi');
         $this->dispatch('swal:modal', [
             'type' => 'success',
             'title' => 'Upload Ulang Berhasil!',
@@ -120,10 +112,6 @@ class FasilitasiBerlangsung extends Component
         $this->resetErrorBag($field);
     }
 
-    public function resetDetail()
-    {
-        $this->selectedFasilitasi = null;
-    }
     public function updatingSearch()
     {
         // Reset halaman ke halaman pertama saat pencarian berubah
@@ -136,7 +124,10 @@ class FasilitasiBerlangsung extends Component
 
     public function generatePDF($notaId)
     {
-        $notaDinas = NotaDinas::with('fasilitasi.rancangan.user.perangkatDaerah', 'tandaTangan')->findOrFail($notaId);
+        // Hanya nota dinas dari fasilitasi milik pengguna yang sedang login
+        $notaDinas = NotaDinas::with('fasilitasi.rancangan.user.perangkatDaerah', 'tandaTangan')
+            ->whereHas('fasilitasi', fn ($q) => $q->milik(auth()->id()))
+            ->findOrFail($notaId);
         $pdf = Pdf::loadView('pdf.nota-dinas', compact('notaDinas'))->setPaper('A4', 'portrait');
 
         // Kirim event ke browser untuk menutup SweetAlert setelah PDF selesai dibuat
@@ -146,7 +137,7 @@ class FasilitasiBerlangsung extends Component
         $safeFilename = preg_replace('/[^A-Za-z0-9\-_]/', '-', $notaDinas->nomor_nota);
 
         return response()->streamDownload(function () use ($pdf) {
-            echo $pdf->stream();
+            echo $pdf->output();
         }, "Nota-Dinas-{$safeFilename}.pdf");
     }
 
@@ -155,7 +146,7 @@ class FasilitasiBerlangsung extends Component
     {
         $userId = auth()->id(); // Ambil ID pengguna yang login
 
-        $fasilitasiBerlangsung = FasilitasiProdukHukum::with('rancangan')
+        $fasilitasiBerlangsung = FasilitasiProdukHukum::with(['rancangan.user.perangkatDaerah', 'notaDinas'])
             ->whereIn('status_berkas_fasilitasi', ['Menunggu Persetujuan', 'Disetujui', 'Ditolak']) // Menampilkan hanya status ini
             ->whereHas('rancangan', function ($query) use ($userId) {
                 $query->where('status_rancangan', 'Disetujui') // Filter hanya rancangan yang disetujui

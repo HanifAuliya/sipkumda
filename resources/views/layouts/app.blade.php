@@ -26,8 +26,9 @@
         @include('layouts.partials.footer')
     </div>
 
-    {{-- Modal detail rancangan yang dibuka dari dropdown notifikasi. --}}
+    {{-- Modal detail bersama: Livewire.dispatch('openModalDetailRancangan', { slug }) / ('openDetailFasilitasi', { id }) --}}
     <livewire:notification-modal.detail-rancangan />
+    <livewire:fasilitasi.detail-fasilitasi />
 
     @livewireScriptConfig
     @stack('scripts')

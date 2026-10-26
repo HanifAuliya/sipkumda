@@ -68,8 +68,11 @@ class AjukanFasilitasi extends Component
             'fileRancangan' => 'required|file|mimes:pdf|max:20480',
         ]);
 
-        // Ambil rancangan terkait
-        $rancangan = RancanganProdukHukum::find($this->rancanganId);
+        // Hanya rancangan milik pengguna, sudah disetujui, dan belum difasilitasi (sama dengan isi dropdown)
+        $this->loadRancanganOptions();
+        $rancangan = collect($this->rancanganOptions)->has($this->rancanganId)
+            ? RancanganProdukHukum::find($this->rancanganId)
+            : null;
 
         if (!$rancangan) {
             $this->dispatch('swal:modal', [
@@ -123,6 +126,7 @@ class AjukanFasilitasi extends Component
 
         // Refresh tampilan
         $this->dispatch('refresh');
+        $this->dispatch('closeModal', 'modalAjukanFasilitasi');
 
         // SweetAlert Notification
         $this->dispatch('swal:modal', [

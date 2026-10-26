@@ -16,7 +16,6 @@ class RiwayatFasilitasi extends Component
 
     public $search = ''; // Pencarian
     public $perPage = 10; // Default jumlah item per halaman
-    public $selectedFasilitasi = null;
 
     public function updatingSearch()
     {
@@ -28,17 +27,12 @@ class RiwayatFasilitasi extends Component
         $this->resetPage(); // Reset ke halaman pertama
     }
 
-    public function openDetailFasilitasi($fasilitasiId)
-    {
-        $this->selectedFasilitasi = FasilitasiProdukHukum::with('rancangan')->findOrFail($fasilitasiId);
-
-        // Dispatch event untuk membuka modal di JavaScript
-        $this->dispatch('openModalDetailFasilitasi');
-    }
-
     public function generatePDF($notaId)
     {
-        $notaDinas = NotaDinas::with('fasilitasi.rancangan.user.perangkatDaerah', 'tandaTangan')->findOrFail($notaId);
+        // Hanya nota dinas dari fasilitasi milik pengguna yang sedang login
+        $notaDinas = NotaDinas::with('fasilitasi.rancangan.user.perangkatDaerah', 'tandaTangan')
+            ->whereHas('fasilitasi', fn ($q) => $q->milik(auth()->id()))
+            ->findOrFail($notaId);
         $pdf = Pdf::loadView('pdf.nota-dinas', compact('notaDinas'))->setPaper('A4', 'portrait');
 
         // Kirim event ke browser untuk menutup SweetAlert setelah PDF selesai dibuat
@@ -48,7 +42,7 @@ class RiwayatFasilitasi extends Component
         $safeFilename = preg_replace('/[^A-Za-z0-9\-_]/', '-', $notaDinas->nomor_nota);
 
         return response()->streamDownload(function () use ($pdf) {
-            echo $pdf->stream();
+            echo $pdf->output();
         }, "Nota-Dinas-{$safeFilename}.pdf");
     }
 
@@ -56,7 +50,7 @@ class RiwayatFasilitasi extends Component
     {
         $userId = auth()->id(); // Ambil ID pengguna yang login
 
-        $riwayatFasilitasi = FasilitasiProdukHukum::with('rancangan')
+        $riwayatFasilitasi = FasilitasiProdukHukum::with(['rancangan.user.perangkatDaerah', 'notaDinas'])
             ->where('status_validasi_fasilitasi', 'Diterima') // Hanya fasilitasi yang sudah diterima
             ->where('status_paraf_koordinasi', 'Selesai')
             ->where('status_asisten', 'Selesai')
