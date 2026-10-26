@@ -1,284 +1,65 @@
 <div>
-    @if (Auth::user()->can('create', App\Models\DokumentasiProdukHukum::class))
-        <div class="dropdown mb-3">
-            <button class="btn btn-outline-default dropdown-toggle" type="button" id="dropdownTambahDokumentasi"
-                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <i class="bi bi-folder-plus mr-2"></i> Tambah Dokumentasi
-            </button>
-            <div class="dropdown-menu" aria-labelledby="dropdownTambahDokumentasi">
-                {{-- <!-- Tambah Dokumentasi dari Rancangan --> --}}
-                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#modalTambahDokumentasi">
-                    <i class="bi bi-folder-plus  mr-2"></i> Tambah Arsip Dokumentasi
-                </a>
-                {{-- <!-- Tambah Dokumentasi Manual --> --}}
-                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#modalTambahManual">
-                    <i class="bi bi-folder-symlink  mr-2"></i> Tambah Arsip Sebelum ada Sistem
-                </a>
-            </div>
-        </div>
-
-    @endcan
-    <div wire:ignore.self class="modal fade" id="modalTambahDokumentasi" tabindex="-1" role="dialog"
-        data-backdrop="static" data-keyboard="false">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Tambah Dokumentasi Produk Hukum</h5>
-                    <button type="button" class="close" data-dismiss="modal">&times;</button>
-                </div>
-                <div class="modal-body">
-                    {{-- Pilih Nomor Rancangan --}}
-                    <div class="form-group">
-                        <label>Pilih Nomor Rancangan</label>
-                        <select class="form-control" wire:model="rancanganId">
-                            <option hidden>Pilih Nomor Rancangan</option>
-                            @forelse ($rancanganList as $rancangan)
-                                <option value="{{ $rancangan->id }}">
-                                    {{ $rancangan->rancangan->no_rancangan }} - {{ $rancangan->rancangan->tentang }}
-                                </option>
-                            @empty
-                                <option disabled>Data tidak tersedia</option>
-                            @endforelse
-                        </select>
-                        @error('rancanganId')
-                            <small class="text-danger">{{ $message }}</small>
-                        @enderror
+    @if ($bisaTambah)
+        <x-ui.modal id="modalTambahDokumentasi" title="Tambah Arsip Dokumentasi" size="2xl" static on-close="resetForm"
+            :description="$mode === 'manual' ? 'Arsip produk hukum yang ditetapkan sebelum ada sistem.' : 'Arsip dari rancangan yang fasilitasinya telah diterima.'">
+            <form id="tambahDokumentasiForm" wire:submit="store" class="space-y-5">
+                @if ($mode === 'rancangan')
+                    <x-form.field label="Rancangan" for="rancanganId" error="rancanganId" required>
+                        <x-form.select id="rancanganId" wire:model.live="rancanganId" :disabled="$rancanganList->isEmpty()">
+                            @if ($rancanganList->isEmpty())
+                                <option value="">Tidak ada rancangan yang menunggu diarsipkan</option>
+                            @else
+                                <option value="">Pilih rancangan</option>
+                                @foreach ($rancanganList as $fasilitasi)
+                                    <option value="{{ $fasilitasi->id }}">{{ $fasilitasi->rancangan->no_rancangan }} — {{ Str::limit($fasilitasi->rancangan->tentang, 70) }}</option>
+                                @endforeach
+                            @endif
+                        </x-form.select>
+                    </x-form.field>
+                @else
+                    <div class="grid gap-5 sm:grid-cols-2">
+                        <x-form.field label="Jenis Produk Hukum" for="jenis_dokumentasi" error="jenis_dokumentasi" required>
+                            <x-form.select id="jenis_dokumentasi" wire:model="jenis_dokumentasi">
+                                <option value="" hidden>Pilih jenis</option>
+                                <option value="Peraturan Bupati">Peraturan Bupati</option>
+                                <option value="Keputusan Bupati">Keputusan Bupati</option>
+                            </x-form.select>
+                        </x-form.field>
+                        <x-form.field label="Perangkat Daerah" for="perangkat_daerah_id" error="perangkat_daerah_id" required>
+                            <x-form.select id="perangkat_daerah_id" wire:model="perangkat_daerah_id">
+                                <option value="" hidden>Pilih perangkat daerah</option>
+                                @foreach ($perangkatList as $perangkat)
+                                    <option value="{{ $perangkat->id }}">{{ $perangkat->nama_perangkat_daerah }}</option>
+                                @endforeach
+                            </x-form.select>
+                        </x-form.field>
                     </div>
+                    <x-form.field label="Tentang" for="tentang_dokumentasi" error="tentang_dokumentasi" required>
+                        <x-form.textarea id="tentang_dokumentasi" wire:model="tentang_dokumentasi" rows="2" placeholder="Contoh: Pengelolaan Sampah" />
+                    </x-form.field>
+                @endif
 
-                    {{-- Gunakan Alpine.js untuk menampilkan input tambahan saat rancangan dipilih --}}
-                    <div x-data="{ showFileInput: @entangle('rancanganId') }">
-                        <template x-if="showFileInput">
-                            <div>
-                                <div class="form-group">
-                                    <label for="nomor_produk_hukum">Nomor Produk Hukum</label>
-                                    <div class="input-group">
-                                        <input type="text" class="form-control text-center" value="Nomor"
-                                            disabled>
-                                        <input type="text" id="nomor_produk_hukum"
-                                            class="form-control text-center" wire:model.defer="nomor"
-                                            placeholder="###" maxlength="3"
-                                            oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,3)">
-                                        <input type="text" class="form-control text-center"
-                                            value="Tahun {{ now()->year }}" disabled>
-                                    </div>
-                                    @error('nomor')
-                                        <small class="text-danger">{{ $message }}</small>
-                                    @enderror
-                                </div>
+                @if ($mode === 'manual' || $rancanganId)
+                    @include('livewire.dokumentasi.partials.nomor-fields', [
+                        'tahunTetap' => $mode === 'rancangan' ? now()->year : null,
+                        'beritaWajib' => $mode === 'manual',
+                    ])
 
-                                {{-- Nomor Berita Daerah --}}
-                                <div class="form-group">
-                                    <label>Nomor Berita Daerah</label>
-                                    <div class="input-group">
-                                        <input type="text" class="form-control" wire:model.defer="nomor_berita"
-                                            placeholder="Contoh: 12" maxlength="2"
-                                            oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,2)">
-                                        <input type="text" class="form-control text-center" value="/"
-                                            disabled>
-                                        <input type="text" class="form-control" wire:model.defer="tahun_berita"
-                                            placeholder="Contoh: 2025" maxlength="4"
-                                            oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,4)">
+                    <x-form.field label="Tanggal Penetapan" for="tanggal_penetapan" error="tanggal_penetapan" required>
+                        <x-form.input type="date" id="tanggal_penetapan" wire:model="tanggal_penetapan" />
+                    </x-form.field>
 
-                                    </div>
-                                    @error('nomor_berita')
-                                        <small class="text-danger">{{ $message }}</small>
-                                    @enderror
-                                    @error('tahun_berita')
-                                        <small class="text-danger">{{ $message }}</small>
-                                    @enderror
-                                </div>
+                    <x-form.upload model="file_produk_hukum" :file="$file_produk_hukum" label="File Produk Hukum" accept="application/pdf"
+                        hint="Berita daerah dalam PDF, maks. 20MB." required />
+                    <x-ui.loading target="file_produk_hukum">Mengunggah file...</x-ui.loading>
+                @endif
+            </form>
 
-                                {{-- Tanggal Penetapan --}}
-                                <div class="form-group">
-                                    <label>Tanggal Penetapan</label>
-                                    <input type="date" class="form-control" wire:model.defer="tanggal_penetapan">
-                                    @error('tanggal_penetapan')
-                                        <small class="text-danger">{{ $message }}</small>
-                                    @enderror
-                                </div>
-
-                                {{-- Upload File Baru --}}
-                                <div class="form-group">
-                                    <label class="font-weight-bold">Upload Berita Daerah (PDF)</label>
-                                    <input type="file" class="form-control" wire:model="file_produk_hukum"
-                                        wire:change="resetError" wire:loading.attr="disabled"
-                                        accept="application/pdf" {{ $file_produk_hukum ? 'disabled' : '' }}
-                                        style="{{ $file_produk_hukum ? 'background-color: #e9ecef; cursor: not-allowed; opacity: 0.6;' : '' }}">
-                                    <div wire:loading wire:target="file_produk_hukum" class="text-warning mt-2">
-                                        <i class="spinner-border spinner-border-sm"></i> Mengupload file...
-                                    </div>
-                                    @error('file_produk_hukum')
-                                        <small class="text-danger">{{ $message }}</small>
-                                    @enderror
-                                    @if ($file_produk_hukum)
-                                        <div class="mt-2 p-2 border rounded bg-light d-flex align-items-center">
-                                            <i class="bi bi-file-earmark-pdf text-danger mr-2"></i>
-                                            <span
-                                                class="flex-grow-1">{{ $file_produk_hukum->getClientOriginalName() }}</span>
-                                            <button type="button" class="btn btn-sm btn-outline-danger ml-2"
-                                                wire:click="removeFile">
-                                                <i class="bi bi-trash"></i> Hapus File
-                                            </button>
-                                        </div>
-                                    @endif
-                                </div>
-                            </div>
-                        </template>
-                    </div>
-                </div>
-
-                <div class="modal-footer">
-                    <button class="btn btn-outline-warning" data-dismiss="modal">
-                        <i class="bi bi-backspace-fill mr-2"></i>Batal
-                    </button>
-                    <button class="btn btn-primary" wire:click="store" wire:loading.attr="disabled">
-                        <span wire:loading.remove wire:target="store">
-                            <i class="bi bi-save mr-2"></i> Simpan
-                        </span>
-                        <span wire:loading wire:target="store">
-                            <i class="spinner-border spinner-border-sm"></i> Memproses...
-                        </span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div wire:ignore.self class="modal fade" id="modalTambahManual" tabindex="-1" role="dialog"
-        data-backdrop="static" data-keyboard="false">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Tambah Dokumentasi Produk Hukum Manual</h5>
-                </div>
-                <div class="modal-body">
-
-                    {{-- Pilih Perangkat Daerah --}}
-                    <div class="form-group">
-                        <label>Pilih Perangkat Daerah</label>
-                        <select class="form-control" wire:model.defer="perangkat_daerah_id">
-                            <option hidden>Pilih Perangkat Daerah</option>
-                            @foreach ($perangkatList as $perangkat)
-                                <option value="{{ $perangkat->id }}">{{ $perangkat->nama_perangkat_daerah }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('perangkat_daerah_id')
-                            <small class="text-danger">{{ $message }}</small>
-                        @enderror
-                    </div>
-                    {{-- Nomor Produk Hukum --}}
-                    <div class="form-group">
-                        <label for="nomor_produk_hukum">Nomor Produk Hukum</label>
-                        <div class="input-group">
-                            <input type="text" class="form-control text-center" value="Nomor" disabled>
-                            <input type="text" id="nomor_produk_hukum" class="form-control text-center"
-                                wire:model.defer="nomor" placeholder="###" maxlength="3"
-                                oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,3)">
-                            <input type="text" class="form-control text-center" wire:model.defer="tahun"
-                                placeholder="Tahun" maxlength="4"
-                                oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,4)">
-                        </div>
-                        @error('nomor')
-                            <small class="text-danger">{{ $message }}</small>
-                        @enderror
-                        @error('tahun')
-                            <small class="text-danger">{{ $message }}</small>
-                        @enderror
-                    </div>
-
-                    {{-- Nomor Berita Daerah --}}
-                    <div class="form-group">
-                        <label>Nomor Tahun Berita Daerah</label>
-                        <div class="input-group">
-                            <input type="text" class="form-control" wire:model.defer="nomor_berita"
-                                placeholder="Contoh: 12" maxlength="2"
-                                oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,2)">
-                            <input type="text" class="form-control text-center" value="/" disabled>
-                            <input type="text" class="form-control" wire:model.defer="tahun_berita"
-                                placeholder="Contoh: 2025" maxlength="4"
-                                oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,4)">
-                        </div>
-                        @error('nomor_berita')
-                            <small class="text-danger">{{ $message }}</small>
-                        @enderror
-                        @error('tahun_berita')
-                            <small class="text-danger">{{ $message }}</small>
-                        @enderror
-                    </div>
-                    {{-- Jenis Dokumentasi --}}
-                    <div class="form-group">
-                        <label>Jenis Dokumentasi</label>
-                        <select class="form-control" wire:model.defer="jenis_dokumentasi">
-                            <option value="">-- Pilih Jenis Dokumentasi --</option>
-                            <option value="Keputusan Bupati">Keputusan Bupati</option>
-                            <option value="Peraturan Bupati">Peraturan Bupati</option>
-                        </select>
-                        @error('jenis_dokumentasi')
-                            <small class="text-danger">{{ $message }}</small>
-                        @enderror
-                    </div>
-
-
-                    {{-- Tentang Dokumentasi --}}
-                    <div class="form-group">
-                        <label>Tentang Dokumentasi</label>
-                        <textarea class="form-control" wire:model.defer="tentang_dokumentasi"
-                            placeholder="Contoh: Tentang Pengelolaan Sampah"></textarea>
-                        @error('tentang_dokumentasi')
-                            <small class="text-danger">{{ $message }}</small>
-                        @enderror
-                    </div>
-
-                    {{-- Tanggal Penetapan --}}
-                    <div class="form-group">
-                        <label>Tanggal Penetapan</label>
-                        <input type="date" class="form-control" wire:model.defer="tanggal_penetapan">
-                        @error('tanggal_penetapan')
-                            <small class="text-danger">{{ $message }}</small>
-                        @enderror
-                    </div>
-
-                    {{-- Upload File Baru --}}
-                    <div class="form-group">
-                        <label class="font-weight-bold">Upload Berita Daerah (PDF)</label>
-                        <input type="file" class="form-control" wire:model="file_produk_hukum"
-                            wire:change="resetError" wire:loading.attr="disabled" accept="application/pdf"
-                            {{ $file_produk_hukum ? 'disabled' : '' }}
-                            style="{{ $file_produk_hukum ? 'background-color: #e9ecef; cursor: not-allowed; opacity: 0.6;' : '' }}">
-                        <div wire:loading wire:target="file_produk_hukum" class="text-warning mt-2">
-                            <i class="spinner-border spinner-border-sm"></i> Mengupload file...
-                        </div>
-                        @error('file_produk_hukum')
-                            <small class="text-danger">{{ $message }}</small>
-                        @enderror
-                        @if ($file_produk_hukum)
-                            <div class="mt-2 p-2 border rounded bg-light d-flex align-items-center">
-                                <i class="bi bi-file-earmark-pdf text-danger mr-2"></i>
-                                <span class="flex-grow-1">{{ $file_produk_hukum->getClientOriginalName() }}</span>
-                                <button type="button" class="btn btn-sm btn-outline-danger ml-2"
-                                    wire:click="removeFile">
-                                    <i class="bi bi-trash"></i> Hapus File
-                                </button>
-                            </div>
-                        @endif
-                    </div>
-                </div>
-
-                <div class="modal-footer">
-                    <button class="btn btn-outline-warning" data-dismiss="modal">
-                        <i class="bi bi-backspace-fill mr-2"></i>Batal
-                    </button>
-                    <button class="btn btn-primary" wire:click="storeManual" wire:loading.attr="disabled">
-                        <span wire:loading.remove wire:target="storeManual">
-                            <i class="bi bi-save mr-2"></i> Simpan
-                        </span>
-                        <span wire:loading wire:target="storeManual">
-                            <i class="spinner-border spinner-border-sm"></i> Memproses...
-                        </span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+            <x-slot:footer>
+                <x-ui.button variant="outline" x-on:click="close()">Batal</x-ui.button>
+                <x-ui.button type="submit" form="tambahDokumentasiForm" icon="save" loading="store"
+                    :disabled="$mode === 'rancangan' && ! $rancanganId">Simpan</x-ui.button>
+            </x-slot:footer>
+        </x-ui.modal>
+    @endif
 </div>

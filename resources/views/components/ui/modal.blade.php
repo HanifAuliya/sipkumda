@@ -79,7 +79,7 @@
                         @endisset
                     </div>
                     <button type="button" x-on:click="close()"
-                        class="-m-1.5 rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-navy-800 dark:hover:text-slate-200"
+                        class="-m-1.5 rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-300 dark:hover:bg-navy-800 dark:hover:text-slate-200"
                         aria-label="Tutup">
                         <i class="bi bi-x-lg"></i>
                     </button>

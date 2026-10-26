@@ -38,6 +38,30 @@ class DokumentasiProdukHukum extends Model
     }
 
     /**
+     * Filter daftar dokumentasi; dipakai tabel, ekspor PDF, dan ekspor Excel.
+     * Pencarian mencakup arsip manual (tanpa rancangan) lewat kolom tentang_dokumentasi.
+     */
+    public function scopeFilter($query, ?string $search, ?string $jenis, $tahun)
+    {
+        return $query
+            ->when($search, fn ($q) => $q->where(fn ($sub) => $sub
+                ->where('tentang_dokumentasi', 'like', "%{$search}%")
+                ->orWhere('nomor', $search)
+                ->orWhereHas('rancangan', fn ($r) => $r->where('no_rancangan', 'like', "%{$search}%"))))
+            ->when($jenis, fn ($q) => $q->where('jenis_dokumentasi', $jenis))
+            ->when($tahun, fn ($q) => $q->where('tahun', $tahun));
+    }
+
+    /** Apakah nomor sudah dipakai pada tahun yang sama (selain $exceptId). */
+    public static function nomorDipakai($nomor, $tahun, ?int $exceptId = null): bool
+    {
+        return self::where('tahun', $tahun)
+            ->where('nomor', $nomor)
+            ->when($exceptId, fn ($q) => $q->whereKeyNot($exceptId))
+            ->exists();
+    }
+
+    /**
      * ✅ Mutator untuk menampilkan nomor dalam format: "Nomor 003 Tahun 2025"
      */
     public function getNomorFormattedAttribute()

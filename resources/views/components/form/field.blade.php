@@ -3,6 +3,8 @@
     <x-form.field label="Nama" for="nama_user" error="nama_user" required>
         <x-form.input id="nama_user" wire:model="nama_user" />
     </x-form.field>
+
+    error boleh berupa array bila satu field memuat beberapa input, mis. :error="['nomor', 'tahun']".
 --}}
 @props(['label' => null, 'for' => null, 'error' => null, 'hint' => null, 'required' => false])
 
@@ -20,11 +22,11 @@
         <p class="text-xs text-slate-500 dark:text-slate-400">{{ $hint }}</p>
     @endif
 
-    @if ($error)
-        @error($error)
+    @foreach ((array) $error as $name)
+        @error($name)
             <p class="flex items-center gap-1 text-xs font-medium text-rose-600 dark:text-rose-400">
                 <i class="bi bi-exclamation-circle"></i> {{ $message }}
             </p>
         @enderror
-    @endif
+    @endforeach
 </div>

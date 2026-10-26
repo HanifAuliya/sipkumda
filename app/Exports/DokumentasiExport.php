@@ -30,20 +30,8 @@ class DokumentasiExport implements FromCollection, WithHeadings, WithTitle, With
     public function collection(): Collection
     {
         return DokumentasiProdukHukum::with(['rancangan', 'perangkatDaerah'])
-            ->when($this->search, function ($query) {
-                $query->whereHas('rancangan', function ($q) {
-                    $q->where('tentang', 'like', '%' . $this->search . '%')
-                        ->orWhere('no_rancangan', 'like', '%' . $this->search . '%');
-                });
-            })
-            ->when($this->jenisRancangan, function ($query) {
-                $query->whereHas('rancangan', function ($q) {
-                    $q->whereYear('jenis_rancangan', $this->jenisRancangan);
-                });
-            })
-            ->when($this->tahun, function ($q) { // Filter tahun dari dokumentasi_produk_hukum
-                $q->where('tahun', $this->tahun);
-            })
+            ->filter($this->search, $this->jenisRancangan, $this->tahun)
+            ->orderByDesc('tanggal_pengarsipan')
             ->get()
             ->map(function ($dokumentasi, $index) {
                 return [
@@ -52,8 +40,8 @@ class DokumentasiExport implements FromCollection, WithHeadings, WithTitle, With
                     'Nomor Fasilitasi Rancangan' => $dokumentasi->rancangan->no_rancangan ?? 'Dokumen sebelum ada sistem',
                     'Jenis Produk Hukum' => $dokumentasi->jenis_dokumentasi,
                     'Tentang' => $dokumentasi->tentang_dokumentasi,
-                    'Perangkat Daerah' => $dokumentasi->perangkatDaerah->nama_perangkat_daerah,
-                    'File Rancangan' => $dokumentasi->file_produk_hukum ? '=HYPERLINK("' . url('/view-private/dokumentasi/file_produk_hukum/' . basename($dokumentasi->file_produk_hukum)) . '", "Lihat Produk Hukum")' : 'Tidak Ada',
+                    'Perangkat Daerah' => $dokumentasi->perangkatDaerah->nama_perangkat_daerah ?? '-',
+                    'File Rancangan' => $dokumentasi->file_produk_hukum ? '=HYPERLINK("' . private_file_url('dokumentasi/file_produk_hukum', $dokumentasi->file_produk_hukum) . '", "Lihat Produk Hukum")' : 'Tidak Ada',
                     'Tanggal Penetapan' => \Carbon\Carbon::parse($dokumentasi->tanggal_penetapan)->translatedFormat('d F Y'),
                     'Nomor Tahun Berita Daerah' => $dokumentasi->nomor_tahun_berita,
                     'Tanggal Pengarsipan' => \Carbon\Carbon::parse($dokumentasi->tanggal_pengarsipan)->translatedFormat('d F Y'),

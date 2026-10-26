@@ -160,17 +160,14 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware(['role:Admin|Verifikator|Peneliti|Super Admin'])->group(function () {
         Route::livewire('/master-data', MasterData::class)->name('masterdata.main');
+        Route::get('/export-master-data', [MasterData::class, 'export'])->name('export.masterdata');
     });
 
-    // Export
-    Route::get('/export-master-data', [MasterData::class, 'export'])->name('export.masterdata');
-
-    Route::get('/export-dokumentasi', [DokumentasiExportController::class, 'export'])->name('export.dokumentasi');
-    Route::get('/export-dokumentasi-pdf', [DokumentasiPdfController::class, 'export'])->name('export.dokumentasi.pdf');
-});
-
-Route::get('/test-500', function () {
-    abort(500); // Memaksa Laravel untuk menampilkan halaman error 500
+    // Ekspor dokumentasi: sama dengan policy DokumentasiProdukHukum::viewAny
+    Route::middleware(['role:Admin|Verifikator'])->group(function () {
+        Route::get('/export-dokumentasi', [DokumentasiExportController::class, 'export'])->name('export.dokumentasi');
+        Route::get('/export-dokumentasi-pdf', [DokumentasiPdfController::class, 'export'])->name('export.dokumentasi.pdf');
+    });
 });
 
 

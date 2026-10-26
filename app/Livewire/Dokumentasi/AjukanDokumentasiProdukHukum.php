@@ -2,274 +2,178 @@
 
 namespace App\Livewire\Dokumentasi;
 
-use Livewire\Component;
-use Livewire\WithFileUploads;
 use App\Models\DokumentasiProdukHukum;
 use App\Models\FasilitasiProdukHukum;
 use App\Models\PerangkatDaerah;
 use App\Models\User;
-use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Notification;
 use App\Notifications\DokumentasiNotification;
+use Illuminate\Support\Facades\Notification;
+use Livewire\Attributes\On;
+use Livewire\Component;
+use Livewire\WithFileUploads;
 
+/**
+ * Form tambah dokumentasi, dua mode:
+ * - rancangan : arsip dari fasilitasi yang sudah diterima (jenis/tentang/PD diambil dari rancangan)
+ * - manual    : arsip produk hukum sebelum ada sistem
+ */
 class AjukanDokumentasiProdukHukum extends Component
 {
     use WithFileUploads;
 
-    public $rancanganId;
-    public $rancanganList = [];
-    public $perangkatList = [];
+    public $mode = 'rancangan';
+
+    public $rancanganId; // id fasilitasi
     public $nomor;
     public $tahun;
-    public $nomor_berita; // Untuk input nomor (2 digit)
-    public $tahun_berita; // Untuk input tahun (4 digit)
-    public $file_produk_hukum;
-    public $tanggal_pengarsipan;
+    public $nomor_berita;
+    public $tahun_berita;
     public $tanggal_penetapan;
+    public $file_produk_hukum;
     public $perangkat_daerah_id;
-    public $jenis_dokumentasi; // Properti baru
-    public $tentang_dokumentasi; // Properti baru
+    public $jenis_dokumentasi;
+    public $tentang_dokumentasi;
 
-    public $listeners = [
-        'loadData' => 'loadData',
+    protected $validationAttributes = [
+        'rancanganId' => 'rancangan',
+        'nomor_berita' => 'nomor berita daerah',
+        'tahun_berita' => 'tahun berita daerah',
+        'file_produk_hukum' => 'file produk hukum',
+        'perangkat_daerah_id' => 'perangkat daerah',
+        'jenis_dokumentasi' => 'jenis produk hukum',
+        'tentang_dokumentasi' => 'tentang',
     ];
 
-    public function mount()
+    /** Fasilitasi yang sudah diterima dan belum diarsipkan. */
+    private function fasilitasiTersedia()
     {
-        $this->loadData();
+        return FasilitasiProdukHukum::where('status_validasi_fasilitasi', 'Diterima')
+            ->whereDoesntHave('dokumentasi');
     }
 
+    #[On('tambahDokumentasi')]
+    public function open($mode = 'rancangan')
+    {
+        $this->authorize('create', DokumentasiProdukHukum::class);
+
+        $this->resetForm();
+        $this->mode = $mode === 'manual' ? 'manual' : 'rancangan';
+        $this->tahun = $this->mode === 'rancangan' ? now()->year : null;
+
+        $this->dispatch('openModal', 'modalTambahDokumentasi');
+    }
+
+    // Dipanggil setelah dokumentasi dihapus agar pilihan rancangan diperbarui.
+    #[On('loadData')]
     public function loadData()
     {
-        // Ambil rancangan yang sudah difasilitasi tapi belum masuk dokumentasi
-        $this->rancanganList = FasilitasiProdukHukum::where('status_validasi_fasilitasi', 'Diterima')
-            ->whereDoesntHave('dokumentasi') // Pastikan rancangan belum ada di dokumentasi
-            ->with('rancangan')
-            ->get();
-
-        // Ambil semua perangkat daerah
-        $this->perangkatList = PerangkatDaerah::all();
     }
 
     public function store()
     {
-        // Cek Policy: Hanya Admin dan Verifikator yang bisa menambah dokumentasi
-        if (Gate::denies('create', DokumentasiProdukHukum::class)) {
-            abort(403, 'Anda tidak memiliki izin untuk menambah dokumentasi.');
-        }
+        $this->authorize('create', DokumentasiProdukHukum::class);
 
-        // Validasi input
+        $manual = $this->mode === 'manual';
+
         $this->validate([
-            'rancanganId' => 'required|exists:fasilitasi_produk_hukum,id',
+            'rancanganId' => $manual ? 'nullable' : 'required|integer',
             'nomor' => 'required|numeric|digits_between:1,3',
-            'nomor_berita' => 'nullable|numeric|digits:2', // Nomor harus 2 digit
-            'tahun_berita' => 'nullable|numeric|digits:4', // Tahun harus 4 digit
+            'tahun' => $manual ? 'required|numeric|digits:4' : 'nullable',
+            'nomor_berita' => ($manual ? 'required' : 'nullable') . '|numeric|digits_between:1,3',
+            'tahun_berita' => ($manual ? 'required' : 'nullable') . '|numeric|digits:4',
             'tanggal_penetapan' => 'required|date',
             'file_produk_hukum' => 'required|mimes:pdf|max:20480',
+            'perangkat_daerah_id' => $manual ? 'required|exists:perangkat_daerah,id' : 'nullable',
+            'jenis_dokumentasi' => $manual ? 'required|in:Peraturan Bupati,Keputusan Bupati' : 'nullable',
+            'tentang_dokumentasi' => $manual ? 'required|string' : 'nullable',
         ]);
 
-        // Gabungkan nomor_berita dan tahun_berita menjadi nomor_tahun_berita
-        $nomor_tahun_berita = (empty($this->nomor_berita) ? '-' : $this->nomor_berita) . '/' . (empty($this->tahun_berita) ? '-' : $this->tahun_berita);
+        if ($manual) {
+            $rancangan = null;
+            $data = [
+                'tahun' => $this->tahun,
+                'perangkat_daerah_id' => $this->perangkat_daerah_id,
+                'jenis_dokumentasi' => $this->jenis_dokumentasi,
+                'tentang_dokumentasi' => $this->tentang_dokumentasi,
+            ];
+        } else {
+            $rancangan = $this->fasilitasiTersedia()->with('rancangan.user')->find($this->rancanganId)?->rancangan;
 
+            if (! $rancangan) {
+                $this->addError('rancanganId', 'Rancangan tidak tersedia atau sudah diarsipkan.');
+                return;
+            }
 
-        // Buat nama file sesuai format yang diinginkan**
-        $jenisDokumenFormatted = str_replace(' ', '_', $this->jenis_dokumentasi); // Ganti spasi dengan underscore
-        $namaFile = "{$jenisDokumenFormatted}_Nomor_{$this->nomor}_Tahun_{$this->tahun}_Kabupaten_Hulu_Sungai_Tengah.pdf";
+            $data = [
+                'rancangan_id' => $rancangan->id_rancangan,
+                'tahun' => now()->year,
+                'perangkat_daerah_id' => $rancangan->user?->perangkat_daerah_id,
+                'jenis_dokumentasi' => $rancangan->jenis_rancangan,
+                'tentang_dokumentasi' => $rancangan->tentang,
+            ];
+        }
 
-        // Simpan file ke storage dengan nama baru**
-        $path = $this->file_produk_hukum->storeAs('dokumentasi/file_produk_hukum', $namaFile, 'local');
-
-        // Ambil Fasilitasi berdasarkan ID yang dipilih
-        $fasilitasi = FasilitasiProdukHukum::find($this->rancanganId);
-
-        // Pastikan fasilitasi valid
-        if (!$fasilitasi) {
-            $this->dispatch('swal:modal', [
-                'type' => 'error',
-                'title' => 'Kesalahan!',
-                'message' => 'Data fasilitasi tidak ditemukan.',
-            ]);
+        // Cek nomor ganda sebelum menyimpan file: nama file memakai nomor & tahun,
+        // jadi file dokumen lain dengan nomor yang sama bisa tertimpa.
+        if (DokumentasiProdukHukum::nomorDipakai($this->nomor, $data['tahun'])) {
+            $this->addError('nomor', "Nomor {$this->nomor} untuk tahun {$data['tahun']} sudah ada.");
             return;
         }
 
-        // Ambil rancangan dari fasilitasi
-        $rancangan = $fasilitasi->rancangan;
+        $namaFile = str_replace(' ', '_', $data['jenis_dokumentasi'])
+            . "_Nomor_{$this->nomor}_Tahun_{$data['tahun']}_Kabupaten_Hulu_Sungai_Tengah.pdf";
 
-        if (!$rancangan) {
-            $this->dispatch('swal:modal', [
-                'type' => 'error',
-                'title' => 'Kesalahan!',
-                'message' => 'Data rancangan tidak ditemukan.',
-            ]);
-            return;
-        }
-
-        // Debugging - Cek apakah rancangan valid
-        // dd($rancangan->id_rancangan);
-
-
-        // Simpan data ke database
-        DokumentasiProdukHukum::create([
-            'rancangan_id' => $rancangan->id_rancangan,
+        DokumentasiProdukHukum::create($data + [
             'nomor' => $this->nomor,
-            'tahun' => now()->year,
-            'nomor_tahun_berita' => $nomor_tahun_berita,
+            'nomor_tahun_berita' => ($this->nomor_berita ?: '-') . '/' . ($this->tahun_berita ?: '-'),
             'tanggal_pengarsipan' => now(),
             'tanggal_penetapan' => $this->tanggal_penetapan,
-            'file_produk_hukum' => $path,
-            'perangkat_daerah_id' => $rancangan->user->perangkat_daerah_id,
-            'jenis_dokumentasi' => $rancangan->jenis_rancangan, // Ambil jenis dari rancangan
-            'tentang_dokumentasi' => $rancangan->tentang, // Ambil tentang dari rancangan
+            'file_produk_hukum' => $this->file_produk_hukum->storeAs('dokumentasi/file_produk_hukum', $namaFile, 'local'),
         ]);
 
-        // Cek data rancangan sebelum simpan
-        // dd($rancangan->jenis_rancangan, $rancangan->tentang);
-
-        // Cek apakah ada error dari Model (karena Model menggunakan `session()->flash()`)
-        if (session()->has('error_nomor')) {
-            $this->dispatch('swal:modal', [
-                'type' => 'error',
-                'title' => 'Gagal!',
-                'message' => session('error_nomor'),
-            ]);
-            return;
-        }
-
-        // Kirim Notifikasi ke Semua Verifikator
-        $verifikatorUsers = User::role('Verifikator')->get();
-        Notification::send($verifikatorUsers, new DokumentasiNotification([
-            'title' => "📄 Dokumentasi Produk Hukum Baru",
-            'message' => "Dokumentasi produk hukum dengan Nomor {$this->nomor} telah Ditambahkan ke Pengarsipan. Silahkan Cek di Halaman Daftar Produk Hukum.",
+        Notification::send(User::role('Verifikator')->get(), new DokumentasiNotification([
+            'title' => 'Dokumentasi Produk Hukum Baru',
+            'message' => "Dokumentasi produk hukum Nomor {$this->nomor} Tahun {$data['tahun']} telah ditambahkan ke pengarsipan. Silakan cek di halaman Daftar Dokumentasi.",
             'type' => 'dokumentasi_dibuat',
-            'slug' => $rancangan->slug, // Mengambil slug dari rancangan
+            'slug' => $rancangan?->slug,
         ]));
 
-        // Tutup modal dan refresh tabel
-        $this->dispatch('closeModal', 'closeModalTambahDokumentasi');
+        $this->dispatch('closeModal', 'modalTambahDokumentasi');
         $this->dispatch('refreshTable');
-
-        // Reset form
-        $this->reset();
-        $this->loadData();
-
-        // Tampilkan notifikasi sukses
-        $this->dispatch('swal:modal', [
+        $this->dispatch('swal:toast', [
             'type' => 'success',
-            'title' => 'Berhasil!',
             'message' => 'Dokumentasi berhasil ditambahkan.',
         ]);
-    }
-
-    public function storeManual()
-    {
-        // Cek Policy: Hanya Admin dan Verifikator yang bisa menambah dokumentasi
-        if (Gate::denies('create', DokumentasiProdukHukum::class)) {
-            abort(403, 'Anda tidak memiliki izin untuk menambah dokumentasi.');
-        }
-        // Validasi input
-        $this->validate([
-            'nomor' => 'required|numeric|digits_between:1,3',
-            'tahun' => 'required|numeric|digits:4', // Tahun harus 4 digit
-            'nomor_berita' => 'required|numeric|digits:2', // Nomor harus 2 digit
-            'tahun_berita' => 'required|numeric|digits:4', // Tahun harus 4 digit
-            'tanggal_penetapan' => 'required|date',
-            'file_produk_hukum' => 'required|mimes:pdf|max:20480',
-            'perangkat_daerah_id' => 'required|exists:perangkat_daerah,id',
-            'jenis_dokumentasi' => 'required|string|max:255', // Validasi untuk jenis_dokumentasi
-            'tentang_dokumentasi' => 'required|string', // Validasi untuk tentang_dokumentasi
-        ]);
-
-        // Cek duplikasi nomor dan tahun
-        $existing = DokumentasiProdukHukum::where('tahun', $this->tahun)
-            ->where('nomor', $this->nomor)
-            ->exists();
-
-        if ($existing) {
-            $this->dispatch('swal:modal', [
-                'type' => 'error',
-                'title' => 'Gagal!',
-                'message' => "Nomor {$this->nomor} untuk tahun {$this->tahun} sudah ada! Pilih nomor atau tahun lain.",
-            ]);
-            return;
-        }
-
-        // Gabungkan nomor_berita dan tahun_berita menjadi nomor_tahun_berita
-        $nomor_tahun_berita = "{$this->nomor_berita}/{$this->tahun_berita}";
-
-        // Buat nama file sesuai format yang diinginkan**
-        $jenisDokumenFormatted = str_replace(' ', '_', $this->jenis_dokumentasi); // Ganti spasi dengan underscore
-        $namaFile = "{$jenisDokumenFormatted}_Nomor_{$this->nomor}_Tahun_{$this->tahun}_Kabupaten_Hulu_Sungai_Tengah.pdf";
-
-        // Simpan file ke storage dengan nama baru**
-        $path = $this->file_produk_hukum->storeAs('dokumentasi/file_produk_hukum', $namaFile, 'local');
-
-
-        // Simpan data ke database
-        DokumentasiProdukHukum::create([
-            'nomor' => $this->nomor,
-            'tahun' => $this->tahun, // Gunakan tahun yang diinput
-            'nomor_tahun_berita' => $nomor_tahun_berita,
-            'tanggal_pengarsipan' => now(),
-            'tanggal_penetapan' => $this->tanggal_penetapan,
-            'file_produk_hukum' => $path,
-            'perangkat_daerah_id' => $this->perangkat_daerah_id,
-            'jenis_dokumentasi' => $this->jenis_dokumentasi, // Input manual
-            'tentang_dokumentasi' => $this->tentang_dokumentasi, // Input manual
-        ]);
-
-        // Kirim Notifikasi ke Semua Verifikator
-        $verifikatorUsers = User::role('Verifikator')->get();
-        Notification::send($verifikatorUsers, new DokumentasiNotification([
-            'title' => "📄 Dokumentasi Produk Hukum Baru",
-            'message' => "Dokumentasi produk hukum dengan Nomor {$this->nomor} telah Ditambahkan ke Pengarsipan. Silahkan Cek di Halaman Daftar Produk Hukum.",
-            'type' => 'dokumentasi_dibuat',
-        ]));
-
-        // Tutup modal dan refresh tabel
-        $this->dispatch('closeModal', 'modalTambahManual');
-        $this->dispatch('refreshTable');
-
-        // Reset form
-        $this->reset();
-        $this->loadData();
-
-        // Tampilkan notifikasi sukses
-        $this->dispatch('swal:modal', [
-            'type' => 'success',
-            'title' => 'Berhasil!',
-            'message' => 'Dokumentasi berhasil ditambahkan secara manual.',
-        ]);
+        $this->resetForm();
     }
 
     public function resetForm()
     {
         $this->reset([
-            'rancanganId',
-            'nomor',
-            'nomor_berita',
-            'tahun_berita',
-            'tanggal_pengarsipan',
-            'tanggal_penetapan',
-            'file_produk_hukum',
+            'rancanganId', 'nomor', 'tahun', 'nomor_berita', 'tahun_berita', 'tanggal_penetapan',
+            'file_produk_hukum', 'perangkat_daerah_id', 'jenis_dokumentasi', 'tentang_dokumentasi',
         ]);
         $this->resetValidation();
     }
 
     public function removeFile()
     {
-        if ($this->file_produk_hukum) {
-            $this->file_produk_hukum->delete(); // Menghapus dari Livewire temp storage
-        }
-        $this->reset('file_produk_hukum'); // Mengosongkan variabel agar input aktif kembali
-    }
-
-    public function resetError()
-    {
-        $this->resetErrorBag('file_produk_hukum'); // Menghapus error jika file berubah
+        $this->reset('file_produk_hukum');
+        $this->resetValidation('file_produk_hukum');
     }
 
     public function render()
     {
-        return view('livewire.dokumentasi.ajukan-dokumentasi-produk-hukum');
+        $bisaTambah = auth()->user()->can('create', DokumentasiProdukHukum::class);
+
+        return view('livewire.dokumentasi.ajukan-dokumentasi-produk-hukum', [
+            'bisaTambah' => $bisaTambah,
+            'rancanganList' => $bisaTambah && $this->mode === 'rancangan'
+                ? $this->fasilitasiTersedia()->with('rancangan')->get()
+                : collect(),
+            'perangkatList' => $bisaTambah && $this->mode === 'manual'
+                ? PerangkatDaerah::orderBy('nama_perangkat_daerah')->get()
+                : collect(),
+        ]);
     }
 }
