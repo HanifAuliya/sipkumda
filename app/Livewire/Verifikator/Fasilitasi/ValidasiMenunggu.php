@@ -19,10 +19,6 @@ class ValidasiMenunggu extends Component
     public $search = ''; // Pencarian
     public $perPage = 10; // Default jumlah item per halaman
 
-    public $activeTab = 'menunggu-validasi'; // Tab default
-
-    protected $queryString = ['activeTab']; // Masukkan 'tab' ke dalam query string
-
     public $selectedFasilitasi;
     public $catatanValidasi;
     public $statusValidasi;
@@ -38,17 +34,27 @@ class ValidasiMenunggu extends Component
         'catatanValidasi.max' => 'Catatan validasi maksimal 1000 karakter.',
     ];
 
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingPerPage()
+    {
+        $this->resetPage();
+    }
+
     public function openModalValidasiFasilitasi($idFasilitasi)
     {
         // Cari fasilitasi berdasarkan ID
-        $this->selectedFasilitasi = FasilitasiProdukHukum::with(['rancangan.user', 'rancangan.perangkatDaerah'])
+        $this->selectedFasilitasi = FasilitasiProdukHukum::with(['rancangan.user.perangkatDaerah', 'notaDinas'])
             ->findOrFail($idFasilitasi);
 
         // Reset form jika sebelumnya ada
         $this->resetFormValidasi();
 
         // Buka modal
-        $this->dispatch('openModalValidasiFasilitasi');
+        $this->dispatch('openModal', 'modalValidasiFasilitasi');
     }
 
     public function validasiFasilitasi()
@@ -144,9 +150,9 @@ class ValidasiMenunggu extends Component
             $user = $this->selectedFasilitasi->rancangan->user;
             if ($user) {
                 $user->notify(new ValidationResultNotification([
-                    'title' => ' Fasilitasi No. ' . $this->selectedFasilitasi->rancangan->no_rancangan . ' Telah Diterima!',
-                    'message' => " Berkas fasilitasi Anda ditolak! Harap periksa catatan pengajuan rancangan  dan ajukan ulang dengan perbaikan yang diperlukan. Jangan khawatir, Anda bisa melakukannya! ",
-                    'type' => 'fasilitasi_diterima',
+                    'title' => 'Fasilitasi No. ' . $this->selectedFasilitasi->rancangan->no_rancangan . ' Ditolak',
+                    'message' => "Berkas fasilitasi Anda ditolak! Harap periksa catatan validasi dan ajukan ulang dengan perbaikan yang diperlukan. Jangan khawatir, Anda bisa melakukannya!",
+                    'type' => 'fasilitasi_ditolak',
                     'slug' => $this->selectedFasilitasi->rancangan->slug,
                 ]));
             }
@@ -162,7 +168,7 @@ class ValidasiMenunggu extends Component
 
         // Reset form dan tutup modal
         $this->resetFormValidasi();
-        $this->dispatch('closeModalValidasiFasilitasi');
+        $this->dispatch('closeModal', 'modalValidasiFasilitasi');
     }
 
     public function resetFormValidasi()
@@ -178,7 +184,7 @@ class ValidasiMenunggu extends Component
 
     public function render()
     {
-        $fasilitasiMenunggu = FasilitasiProdukHukum::with('rancangan')
+        $fasilitasiMenunggu = FasilitasiProdukHukum::with('rancangan.user.perangkatDaerah')
             ->whereIn('status_berkas_fasilitasi', ['Disetujui', 'Ditolak'])
             ->where('status_validasi_fasilitasi', 'Menunggu Validasi')
             ->whereHas('rancangan', function ($query) {

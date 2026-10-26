@@ -40,21 +40,7 @@
                     </x-ui.alert>
 
                     <x-form.field label="Keputusan" error="statusBerkas" required>
-                        <div class="grid grid-cols-2 gap-3">
-                            @foreach ([
-                                'Disetujui' => ['check-circle-fill text-emerald-500', 'Setujui berkas', 'bg-emerald-50 text-emerald-700 ring-emerald-300 dark:bg-emerald-500/10 dark:text-emerald-300'],
-                                'Ditolak' => ['x-circle-fill text-rose-500', 'Tolak berkas', 'bg-rose-50 text-rose-700 ring-rose-300 dark:bg-rose-500/10 dark:text-rose-300'],
-                            ] as $value => [$icon, $label, $activeClass])
-                                <label @class([
-                                    'flex cursor-pointer items-center gap-2.5 rounded-lg px-4 py-3 text-sm font-semibold ring-1 transition',
-                                    $activeClass => $statusBerkas === $value,
-                                    'ring-slate-200 hover:bg-slate-50 dark:ring-navy-700 dark:hover:bg-navy-800' => $statusBerkas !== $value,
-                                ])>
-                                    <input type="radio" wire:model.live="statusBerkas" value="{{ $value }}" class="sr-only">
-                                    <i class="bi bi-{{ $icon }}"></i> {{ $label }}
-                                </label>
-                            @endforeach
-                        </div>
+                        <x-form.decision model="statusBerkas" :value="$statusBerkas" approve-label="Setujui berkas" reject-label="Tolak berkas" />
                     </x-form.field>
 
                     <x-form.field label="Catatan" for="catatanPersetujuan" error="catatan" required
