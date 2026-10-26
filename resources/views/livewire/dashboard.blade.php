@@ -47,7 +47,7 @@
         ['Rancangan Disetujui', 'rancangan', '#5e72e4'],
         ['Revisi Selesai', 'revisi', '#fb6340'],
         ['Fasilitasi Divalidasi', 'fasilitasi', '#2dce89'],
-        ['Dokumentasi Arsip', 'dokumentasi', '#8965e0'],
+        ['Dokumentasi Diarsipkan (jumlah)', 'dokumentasi', '#8965e0'],
     ];
 
     $lineConfig = [
@@ -59,7 +59,7 @@
                 'data' => $lineChartData[$s[1]],
                 'borderColor' => $s[2],
                 'backgroundColor' => $s[2],
-                'tension' => 0.35,
+                'cubicInterpolationMode' => 'monotone',
                 'pointRadius' => 3,
                 'borderWidth' => 2.5,
             ])->all(),

@@ -19,7 +19,6 @@
         "maatwebsite/excel": "^4.0",
         "phpoffice/phpword": "^1.4",
         "pusher/pusher-php-server": "^7.2",
-        "rappasoft/laravel-livewire-tables": "^3.10",
         "smalot/pdfparser": "^2.12",
         "spatie/laravel-permission": "^8.0"
     },
