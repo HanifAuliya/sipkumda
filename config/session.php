@@ -214,4 +214,16 @@ return [
 
     'partitioned' => env('SESSION_PARTITIONED_COOKIE', false),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Session Serialization
+    |--------------------------------------------------------------------------
+    |
+    | Format penyimpanan data session. "json" lebih aman dari "php" karena
+    | tidak bisa memuat objek PHP (mencegah serangan deserialization).
+    |
+    */
+
+    'serialization' => 'json',
+
 ];

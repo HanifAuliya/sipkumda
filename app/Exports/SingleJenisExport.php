@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Models\RancanganProdukHukum;
+use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithTitle;
@@ -31,7 +32,7 @@ class SingleJenisExport implements FromCollection, WithHeadings, WithTitle, With
         $this->jenis = $jenis;
     }
 
-    public function collection()
+    public function collection(): Collection
     {
         return RancanganProdukHukum::with(['user', 'revisi.user', 'fasilitasi.notaDinas', 'dokumentasi']) // Tambah relasi fasilitasi
             ->when($this->tahun !== "", function ($query) {
@@ -234,7 +235,7 @@ class SingleJenisExport implements FromCollection, WithHeadings, WithTitle, With
         ];
     }
 
-    public function styles(Worksheet $sheet)
+    public function styles(Worksheet $sheet): array
     {
         $highestRow = $sheet->getHighestRow();
         $highestColumn = $sheet->getHighestColumn();

@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Models\DokumentasiProdukHukum;
+use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithTitle;
@@ -26,7 +27,7 @@ class DokumentasiExport implements FromCollection, WithHeadings, WithTitle, With
         $this->tahun = $tahun;
     }
 
-    public function collection()
+    public function collection(): Collection
     {
         return DokumentasiProdukHukum::with(['rancangan', 'perangkatDaerah'])
             ->when($this->search, function ($query) {
@@ -97,7 +98,7 @@ class DokumentasiExport implements FromCollection, WithHeadings, WithTitle, With
         ];
     }
 
-    public function styles(Worksheet $sheet)
+    public function styles(Worksheet $sheet): array
     {
         $highestRow = $sheet->getHighestRow();
         $highestColumn = $sheet->getHighestColumn();
