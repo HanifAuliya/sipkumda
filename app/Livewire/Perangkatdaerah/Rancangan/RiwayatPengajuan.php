@@ -27,7 +27,8 @@ class RiwayatPengajuan extends Component
     public function loadDokumenRevisi($id)
     {
         // Cari rancangan berdasarkan ID
-        $rancangan = RancanganProdukHukum::with(['revisi'])->find($id);
+        // Hanya rancangan milik pengguna yang sedang login
+        $rancangan = RancanganProdukHukum::with(['revisi'])->where('id_user', auth()->id())->find($id);
 
         if (!$rancangan) {
             $this->dispatch('swal:modal', [
@@ -62,7 +63,7 @@ class RiwayatPengajuan extends Component
 
     public function render()
     {
-        $query = RancanganProdukHukum::with(['user', 'perangkatDaerah', 'revisi'])
+        $query = RancanganProdukHukum::with(['user.perangkatDaerah', 'revisi.peneliti'])
             ->where('id_user', auth()->id())
             ->where('status_rancangan', 'Disetujui')
             ->orderBy('tanggal_rancangan_disetujui', 'desc'); // Urutkan berdasarkan tanggal_rancangan_disetujui terbaru

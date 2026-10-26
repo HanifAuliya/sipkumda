@@ -5,6 +5,7 @@
 @plugin '@tailwindcss/forms';
 
 @source '../views';
+@source '../../app';
 
 /* Dark mode dikendalikan class "dark" pada <html> (lihat resources/js/theme.js). */
 @custom-variant dark (&:where(.dark, .dark *));

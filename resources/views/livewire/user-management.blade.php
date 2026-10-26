@@ -1,374 +1,133 @@
 @section('title', 'Kelola User')
 
-@section('manual')
-    <div class="card  mb--2">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <div class="d-flex flex-column">
-                <h3 class="mb-0">Menu Kelola User </h3>
-                <p class="description">
-                    Kelola User (Tambah ,Hapus , Edit)
-                </p>
-            </div>
+@php
+    $roles = \Spatie\Permission\Models\Role::orderBy('name')->pluck('name');
+    $sortable = ['id' => 'No', 'nama_user' => 'Nama', 'NIP' => 'NIP'];
+@endphp
 
-            {{-- Tombol untuk Verifikator --}}
-            <a href="{{ route('dashboard') }}" class="btn btn-outline-primary">
-                <i class="bi bi-skip-backward mr-2"></i> Kembali
-            </a>
-
-        </div>
-    </div>
-@endsection
 <div>
+    <x-ui.page-header title="Daftar Pengguna" description="Kelola pengguna SIFKUMDA (tambah, ubah, hapus)" icon="people">
+        @if ($isAdmin)
+            <x-slot:actions>
+                <x-ui.button variant="navy" icon="person-plus" wire:click="create" loading="create">Tambah Pengguna</x-ui.button>
+            </x-slot:actions>
+        @endif
+    </x-ui.page-header>
 
-    <div class="row mb-1">
-        <div class="col-12">
-            <div class="card  mb-3">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h3 class="mb-0">Manajemen Pengguna</h3>
-                    @if ($isAdmin)
-                        <button class="btn btn-default" wire:click="resetInput" data-toggle="modal"
-                            data-target="#addUserModal">
-                            Tambah Pengguna
-                        </button>
-                    @endif
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="mb-0">Daftar Pengguna SIPKUMDA</h3>
-                </div>
-                {{-- Search and Pagination Controls --}}
-                <div class="card-body">
-                    <div class="row align-items-center mb-3">
-                        {{-- Search Bar --}}
-                        <div class="col-md-6 d-flex">
-                            <div class="input-group w-100">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="ni ni-zoom-split-in"></i></span>
-                                </div>
-                                <input type="text" class="form-control" wire:model.live="search"
-                                    placeholder="Cari nama, NIP, atau email...">
-                            </div>
-                        </div>
-
-                        {{-- Per Page Dropdown --}}
-                        <div class="col-md-3 d-flex">
-                            <div class="input-group w-100">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="ni ni-bullet-list-67"></i></span>
-                                </div>
-                                <select class="form-control" wire:model.live="perPage">
-                                    <option value="5">5</option>
-                                    <option value="10">10</option>
-                                    <option value="20">20</option>
-                                    <option value="50">50</option>
-                                </select>
-
-                            </div>
-                        </div>
-
-                        {{-- Filter by Role --}}
-                        <div class="col-md-3 d-flex">
-                            <div class="input-group w-100">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="ni ni-single-02"></i></span>
-                                </div>
-                                <select class="form-control" wire:model.live="roleFilter">
-                                    <option value="">Semua Role</option>
-                                    <option value="Admin">Admin</option>
-                                    <option value="Verifikator">Verifikator</option>
-                                    <option value="Peneliti">Peneliti</option>
-                                    <option value="Perangkat_Daerah">Perangkat Daerah</option>
-                                    <option value="Tamu">Tamu</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- Tabel Data --}}
-                    <div class="table-responsive modal-table">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th wire:click="sortBy('id')" class="sortable cursor-pointer">
-                                        ID
-                                        @if ($sortField === 'id')
-                                            <span>{{ $sortDirection === 'asc' ? '🔼' : '🔽' }}</span>
-                                        @endif
-                                    </th>
-                                    <th wire:click="sortBy('nama_user')" class="sortable cursor-pointer">
-                                        Nama
-                                        @if ($sortField === 'nama_user')
-                                            <span>{{ $sortDirection === 'asc' ? '🔼' : '🔽' }}</span>
-                                        @endif
-                                    </th>
-                                    <th wire:click="sortBy('NIP')" class="sortable cursor-pointer">
-                                        NIP
-                                        @if ($sortField === 'NIP')
-                                            <span>{{ $sortDirection === 'asc' ? '🔼' : '🔽' }}</span>
-                                        @endif
-                                    </th>
-                                    <th>
-                                        Email
-                                    </th>
-                                    <th>Perangkat Daerah</th>
-                                    <th>
-                                        Role User Sebagai
-                                    </th>
-                                    <th>Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse ($users as $index => $user)
-                                    <tr>
-                                        <td>{{ $users->firstItem() + $index }}</td>
-                                        <td class="text-wrap">{{ $user->nama_user }}</td>
-                                        <td>{{ $user->NIP }}</td>
-                                        <td class="text-wrap w-25">{{ $user->email }}</td>
-                                        <td class="text-wrap w-25">
-                                            {{ $user->perangkatDaerah->nama_perangkat_daerah ?? 'N/A' }}</td>
-                                        <td class="text-wrap">{{ $user->getRoleNames()->implode(', ') }}</td>
-                                        <td>
-                                            @if ($isAdmin)
-                                                <button wire:click="edit({{ $user->id }})"
-                                                    class="btn btn-warning btn-sm" data-toggle="modal"
-                                                    data-target="#editUserModal">
-                                                    <i class="bi bi-pencil-fill"></i>
-                                                </button>
-                                                <button type="button" class="btn btn-danger btn-sm"
-                                                    onclick="confirmDelete({{ $user->id }})">
-                                                    <i class="bi bi-trash-fill"></i>
-                                                </button>
-                                            @else
-                                                <span class="text-danger">Butuh Akses</span>
-                                            @endif
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="7" class="text-center">Tidak ada data.</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                        <div class="mt-3">
-                            {{ $users->links('pagination::bootstrap-4') }}
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Modal Tambah --}}
-                <div wire:ignore.self class="modal fade" id="addUserModal" tabindex="-1" role="dialog"
-                    aria-labelledby="addUserModalLabel">
-                    <div class="modal-dialog modal-lg" role="document">
-                        <div class="modal-content">
-                            <form wire:submit.prevent="store">
-                                <div class="modal-header">
-                                    <h5 class="modal-title" id="addUserModalLabel">Tambah Pengguna</h5>
-
-                                </div>
-                                <div class="modal-body">
-                                    <div class="row">
-                                        {{-- Nama --}}
-                                        <div class="col-md-6 mb-3">
-                                            <label for="nama_user" class="form-label">Nama</label>
-                                            <input type="text" wire:model.blur="nama_user" class="form-control"
-                                                id="nama_user">
-                                            @error('nama_user')
-                                                <span class="text-danger">{{ $message }}</span>
-                                            @enderror
-                                        </div>
-
-                                        {{-- NIP --}}
-                                        <div class="col-md-6 mb-3">
-                                            <label for="NIP" class="form-label">NIP</label>
-                                            <input type="text" wire:model="NIP" class="form-control"
-                                                id="NIP">
-                                            @error('NIP')
-                                                <span class="text-danger">{{ $message }}</span>
-                                            @enderror
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        {{-- Email --}}
-                                        <div class="col-md-6 mb-3">
-                                            <label for="email" class="form-label">Email</label>
-                                            <input type="email" wire:model="email" class="form-control"
-                                                id="email">
-                                            @error('email')
-                                                <span class="text-danger">{{ $message }}</span>
-                                            @enderror
-                                        </div>
-
-                                        {{-- Perangkat Daerah --}}
-                                        <div class="col-md-6 mb-3">
-                                            <label for="perangkat_daerah_id" class="form-label">Perangkat
-                                                Daerah</label>
-                                            <select wire:model="perangkat_daerah_id" class="form-control"
-                                                id="perangkat_daerah_id">
-                                                <option hidden>Pilih Perangkat Daerah</option>
-                                                @foreach ($daftar_perangkat_daerah as $pd)
-                                                    <option value="{{ $pd->id }}">
-                                                        {{ $pd->nama_perangkat_daerah }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                            @error('perangkat_daerah_id')
-                                                <span class="text-danger">{{ $message }}</span>
-                                            @enderror
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        {{-- Role --}}
-                                        <div class="col-md-12 mb-3">
-                                            <label for="role" class="form-label">Role</label>
-                                            <select wire:model="role" class="form-control" id="role" required>
-                                                <option hidden>Pilih Role</option>
-                                                @foreach (\Spatie\Permission\Models\Role::all() as $roleOption)
-                                                    <option value="{{ $roleOption->name }}">{{ $roleOption->name }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                            @error('role')
-                                                <span class="text-danger">{{ $message }}</span>
-                                            @enderror
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="modal-footer">
-                                    <!-- Tombol Tutup -->
-                                    <button type="button" class="btn btn-outline-danger" data-dismiss="modal">
-                                        <i class="bi bi-x-lg"></i> Tutup
-                                    </button>
-
-                                    <!-- Tombol Simpan dengan wire:loading -->
-                                    <button type="submit" class="btn btn-outline-success"
-                                        wire:loading.attr="disabled">
-                                        <span wire:loading.remove wire:target="store">
-                                            <i class="bi bi-box-arrow-down"></i> Simpan
-                                        </span>
-                                        <span wire:loading wire:target="store">
-                                            <i class="spinner-border spinner-border-sm"></i> Menyimpan...
-                                        </span>
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-
-
-                {{-- Modal Edit --}}
-                <div wire:ignore.self class="modal fade" id="editUserModal" tabindex="-1" role="dialog"
-                    aria-labelledby="editUserModalLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-lg" role="document">/
-                        <div class="modal-content">
-                            <form wire:submit.prevent="update">
-                                <div class="modal-header">
-                                    <h5 class="modal-title" id="editUserModalLabel">Edit Pengguna</h5>
-                                </div>
-                                <div class="modal-body">
-                                    <div class="row">
-                                        {{-- Nama --}}
-                                        <div class="col-md-6 mb-3">
-                                            <label for="nama_user" class="form-label">Nama</label>
-                                            <input type="text" wire:model="nama_user" class="form-control"
-                                                id="nama_user">
-                                            @error('nama_user')
-                                                <span class="text-danger">{{ $message }}</span>
-                                            @enderror
-                                        </div>
-
-                                        {{-- NIP --}}
-                                        <div class="col-md-6 mb-3">
-                                            <label for="NIP" class="form-label">NIP</label>
-                                            <input type="text" wire:model="NIP" class="form-control"
-                                                id="NIP">
-                                            @error('NIP')
-                                                <span class="text-danger">{{ $message }}</span>
-                                            @enderror
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        {{-- Email --}}
-                                        <div class="col-md-6 mb-3">
-                                            <label for="email" class="form-label">Email</label>
-                                            <input type="email" wire:model="email" class="form-control"
-                                                id="email">
-                                            @error('email')
-                                                <span class="text-danger">{{ $message }}</span>
-                                            @enderror
-                                        </div>
-
-                                        {{-- Perangkat Daerah --}}
-                                        <div class="col-md-6 mb-3">
-                                            <label for="perangkat_daerah_id" class="form-label">Perangkat
-                                                Daerah</label>
-                                            <select wire:model="perangkat_daerah_id" class="form-control"
-                                                id="perangkat_daerah_id">
-                                                <option hidden>Pilih Perangkat Daerah</option>
-                                                @foreach ($daftar_perangkat_daerah as $pd)
-                                                    <option value="{{ $pd->id }}">
-                                                        {{ $pd->nama_perangkat_daerah }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                            @error('perangkat_daerah_id')
-                                                <span class="text-danger">{{ $message }}</span>
-                                            @enderror
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        {{-- Role --}}
-                                        <div class="col-md-12 mb-3">
-                                            <label for="role" class="form-label">Role</label>
-                                            <select wire:model="role" class="form-control" id="role" required>
-                                                <option hidden>Pilih Role</option>
-                                                @foreach (\Spatie\Permission\Models\Role::all() as $roleOption)
-                                                    <option value="{{ $roleOption->name }}">{{ $roleOption->name }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                            @error('role')
-                                                <span class="text-danger">{{ $message }}</span>
-                                            @enderror
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-outline-warning" data-dismiss="modal"><i
-                                            class="bi bi-x-lg"></i> Tutup</button>
-                                    <button type="submit" class="btn btn-outline-default"><i
-                                            class="bi bi-box-arrow-down"></i>
-                                        Perbarui</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
+    <x-ui.card title="Pengguna SIFKUMDA">
+        <div class="grid gap-3 md:grid-cols-12">
+            <x-form.input wire:model.live.debounce.400ms="search" icon="search" class="md:col-span-6" placeholder="Cari nama, NIP, atau email..." aria-label="Cari" />
+            <x-form.select wire:model.live="roleFilter" icon="shield-check" class="md:col-span-3" aria-label="Filter role">
+                <option value="">Semua Role</option>
+                @foreach ($roles as $roleName)
+                    <option value="{{ $roleName }}">{{ $roleName }}</option>
+                @endforeach
+            </x-form.select>
+            <x-form.select wire:model.live="perPage" icon="list-ol" class="md:col-span-3" aria-label="Data per halaman">
+                @foreach ([5, 10, 20, 50] as $size)
+                    <option value="{{ $size }}">{{ $size }} / halaman</option>
+                @endforeach
+            </x-form.select>
         </div>
+        <x-ui.loading target="search, roleFilter, perPage" class="mt-3">Memuat data...</x-ui.loading>
 
-        <script>
-            function confirmDelete(id) {
-                Swal.fire({
-                    title: 'Apakah Anda yakin?',
-                    text: "Data yang dihapus tidak dapat dikembalikan!",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#3085d6',
-                    confirmButtonText: 'Ya, Hapus!',
-                    cancelButtonText: 'Batal'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        Livewire.dispatch('deleteUser', {
-                            id: id
-                        }); // Kirim event ke Livewire hanya jika dikonfirmasi
-                    }
-                });
-            }
-        </script>
-    </div>
+        <x-ui.table class="mt-5">
+            <x-slot:head>
+                @foreach ($sortable as $field => $label)
+                    <th>
+                        <button type="button" wire:click="sortBy('{{ $field }}')" class="inline-flex items-center gap-1 uppercase hover:text-primary-600">
+                            {{ $label }}
+                            <i @class([
+                                'bi text-[0.65rem]',
+                                'bi-chevron-expand opacity-40' => $sortField !== $field,
+                                'bi-chevron-up text-primary-500' => $sortField === $field && $sortDirection === 'asc',
+                                'bi-chevron-down text-primary-500' => $sortField === $field && $sortDirection === 'desc',
+                            ])></i>
+                        </button>
+                    </th>
+                @endforeach
+                <th>Email</th>
+                <th>Perangkat Daerah</th>
+                <th>Role</th>
+                <th class="text-right">Aksi</th>
+            </x-slot:head>
+
+            @forelse ($users as $index => $user)
+                <tr wire:key="user-{{ $user->id }}">
+                    <td class="text-slate-400">{{ $users->firstItem() + $index }}</td>
+                    <td class="font-semibold text-navy-900 dark:text-white">{{ $user->nama_user }}</td>
+                    <td class="font-mono text-xs">{{ $user->NIP }}</td>
+                    <td class="break-all">{{ $user->email }}</td>
+                    <td class="min-w-48">{{ $user->perangkatDaerah->nama_perangkat_daerah ?? '-' }}</td>
+                    <td>
+                        <div class="flex flex-wrap gap-1">
+                            @foreach ($user->getRoleNames() as $roleName)
+                                <x-ui.badge color="primary">{{ $roleName }}</x-ui.badge>
+                            @endforeach
+                        </div>
+                    </td>
+                    <td>
+                        <div class="flex justify-end gap-1.5">
+                            @if ($isAdmin)
+                                <x-ui.button variant="soft-primary" size="sm" square icon="pencil" title="Ubah"
+                                    wire:click="edit({{ $user->id }})" loading="edit({{ $user->id }})" />
+                                <x-ui.button variant="soft-danger" size="sm" square icon="trash" title="Hapus"
+                                    x-on:click="$confirm({ text: {{ \Illuminate\Support\Js::from('Pengguna ' . $user->nama_user . ' akan dihapus permanen.') }}, confirmText: 'Ya, hapus' })
+                                        .then(ok => ok && $wire.delete({{ $user->id }}))" />
+                            @else
+                                <x-ui.badge color="slate" icon="lock">Butuh akses</x-ui.badge>
+                            @endif
+                        </div>
+                    </td>
+                </tr>
+            @empty
+                <x-ui.empty-row colspan="7" icon="people" message="Tidak ada pengguna yang cocok." />
+            @endforelse
+        </x-ui.table>
+
+        <div class="mt-5">{{ $users->links() }}</div>
+    </x-ui.card>
+
+    {{-- Tambah / ubah pengguna --}}
+    <x-ui.modal id="userModal" :title="$userIdToEdit ? 'Ubah Pengguna' : 'Tambah Pengguna'"
+        :description="$userIdToEdit ? null : 'Password acak akan dikirim ke email pengguna.'" size="2xl" static>
+        <form id="userForm" wire:submit="{{ $userIdToEdit ? 'update' : 'store' }}" class="grid gap-5 sm:grid-cols-2">
+            <x-form.field label="Nama" for="nama_user" error="nama_user" required>
+                <x-form.input id="nama_user" wire:model="nama_user" icon="person" />
+            </x-form.field>
+
+            <x-form.field label="NIP" for="NIP" error="NIP" required hint="18 digit">
+                <x-form.input id="NIP" wire:model="NIP" icon="person-badge" inputmode="numeric" maxlength="18" />
+            </x-form.field>
+
+            <x-form.field label="Email" for="email" error="email" required>
+                <x-form.input type="email" id="email" wire:model="email" icon="envelope" />
+            </x-form.field>
+
+            <x-form.field label="Role" for="role" error="role" required>
+                <x-form.select id="role" wire:model="role" icon="shield-check">
+                    <option value="" hidden>Pilih role</option>
+                    @foreach ($roles as $roleName)
+                        <option value="{{ $roleName }}">{{ $roleName }}</option>
+                    @endforeach
+                </x-form.select>
+            </x-form.field>
+
+            <x-form.field label="Perangkat Daerah" for="perangkat_daerah_id" error="perangkat_daerah_id" required class="sm:col-span-2">
+                <x-form.select id="perangkat_daerah_id" wire:model="perangkat_daerah_id" icon="building">
+                    <option value="" hidden>Pilih perangkat daerah</option>
+                    @foreach ($daftar_perangkat_daerah as $pd)
+                        <option value="{{ $pd->id }}">{{ $pd->nama_perangkat_daerah }}</option>
+                    @endforeach
+                </x-form.select>
+            </x-form.field>
+        </form>
+
+        <x-slot:footer>
+            <x-ui.button variant="outline" x-on:click="close()">Batal</x-ui.button>
+            <x-ui.button type="submit" form="userForm" variant="navy" icon="floppy" loading="store, update">
+                {{ $userIdToEdit ? 'Simpan Perubahan' : 'Tambah Pengguna' }}
+            </x-ui.button>
+        </x-slot:footer>
+    </x-ui.modal>
 </div>

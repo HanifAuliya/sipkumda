@@ -2,8 +2,9 @@
     Badge berwarna lembut.
     <x-ui.badge color="success" icon="check2">Disetujui</x-ui.badge>
     color: primary | success | danger | warning | info | amber | navy | slate
+    size : sm | lg
 --}}
-@props(['color' => 'slate', 'icon' => null])
+@props(['color' => 'slate', 'icon' => null, 'size' => 'sm'])
 
 @php
     $colors = [
@@ -18,7 +19,7 @@
     ];
 @endphp
 
-<span {{ $attributes->class(['inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset whitespace-nowrap', $colors[$color] ?? $colors['slate']]) }}>
+<span {{ $attributes->class(['inline-flex items-center gap-1 rounded-full font-semibold ring-1 ring-inset whitespace-nowrap', $size === 'lg' ? 'px-3 py-1 text-sm' : 'px-2.5 py-0.5 text-xs', $colors[$color] ?? $colors['slate']]) }}>
     @if ($icon)
         <i class="bi bi-{{ $icon }}" aria-hidden="true"></i>
     @endif

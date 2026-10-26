@@ -263,7 +263,7 @@ class SedangDiajukan extends Component
 
     public function render()
     {
-        $query = RancanganProdukHukum::with(['user', 'perangkatDaerah', 'revisi'])
+        $query = RancanganProdukHukum::with(['user.perangkatDaerah', 'revisi.peneliti'])
             ->where('id_user', auth()->id())
             ->whereIn('status_rancangan', ['Dalam Proses', 'Ditolak'])
             ->orderBy('tanggal_pengajuan', 'desc');

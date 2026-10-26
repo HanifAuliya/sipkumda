@@ -1,103 +1,41 @@
-<div class="card-body">
-    {{-- Form Update Profile --}}
-    <form wire:submit.prevent="updateProfile">
-        {{-- Name --}}
-        <div class="form-group">
-            <label for="name" class="form-control-label">{{ __('Name') }}</label>
-            <div class="input-group input-group-alternative">
-                <div class="input-group-prepend">
-                    <span class="input-group-text"><i class="ni ni-single-02"></i></span>
-                </div>
-                <input type="text" id="nama_user" wire:model="nama_user" class="form-control" required autofocus>
-            </div>
-            @error('nama_user')
-                <span class="text-danger text-sm mt-2">{{ $message }}</span>
-            @enderror
-        </div>
+<form wire:submit="updateProfile" class="space-y-5">
+    <x-form.field label="Nama" for="nama_user" error="nama_user" required>
+        <x-form.input id="nama_user" wire:model="nama_user" icon="person" required autofocus />
+    </x-form.field>
 
-        <div class="form-group">
-            <label for="NIP" class="form-control-label">{{ __('NIP') }}</label>
-            <div class="input-group input-group-alternative">
-                <div class="input-group-prepend">
-                    <span class="input-group-text"><i class="ni ni-badge"></i></span>
-                </div>
-                <input type="text" id="NIP" wire:model.defer="NIP" class="form-control" required readonly>
-            </div>
-        </div>
+    <x-form.field label="NIP" for="NIP">
+        <x-form.input id="NIP" wire:model="NIP" icon="person-badge" readonly disabled />
+    </x-form.field>
 
-        {{-- Email --}}
-        <div class="form-group">
-            <label for="email" class="form-control-label">{{ __('Email') }}</label>
-            <div class="input-group input-group-alternative">
-                <div class="input-group-prepend">
-                    <span class="input-group-text"><i class="ni ni-email-83"></i></span>
-                </div>
-                <input type="email" id="email" wire:model="email" class="form-control" required>
-            </div>
-            @error('email')
-                <span class="text-danger text-sm mt-2">{{ $message }}</span>
-            @enderror
+    <x-form.field label="Email" for="email" error="email" required>
+        <x-form.input type="email" id="email" wire:model="email" icon="envelope" required />
 
-            {{-- Email Verification --}}
-            @if (Auth::user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && !Auth::user()->hasVerifiedEmail())
-                <div class="alert alert-warning mt-3" role="alert">
-                    {{ __('Alamat email Anda belum diverifikasi.') }}
-                    <button wire:click.prevent="sendVerificationEmail" class="btn btn-link p-0">
-                        {{ __('Klik di sini untuk mengirim ulang email verifikasi.') }}
-                    </button>
-                </div>
-            @endif
-            @if (session('status') === 'verification-link-sent')
-                <div class="alert alert-success mt-3" role="alert">
-                    {{ __('Tautan verifikasi baru telah dikirim ke alamat email Anda.') }}
-                </div>
-            @endif
-        </div>
+        @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! auth()->user()->hasVerifiedEmail())
+            <x-ui.alert type="warning" class="mt-3">
+                Alamat email Anda belum diverifikasi.
+                <button type="button" wire:click="sendVerificationEmail" class="font-semibold underline underline-offset-2">
+                    Kirim ulang email verifikasi.
+                </button>
+            </x-ui.alert>
+        @endif
 
+        @if (session('status') === 'verification-link-sent')
+            <x-ui.alert type="success" class="mt-3">Tautan verifikasi baru telah dikirim ke email Anda.</x-ui.alert>
+        @endif
+    </x-form.field>
 
-        {{-- Perangkat Daerah --}}
-        <div class="form-group">
-            <label for="perangkat_daerah_id" class="form-control-label">{{ __('Perangkat Daerah') }}</label>
-            <div class="input-group input-group-alternative">
-                <div class="input-group-prepend">
-                    <span class="input-group-text">
-                        <i class="bi bi-building"></i> {{-- Icon Perangkat Daerah --}}
-                    </span>
-                </div>
-                <input type="text" class="form-control"
-                    value="{{ $daftar_perangkat_daerah->where('id', $perangkat_daerah_id)->first()?->nama_perangkat_daerah }}"
-                    readonly>
+    <div class="grid gap-5 sm:grid-cols-2">
+        <x-form.field label="Perangkat Daerah">
+            <x-form.input icon="building" disabled
+                :value="$daftar_perangkat_daerah->firstWhere('id', $perangkat_daerah_id)?->nama_perangkat_daerah ?? '-'" />
+        </x-form.field>
 
-            </div>
-            @error('perangkat_daerah_id')
-                <span class="text-danger text-sm mt-2">{{ $message }}</span>
-            @enderror
-        </div>
+        <x-form.field label="Role">
+            <x-form.input icon="shield-check" disabled :value="auth()->user()->getRoleNames()->first() ?? 'Tidak ada role'" />
+        </x-form.field>
+    </div>
 
-
-        {{-- role --}}
-        <div class="form-group">
-            <label for="role" class="form-control-label">{{ __('Role') }}</label>
-            <div class="input-group input-group-alternative">
-                <div class="input-group-prepend">
-                    <span class="input-group-text"><i class="ni ni-settings"></i></span>
-                </div>
-                <input type="text" id="role"
-                    value=" {{ Auth::user()->getRoleNames()->first() ?? 'Tidak Ada Role' }}" class="form-control"
-                    readonly>
-            </div>
-        </div>
-
-
-        {{-- Save Button --}}
-        <div class="form-group text-right">
-            <button type="submit" class="btn btn-default" wire:loading.attr="disabled" wire:target="updateProfile">
-                <span wire:loading wire:target="updateProfile">
-                    <i class="fa fa-spinner fa-spin"></i>
-                </span>
-                <i class="bi bi-floppy2-fill mr-2"></i>
-                {{ __('Save') }}
-            </button>
-        </div>
-    </form>
-</div>
+    <div class="flex justify-end">
+        <x-ui.button type="submit" variant="navy" icon="floppy" loading="updateProfile">Simpan Perubahan</x-ui.button>
+    </div>
+</form>
