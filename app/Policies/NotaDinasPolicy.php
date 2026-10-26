@@ -17,7 +17,7 @@ class NotaDinasPolicy
         if ($user->hasRole('Perangkat Daerah')) {
             return $notaDinas->fasilitasi->rancangan->id_user == $user->id;
         }
-        return $user->hasRole('Admin') || $user->hasRole('Verifikator');
+        return $user->hasRole(['Super Admin', 'Admin', 'Verifikator']);
     }
 
     /**
@@ -25,7 +25,7 @@ class NotaDinasPolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasRole('Admin') || $user->hasRole('Verifikator');
+        return $user->hasRole(['Super Admin', 'Admin', 'Verifikator']);
     }
 
     /**
@@ -33,7 +33,7 @@ class NotaDinasPolicy
      */
     public function update(User $user, NotaDinas $notaDinas): bool
     {
-        return $user->hasRole('Admin') || $user->hasRole('Verifikator');
+        return $user->hasRole(['Super Admin', 'Admin', 'Verifikator']);
     }
 
     /**
@@ -41,6 +41,6 @@ class NotaDinasPolicy
      */
     public function delete(User $user,  NotaDinas $notaDinas = null): bool
     {
-        return $user->hasRole('Admin') || $user->hasRole('Verifikator');
+        return $user->hasRole(['Super Admin', 'Admin', 'Verifikator']);
     }
 }

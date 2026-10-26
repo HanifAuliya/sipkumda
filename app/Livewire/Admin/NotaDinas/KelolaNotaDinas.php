@@ -2,189 +2,150 @@
 
 namespace App\Livewire\Admin\NotaDinas;
 
-use Livewire\Component;
-use Livewire\WithPagination;
-use App\Models\NotaDinas;
 use App\Models\FasilitasiProdukHukum;
+use App\Models\NotaDinas;
 use App\Models\TandaTangan;
 use App\Models\User;
-use Barryvdh\DomPDF\Facade\Pdf;
 use App\Notifications\ValidationResultNotification;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Notification;
+use Livewire\Component;
+use Livewire\WithPagination;
+use Livewire\WithoutUrlPagination;
 
 class KelolaNotaDinas extends Component
 {
-    use WithPagination;
+    use WithPagination, WithoutUrlPagination;
 
-    public $listeners = [
-        'deleteNotaDinas' => 'delete',
-    ];
+    public $search = '';
+    public $perPage = 10;
 
-    public $search = ''; // Pencarian
-    public $perPage = 10; // Jumlah data per halaman
-
+    // Form tambah nota dinas
     public $fasilitasiId;
-    public $nomorNota;
     public $tandaTanganId;
-    public $tanggalNota;
     public $nomorInputan;
     public $kepada;
-    public $fasilitasiList = [];
-    public $tandaTanganList = [];
+
+    protected $validationAttributes = [
+        'fasilitasiId' => 'fasilitasi',
+        'tandaTanganId' => 'tanda tangan',
+        'nomorInputan' => 'nomor nota',
+    ];
 
     public function updatingSearch()
     {
-        $this->resetPage(); // Reset pagination ke halaman pertama saat pencarian berubah
+        $this->resetPage();
     }
 
     public function updatingPerPage()
     {
-        $this->resetPage(); // Reset pagination jika perPage berubah
-    }
-    public function mount()
-    {
-        $this->loadData();
+        $this->resetPage();
     }
 
-    protected $rules = [
-        'fasilitasiId' => 'required|exists:fasilitasi_produk_hukum,id',
-        'nomorInputan' => 'required|numeric|digits_between:1,10', // Validasi nomor inputan
-        'tandaTanganId' => 'required|exists:tanda_tangan,id',
-    ];
-
-    public function loadData()
+    /** Fasilitasi yang sudah diterima dan belum memiliki nota dinas. */
+    private function fasilitasiTersedia()
     {
-        $this->fasilitasiList = FasilitasiProdukHukum::where('status_validasi_fasilitasi', 'Diterima')
-            ->whereDoesntHave('notaDinas') // Pastikan hanya fasilitasi yang belum memiliki nota dinas
-            ->with('rancangan')
-            ->get(); // Biarkan tetap Collection
+        return FasilitasiProdukHukum::where('status_validasi_fasilitasi', 'Diterima')
+            ->whereDoesntHave('notaDinas');
+    }
 
-        $this->tandaTanganList = TandaTangan::where('status', 'Aktif')->get();
+    /** Kode jenis untuk nomor nota: NDPB (Peraturan Bupati) atau NDSK. */
+    private function kodeJenis(?string $jenisRancangan): string
+    {
+        return $jenisRancangan === 'Peraturan Bupati' ? 'NDPB' : 'NDSK';
     }
 
     public function openModalTambahNotaDinas()
     {
-        $this->resetForm(); // Reset nilai sebelum membuka modal
-        $this->resetErrorBag();
-        $this->resetValidation();
-        $this->dispatch('openModal', 'modalTambahNota'); // Event untuk membuka modal
-    }
+        $this->authorize('create', NotaDinas::class);
 
+        $this->resetForm();
+        $this->dispatch('openModal', 'modalTambahNota');
+    }
 
     public function store()
     {
+        $this->authorize('create', NotaDinas::class);
+
         $this->validate([
-            'fasilitasiId' => 'required|exists:fasilitasi_produk_hukum,id',
+            'fasilitasiId' => 'required|integer',
             'tandaTanganId' => 'required|exists:tanda_tangan,id',
             'nomorInputan' => 'required|numeric|digits_between:1,3',
-            'kepada' => 'required|string|max:255', // Tambahkan validasi untuk "Kepada"
+            'kepada' => 'required|string|max:255',
         ]);
 
-        $fasilitasi = FasilitasiProdukHukum::find($this->fasilitasiId);
-        $jenisRancangan = $fasilitasi->rancangan->jenis_rancangan ?? '';
+        $fasilitasi = $this->fasilitasiTersedia()->with('rancangan.user')->find($this->fasilitasiId);
 
-        // 🔥 Cek apakah nomor_inputan sudah ada dengan jenis dan tahun yang sama
-        $tahunSekarang = now()->year;
-        $existingNota = NotaDinas::where('nomor_inputan', $this->nomorInputan)
-            ->whereHas('fasilitasi.rancangan', function ($query) use ($jenisRancangan, $tahunSekarang) {
-                $query->where('jenis_rancangan', $jenisRancangan)
-                    ->whereYear('tanggal_nota', $tahunSekarang);
-            })
+        if (! $fasilitasi) {
+            $this->addError('fasilitasiId', 'Fasilitasi tidak tersedia atau sudah memiliki nota dinas.');
+            return;
+        }
+
+        $jenisRancangan = $fasilitasi->rancangan->jenis_rancangan ?? '';
+        $tahun = now()->year;
+
+        // Nomor inputan harus unik untuk jenis rancangan yang sama di tahun berjalan ("013" sama dengan "13").
+        $nomorDipakai = NotaDinas::whereRaw('CAST(nomor_inputan AS UNSIGNED) = ?', [(int) $this->nomorInputan])
+            ->whereYear('tanggal_nota', $tahun)
+            ->whereHas('fasilitasi.rancangan', fn ($query) => $query->where('jenis_rancangan', $jenisRancangan))
             ->exists();
 
-        // 🔴 Jika sudah ada, tampilkan error dan batalkan proses
-        if ($existingNota) {
-            $this->dispatch('swal:modal', [
-                'type' => 'error',
-                'title' => 'Gagal!',
-                'message' => "Nomor {$this->nomorInputan} sudah digunakan untuk {$jenisRancangan} di tahun {$tahunSekarang}.",
-            ]);
-            return; // 🔥 Hentikan eksekusi jika nomor sudah ada
+        if ($nomorDipakai) {
+            $this->addError('nomorInputan', "Nomor {$this->nomorInputan} sudah digunakan untuk {$jenisRancangan} tahun {$tahun}.");
+            return;
         }
 
-        // 🔹 Tentukan format kode jenis rancangan (NDPB atau NDSK)
-        $kodeJenis = ($jenisRancangan === "Peraturan Bupati") ? "NDPB" : "NDSK";
+        $nomorNota = "180/{$this->nomorInputan}/{$this->kodeJenis($jenisRancangan)}/KUM/{$tahun}";
 
-        // 🔹 Generate nomor nota dinas
-        $this->nomorNota = "180/{$this->nomorInputan}/{$kodeJenis}/KUM/" . $tahunSekarang;
-
-        // 🔹 Simpan ke database
         NotaDinas::create([
-            'fasilitasi_id' => $this->fasilitasiId,
+            'fasilitasi_id' => $fasilitasi->id,
             'nomor_inputan' => $this->nomorInputan,
-            'nomor_nota' => $this->nomorNota,
+            'nomor_nota' => $nomorNota,
             'tanggal_nota' => now(),
             'tanda_tangan_id' => $this->tandaTanganId,
-            'kepada' => $this->kepada, // Tambahkan "Kepada"
+            'kepada' => $this->kepada,
         ]);
 
+        $rancangan = $fasilitasi->rancangan;
 
-        // 🔥 Pastikan loadData() dipanggil setelah simpan
-        $this->loadData();
-
-        // 🔥 Kirim notifikasi ke **Verifikator** bahwa Nota Dinas telah dibuat
-        $verifikator = User::role('Verifikator')->get(); // Ambil semua user dengan role Verifikator
-        Notification::send($verifikator, new ValidationResultNotification([
-            'title' => "Nota Dinas Baru Telah Dibuat!",
-            'message' => "Nota Dinas dengan nomor {$this->nomorNota} untuk rancangan dengan nomor {$fasilitasi->rancangan->no_rancangan} telah dibuat dan disimpan dalam sistem. Mohon cek dan pantau fasilitasi lebih lanjut.",
+        Notification::send(User::role('Verifikator')->get(), new ValidationResultNotification([
+            'title' => 'Nota Dinas Baru Telah Dibuat!',
+            'message' => "Nota Dinas dengan nomor {$nomorNota} untuk rancangan dengan nomor {$rancangan->no_rancangan} telah dibuat dan disimpan dalam sistem. Mohon cek dan pantau fasilitasi lebih lanjut.",
             'type' => 'nota_dinas_dibuat',
-            'slug' => $fasilitasi->rancangan->slug,
+            'slug' => $rancangan->slug,
         ]));
 
-        // 🔥 Kirim notifikasi ke **User Pengaju Rancangan**
-        $user = $fasilitasi->rancangan->user;
-        if ($user) {
-            $user->notify(new ValidationResultNotification([
-                'title' => "Nota Dinas Fasilitasi Telah Dibuat!",
-                'message' => "Nota Dinas untuk fasilitasi Rancangan {$fasilitasi->rancangan->no_rancangan} Anda dengan nomor {$this->nomorNota} telah dibuat. Kamu bisa cetak di Aksi ⚙️-> Cetak Nota Dinas, atau Kamu ke halaman Nota lalu cetak!",
-                'type' => 'nota_dinas_user',
-                'slug' => $fasilitasi->rancangan->slug,
-            ]));
-        }
+        $rancangan->user?->notify(new ValidationResultNotification([
+            'title' => 'Nota Dinas Fasilitasi Telah Dibuat!',
+            'message' => "Nota Dinas untuk fasilitasi Rancangan {$rancangan->no_rancangan} Anda dengan nomor {$nomorNota} telah dibuat. Anda dapat mencetaknya di menu Daftar Nota Dinas.",
+            'type' => 'nota_dinas_user',
+            'slug' => $rancangan->slug,
+        ]));
 
-        // 🔥 Tampilkan notifikasi sukses
+        $this->dispatch('closeModal', 'modalTambahNota');
         $this->dispatch('swal:modal', [
             'type' => 'success',
             'title' => 'Nota Dinas Berhasil Disimpan',
-            'message' => "Nota Dinas dengan Nomor {$this->nomorNota} berhasil dibuat!",
+            'message' => "Nota Dinas dengan Nomor {$nomorNota} berhasil dibuat!",
         ]);
-
-        // 🔥 Reset nilai setelah data difilter ulang
-        $this->reset();
-
-        // 🔥 Tutup modal setelah reset
-        $this->dispatch('closeModal', 'modalTambahNota');
+        $this->resetForm();
     }
-
 
     public function resetForm()
     {
-        $this->reset(['fasilitasiId', 'nomorInputan', 'nomorNota', 'tandaTanganId']);
+        $this->reset(['fasilitasiId', 'tandaTanganId', 'nomorInputan', 'kepada']);
+        $this->resetValidation();
     }
 
     public function deleteNotaDinas($id)
     {
-        // Cek apakah user adalah admin sebelum menghapus
-        if (!auth()->user()->hasRole('Admin')) {
-            $this->dispatch('swal:modal', [
-                'type' => 'error',
-                'title' => 'Akses Ditolak!',
-                'message' => 'Anda tidak memiliki izin untuk menghapus Nota Dinas.',
-            ]);
-            return;
-        }
-
-        // Cari dan hapus data
         $notaDinas = NotaDinas::findOrFail($id);
+        $this->authorize('delete', $notaDinas);
+
         $notaDinas->delete();
 
-
-        // 🔥 Pastikan loadData() dipanggil setelah simpan
-        $this->loadData();
-        // 🔥 Notifikasi sukses
-        $this->dispatch('swal:modal', [
+        $this->dispatch('swal:toast', [
             'type' => 'success',
-            'title' => 'Berhasil',
             'message' => 'Nota Dinas berhasil dihapus.',
         ]);
     }
@@ -192,42 +153,48 @@ class KelolaNotaDinas extends Component
     public function generatePDF($notaId)
     {
         $notaDinas = NotaDinas::with('fasilitasi.rancangan.user.perangkatDaerah', 'tandaTangan')->findOrFail($notaId);
+        $this->authorize('view', $notaDinas);
+
         $pdf = Pdf::loadView('pdf.nota-dinas', compact('notaDinas'))->setPaper('A4', 'portrait');
 
-        // Kirim event ke browser untuk menutup SweetAlert setelah PDF selesai dibuat
         $this->dispatch('hideLoadingSwal');
 
-        return response()->streamDownload(function () use ($pdf) {
-            echo $pdf->stream();
-        }, "Nota-Dinas-{$notaDinas->nomor_inputan}.pdf");
+        return response()->streamDownload(
+            fn () => print($pdf->output()),
+            'Nota-Dinas-' . str_replace('/', '-', $notaDinas->nomor_nota) . '.pdf'
+        );
     }
 
     public function render()
     {
-        $query = NotaDinas::with([
-            'fasilitasi.rancangan.user.perangkatDaerah', // Eager loading performa
-            'tandaTangan'
-        ])
-            ->orderByDesc('tanggal_nota') // Urutkan berdasarkan tanggal_nota terbaru
-            ->orderByDesc('created_at'); // Jika tanggal sama, urutkan berdasarkan waktu dibuat
+        $user = auth()->user();
+        $bisaKelola = $user->can('create', NotaDinas::class);
 
-        // **Filter Pencarian**
-        if (!empty($this->search)) {
-            $query->where(function ($q) {
-                $q->whereHas('fasilitasi.rancangan', function ($subQuery) {
-                    $subQuery->where('no_rancangan', 'like', "%{$this->search}%")
-                        ->orWhere('tentang', 'like', "%{$this->search}%");
-                })
-                    ->orWhere('nomor_nota', 'like', "%{$this->search}%");
-            });
-        }
+        $notaDinasList = NotaDinas::with(['fasilitasi.rancangan.user.perangkatDaerah', 'tandaTangan'])
+            // Perangkat Daerah hanya melihat nota dinas miliknya.
+            ->when($user->hasRole('Perangkat Daerah'), fn ($query) => $query->whereHas(
+                'fasilitasi.rancangan',
+                fn ($q) => $q->where('id_user', $user->id)
+            ))
+            ->when($this->search, fn ($query) => $query->where(function ($q) {
+                $q->where('nomor_nota', 'like', "%{$this->search}%")
+                    ->orWhereHas('fasilitasi.rancangan', fn ($sub) => $sub
+                        ->where('no_rancangan', 'like', "%{$this->search}%")
+                        ->orWhere('tentang', 'like', "%{$this->search}%"));
+            }))
+            ->orderByDesc('tanggal_nota')
+            ->orderByDesc('created_at')
+            ->paginate($this->perPage);
 
-        $notaDinasList = $query->paginate($this->perPage);
+        $fasilitasiList = $bisaKelola ? $this->fasilitasiTersedia()->with('rancangan')->get() : collect();
+        $jenisTerpilih = $fasilitasiList->firstWhere('id', (int) $this->fasilitasiId)?->rancangan?->jenis_rancangan;
 
         return view('livewire.admin.nota-dinas.kelola-nota-dinas', [
             'notaDinasList' => $notaDinasList,
-            'fasilitasiOptions' => FasilitasiProdukHukum::where('status_validasi_fasilitasi', 'Diterima')->get(),
-            'tandaTanganOptions' => TandaTangan::where('status', 'Aktif')->get(),
+            'bisaKelola' => $bisaKelola,
+            'fasilitasiList' => $fasilitasiList,
+            'tandaTanganList' => $bisaKelola ? TandaTangan::where('status', 'Aktif')->get() : collect(),
+            'akhiranNomor' => '/' . ($this->fasilitasiId ? $this->kodeJenis($jenisTerpilih) : 'ND··') . '/KUM/' . now()->year,
         ])->layout('layouts.app');
     }
 }
