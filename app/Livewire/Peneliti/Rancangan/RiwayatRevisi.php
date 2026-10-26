@@ -34,30 +34,17 @@ class RiwayatRevisi extends Component
     ];
 
     protected $rules = [
-        'revisiMatrik' => 'required|mimes:pdf|max:20480',    // Maks 2MB
+        'revisiMatrik' => 'required|file|max:20480|mimes:doc,docx', // Matrik selalu Word, maks. 20MB
         'catatanRevisi' => 'nullable|string|max:1000',
     ];
-
-    public function loadDetailRevisi($id)
-    {
-        $this->selectedRevisi = Revisi::with('rancangan.user')->find($id);
-        if (!$this->selectedRevisi) {
-            $this->dispatch('swal:modal', [
-                'type' => 'error',
-                'title' => 'Kesalahan',
-                'message' => 'Detail Penelitian tidak ditemukan.',
-            ]);
-            return;
-        }
-
-        // Emit untuk membuka modal
-        $this->dispatch('openModal', 'detailRevisiModal');
-    }
 
     public function openUploadRevisi($idRancangan)
     {
         // Cari data revisi terkait
-        $this->selectedRevisi = Revisi::where('id_rancangan', $idRancangan)->latest()->first();
+        $this->selectedRevisi = Revisi::where('id_rancangan', $idRancangan)
+            ->where('id_user', auth()->id())
+            ->latest()
+            ->first();
 
         if (!$this->selectedRevisi) {
             $this->dispatch('swal:modal', [
@@ -91,7 +78,7 @@ class RiwayatRevisi extends Component
         }
 
         // Cari revisi berdasarkan ID
-        $revisi = Revisi::find($this->selectedRevisiId);
+        $revisi = Revisi::where('id_user', auth()->id())->find($this->selectedRevisiId);
 
         if (!$revisi) {
             $this->dispatch('swal:modal', [
@@ -161,7 +148,8 @@ class RiwayatRevisi extends Component
 
     public function resetRevisi($id)
     {
-        $revisi = Revisi::findOrFail($id);
+        // $id adalah id_revisi; hanya revisi milik peneliti yang sedang login
+        $revisi = Revisi::where('id_user', auth()->id())->findOrFail($id);
 
         // Hapus file dari storage jika ada
         if ($revisi->revisi_rancangan) {
@@ -207,7 +195,7 @@ class RiwayatRevisi extends Component
         // Dapatkan ID user yang sedang login
         $penelitiId = Auth::id();
 
-        $revisi = RancanganProdukHukum::with(['revisi.peneliti', 'user'])
+        $revisi = RancanganProdukHukum::with(['revisi.peneliti', 'user.perangkatDaerah'])
             ->whereHas('revisi', function ($query) use ($penelitiId) {
                 $query->whereIn('status_validasi', ['Menunggu Validasi', 'Diterima', 'Ditolak']) // Memfilter tiga status
                     ->where('status_revisi', 'Proses Revisi')
