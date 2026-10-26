@@ -1,396 +1,112 @@
 @section('title', 'Kelola TTD')
 
-
-@section('manual')
-    <div class="card  mb--2">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <div class="d-flex flex-column">
-                <h3 class="mb-0">Menu Kelola TTD</h3>
-                <p class="description">
-                    Fasilitasi Rancangan Produk Hukum
-                </p>
-            </div>
-
-            {{-- Tombol untuk Verifikator --}}
-            <a href="{{ route('dashboard') }}" class="btn btn-outline-primary">
-                <i class="bi bi-skip-backward mr-2"></i> Kembali
-            </a>
-        </div>
-    </div>
-@endsection
-
 <div>
-    <div class="card shadow">
-        {{-- Header --}}
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <div>
-                <h3 class="mb-2">Kelola Tanda Tangan</h3>
-                <small>Disini anda mengelola ttd nantinya yang untuk generete nota dinas!</small>
-            </div>
-        </div>
+    <x-ui.page-header title="Kelola Tanda Tangan" description="Tanda tangan yang dipakai saat membuat Nota Dinas" icon="pen">
+        <x-slot:actions>
+            <x-ui.button icon="plus-lg" wire:click="openModalTambah" loading="openModalTambah">Tambah TTD</x-ui.button>
+        </x-slot:actions>
+    </x-ui.page-header>
 
-        {{-- Tab Navigasi --}}
-        <div class="card-body">
-            <div>
-                {{-- Search Bar --}}
-                <div class="mb-3 d-flex justify-content-between">
-                    <input type="text" class="form-control w-25" placeholder="Cari tanda tangan..."
-                        wire:model.live="search">
-                    <button class="btn btn-outline-default" data-target="#modalTambahTtd" data-toggle="modal">
-                        <i class="bi bi-pen"></i> Tambah TTD
-                    </button>
-                </div>
+    <x-ui.card>
+        <x-ui.list-toolbar placeholder="Cari nama, NIP, atau jabatan..." :options="[5, 10, 20, 50]" />
 
-                {{-- Tabel Data --}}
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>Nama TTD</th>
-                            <th>Gambar</th>
-                            <th>Status</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($ttdList as $ttd)
-                            <tr>
-                                <td>{{ $ttd->nama_ttd }}</td>
-                                <td>
-                                    <!-- Tombol Preview -->
-                                    <button type="button" class="btn btn-outline-primary btn-sm" data-toggle="modal"
-                                        data-target="#previewModal"
-                                        onclick="showPreview('{{ url('/view-private/tanda_tangan/ttd/' . basename($ttd->file_ttd)) }}')">
-                                        <i class="bi bi-eye"></i> Preview
-                                    </button>
-                                </td>
+        <x-ui.table>
+            <x-slot:head>
+                <th>Penanda Tangan</th>
+                <th>Jabatan</th>
+                <th>Tanda Tangan</th>
+                <th>Status</th>
+                <th>Nota Dinas</th>
+                <th class="text-right">Aksi</th>
+            </x-slot:head>
 
-                                <!-- Modal Preview -->
-                                <div class="modal fade" id="previewModal" tabindex="-1"
-                                    aria-labelledby="previewModalLabel" aria-hidden="true">
-                                    <div class="modal-dialog modal-dialog-centered">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title" id="previewModalLabel">Preview Tanda Tangan</h5>
-                                                <button type="button" class="close" data-dismiss="modal"
-                                                    aria-label="Close">
-                                                    <span aria-hidden="true">&times;</span>
-                                                </button>
-                                            </div>
-                                            <div class="modal-body text-center">
-                                                <img id="previewImage" src="" class="img-fluid border rounded"
-                                                    style="max-width: 100%;" alt="Preview TTD">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Script untuk Menampilkan Preview -->
-                                <script>
-                                    function showPreview(imageUrl) {
-                                        document.getElementById('previewImage').src = imageUrl;
-                                    }
-                                </script>
-
-                                <td>
-                                    <span
-                                        class="badge {{ $ttd->status === 'Aktif' ? 'badge-success' : 'badge-danger' }}">
-                                        {{ $ttd->status }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <button class="btn btn-warning btn-sm"
-                                        wire:click="openModalEdit({{ $ttd->id }})" data-target="#openModalEditTtd"
-                                        data-toggle="modal">
-                                        <i class="bi
-                                        bi-pencil"></i>
-                                    </button>
-                                    <button class="btn btn-danger btn-sm"
-                                        onclick="confirmDeleteTtd({{ $ttd->id }})">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="4" class="text-center">Tidak ada data</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-
-                {{-- Pagination --}}
-                <div class="mt-3">
-                    {{ $ttdList->links('pagination::bootstrap-4') }}
-                </div>
-            </div>
-        </div>
-    </div>
-    {{-- Modal Tambah --}}
-    <div wire:ignore.self class="modal fade" id="modalTambahTtd" tabindex="-1" aria-hidden="true"
-        data-backdrop="static" data-keyboard="false">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Tambah TTD</h5>
-                </div>
-                <div class="modal-body">
-                    {{-- Input Nama TTD --}}
-                    <div class="form-group">
-                        <label class="font-weight-bold">Nama Tanda Tangan</label>
-                        <input type="text" class="form-control" placeholder="Masukkan Nama Tanda Tangan"
-                            wire:model.defer="nama_ttd">
-                        @error('nama_ttd')
-                            <small class="text-danger">{{ $message }}</small>
-                        @enderror
-                    </div>
-                    {{-- NIp --}}
-                    <div class="form-group">
-                        <label class="font-weight-bold">NIP</label>
-                        <input type="text" class="form-control" placeholder="Masukkan NIP"
-                            wire:model.defer="nip_ttd">
-                        @error('nip_ttd')
-                            <small class="text-danger">{{ $message }}</small>
-                        @enderror
-                    </div>
-
-
-                    {{-- Input Jabatan --}}
-                    <div class="form-group">
-                        <label class="font-weight-bold">Jabatan</label>
-                        <input type="text" class="form-control" placeholder="Masukkan Jabatan"
-                            wire:model.defer="jabatan">
-                        @error('jabatan')
-                            <small class="text-danger">{{ $message }}</small>
-                        @enderror
-                    </div>
-
-                    {{-- Input File --}}
-                    <div class="form-group">
-                        <label class="font-weight-bold">Unggah Tanda Tangan (PNG)</label>
-                        <input type="file" class="form-control" wire:model="file_ttd" accept="image/png"
-                            {{ $file_ttd_preview ? 'disabled' : '' }}>
-
-                        <small class="form-text text-muted mt-1">
-                            <i class="bi bi-info-circle"></i> <strong>Ketentuan:</strong>
-                            <ul class="mb-0">
-                                <li>Format <strong>harus PNG</strong>.</li>
-                                <li>Rasio yang disarankan <strong>4:3</strong> (contoh: 400x300 px).</li>
-                                <li>Maksimum ukuran file <strong>2MB</strong>.</li>
-                            </ul>
-                        </small>
-
-                        @error('file_ttd')
-                            <small class="text-danger">{{ $message }}</small>
-                        @enderror
-
-                        <div wire:loading wire:target="file_ttd" class="text-primary mt-2">
-                            <i class="spinner-border spinner-border-sm"></i> Mengunggah file...
-                        </div>
-
-                        @if ($file_ttd_preview)
-                            <div class="mt-3 text-center">
-                                <p class="mb-1"><strong>File yang diunggah:</strong></p>
-                                <img src="{{ $file_ttd_preview }}" class="border rounded" width="150"
-                                    alt="Preview TTD">
-                                <br>
-                                <button class="btn btn-danger btn-sm mt-2" wire:click="removeFile">
-                                    <i class="bi bi-trash"></i> Hapus
-                                </button>
-                            </div>
+            @forelse ($ttdList as $ttd)
+                @php $gambar = private_file_url('tanda_tangan/ttd', $ttd->file_ttd); @endphp
+                <tr wire:key="ttd-{{ $ttd->id }}">
+                    <td class="min-w-48">
+                        <p class="font-semibold text-navy-900 dark:text-white">{{ $ttd->nama_ttd }}</p>
+                        <p class="text-xs text-slate-500">NIP {{ $ttd->nip_ttd ?: '-' }}</p>
+                    </td>
+                    <td class="min-w-40">{{ $ttd->jabatan ?: '-' }}</td>
+                    <td>
+                        @if ($gambar)
+                            <a href="{{ $gambar }}" target="_blank" title="Buka gambar"
+                                class="inline-flex h-12 w-20 items-center justify-center rounded-lg bg-white p-1 ring-1 ring-slate-200 transition hover:ring-primary-400 dark:ring-navy-700">
+                                <img src="{{ $gambar }}" alt="" class="max-h-full max-w-full object-contain" loading="lazy"
+                                    x-data x-on:error="$el.replaceWith(Object.assign(document.createElement('i'), { className: 'bi bi-image text-xl text-slate-300', title: 'Gambar tidak ditemukan' }))">
+                            </a>
+                        @else
+                            <span class="text-slate-400">-</span>
                         @endif
-                    </div>
+                    </td>
+                    <td><x-ui.badge :color="$ttd->status === 'Aktif' ? 'success' : 'danger'">{{ $ttd->status }}</x-ui.badge></td>
+                    <td class="whitespace-nowrap text-slate-500">{{ $ttd->nota_dinas_count }} dokumen</td>
+                    <td class="text-right whitespace-nowrap">
+                        <x-ui.button variant="outline" size="sm" square icon="pencil" title="Edit"
+                            wire:click="openModalEdit({{ $ttd->id }})" loading="openModalEdit({{ $ttd->id }})" />
+                        <x-ui.button variant="soft-danger" size="sm" square icon="trash" title="Hapus" data-nama="{{ $ttd->nama_ttd }}"
+                            x-on:click="$confirm({ title: 'Hapus TTD?', text: `TTD ${$el.dataset.nama} akan dihapus permanen.`, confirmText: 'Ya, hapus' })
+                                .then((ok) => ok && $wire.delete({{ $ttd->id }}))" />
+                    </td>
+                </tr>
+            @empty
+                <x-ui.empty-row colspan="6" icon="pen" message="Belum ada tanda tangan." />
+            @endforelse
+        </x-ui.table>
 
-                    {{-- Pilihan Status --}}
-                    <div class="form-group">
-                        <label class="font-weight-bold">Status Tanda Tangan</label>
-                        <select class="form-control" wire:model.defer="status">
-                            <option value="" hidden>Pilih Status</option>
-                            <option value="Aktif">Aktif</option>
-                            <option value="Tidak Aktif">Tidak Aktif</option>
-                        </select>
-                        @error('status')
-                            <small class="text-danger">{{ $message }}</small>
-                        @enderror
-                    </div>
-                </div>
+        <div class="mt-5">{{ $ttdList->links() }}</div>
+    </x-ui.card>
 
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" data-dismiss="modal" wire:click="resetForm">
-                        <i class="bi bi-x-circle"></i> Batal
-                    </button>
-                    <button class="btn btn-primary" wire:click="store" wire:loading.attr="disabled">
-                        <span wire:loading.remove wire:target="store">
-                            <i class="bi bi-save"></i> Simpan
-                        </span>
-                        <span wire:loading wire:target="store">
-                            <i class="spinner-border spinner-border-sm"></i> Menyimpan...
-                        </span>
-                    </button>
-                </div>
+    {{-- Tambah / edit TTD --}}
+    <x-ui.modal id="modalTtd" :title="$editId ? 'Edit Tanda Tangan' : 'Tambah Tanda Tangan'"
+        description="Data ini dicetak pada Nota Dinas, pastikan penulisannya benar." size="2xl" static on-close="resetForm">
+        <form id="ttdForm" wire:submit="save" class="space-y-5">
+            <x-form.field label="Nama Lengkap" for="nama_ttd" error="nama_ttd" required hint="Sesuai Nota Dinas, contoh: TAUFIK RAHMAN, SH.">
+                <x-form.input id="nama_ttd" wire:model="nama_ttd" placeholder="Nama penanda tangan" />
+            </x-form.field>
+
+            <div class="grid gap-5 sm:grid-cols-2">
+                <x-form.field label="NIP" for="nip_ttd" error="nip_ttd" required hint="18 digit angka.">
+                    <x-form.input id="nip_ttd" wire:model="nip_ttd" inputmode="numeric" placeholder="19xxxxxxxxxxxxxxxx" />
+                </x-form.field>
+                <x-form.field label="Jabatan" for="jabatan" error="jabatan" required hint="Contoh: Pembina Tk. I">
+                    <x-form.input id="jabatan" wire:model="jabatan" placeholder="Jabatan" />
+                </x-form.field>
             </div>
-        </div>
-    </div>
 
+            <x-form.field label="Status" for="status_ttd" error="status" required>
+                <x-form.select id="status_ttd" wire:model="status">
+                    <option value="" hidden>Pilih status</option>
+                    <option value="Aktif">Aktif</option>
+                    <option value="Tidak Aktif">Tidak Aktif</option>
+                </x-form.select>
+            </x-form.field>
 
-    {{-- Modal Edit TTD --}}
-    <div wire:ignore.self class="modal fade" id="openModalEditTtd" tabindex="-1" aria-hidden="true"
-        data-backdrop="static" data-keyboard="false">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Edit Tanda Tangan (TTD)</h5>
-                </div>
-                <div class="modal-body">
+            <div class="grid gap-5 sm:grid-cols-[1fr_auto]">
+                <x-form.upload model="file_ttd" :file="$file_ttd" :label="$editId ? 'Ganti Tanda Tangan' : 'Gambar Tanda Tangan'" accept="image/png"
+                    :required="! $editId" :hint="($editId ? 'Kosongkan jika tidak diganti. ' : '') . 'PNG transparan, rasio 4:3 (mis. 400×300 px), maks. 2MB.'" />
 
-                    {{-- Informasi --}}
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle"></i> <strong>Perhatian!</strong>
-                        Data ini akan digunakan dalam **Nota Dinas**. Harap isi dengan benar.
-                    </div>
-
-                    {{-- Input Nama TTD --}}
-                    <div class="form-group">
-                        <label class="font-weight-bold">Nama Lengkap (Sesuai Nota Dinas)</label>
-                        <input type="text" class="form-control" placeholder="Masukkan Nama TTD"
-                            wire:model.defer="nama_ttd">
-                        <small class="form-text text-muted">Contoh: <strong>TAUFIK RAHMAN, SH.</strong></small>
-                        @error('nama_ttd')
-                            <small class="text-danger">{{ $message }}</small>
-                        @enderror
-                    </div>
-
-                    {{-- Input NIP --}}
-                    <div class="form-group">
-                        <label class="font-weight-bold">NIP (Nomor Induk Pegawai)</label>
-                        <input type="text" class="form-control" placeholder="Masukkan NIP"
-                            wire:model.defer="nip_ttd">
-                        <small class="form-text text-muted">Format: <strong>18 Digit Angka</strong></small>
-                        @error('nip_ttd')
-                            <small class="text-danger">{{ $message }}</small>
-                        @enderror
-                    </div>
-
-                    {{-- Input Jabatan --}}
-                    <div class="form-group">
-                        <label class="font-weight-bold">Jabatan</label>
-                        <input type="text" class="form-control" placeholder="Masukkan Jabatan"
-                            wire:model.defer="jabatan">
-                        <small class="form-text text-muted">Contoh: <strong>Pembina Tk. I</strong></small>
-                        @error('jabatan')
-                            <small class="text-danger">{{ $message }}</small>
-                        @enderror
-                    </div>
-
-                    {{-- Tampilkan File TTD yang Ada --}}
-                    @if ($existingFile)
-                        <div class="form-group">
-                            <label class="font-weight-bold">Tanda Tangan Saat Ini</label>
-                            <br>
-                            <img src="{{ url('/view-private/tanda_tangan/ttd/' . basename($existingFile)) }}"
-                                alt="TTD" class="img-thumbnail border rounded" width="200">
+                @php
+                    $pratinjau = $file_ttd && ! $errors->has('file_ttd') && method_exists($file_ttd, 'temporaryUrl')
+                        ? rescue(fn () => $file_ttd->temporaryUrl(), null, false)
+                        : private_file_url('tanda_tangan/ttd', $existingFile);
+                @endphp
+                @if ($pratinjau)
+                    <figure class="text-center">
+                        <div class="flex h-24 w-32 items-center justify-center rounded-lg bg-white p-2 ring-1 ring-slate-200 dark:ring-navy-700">
+                            <img src="{{ $pratinjau }}" alt="" class="max-h-full max-w-full object-contain"
+                                x-data x-on:error="$el.replaceWith(Object.assign(document.createElement('i'), { className: 'bi bi-image text-2xl text-slate-300', title: 'Gambar tidak ditemukan' }))">
                         </div>
-                    @endif
-
-                    {{-- Input File Baru untuk Mengganti --}}
-                    <div class="form-group">
-                        <label class="font-weight-bold">Upload Tanda Tangan Baru (PNG)</label>
-                        <input type="file" class="form-control" wire:model="file_ttd" accept="image/png">
-                        <small class="form-text text-muted">
-                            <i class="bi bi-exclamation-triangle"></i> **Kosongkan jika tidak ingin mengganti.** <br>
-                            - Format <strong>PNG</strong>, Maksimal **2MB**. <br>
-                            - Rasio disarankan **4:3** (contoh: **400x300 px**).
-                        </small>
-                        @error('file_ttd')
-                            <small class="text-danger">{{ $message }}</small>
-                        @enderror
-
-                        {{-- Loading saat upload --}}
-                        <div wire:loading wire:target="file_ttd" class="text-primary mt-2">
-                            <i class="spinner-border spinner-border-sm"></i> Mengunggah file...
-                        </div>
-                    </div>
-
-                    {{-- Pilihan Status --}}
-                    <div class="form-group">
-                        <label class="font-weight-bold">Status Tanda Tangan</label>
-                        <select class="form-control" wire:model.defer="status">
-                            <option value="" hidden>Pilih Status</option>
-                            <option value="Aktif">Aktif</option>
-                            <option value="Tidak Aktif">Tidak Aktif</option>
-                        </select>
-                        @error('status')
-                            <small class="text-danger">{{ $message }}</small>
-                        @enderror
-                    </div>
-                </div>
-
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" data-dismiss="modal" wire:click="resetForm">
-                        <i class="bi bi-x-circle"></i> Batal
-                    </button>
-                    <button class="btn btn-primary" wire:click="update" wire:loading.attr="disabled">
-                        <span wire:loading.remove wire:target="update">
-                            <i class="bi bi-save"></i> Simpan Perubahan
-                        </span>
-                        <span wire:loading wire:target="update">
-                            <i class="spinner-border spinner-border-sm"></i> Menyimpan...
-                        </span>
-                    </button>
-                </div>
+                        <figcaption class="mt-1 text-xs text-slate-500">{{ $file_ttd ? 'Pratinjau baru' : 'Saat ini' }}</figcaption>
+                    </figure>
+                @endif
             </div>
-        </div>
-    </div>
+            <x-ui.loading target="file_ttd">Mengunggah file...</x-ui.loading>
+        </form>
 
-
-    <script>
-        function confirmDeleteTtd(id) {
-            Swal.fire({
-                title: 'Apakah Anda yakin?',
-                text: "TTD ini akan dihapus dan tidak bisa dikembalikan!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Ya, Hapus!',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Livewire.dispatch('deleteConfirmedTtd', {
-                        id: id
-                    }); // Kirim ID sebagai objek
-                }
-            });
-        }
-    </script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            window.Livewire.on('openModalTambahTtd', () => {
-                $('#modalTambahTtd').modal('show');
-            });
-            window.Livewire.on('closeModalTambahTtd', () => {
-                $('#modalTambahTtd').modal('hide');
-            });
-
-            Livewire.on('openModalEditTtd', () => {
-                $('#openModalEditTtd').modal('show');
-            });
-
-            Livewire.on('closeModalEditTtd', () => {
-                $('#openModalEditTtd').modal('hide');
-            });
-
-            window.addEventListener('swal:ttd', function(event) {
-                $('#modalAjukanFasilitasi').modal('hide');
-                const data = event.detail[0];
-                Swal.fire({
-                    icon: data.type, // 'success', 'error', 'warning', etc.
-                    title: data.title,
-                    text: data.message,
-                    showConfirmButton: true,
-                });
-            });
-        });
-    </script>
+        <x-slot:footer>
+            <x-ui.button variant="outline" x-on:click="close()">Batal</x-ui.button>
+            <x-ui.button type="submit" form="ttdForm" icon="save" loading="save">{{ $editId ? 'Simpan Perubahan' : 'Simpan' }}</x-ui.button>
+        </x-slot:footer>
+    </x-ui.modal>
 </div>

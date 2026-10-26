@@ -2,91 +2,55 @@
 
 namespace App\Livewire\Verifikator\TandaTangan;
 
-use Livewire\Component;
-use Livewire\WithPagination;
 use App\Models\TandaTangan;
+use Livewire\Component;
 use Livewire\WithFileUploads;
-use Illuminate\Support\Facades\Storage;
+use Livewire\WithPagination;
+use Livewire\WithoutUrlPagination;
 
 class PengelolaTtd extends Component
 {
-
-    use WithPagination, WithFileUploads;
+    use WithPagination, WithoutUrlPagination, WithFileUploads;
 
     public $search = '';
     public $perPage = 5;
+
+    // Form tambah/edit (editId null = tambah)
     public $editId;
-    public $nama_ttd, $file_ttd, $status, $nip_ttd, $jabatan;
-    public $file_ttd_preview; // Untuk menampilkan preview file
+    public $nama_ttd, $nip_ttd, $jabatan, $status, $file_ttd;
     public $existingFile;
 
-    protected $listeners = [
-        'refreshTtdList' => 'render',
-        'refreshTable' => '$refresh',
-        'deleteConfirmedTtd' => 'delete'
+    protected $validationAttributes = [
+        'nama_ttd' => 'nama lengkap',
+        'nip_ttd' => 'NIP',
+        'file_ttd' => 'gambar tanda tangan',
     ];
-
 
     public function updatingSearch()
     {
         $this->resetPage();
     }
 
-    public function openModalTambah()
+    public function updatingPerPage()
     {
-        $this->resetForm();
-        $this->dispatch('openModalTambahTtd');
+        $this->resetPage();
     }
-
 
     public function updatedFileTtd()
     {
-        if ($this->file_ttd) {
-            $this->validate([
-                'file_ttd' => 'image|mimes:png|max:20480', // Hanya menerima PNG dengan maksimal 2MB
-            ]);
-            $this->file_ttd_preview = $this->file_ttd->temporaryUrl(); // Simpan preview file
-        }
+        $this->validateOnly('file_ttd', ['file_ttd' => 'nullable|image|mimes:png|max:2048']);
     }
 
-
-    public function store()
+    public function openModalTambah()
     {
-        $this->validate([
-            'nama_ttd' => 'required|string|max:100',
-            'nip_ttd' => 'required|string|max:50|unique:tanda_tangan,nip_ttd', // Wajib ada NIP
-            'jabatan' => 'required|string|max:100',
-            'file_ttd' => 'required|image|mimes:png|max:20480', // Hanya menerima PNG dengan maksimal 2MB
-            'status' => 'required|in:Aktif,Tidak Aktif',
-        ]);
-
-        // Simpan gambar ke storage langsung
-        $path = $this->file_ttd->storeAs('tanda_tangan/ttd', 'ttd_' . uniqid() . '.png', 'local');
-
-        // Simpan ke database
-        TandaTangan::create([
-            'nama_ttd' => $this->nama_ttd,
-            'nip_ttd' => $this->nip_ttd,  // ✅ Pastikan nip disertakan
-            'jabatan' => $this->jabatan,
-            'file_ttd' => $path,
-            'dibuat_oleh' => auth()->id(),
-            'status' => $this->status
-        ]);
-
-        // Reset form
-        $this->reset(['nama_ttd', 'nip_ttd', 'jabatan', 'file_ttd', 'status']);
-
-        // Tutup modal dan tampilkan notifikasi sukses
-        $this->dispatch('closeModalTambahTtd');
-        $this->dispatch('swal:ttd', [
-            'type' => 'success',
-            'title' => 'Berhasil',
-            'message' => "TTD berhasil ditambahkan",
-        ]);
+        $this->resetForm();
+        $this->dispatch('openModal', 'modalTtd');
     }
 
     public function openModalEdit($id)
     {
+        $this->resetForm();
+
         $ttd = TandaTangan::findOrFail($id);
 
         $this->editId = $ttd->id;
@@ -94,82 +58,92 @@ class PengelolaTtd extends Component
         $this->nip_ttd = $ttd->nip_ttd;
         $this->jabatan = $ttd->jabatan;
         $this->status = $ttd->status;
-        $this->existingFile = $ttd->file_ttd; // Simpan file lama
+        $this->existingFile = $ttd->file_ttd;
 
-        // Buka modal edit
-        $this->dispatch('openModalEditTtd');
+        $this->dispatch('openModal', 'modalTtd');
     }
 
-    public function update()
+    public function save()
     {
         $this->validate([
             'nama_ttd' => 'required|string|max:100',
-            'nip_ttd' => 'required|string|max:50|unique:tanda_tangan,nip_ttd,' . $this->editId, // Ubah dari 'nip' ke 'nip_ttd'
+            'nip_ttd' => 'required|string|max:50|unique:tanda_tangan,nip_ttd' . ($this->editId ? ',' . $this->editId : ''),
             'jabatan' => 'required|string|max:100',
-            'file_ttd' => 'nullable|image|mimes:png|max:20480',
+            'file_ttd' => ($this->editId ? 'nullable' : 'required') . '|image|mimes:png|max:2048',
             'status' => 'required|in:Aktif,Tidak Aktif',
         ]);
 
-        $ttd = TandaTangan::findOrFail($this->editId);
-
-        if ($this->file_ttd) {
-            $path = $this->file_ttd->storeAs('tanda_tangan/ttd', 'ttd_' . uniqid() . '.png', 'local');
-            $ttd->file_ttd = $path;
-        }
-
-        $ttd->update([
+        $data = [
             'nama_ttd' => $this->nama_ttd,
             'nip_ttd' => $this->nip_ttd,
             'jabatan' => $this->jabatan,
             'status' => $this->status,
-        ]);
+        ];
 
-        $this->dispatch('closeModalEditTtd');
-        $this->dispatch('swal:ttd', [
+        // File lama tidak dihapus karena masih dipakai saat Nota Dinas lama dibuat ulang.
+        if ($this->file_ttd) {
+            $data['file_ttd'] = $this->file_ttd->storeAs('tanda_tangan/ttd', 'ttd_' . uniqid() . '.png', 'local');
+        }
+
+        if ($this->editId) {
+            TandaTangan::findOrFail($this->editId)->update($data);
+        } else {
+            TandaTangan::create($data + ['dibuat_oleh' => auth()->id()]);
+        }
+
+        $this->dispatch('closeModal', 'modalTtd');
+        $this->dispatch('swal:modal', [
             'type' => 'success',
             'title' => 'Berhasil',
-            'message' => "TTD berhasil diperbarui",
+            'message' => $this->editId ? 'TTD berhasil diperbarui.' : 'TTD berhasil ditambahkan.',
         ]);
+        $this->resetForm();
     }
-
 
     public function removeFile()
     {
-        $this->file_ttd = null;
-        $this->file_ttd_preview = null;
+        $this->reset('file_ttd');
+        $this->resetValidation('file_ttd');
     }
 
     public function delete($id)
     {
-        if (is_array($id)) {
-            $id = $id['id']; // Ambil ID jika dikirim dalam array
+        $ttd = TandaTangan::withCount('notaDinas')->findOrFail($id);
+
+        // Relasi nota_dinas memakai cascade: menghapus TTD akan ikut menghapus Nota Dinas.
+        if ($ttd->nota_dinas_count > 0) {
+            $this->dispatch('swal:modal', [
+                'type' => 'warning',
+                'title' => 'Tidak dapat dihapus',
+                'message' => "TTD ini dipakai di {$ttd->nota_dinas_count} Nota Dinas. Ubah statusnya menjadi Tidak Aktif sebagai gantinya.",
+            ]);
+            return;
         }
 
-        $ttd = TandaTangan::findOrFail($id);
         $ttd->delete();
-
-        // Perbarui tampilan tanpa dispatch tambahan
         $this->resetPage();
 
-        // Tampilkan notifikasi sukses
-        $this->dispatch('swal:ttd', [
+        $this->dispatch('swal:toast', [
             'type' => 'success',
-            'title' => 'Berhasil!',
             'message' => 'TTD berhasil dihapus.',
         ]);
     }
 
-
-
-
     public function resetForm()
     {
-        $this->reset(['nama_ttd', 'file_ttd', 'status',]);
+        $this->reset(['editId', 'nama_ttd', 'nip_ttd', 'jabatan', 'status', 'file_ttd', 'existingFile']);
+        $this->resetValidation();
     }
 
     public function render()
     {
-        $ttdList = TandaTangan::where('nama_ttd', 'like', "%{$this->search}%")
+        $ttdList = TandaTangan::withCount('notaDinas')
+            ->where(function ($query) {
+                $query->where('nama_ttd', 'like', "%{$this->search}%")
+                    ->orWhere('nip_ttd', 'like', "%{$this->search}%")
+                    ->orWhere('jabatan', 'like', "%{$this->search}%");
+            })
+            ->latest()
             ->paginate($this->perPage);
 
         return view('livewire.verifikator.tanda-tangan.pengelola-ttd', compact('ttdList'))->layout('layouts.app');
