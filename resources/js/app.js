@@ -102,4 +102,50 @@ window.confirmAction = ({
 
 Alpine.magic('confirm', () => window.confirmAction);
 
+/**
+ * Minta catatan wajib lewat dialog; menghasilkan teks, atau null bila dibatalkan.
+ *   x-on:click="$prompt({ title: 'Setujui berkas?' }).then(c => c && $wire.setujui(1, c))"
+ */
+window.promptNote = ({
+    title = 'Tambahkan catatan',
+    label = 'Catatan',
+    placeholder = 'Tulis catatan...',
+    confirmText = 'Simpan',
+    icon = 'question',
+} = {}) =>
+    Swal.fire({
+        title,
+        icon,
+        input: 'textarea',
+        inputLabel: label,
+        inputPlaceholder: placeholder,
+        showCancelButton: true,
+        reverseButtons: true,
+        confirmButtonText: confirmText,
+        cancelButtonText: 'Batal',
+        inputValidator: (value) => (!value?.trim() ? 'Catatan tidak boleh kosong!' : undefined),
+    }).then((result) => (result.isConfirmed ? result.value.trim() : null));
+
+Alpine.magic('prompt', () => window.promptNote);
+
+/**
+ * Minta pengguna memilih satu opsi; menghasilkan nilai terpilih, atau null bila dibatalkan.
+ *   x-on:click="$choose({ title: 'Pilih peneliti', options: { 5: 'Budi' } }).then(id => id && $wire.pilih(1, id))"
+ */
+window.chooseOption = ({ title = 'Pilih', label = '', options = {}, placeholder = 'Pilih salah satu', confirmText = 'Pilih' } = {}) =>
+    Swal.fire({
+        title,
+        input: 'select',
+        inputLabel: label,
+        inputOptions: options,
+        inputPlaceholder: placeholder,
+        showCancelButton: true,
+        reverseButtons: true,
+        confirmButtonText: confirmText,
+        cancelButtonText: 'Batal',
+        inputValidator: (value) => (!value ? 'Anda harus memilih salah satu!' : undefined),
+    }).then((result) => (result.isConfirmed ? result.value : null));
+
+Alpine.magic('choose', () => window.chooseOption);
+
 Livewire.start();

@@ -22,9 +22,6 @@ class PenelitiDitugaskan extends Component
     public $search = '';
     public $perPage = 5;
 
-    public $selectedRevisi; // Untuk menyimpan data revisi yang dipilih
-    public $revisiId; // ID revisi yang dipilih
-
     protected $listeners = [
         'resetPenelitiConfirmed' => 'resetPeneliti',
         'pilihUlangPenelitiConfirmed' => 'pilihUlangPeneliti',
@@ -42,18 +39,6 @@ class PenelitiDitugaskan extends Component
         $this->resetPage();
     }
 
-    public function openModal($idRevisi)
-    {
-        // Cari revisi dengan eager loading
-        $this->selectedRevisi = Revisi::with([
-            'rancangan.user', // Jika relasi rancangan memiliki user
-            'rancangan.perangkatDaerah', // Jika rancangan memiliki perangkat daerah
-            'peneliti', // Peneliti yang terkait dengan revisi
-        ])->findOrFail($idRevisi);
-
-        // Dispatch untuk membuka modal
-        $this->dispatch('openModal', 'modalPilihPeneliti');
-    }
     public function pilihUlangPeneliti($idRancangan, $idPeneliti)
     {
         $rancangan = RancanganProdukHukum::find($idRancangan);
@@ -219,10 +204,6 @@ class PenelitiDitugaskan extends Component
         ]);
     }
 
-    public function resetDetail()
-    {
-        $this->selectedRevisi = null;
-    }
 
 
 
@@ -238,7 +219,7 @@ class PenelitiDitugaskan extends Component
                     'Direvisi'
                 ]);
             })
-            ->with(['revisi.peneliti']) // Eager loading revisi dan peneliti
+            ->with(['revisi.peneliti', 'user.perangkatDaerah'])
             ->where(function ($query) {
                 $query->where('tentang', 'like', "%{$this->search}%")
                     ->orWhere('no_rancangan', 'like', "%{$this->search}%");
