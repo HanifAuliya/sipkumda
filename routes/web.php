@@ -146,11 +146,10 @@ Route::middleware('auth')->group(function () {
         Route::livewire('/persetujuan-fasilitasi', PersetujuanFasilitasiMain::class)->name('persetujuan-fasilitasi.main');
     });
     Route::middleware(['role:Admin'])->group(function () {
-        Route::livewire('/manajemen-fasilitasi', ManajemenFasilitasi::class)
-            ->name('manajemen-fasilitasi');
         Route::livewire('/kelola-bahan-penting', TambahBahanPenting::class)
             ->name('bahan-penting');
     });
+    // Tamu hanya dapat melihat; pembaruan tahapan dicek lewat policy.
     Route::middleware(['role:Admin|Tamu'])->group(function () {
         Route::livewire('/manajemen-fasilitasi', ManajemenFasilitasi::class)
             ->name('manajemen-fasilitasi');
