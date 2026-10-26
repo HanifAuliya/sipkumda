@@ -1,5 +1,7 @@
 @extends('errors::minimal')
 
-@section('title', __('Server Error'))
+@section('title', 'Terjadi Kesalahan Server')
 @section('code', '500')
-@section('message', __('Server Error'))
+@section('icon', 'bug')
+@section('message', 'Terjadi Kesalahan Server')
+@section('description', 'Terjadi kesalahan pada server. Silakan coba beberapa saat lagi.')

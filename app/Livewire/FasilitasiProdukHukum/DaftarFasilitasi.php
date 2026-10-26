@@ -13,7 +13,6 @@ use Barryvdh\DomPDF\Facade\Pdf;
 class DaftarFasilitasi extends Component
 {
     use WithPagination;
-    protected $paginationTheme = 'bootstrap';
 
     public $search = '';
     public $perPage = 10;

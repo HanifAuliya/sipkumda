@@ -15,7 +15,6 @@ use Illuminate\Support\Facades\Notification;
 class KelolaNotaDinas extends Component
 {
     use WithPagination;
-    protected $paginationTheme = 'bootstrap';
 
     public $listeners = [
         'deleteNotaDinas' => 'delete',

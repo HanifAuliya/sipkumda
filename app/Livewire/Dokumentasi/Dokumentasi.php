@@ -22,7 +22,6 @@ use Illuminate\Validation\Rule;
 class Dokumentasi extends Component
 {
     use WithPagination, WithFileUploads;
-    protected $paginationTheme = 'bootstrap';
 
     public $search = ''; // Input pencarian
     public $perPage = 10; // Jumlah data per halaman

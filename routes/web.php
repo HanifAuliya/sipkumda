@@ -37,14 +37,14 @@ use App\Http\Controllers\Admin\PrediksiController;
 
 
 Route::get('/', function () {
-    return view('welcome', [
-        // Hitung jumlah Surat Keputusan dari tabel Dokumentasi Produk Hukum
-        'sk_rancangan' => RancanganProdukHukum::where('jenis_rancangan', 'Surat Keputusan')->count(),
-        'kb_rancangan' => RancanganProdukHukum::where('jenis_rancangan', 'Peraturan Bupati')->count(),
+    // "Keputusan Bupati" (input manual dokumentasi) sama dengan "Surat Keputusan".
+    $suratKeputusan = ['Surat Keputusan', 'Keputusan Bupati'];
 
-        // Hitung jumlah Surat Keputusan yang sudah terdokumentasi
-        'sk_dokumentasi' => DokumentasiProdukHukum::where('jenis_dokumentasi', 'Surat Keputusan')->count(),
-        'kb_dokumentasi' => DokumentasiProdukHukum::where('jenis_dokumentasi', 'Keputusan Bupati')->count(),
+    return view('welcome', [
+        'sk_rancangan' => RancanganProdukHukum::whereIn('jenis_rancangan', $suratKeputusan)->count(),
+        'pb_rancangan' => RancanganProdukHukum::where('jenis_rancangan', 'Peraturan Bupati')->count(),
+        'sk_dokumentasi' => DokumentasiProdukHukum::whereIn('jenis_dokumentasi', $suratKeputusan)->count(),
+        'pb_dokumentasi' => DokumentasiProdukHukum::where('jenis_dokumentasi', 'Peraturan Bupati')->count(),
     ]);
 });
 

@@ -14,7 +14,11 @@ class DetailRancangan extends Component
 
     public function loadRancangan($slug)
     {
-        $this->rancangan = RancanganProdukHukum::where('slug', $slug)->first();
+        $this->rancangan = RancanganProdukHukum::with(['user.perangkatDaerah', 'revisi.peneliti'])
+            ->where('slug', $slug)
+            ->first();
+
+        $this->dispatch('openModal', 'modalDetailRancangan');
     }
 
     public function refreshData()

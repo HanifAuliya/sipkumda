@@ -1,495 +1,145 @@
-@section('header', 'Selamat Datang, ' . Auth::user()->nama_user . '!')
 @section('title', 'Dashboard')
-<div>
-    {{-- Profile Card --}}
-    <div class="row mb-1">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body d-flex flex-column flex-md-row justify-content-between">
-                    {{-- Informasi Departemen --}}
-                    <div class="info-department d-flex flex-column mb-3 mb-md-0 w-100 w-md-auto">
-                        <h3 class="font-weight-bolder mb-0">
-                            {{ Auth::user()->getRoleNames()->first() ?? 'Tidak Ada Role' }}
-                        </h3>
-                        <p class="text-sm mb-0 font-weight-300">
-                            {{ Auth::user()->perangkatDaerah->nama_perangkat_daerah }}
-                        </p>
-                    </div>
-                    {{-- Informasi Individu --}}
-                    <div
-                        class="info-individual d-flex flex-column flex-md-row align-items-center justify-content-md-end w-100 w-md-auto">
-                        <div class="d-flex flex-column text-md-end mb-3 mb-md-0 align-items-md-end mr-2">
-                            <h3 class="font-weight-bolder mb-0">
-                                {{ Auth::user()->nama_user }}
-                            </h3>
-                            <p class="mb-0">{{ Auth::user()->NIP }}</p>
-                        </div>
-                        <div class="d-flex justify-content-center justify-content-md-end align-items-center ms-md-3">
-                            <img src="../assets/img/theme/profile.png" class="avatar avatar-lg rounded-circle"
-                                alt="Profil" />
-                        </div>
+
+@php
+    $user = auth()->user();
+
+    // Warna per jenis, konsisten di semua grafik.
+    $jenisColors = ['Peraturan Bupati' => '#5e72e4', 'Surat Keputusan' => '#fbb140'];
+
+    $pieConfig = [
+        'type' => 'doughnut',
+        'data' => [
+            'labels' => $chartData['pie']['labels'],
+            'datasets' => [[
+                'data' => $chartData['pie']['data'],
+                'backgroundColor' => collect($chartData['pie']['labels'])->map(fn ($label) => $jenisColors[$label] ?? '#94a3b8')->all(),
+                'borderWidth' => 0,
+                'hoverOffset' => 6,
+            ]],
+        ],
+        'options' => [
+            'maintainAspectRatio' => false,
+            'cutout' => '62%',
+            'plugins' => ['legend' => ['position' => 'bottom', 'labels' => ['usePointStyle' => true, 'padding' => 16]]],
+        ],
+    ];
+
+    $barConfig = [
+        'type' => 'bar',
+        'data' => [
+            'labels' => $chartData['labels'],
+            'datasets' => [
+                ['label' => 'Peraturan Bupati', 'data' => $chartData['rancangan_bupati'], 'backgroundColor' => $jenisColors['Peraturan Bupati'], 'borderRadius' => 4],
+                ['label' => 'Surat Keputusan', 'data' => $chartData['keputusan_bupati'], 'backgroundColor' => $jenisColors['Surat Keputusan'], 'borderRadius' => 4],
+            ],
+        ],
+        'options' => [
+            'maintainAspectRatio' => false,
+            'plugins' => ['legend' => ['position' => 'bottom', 'labels' => ['usePointStyle' => true, 'padding' => 16]]],
+            'scales' => [
+                'x' => ['stacked' => true, 'grid' => ['display' => false]],
+                'y' => ['stacked' => true, 'beginAtZero' => true, 'ticks' => ['precision' => 0]],
+            ],
+        ],
+    ];
+
+    $lineSeries = [
+        ['Rancangan Disetujui', 'rancangan', '#5e72e4'],
+        ['Revisi Selesai', 'revisi', '#fb6340'],
+        ['Fasilitasi Divalidasi', 'fasilitasi', '#2dce89'],
+        ['Dokumentasi Arsip', 'dokumentasi', '#8965e0'],
+    ];
+
+    $lineConfig = [
+        'type' => 'line',
+        'data' => [
+            'labels' => $lineChartData['labels'],
+            'datasets' => collect($lineSeries)->map(fn ($s) => [
+                'label' => $s[0],
+                'data' => $lineChartData[$s[1]],
+                'borderColor' => $s[2],
+                'backgroundColor' => $s[2],
+                'tension' => 0.35,
+                'pointRadius' => 3,
+                'borderWidth' => 2.5,
+            ])->all(),
+        ],
+        'options' => [
+            'maintainAspectRatio' => false,
+            'interaction' => ['mode' => 'index', 'intersect' => false],
+            'plugins' => ['legend' => ['position' => 'bottom', 'labels' => ['usePointStyle' => true, 'padding' => 16]]],
+            'scales' => [
+                'x' => ['grid' => ['display' => false]],
+                'y' => ['beginAtZero' => true, 'ticks' => ['precision' => 0]],
+            ],
+        ],
+    ];
+@endphp
+
+<div class="space-y-6">
+    {{-- Sambutan --}}
+    <section class="relative overflow-hidden rounded-2xl bg-linear-to-br from-navy-900 via-navy-800 to-primary-700 p-6 text-white shadow-card sm:p-8">
+        <div class="pointer-events-none absolute -top-16 -right-10 size-64 rounded-full bg-white/5"></div>
+        <div class="pointer-events-none absolute -right-24 -bottom-24 size-72 rounded-full bg-primary-400/10"></div>
+
+        <div class="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+            <div class="flex items-center gap-4">
+                <img src="{{ asset('assets/img/theme/profile.png') }}" alt="" class="size-16 rounded-full ring-4 ring-white/15">
+                <div class="min-w-0">
+                    <p class="text-sm text-white/70">Selamat datang kembali,</p>
+                    <h1 class="truncate text-xl font-bold text-white sm:text-2xl">{{ $user->nama_user }}</h1>
+                    <div class="mt-1.5 flex flex-wrap items-center gap-2 text-xs">
+                        <span class="rounded-full bg-white/15 px-2.5 py-0.5 font-semibold">{{ $user->getRoleNames()->first() ?? 'Tanpa Role' }}</span>
+                        <span class="text-white/70">NIP {{ $user->NIP }}</span>
+                        @if ($user->perangkatDaerah)
+                            <span class="text-white/70">· {{ $user->perangkatDaerah->nama_perangkat_daerah }}</span>
+                        @endif
                     </div>
                 </div>
             </div>
+
+            @if ($panduanUrl)
+                <a href="{{ $panduanUrl }}" target="_blank" rel="noopener"
+                    class="inline-flex items-center gap-3 self-start rounded-xl bg-white/10 px-4 py-3 ring-1 ring-white/15 transition hover:bg-white/15 md:self-auto">
+                    <span class="grid size-10 place-items-center rounded-lg bg-white text-lg text-navy-900">
+                        <i class="bi bi-journal-text"></i>
+                    </span>
+                    <span>
+                        <span class="block text-sm font-semibold">Manual Pengguna</span>
+                        <span class="block text-xs text-white/70">Baca panduan sesuai peran Anda</span>
+                    </span>
+                    <i class="bi bi-arrow-up-right ml-1 text-white/60"></i>
+                </a>
+            @endif
         </div>
+    </section>
+
+    {{-- Statistik --}}
+    <div class="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+        <x-ui.stat-card label="Rancangan Produk Hukum" :value="$jumlahRancangan" suffix="data" icon="clipboard2-data" color="rose" />
+        <x-ui.stat-card label="Revisi Rancangan" :value="$jumlahRevisi" suffix="data" icon="pencil-square" color="orange" />
+        <x-ui.stat-card label="Fasilitasi Produk Hukum" :value="$jumlahFasilitasi" suffix="data" icon="file-text" color="emerald" />
+        <x-ui.stat-card label="Arsip Produk Hukum" :value="$jumlahDokumentasi" suffix="data" icon="folder2-open" color="sky" />
     </div>
 
-    {{-- Card Manual Pengguna --}}
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body d-flex flex-column flex-md-row align-items-center justify-content-between">
-                    {{-- Informasi Utama --}}
-                    <div class="d-flex flex-column align-items-xs-center">
-                        <h2 class="card-title mb-1">Manual Pengguna</h2>
-                        <p class="description">
-                            © Hak Cipta Bagian Hukum Sekretariat Daerah Kabupaten Hulu
-                            Sungai Tengah.
-                        </p>
-                    </div>
-                    {{-- Tentukan file panduan berdasarkan role pengguna --}}
-                    @php
-                        $panduanPath = '';
-
-                        if (auth()->user()->hasRole('Peneliti')) {
-                            $panduanPath = asset('assets/document/Manual_Pengguna-Peneliti-SIFKUMDA.pdf');
-                        } elseif (auth()->user()->hasRole('Admin')) {
-                            $panduanPath = asset('assets/document/Manual_Pengguna-Admin-SIFKUMDA.pdf');
-                        } elseif (auth()->user()->hasRole('Verifikator')) {
-                            $panduanPath = asset('assets/document/Manual_Pengguna-Verifikator-SIFKUMDA.pdf');
-                        } elseif (auth()->user()->hasRole('Perangkat Daerah')) {
-                            $panduanPath = asset('assets/document/Manual_Pengguna-Perangkat_Daerah-SIFKUMDA.pdf');
-                        }
-                    @endphp
-
-                    @if ($panduanPath)
-                        <a href="{{ $panduanPath }}" target="_blank" class="btn btn-outline-default mt-3 mt-md-0">
-                            <i class="bi bi-file-earmark-text mr-2"></i> Baca Panduan
-                        </a>
-                    @endif
-
-                </div>
+    {{-- Grafik --}}
+    <div class="grid gap-6 lg:grid-cols-5">
+        <x-ui.card title="Total Rancangan" description="Berdasarkan jenis" class="lg:col-span-2">
+            <div x-data="chart(@js($pieConfig))" class="h-72">
+                <canvas x-ref="canvas" aria-label="Grafik total rancangan per jenis" role="img"></canvas>
             </div>
-        </div>
-    </div>
-    {{-- Card stats --}}
-    <div class="row">
-        <div class="col-xl-3 col-md-6">
-            <div class="card card-stats">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col">
-                            <h5 class="card-title text-uppercase text-muted mb-0">
-                                Rancangan Produk Hukum
-                            </h5>
-                            <span class="h2 font-weight-bold mb-0" id="jumlahRancangan">0</span> Data
-                        </div>
-                        <div class="col-auto">
-                            <div class="icon icon-shape bg-gradient-red text-white rounded-circle shadow">
-                                <i class="bi bi-clipboard2-data"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        </x-ui.card>
+
+        <x-ui.card title="Pengajuan Rancangan" description="Per bulan, tahun {{ now()->year }}" class="lg:col-span-3">
+            <div x-data="chart(@js($barConfig))" class="h-72">
+                <canvas x-ref="canvas" aria-label="Grafik pengajuan rancangan per bulan" role="img"></canvas>
             </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6">
-            <div class="card card-stats">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col">
-                            <h5 class="card-title text-uppercase text-muted mb-0">
-                                Daftar Revisi Rancangan
-                            </h5>
-                            <span class="h2 font-weight-bold mb-0" id="jumlahRevisi">0</span> Data
-                        </div>
-                        <div class="col-auto">
-                            <div class="icon icon-shape bg-gradient-orange text-white rounded-circle shadow">
-                                <i class="bi bi-pencil-square"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6">
-            <div class="card card-stats">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col">
-                            <h5 class="card-title text-uppercase text-muted mb-0">
-                                Fasilitasi Produk Hukum
-                            </h5>
-                            <span class="h2 font-weight-bold mb-0" id="jumlahFasilitasi">0</span> Data
-                        </div>
-                        <div class="col-auto">
-                            <div class="icon icon-shape bg-gradient-green text-white rounded-circle shadow">
-                                <i class="bi bi-file-text"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6">
-            <div class="card card-stats">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col">
-                            <h5 class="card-title text-uppercase text-muted mb-0">
-                                Arsip Produk Hukum
-                            </h5>
-                            <span class="h2 font-weight-bold mb-0" id="jumlahDokumentasi">0</span> Data
-                        </div>
-                        <div class="col-auto">
-                            <div class="icon icon-shape bg-gradient-info text-white rounded-circle shadow">
-                                <i class="bi bi-folder-fill"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <script>
-            document.addEventListener("DOMContentLoaded", function() {
-                // Ambil data jumlah dari Blade
-                let targetCounts = {
-                    jumlahRancangan: {{ $jumlahRancangan }},
-                    jumlahRevisi: {{ $jumlahRevisi }},
-                    jumlahFasilitasi: {{ $jumlahFasilitasi }},
-                    jumlahDokumentasi: {{ $jumlahDokumentasi }}
-                };
-
-                // Fungsi untuk menghitung angka naik
-                function animateCounter(id, target, duration = 2000) {
-                    let element = document.getElementById(id);
-                    if (!element) return;
-
-                    let start = 0;
-                    let stepTime = Math.abs(Math.floor(duration / target));
-                    let timer = setInterval(function() {
-                        start++;
-                        element.textContent = start;
-                        if (start >= target) {
-                            clearInterval(timer);
-                        }
-                    }, stepTime);
-                }
-
-                // Intersection Observer untuk menunggu sampai elemen terlihat di layar
-                let observer = new IntersectionObserver(function(entries) {
-                    entries.forEach(entry => {
-                        if (entry.isIntersecting) {
-                            // Tambahkan delay 3 detik sesuai loading screen
-                            setTimeout(() => {
-                                animateCounter("jumlahRancangan", targetCounts.jumlahRancangan);
-                                animateCounter("jumlahRevisi", targetCounts.jumlahRevisi);
-                                animateCounter("jumlahFasilitasi", targetCounts
-                                    .jumlahFasilitasi);
-                                animateCounter("jumlahDokumentasi", targetCounts
-                                    .jumlahDokumentasi);
-                            }, 3000); // Delay 3 detik sebelum mulai animasi
-
-                            // Hentikan observer setelah animasi pertama kali berjalan
-                            observer.disconnect();
-                        }
-                    });
-                }, {
-                    threshold: 0.5
-                }); // Mulai animasi saat 50% elemen terlihat
-
-                // Observasi semua elemen dengan ID yang akan dihitung
-                observer.observe(document.getElementById("jumlahRancangan"));
-            });
-        </script>
+        </x-ui.card>
     </div>
 
-    <div class="row">
-        {{-- Pie Chart - Jenis Rancangan --}}
-        <div class="col-md-6">
-            <div class="card shadow-sm border-0 chart-card ">
-                <div class="card-header">
-                    <h3 class="mb-0">Total Rancangan</h3>
-                </div>
-                <div class="card-body d-flex justify-content-center align-items-center chart-container">
-                    <canvas id="pieChart" style="max-width: 280px; max-height: 280px;"></canvas>
-                </div>
-            </div>
+    <x-ui.card title="Lama Proses Rancangan" description="Rata-rata durasi tiap tahap (hari), tahun {{ $selectedYear }}">
+        <div x-data="chart(@js($lineConfig))" class="h-80">
+            <canvas x-ref="canvas" aria-label="Grafik lama proses rancangan" role="img"></canvas>
         </div>
-
-        {{-- Bar Chart - Jumlah Pengajuan per Bulan --}}
-        <div class="col-md-6">
-            <div class="card shadow-sm border-0 chart-card " style="max-height: 300px;">
-                <div class="card-header">
-                    <h3 class="mb-0">Pengajuan Rancangan (Tahun ini)</h3>
-                </div>
-                <div class="card-body" style="min-height: 350px;">
-                    <canvas id="barChart"></canvas>
-                </div>
-
-            </div>
-        </div>
-
-        <div class="col-md-12">
-            <div class="card shadow-sm border-0 chart-card">
-                <div class="card-header d-flex justify-content-between align-items-center" style=" max-height: 300px;">
-                    <h3 class="mb-0">📈 Lama Pembuatan Rancangan (Hari)</h3>
-                </div>
-                <div class="card-body">
-                    <canvas id="lineChart"></canvas>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            let pieCtx = document.getElementById('pieChart').getContext('2d');
-            let barCtx = document.getElementById('barChart').getContext('2d');
-
-            let pieChart, barChart;
-
-            function updateCharts(chartData) {
-                // console.log("📊 Data Chart.js diterima:", chartData); // Debugging
-
-                if (pieChart) pieChart.destroy();
-                if (barChart) barChart.destroy();
-
-                // Pie Chart
-                pieChart = new Chart(pieCtx, {
-                    type: 'pie',
-                    data: {
-                        labels: chartData.pie.labels,
-                        datasets: [{
-                            data: chartData.pie.data,
-                            backgroundColor: ['rgba(54, 162, 235, 0.8)', 'rgba(255, 206, 86, 0.8)'],
-                            hoverOffset: 5
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        animation: {
-                            duration: 1500, // Memperlambat animasi agar lebih smooth
-                            easing: 'easeOutQuart' // Efek animasi lebih smooth
-                        }
-                    }
-                });
-
-                const colors = {
-                    rancanganBupati: 'rgba(54, 162, 235, 0.8)', // Biru untuk Peraturan Bupati
-                    keputusanBupati: 'rgba(255, 99, 132, 0.8)' // Merah untuk Surat Keputusan
-                };
-
-
-                // console.log("🔄 Membuat ulang Bar Chart...");
-
-                // **Hapus Chart Lama Jika Ada**
-                if (barChart) barChart.destroy();
-                // **Cek apakah data memiliki panjang yang sama**
-                if (chartData.labels.length !== chartData.rancangan_bupati.length ||
-                    chartData.labels.length !== chartData.keputusan_bupati.length) {
-                    console.error("❌ ERROR: Data Bar Chart tidak sinkron!", chartData);
-                    return;
-                }
-
-
-
-                // **Buat Bar Chart (Stacked)**
-                barChart = new Chart(barCtx, {
-                    type: 'bar',
-                    data: {
-                        labels: chartData.labels,
-                        datasets: [{
-                                label: 'Peraturan Bupati',
-                                data: chartData.rancangan_bupati,
-                                backgroundColor: colors.rancanganBupati,
-                                borderColor: colors.rancanganBupati.replace('0.8', '1'),
-                                borderWidth: 1
-                            },
-                            {
-                                label: 'Surat Keputusan',
-                                data: chartData.keputusan_bupati,
-                                backgroundColor: colors.keputusanBupati,
-                                borderColor: colors.keputusanBupati.replace('0.8', '1'),
-                                borderWidth: 1
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        animation: {
-                            duration: 1200,
-                            easing: 'easeOutBack'
-                        },
-                        scales: {
-                            x: {
-                                stacked: true
-                            },
-                            y: {
-                                stacked: true,
-                                beginAtZero: true,
-                                ticks: {
-                                    stepSize: 5
-                                }
-                            }
-                        }
-                    }
-                });
-
-                // console.log("✅ Bar Chart berhasil dibuat!");
-
-
-                // Tambahkan efek fade-in setelah chart muncul
-                document.querySelector('.chart-container').classList.add('show-chart');
-            }
-
-            // Efek animasi saat discroll menggunakan Intersection Observer API
-            const observer = new IntersectionObserver(entries => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        updateCharts(@json($chartData));
-                        observer.unobserve(entry.target); // Hentikan observer setelah muncul
-                    }
-                });
-            }, {
-                threshold: 0.5
-            });
-
-            observer.observe(document.querySelector('.chart-container'));
-
-            // Event dari Livewire untuk memperbarui data saat tahun diubah
-            window.livewire.on('refreshChart', (chartData) => {
-                updateCharts(chartData);
-            });
-        });
-    </script>
-
-    <style>
-        /* Tambahkan efek fade-in saat chart muncul */
-        .chart-container {
-            opacity: 0;
-            transform: translateY(50px);
-            transition: opacity 1s ease-out, transform 1s ease-out;
-        }
-
-        .chart-container.show-chart {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        #barChart {
-            width: 100% !important;
-            height: 300px !important;
-            display: block !important;
-        }
-    </style>
-
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            let lineCtx = document.getElementById('lineChart').getContext('2d');
-            let lineChart;
-
-            function updateLineChart(chartData) {
-
-                if (lineChart) lineChart.destroy();
-
-                // Warna untuk setiap tahap
-                const colors = {
-                    rancangan: 'rgba(54, 162, 235, 0.8)', // Biru
-                    revisi: 'rgba(255, 159, 64, 0.8)', // Orange
-                    fasilitasi: 'rgba(75, 192, 192, 0.8)', // Hijau
-                    dokumentasi: 'rgba(153, 102, 255, 0.8)' // Ungu
-                };
-
-                // Line Chart
-                lineChart = new Chart(lineCtx, {
-                    type: 'line',
-                    data: {
-                        labels: chartData.labels,
-                        datasets: [{
-                                label: 'Rancangan Disetujui',
-                                data: chartData.rancangan,
-                                backgroundColor: colors.rancangan,
-                                borderColor: colors.rancangan.replace('0.8', '1'),
-                                fill: false,
-                                tension: 0.4
-                            },
-                            {
-                                label: 'Revisi Selesai',
-                                data: chartData.revisi,
-                                backgroundColor: colors.revisi,
-                                borderColor: colors.revisi.replace('0.8', '1'),
-                                fill: false,
-                                tension: 0.4
-                            },
-                            {
-                                label: 'Fasilitasi Divalidasi',
-                                data: chartData.fasilitasi,
-                                backgroundColor: colors.fasilitasi,
-                                borderColor: colors.fasilitasi.replace('0.8', '1'),
-                                fill: false,
-                                tension: 0.4
-                            },
-                            {
-                                label: 'Dokumentasi Arsip',
-                                data: chartData.dokumentasi,
-                                backgroundColor: colors.dokumentasi,
-                                borderColor: colors.dokumentasi.replace('0.8', '1'),
-                                fill: false,
-                                tension: 0.4
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        animation: {
-                            duration: 1000,
-                            easing: 'easeInOutCubic'
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: {
-                                    stepSize: 5, // Sesuaikan dengan data (misalnya kelipatan 5 atau 10)
-                                    maxTicksLimit: 10 // Batasi jumlah label agar tidak terlalu ramai
-                                }
-                            }
-                        }
-
-                    }
-                });
-            }
-
-            // Load pertama kali
-            updateLineChart(@json($lineChartData));
-
-            // Event dari Livewire
-            window.livewire.on('refreshLineChart', (chartData) => {
-                updateLineChart(chartData);
-            });
-        });
-    </script>
-    <style>
-        .chart-card {
-            min-height: 400px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .chart-card .card-body {
-            flex-grow: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-    </style>
-
+    </x-ui.card>
 </div>

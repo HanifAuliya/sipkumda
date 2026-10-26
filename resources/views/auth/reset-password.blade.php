@@ -1,80 +1,28 @@
-@section('title', 'Register')
+@section('title', 'Reset Password')
 
 <x-guest-layout>
-    {{-- Kanan - Form Reset Password --}}
-    <div class="ml-2 col-md-5 d-flex justify-content-center align-items-center bg-white shadow-sm rounded-5">
-        <div class="p-5 rounded-3" style="max-width: 500px; width: 100%;">
-            {{-- Header --}}
-            <div class="text-center mb-4">
-                <h3 class="fw-bold">Reset Password</h3>
-                <p class="text-muted small">Masukkan password baru Anda</p>
-            </div>
+    <x-auth.header title="Atur Ulang Password" subtitle="Masukkan password baru untuk akun Anda." />
 
-            {{-- Form Reset Password --}}
-            <form method="POST" action="{{ route('password.store') }}">
-                @csrf
+    <form method="POST" action="{{ route('password.store') }}" class="space-y-5" x-data="{ loading: false }" x-on:submit="loading = true">
+        @csrf
+        <input type="hidden" name="token" value="{{ $request->route('token') }}">
 
-                {{-- Token Reset Password --}}
-                <input type="hidden" name="token" value="{{ $request->route('token') }}">
+        <x-form.field label="Email" for="email" error="email">
+            <x-form.input type="email" id="email" name="email" icon="envelope" :value="old('email', $request->email)" required autofocus autocomplete="username" />
+        </x-form.field>
 
-                {{-- Email Address --}}
-                <div class="mb-3">
-                    <label for="email" class="form-label">Email</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                        <input type="email" id="email" name="email" class="form-control"
-                            placeholder="Masukkan email Anda" value="{{ old('email', $request->email) }}" required
-                            autofocus>
-                    </div>
-                    @if ($errors->has('email'))
-                        <small class="text-danger">{{ $errors->first('email') }}</small>
-                    @endif
-                </div>
+        <x-form.field label="Password Baru" for="password" error="password">
+            <x-form.password id="password" name="password" placeholder="Minimal 8 karakter" required autocomplete="new-password" />
+        </x-form.field>
 
-                {{-- Password --}}
-                <div class="mb-3">
-                    <label for="password" class="form-label">Password Baru</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                        <input type="password" id="password" name="password" class="form-control"
-                            placeholder="Masukkan password baru" required>
-                    </div>
-                    @if ($errors->has('password'))
-                        <small class="text-danger">{{ $errors->first('password') }}</small>
-                    @endif
-                </div>
+        <x-form.field label="Konfirmasi Password" for="password_confirmation" error="password_confirmation">
+            <x-form.password id="password_confirmation" name="password_confirmation" placeholder="Ulangi password baru" required autocomplete="new-password" />
+        </x-form.field>
 
-                {{-- Confirm Password --}}
-                <div class="mb-3">
-                    <label for="password_confirmation" class="form-label">Konfirmasi Password</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                        <input type="password" id="password_confirmation" name="password_confirmation"
-                            class="form-control" placeholder="Konfirmasi password baru" required>
-                    </div>
-                    @if ($errors->has('password_confirmation'))
-                        <small class="text-danger">{{ $errors->first('password_confirmation') }}</small>
-                    @endif
-                </div>
+        <x-auth.submit loading-text="Menyimpan...">Simpan Password Baru</x-auth.submit>
+    </form>
 
-                {{-- Submit Button --}}
-                <div class="text-center">
-                    <button type="submit" class="btn btn-dark w-100">Reset Password</button>
-                </div>
-            </form>
-
-            {{-- Kembali ke Login --}}
-            <div class="text-center mt-3">
-                <a href="{{ route('login') }}" class="text-decoration-none text-dark">
-                    <small>Kembali ke Login</small>
-                </a>
-            </div>
-
-            {{-- Footer --}}
-            <div class="text-center mt-4 small text-muted">
-                © Bagian Hukum Sekretariat Daerah Kabupaten Hulu Sungai Tengah
-            </div>
-        </div>
-    </div>
-
+    <a href="{{ route('login') }}" class="mt-6 flex items-center justify-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-primary-600 dark:text-slate-300">
+        <i class="bi bi-arrow-left"></i> Kembali ke login
+    </a>
 </x-guest-layout>

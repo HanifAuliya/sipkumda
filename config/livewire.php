@@ -179,7 +179,7 @@ return [
     |
     */
 
-    'inject_assets' => true,
+    'inject_assets' => false, // Livewire + Alpine dibundel lewat Vite (resources/js/app.js)
 
     /*
     |---------------------------------------------------------------------------
@@ -234,7 +234,7 @@ return [
     |
     */
 
-    'pagination_theme' => 'bootstrap',
+    'pagination_theme' => 'tailwind',
 
     /*
     |---------------------------------------------------------------------------
