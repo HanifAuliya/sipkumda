@@ -39,7 +39,7 @@ class NotaDinasPolicy
     /**
      * Admin & Verifikator bisa menghapus Nota Dinas.
      */
-    public function delete(User $user,  NotaDinas $notaDinas = null): bool
+    public function delete(User $user, ?NotaDinas $notaDinas = null): bool
     {
         return $user->hasRole(['Super Admin', 'Admin', 'Verifikator']);
     }
