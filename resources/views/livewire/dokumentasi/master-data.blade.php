@@ -1,290 +1,92 @@
+@section('title', 'Master Data')
+
 <div>
-    <div>
-        {{-- Card Pemberitahuan --}}
-        <div class="card mb-3">
-            <div class="card-body d-flex flex-column flex-md-row align-items-center justify-content-between">
-                <div class="d-flex flex-column align-items-xs-center">
-                    <h4 class="card-title mb-1"><i class="ni ni-bell-55"></i> Pemberitahuan</h4>
-                    <p class="card-text">
-                        Data sebelum sistem ini diterapkan tidak tercatat di sini.
-                        Jika ingin mengecek data lama, silakan kunjungi halaman <a href="{{ route('dokumentasi.main') }}"
-                            class="font-weight-bold text-primary">Dokumentasi</a>.
-                    </p>
-                </div>
-            </div>
+    <x-ui.page-header title="Master Data" description="Rekap data produk hukum yang tercatat di sistem" icon="database">
+        <x-slot:actions>
+            <x-ui.button variant="success" icon="file-earmark-spreadsheet" target="_blank"
+                :href="route('export.masterdata', ['tahun' => $tahun, 'jenis' => $jenis])">Export Excel</x-ui.button>
+        </x-slot:actions>
+    </x-ui.page-header>
 
-        </div>
+    <x-ui.alert type="info" icon="info-circle" class="mb-6">
+        Data sebelum sistem ini diterapkan tidak tercatat di sini. Untuk arsip lama, buka halaman
+        <a href="{{ route('dokumentasi.main') }}" class="font-semibold underline">Dokumentasi</a>.
+    </x-ui.alert>
 
-        {{-- Filter --}}
-        <div class="row mb-3">
-            <div class="col-md-3">
-                <div class="input-group bg-white">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text"><i class="bi bi-calendar4-week"></i></i></span>
-                    </div>
-                    <select class="form-control bg-white" wire:model.live="tahun">
-                        <option value="">Semua Tahun</option> {{-- Opsi tambahan --}}
-                        @foreach ($tahunList as $year)
-                            <option value="{{ $year }}">Data Tahun {{ $year }}</option>
-                        @endforeach
-                    </select>
-
-
-                </div>
-            </div>
-
-            <div class="col-md-3">
-                <div class="input-group bg-white">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text"><i class="bi bi-tags"></i></i></span>
-                    </div>
-                    <select class="form-control" wire:model.live="jenis">
-                        <option value="all">Semua Jenis</option>
-                        <option value="Peraturan Bupati">Peraturan Bupati</option>
-                        <option value="Surat Keputusan">Surat Keputusan</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        {{-- Card --}}
-        <div class="row">
-            @php
-                $cards = [
-                    'Rancangan' => [
-                        'icon' => 'bi-clipboard2-data',
-                        'color' => 'bg-gradient-red',
-                        'count' => $countRancangan,
-                    ],
-                    'Revisi' => [
-                        'icon' => 'bi-pencil-square',
-                        'color' => 'bg-gradient-orange',
-                        'count' => $countRevisi,
-                    ],
-                    'Fasilitasi' => [
-                        'icon' => 'bi-file-text',
-                        'color' => 'bg-gradient-primary',
-                        'count' => $countFasilitasi,
-                    ],
-                    'Dokumentasi' => [
-                        'icon' => 'bi-folder-fill',
-                        'color' => 'bg-gradient-info',
-                        'count' => $countDokumentasi,
-                    ],
-                ];
-            @endphp
-
-            @foreach ($cards as $type => $data)
-                <div class="col-xl-3 col-md-6">
-                    <div class="card card-stats {{ $dataType === $type ? '' : 'inactive-card' }}"
-                        wire:click="loadData('{{ $type }}')" style="cursor: pointer;">
-
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col">
-                                    <h5 class="card-title text-uppercase text-muted mb-0">
-                                        {{ $type }} Produk Hukum
-                                    </h5>
-                                    <span class="h2 font-weight-bold mb-0" wire:loading.remove
-                                        wire:target="tahun, jenis">
-                                        @if ($type === 'Rancangan')
-                                            {{ $countRancangan }}
-                                        @elseif ($type === 'Revisi')
-                                            {{ $countRevisi }}
-                                        @elseif ($type === 'Fasilitasi')
-                                            {{ $countFasilitasi }}
-                                        @elseif ($type === 'Dokumentasi')
-                                            {{ $countDokumentasi }}
-                                        @endif
-                                        Data
-                                    </span>
-                                    <span wire:loading wire:target="tahun, jenis">
-                                        <div class="d-flex align-items-center">
-                                            <span
-                                                class="spinner-border spinner-border-sm text-default me-2 mr-2"></span>
-                                            <span class="text-muted">Memuat Data...</span>
-                                        </div>
-                                    </span>
-                                </div>
-                                <div class="col-auto">
-                                    <div
-                                        class="icon icon-shape 
-                                    {{ $dataType === $type ? $data['color'] : 'bg-secondary' }} 
-                                    {{ $dataType === $type ? 'text-white' : 'text-dark' }} 
-                                    rounded-circle shadow">
-                                        <i class="bi {{ $data['icon'] }}"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+    <div class="mb-6 flex flex-col gap-3 sm:flex-row">
+        <x-form.select wire:model.live="tahun" icon="calendar4-week" class="sm:w-52" aria-label="Tahun">
+            <option value="">Semua tahun</option>
+            @foreach ($tahunList as $year)
+                <option value="{{ $year }}">Tahun {{ $year }}</option>
             @endforeach
-
-        </div>
-
-        {{-- Tabel --}}
-        <div class="card shadow-sm">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                {{-- Spinner Loading --}}
-                <h3 wire:loading.remove wire:target="loadData"
-                    class=" card-title
-                          @if ($dataType === 'Rancangan') text-warning
-                          @elseif ($dataType === 'Revisi') text-danger
-                          @elseif ($dataType === 'Fasilitasi') text-primary
-                          @elseif ($dataType === 'Dokumentasi') text-info @endif">
-                    <span class="text-default"> Daftar - </span>
-                    {{ $dataType }} Produk Hukum
-
-                </h3>
-
-                <span wire:loading wire:target="loadData">
-                    <div class="d-flex align-items-center">
-                        <span class="spinner-border spinner-border-sm text-default me-2 mr-2"></span>
-                        <span class="text-muted">Memuat Data...</span>
-                    </div>
-                </span>
-
-                @if ($dataType === 'Rancangan')
-                    <a href="{{ route('export.masterdata', ['tahun' => $tahun, 'jenis' => $jenis]) }}"
-                        class="btn btn-success d-flex align-items-center" wire:click.prevent="export"
-                        wire:loading.attr="disabled" wire:target="export">
-
-                        <!-- Ikon sebelum loading -->
-                        <i class="bi bi-file-earmark-spreadsheet me-2 " wire:loading.remove wire:target="export"></i>
-                        <span wire:loading.remove wire:target="export">Export Excel</span>
-
-                        <!-- Spinner saat loading -->
-                        <div class="spinner-border spinner-border-sm text-light me-2 mr-2" role="status" wire:loading
-                            wire:target="export">
-                        </div>
-                        <span wire:loading wire:target="export"> Sedang Mengunduh...</span>
-                    </a>
-                @endif
-            </div>
-            <div class="card-body">
-                {{-- Search Bar --}}
-                <div class="row align-items-center">
-                    <div class="col-md-6">
-                        <div class="input-group">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text"><i class="ni ni-zoom-split-in"></i></span>
-                            </div>
-                            <input type="text" class="form-control" wire:model.live="search"
-                                placeholder="Cari tentang, Nomor Rancangan...">
-                        </div>
-                    </div>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-bordered">
-                        <thead>
-                            <tr>
-                                <th>No</th>
-                                <th>No Rancangan</th>
-                                <th>Jenis</th>
-                                <th>Tentang</th>
-                                <th>Perangkat Daerah</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse ($selectedData as $index => $data)
-                                <tr>
-                                    <td>{{ $index + 1 }}</td>
-                                    <td>{{ $data->no_rancangan ?? ($data->rancangan->no_rancangan ?? 'Data Sebelum ada Sistem') }}
-                                    </td>
-                                    <td>{{ $data->jenis_rancangan ?? ($data->rancangan->jenis_rancangan ?? $data->jenis_dokumentasi) }}
-                                    </td>
-                                    <td class="wrap-text w-50">
-                                        {{ $data->tentang ?? ($data->rancangan->tentang ?? $data->tentang_dokumentasi) }}
-                                    </td>
-                                    <td>{{ $data->user->nama_user ?? $data->rancangan->user->nama_user }}</td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="5" class="text-center">Tidak ada data ditemukan.</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-                {{ $selectedData->links('pagination::bootstrap-4') }}
-            </div>
-        </div>
+        </x-form.select>
+        <x-form.select wire:model.live="jenis" icon="tags" class="sm:w-60" aria-label="Jenis rancangan">
+            <option value="all">Semua jenis</option>
+            <option value="Peraturan Bupati">Peraturan Bupati</option>
+            <option value="Surat Keputusan">Surat Keputusan</option>
+        </x-form.select>
+        <x-ui.loading target="tahun, jenis" class="self-center">Memuat data...</x-ui.loading>
     </div>
 
-    {{-- css --}}
-    <style>
-        .inactive-card {
-            background-color: #f8f9fa !important;
-            opacity: 0.6;
-            transition: all 0.3s ease-in-out;
-        }
+    @php
+        $cards = [
+            'Rancangan' => ['clipboard2-data', 'rose'],
+            'Revisi' => ['pencil-square', 'orange'],
+            'Fasilitasi' => ['file-text', 'primary'],
+            'Dokumentasi' => ['folder-fill', 'sky'],
+        ];
+    @endphp
 
-        .inactive-card:hover {
-            opacity: 0.9;
-            transform: scale(1.02);
-        }
+    <div class="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        @foreach ($cards as $type => [$icon, $color])
+            <button type="button" wire:click="loadData('{{ $type }}')" wire:key="card-{{ $type }}-{{ $counts[$type] }}"
+                @class([
+                    'rounded-2xl text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
+                    'ring-2 ring-primary-500 ring-offset-2 ring-offset-surface dark:ring-offset-navy-950' => $dataType === $type,
+                    'opacity-70 hover:opacity-100' => $dataType !== $type,
+                ])
+                aria-pressed="{{ $dataType === $type ? 'true' : 'false' }}">
+                <x-ui.stat-card :label="$type . ' Produk Hukum'" :value="$counts[$type]" suffix="Data" :icon="$icon" :color="$color" class="h-full" />
+            </button>
+        @endforeach
+    </div>
 
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            visibility: hidden;
-            opacity: 0;
-            transition: opacity 0.3s, visibility 0.3s;
-        }
+    <x-ui.card>
+        <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <h2 class="text-base font-semibold text-navy-900 dark:text-white">
+                Daftar {{ $dataType }} Produk Hukum
+                <x-ui.spinner class="ml-2 size-4" wire:loading wire:target="loadData" />
+            </h2>
+            <x-form.input wire:model.live.debounce.400ms="search" icon="search" class="sm:w-80" placeholder="Cari tentang atau nomor rancangan..." aria-label="Cari" />
+        </div>
 
-        .loading-overlay.show {
-            visibility: visible;
-            opacity: 1;
-        }
+        <x-ui.table>
+            <x-slot:head>
+                <th class="w-12">No</th>
+                <th>No Rancangan</th>
+                <th>Tentang</th>
+                <th>Perangkat Daerah</th>
+            </x-slot:head>
 
-        .card-stats {
-            min-height: 120px;
-        }
+            @forelse ($selectedData as $data)
+                @php $rancangan = $dataType === 'Rancangan' ? $data : $data->rancangan; @endphp
+                <tr wire:key="master-{{ $dataType }}-{{ $data->getKey() }}">
+                    <td class="text-slate-500">{{ $selectedData->firstItem() + $loop->index }}</td>
+                    <td class="whitespace-nowrap">
+                        <span class="font-semibold text-navy-900 dark:text-white">{{ $rancangan->no_rancangan ?? '-' }}</span>
+                        <div class="mt-1"><x-ui.status-badge :value="$rancangan?->jenis_rancangan" /></div>
+                    </td>
+                    <td class="min-w-72">{{ $rancangan->tentang ?? '-' }}</td>
+                    <td class="min-w-48">
+                        {{ $rancangan->user->perangkatDaerah->nama_perangkat_daerah ?? '-' }}
+                        <p class="text-xs text-slate-500">{{ $rancangan->user->nama_user ?? '' }}</p>
+                    </td>
+                </tr>
+            @empty
+                <x-ui.empty-row colspan="4" icon="database" message="Tidak ada data ditemukan." />
+            @endforelse
+        </x-ui.table>
 
-        /* Animasi Tabel Saat Filter Diterapkan */
-        .table-responsive {
-            transition: opacity 0.3s ease-in-out;
-        }
-
-        .fade-in {
-            opacity: 0;
-            animation: fadeIn 0.5s forwards;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-
-            to {
-                opacity: 1;
-            }
-        }
-    </style>
-
-
-    {{-- script --}}
-    <script>
-        document.addEventListener("livewire:load", function() {
-            Livewire.hook('message.sent', () => {
-                document.querySelector('.loading-overlay').classList.add('show');
-            });
-
-            Livewire.hook('message.received', () => {
-                setTimeout(() => {
-                    document.querySelector('.loading-overlay').classList.remove('show');
-                }, 500);
-            });
-        });
-    </script>
+        <div class="mt-5">{{ $selectedData->links() }}</div>
+    </x-ui.card>
 </div>

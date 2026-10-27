@@ -1,94 +1,44 @@
+@section('title', 'Login')
+
 <x-guest-layout>
+    <x-auth.header title="Masuk ke SIFKUMDA" subtitle="Gunakan NIP dan password akun Anda." />
 
-    {{-- Kanan - Form Login --}}
-    <div class="ml-2 col-md-5 d-flex justify-content-center align-items-center bg-white shadow-sm rounded-5">
-        <div class="p-5 rounded-3" style="max-width: 500px; width: 100%;">
-            {{-- Header --}}
-            <div class="text-center mb-4">
-                <h3 class="fw-bold">Login</h3>
-                <p class="text-muted small">Dengan NIP</p>
+    @if (session('error'))
+        <x-ui.alert type="danger" class="mb-5">{{ session('error') }}</x-ui.alert>
+    @endif
+
+    @if ($errors->any())
+        <x-ui.alert type="danger" class="mb-5" dismissible>
+            @foreach ($errors->all() as $error)
+                <span class="block">{{ $error }}</span>
+            @endforeach
+        </x-ui.alert>
+    @endif
+
+    <form method="POST" action="{{ route('login') }}" class="space-y-5" x-data="{ loading: false }" x-on:submit="loading = true">
+        @csrf
+
+        <x-form.field label="NIP" for="NIP">
+            <x-form.input id="NIP" name="NIP" icon="person-badge" :value="old('NIP')" placeholder="Masukkan NIP" required autofocus autocomplete="username" />
+        </x-form.field>
+
+        <x-form.field for="password">
+            <div class="flex items-center justify-between">
+                <label for="password" class="text-sm font-semibold text-slate-700 dark:text-slate-200">Password</label>
+                <a href="{{ route('password.request') }}" class="text-xs font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-300">Lupa password?</a>
             </div>
+            <x-form.password id="password" name="password" placeholder="Masukkan password" required autocomplete="current-password" />
+        </x-form.field>
 
-            {{-- Form Login --}}
-            <form method="POST" action="{{ route('login') }}">
-                @csrf
+        <label class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+            <input type="checkbox" name="remember" class="rounded border-slate-300 text-primary-500 focus:ring-primary-200 dark:border-navy-700 dark:bg-navy-900">
+            Ingat saya
+        </label>
 
-                {{-- NIP Input --}}
-                <div class="mb-4">
-                    <div class="input-group">
-                        <input type="text" name="NIP" id="NIP" class="form-control" placeholder="NIP"
-                            required>
-                    </div>
-                </div>
+        <x-auth.submit loading-text="Sedang masuk...">Masuk</x-auth.submit>
+    </form>
 
-                {{-- Password Input --}}
-                <div class="mb-3 position-relative">
-                    <input type="password" name="password" id="password" class="form-control"
-                        placeholder="Masukkan Password" required>
-                </div>
-
-                @if (session('error'))
-                    <p class="text-danger small mb-2">
-                        {{ session('error') }}
-                    </p>
-                @endif
-
-
-                @if ($errors->any())
-                    <div class="alert alert-danger alert-dismissible fade show text-center">
-                        @foreach ($errors->all() as $error)
-                            <strong class="font-weight-300 d-block">{{ $error }}</strong>
-                        @endforeach
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
-                    </div>
-                @endif
-
-                {{-- Link Lupa Password --}}
-                <div class="text-end mb-3">
-                    <a href="{{ route('password.request') }}" class="text-decoration-none text-dark">
-                        <small>Lupa password?</small>
-                    </a>
-                </div>
-
-                {{-- Submit Button --}}
-                <div class="text-center">
-                    <button type="submit" id="loginButton" class="btn btn-dark w-100">
-                        <span id="loginText">Login</span>
-                        <span id="loginSpinner" class="spinner-border spinner-border-sm d-none" role="status"
-                            aria-hidden="true"></span>
-                    </button>
-                </div>
-
-                {{-- Info Tambahan --}}
-                <p class="text-danger small text-center mt-3">
-                    Login website ini hanya untuk perangkat daerah dan pegawai Bagian Hukum HST.
-                </p>
-            </form>
-
-            <script>
-                document.addEventListener("DOMContentLoaded", function() {
-                    // Tombol login loading effect
-                    document.getElementById('loginButton').addEventListener('click', function(event) {
-                        let button = document.getElementById('loginButton');
-                        let text = document.getElementById('loginText');
-                        let spinner = document.getElementById('loginSpinner');
-
-                        // Nonaktifkan tombol dan tampilkan spinner
-                        button.disabled = true;
-                        text.textContent = "Logging in...";
-                        spinner.classList.remove('d-none');
-
-                        // Kirim form
-                        button.closest("form").submit();
-                    });
-                });
-            </script>
-            {{-- Footer --}}
-            <div class="text-center mt-4 small text-muted">
-                © Bagian Hukum Sekretariat Daerah Kabupaten Hulu Sungai Tengah
-            </div>
-        </div>
-    </div>
-
-
+    <x-ui.alert type="warning" icon="shield-lock" class="mt-6 text-xs">
+        Login hanya untuk perangkat daerah dan pegawai Bagian Hukum HST.
+    </x-ui.alert>
 </x-guest-layout>

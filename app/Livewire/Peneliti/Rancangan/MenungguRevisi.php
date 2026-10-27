@@ -36,25 +36,10 @@ class MenungguRevisi extends Component
         'catatanRevisi' => 'required|string|max:1000',
     ];
 
-    public function loadDetailRevisi($id)
-    {
-        $this->selectedRevisi = Revisi::with('rancangan.user')->find($id);
-        if (!$this->selectedRevisi) {
-            $this->dispatch('swal:modal', [
-                'type' => 'error',
-                'title' => 'Kesalahan',
-                'message' => 'Detail Penelitian tidak ditemukan.',
-            ]);
-            return;
-        }
-
-        // Emit untuk membuka modal
-        $this->dispatch('openModal', 'detailRevisiModal');
-    }
     public function selectRevisi($id)
     {
-        // Pastikan ID revisi valid
-        $revisi = Revisi::find($id);
+        // Pastikan revisi valid dan ditugaskan ke peneliti yang sedang login
+        $revisi = Revisi::where('id_user', auth()->id())->find($id);
 
         if (!$revisi) {
             $this->dispatch('swal:modal', [
@@ -76,7 +61,7 @@ class MenungguRevisi extends Component
     {
         $this->validate();
 
-        $revisi = Revisi::find($this->selectedRevisiId);
+        $revisi = Revisi::where('id_user', auth()->id())->find($this->selectedRevisiId);
         if (!$revisi) {
             session()->flash('error', 'Data revisi tidak ditemukan.');
             return;
@@ -171,7 +156,7 @@ class MenungguRevisi extends Component
         $penelitiId = Auth::id();
 
         // Query hanya rancangan dengan revisi milik peneliti yang sedang login
-        $revisi = RancanganProdukHukum::with(['revisi.peneliti', 'user'])
+        $revisi = RancanganProdukHukum::with(['revisi.peneliti', 'user.perangkatDaerah'])
             ->whereHas('revisi', function ($query) use ($penelitiId) {
                 $query->where('status_revisi', 'Proses Revisi')
                     ->where('status_validasi', 'Belum Tahap Validasi')

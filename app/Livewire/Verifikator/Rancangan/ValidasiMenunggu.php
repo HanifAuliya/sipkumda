@@ -25,14 +25,14 @@ class ValidasiMenunggu extends Component
     public function openModalValidasiRancangan($idRancangan)
     {
         // Cari rancangan berdasarkan ID
-        $this->selectedRancangan = RancanganProdukHukum::with(['user', 'perangkatDaerah', 'revisi'])
+        $this->selectedRancangan = RancanganProdukHukum::with(['user.perangkatDaerah', 'revisi.peneliti'])
             ->findOrFail($idRancangan);
 
         // Reset form jika sebelumnya ada
         $this->resetFormValidasi();
 
         // Buka modal
-        $this->dispatch('openModalValidasiRancangan');
+        $this->dispatch('openModal', 'modalValidasiRancangan');
     }
 
     public function validasiRevisi()
@@ -103,7 +103,7 @@ class ValidasiMenunggu extends Component
 
         // Reset form dan tutup modal
         $this->resetFormValidasi();
-        $this->dispatch('closeModalValidasiRancangan');
+        $this->dispatch('closeModal', 'modalValidasiRancangan');
     }
 
     public function resetDetail()
@@ -119,7 +119,7 @@ class ValidasiMenunggu extends Component
 
     public function render()
     {
-        $rancanganMenunggu = RancanganProdukHukum::with(['revisi',  'user.perangkatDaerah']) // Load relasi revisi dan user
+        $rancanganMenunggu = RancanganProdukHukum::with(['revisi.peneliti', 'user.perangkatDaerah']) // Load relasi revisi dan user
             ->whereHas('revisi', function ($query) {
                 $query->where('status_revisi', 'Proses Revisi')
                     ->where('status_validasi', 'Menunggu Validasi');

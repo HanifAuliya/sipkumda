@@ -14,7 +14,22 @@ class DetailRancangan extends Component
 
     public function loadRancangan($slug)
     {
-        $this->rancangan = RancanganProdukHukum::where('slug', $slug)->first();
+        $rancangan = RancanganProdukHukum::with(['user.perangkatDaerah', 'revisi.peneliti'])
+            ->where('slug', $slug)
+            ->first();
+
+        if (! $rancangan || auth()->user()->cannot('view', $rancangan)) {
+            $this->dispatch('swal:error', [
+                'type' => 'error',
+                'title' => 'Tidak Dapat Dibuka',
+                'message' => 'Rancangan tidak ditemukan atau Anda tidak memiliki akses.',
+            ]);
+
+            return;
+        }
+
+        $this->rancangan = $rancangan;
+        $this->dispatch('openModal', 'modalDetailRancangan');
     }
 
     public function refreshData()

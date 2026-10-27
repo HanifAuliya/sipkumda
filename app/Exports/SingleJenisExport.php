@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Models\RancanganProdukHukum;
+use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithTitle;
@@ -31,7 +32,7 @@ class SingleJenisExport implements FromCollection, WithHeadings, WithTitle, With
         $this->jenis = $jenis;
     }
 
-    public function collection()
+    public function collection(): Collection
     {
         return RancanganProdukHukum::with(['user', 'revisi.user', 'fasilitasi.notaDinas', 'dokumentasi']) // Tambah relasi fasilitasi
             ->when($this->tahun !== "", function ($query) {
@@ -49,9 +50,9 @@ class SingleJenisExport implements FromCollection, WithHeadings, WithTitle, With
                         'Perangkat Daerah'   => optional($data->user->PerangkatDaerah)->nama_perangkat_daerah ?? 'Tidak Ada',
                         // 'Perangkat Daerah'   => optional($data->user)->nama_user ?? 'Tidak Ada',
 
-                        'Rancangan'          => $data->rancangan ? '=HYPERLINK("' . url('/view-private/rancangan/rancangan/' . basename($data->rancangan)) . '", "Lihat Rancangan")' : 'Tidak Ada',
-                        'Matrik'             => $data->matrik ? '=HYPERLINK("' . url('/view-private/rancangan/matrik/' . basename($data->matrik)) . '", "Lihat Matrik")' : 'Tidak Ada',
-                        'Bahan Pendukung'    => $data->bahan_pendukung ? '=HYPERLINK("' . url('/view-private/rancangan/bahan/' . basename($data->bahan_pendukung)) . '", "Lihat Bahan")' : 'Tidak Ada',
+                        'Rancangan'          => $data->rancangan ? '=HYPERLINK("' . private_file_url('rancangan/rancangan', $data->rancangan) . '", "Lihat Rancangan")' : 'Tidak Ada',
+                        'Matrik'             => $data->matrik ? '=HYPERLINK("' . private_file_url('rancangan/matrik', $data->matrik) . '", "Lihat Matrik")' : 'Tidak Ada',
+                        'Bahan Pendukung'    => $data->bahan_pendukung ? '=HYPERLINK("' . private_file_url('rancangan/bahan_pendukung', $data->bahan_pendukung) . '", "Lihat Bahan")' : 'Tidak Ada',
 
                         'Tanggal Peneliti Ditunjuk' => 'Belum Ditunjuk',
                         'Nama Peneliti'      => 'Belum Ditentukan',
@@ -75,7 +76,7 @@ class SingleJenisExport implements FromCollection, WithHeadings, WithTitle, With
                         'Nomor Dokumen'      => optional($data->dokumentasi)->nomor_formatted ?? '-',
                         'Tahun Dokumen'      => optional($data->dokumentasi)->tahun ?? '-',
                         'Tanggal Penetapan' => optional($data->dokumentasi)->tanggal_penetapan ? Carbon::parse($data->dokumentasi->tanggal_penetapan)->format('Y/m/d') : '-',
-                        'File Produk Hukum'  => optional($data->dokumentasi)->file_produk_hukum ? '=HYPERLINK("' . url('/view-private/produk-hukum/' . basename($data->dokumentasi->file_produk_hukum)) . '", "Lihat Produk Hukum")' : 'Tidak Ada',
+                        'File Produk Hukum'  => optional($data->dokumentasi)->file_produk_hukum ? '=HYPERLINK("' . private_file_url('dokumentasi/file_produk_hukum', $data->dokumentasi->file_produk_hukum) . '", "Lihat Produk Hukum")' : 'Tidak Ada',
                         'Nomor Tahun Berita Daerah' => optional($data->dokumentasi)->nomor_tahun_berita ?? '-',
                         'Tanggal Pengarsipan' => optional($data->dokumentasi)->tanggal_pengarsipan ? Carbon::parse($data->dokumentasi->tanggal_pengarsipan)->format('Y/m/d') : '-',
 
@@ -91,17 +92,17 @@ class SingleJenisExport implements FromCollection, WithHeadings, WithTitle, With
                         // 'Perangkat Daerah'   => optional($data->user)->nama_user ?? 'Tidak Ada',
                         'Perangkat Daerah'   => optional($data->user->PerangkatDaerah)->nama_perangkat_daerah ?? 'Tidak Ada',
 
-                        'Rancangan'          => $data->rancangan ? '=HYPERLINK("' . url('/view-private/rancangan/rancangan/' . basename($data->rancangan)) . '", "Lihat Rancangan")' : 'Tidak Ada',
-                        'Matrik'             => $data->matrik ? '=HYPERLINK("' . url('/view-private/rancangan/matrik/' . basename($data->matrik)) . '", "Lihat Matrik")' : 'Tidak Ada',
-                        'Bahan Pendukung'    => $data->bahan_pendukung ? '=HYPERLINK("' . url('/view-private/rancangan/bahan/' . basename($data->bahan_pendukung)) . '", "Lihat Bahan")' : 'Tidak Ada',
+                        'Rancangan'          => $data->rancangan ? '=HYPERLINK("' . private_file_url('rancangan/rancangan', $data->rancangan) . '", "Lihat Rancangan")' : 'Tidak Ada',
+                        'Matrik'             => $data->matrik ? '=HYPERLINK("' . private_file_url('rancangan/matrik', $data->matrik) . '", "Lihat Matrik")' : 'Tidak Ada',
+                        'Bahan Pendukung'    => $data->bahan_pendukung ? '=HYPERLINK("' . private_file_url('rancangan/bahan_pendukung', $data->bahan_pendukung) . '", "Lihat Bahan")' : 'Tidak Ada',
 
                         'tanggal_peneliti_ditunjuk' => $revisi->tanggal_peneliti_ditunjuk ? Carbon::parse($revisi->tanggal_peneliti_ditunjuk)->format('Y/m/d') : '-',
                         'Nama Peneliti'      => optional($revisi->user)->nama_user ?? 'Belum Ditentukan',
                         'tanggal_revisi' => $revisi->tanggal_revisi ? Carbon::parse($revisi->tanggal_revisi)->format('Y/m/d') : '-',
                         'Catatan Revisi'     => $revisi->catatan_revisi ?? 'Tidak Ada Catatan',
 
-                        'Revisi Rancangan'   => $revisi->revisi_rancangan ? '=HYPERLINK("' . url('/view-private/revisi/rancangan/' . basename($revisi->revisi_rancangan)) . '", "Lihat Revisi Rancangan")' : 'Tidak Ada',
-                        'Revisi Matrik'      => $revisi->revisi_matrik ? '=HYPERLINK("' . url('/view-private/revisi/matrik/' . basename($revisi->revisi_matrik)) . '", "Lihat Revisi Matrik")' : 'Tidak Ada',
+                        'Revisi Rancangan'   => $revisi->revisi_rancangan ? '=HYPERLINK("' . private_file_url('revisi/rancangan', $revisi->revisi_rancangan) . '", "Lihat Revisi Rancangan")' : 'Tidak Ada',
+                        'Revisi Matrik'      => $revisi->revisi_matrik ? '=HYPERLINK("' . private_file_url('revisi/matrik', $revisi->revisi_matrik) . '", "Lihat Revisi Matrik")' : 'Tidak Ada',
 
                         'tanggal_fasilitasi' => optional($data->fasilitasi)->tanggal_fasilitasi ? Carbon::parse($data->fasilitasi->tanggal_fasilitasi)->format('Y/m/d') : '-',
                         'Status Paraf Koordinasi' => optional($data->fasilitasi)->status_paraf_koordinasi ?? 'Belum',
@@ -118,7 +119,7 @@ class SingleJenisExport implements FromCollection, WithHeadings, WithTitle, With
                         'Nomor Dokumen'      => optional($data->dokumentasi)->nomor_formatted ?? '-',
                         'Tahun Dokumen'      => optional($data->dokumentasi)->tahun ?? '-',
                         'Tanggal Penetapan' => optional($data->dokumentasi)->tanggal_penetapan ? Carbon::parse($data->dokumentasi->tanggal_penetapan)->format('Y/m/d') : '-',
-                        'File Produk Hukum'  => optional($data->dokumentasi)->file_produk_hukum ? '=HYPERLINK("' . url('/view-private/produk-hukum/' . basename($data->dokumentasi->file_produk_hukum)) . '", "Lihat Produk Hukum")' : 'Tidak Ada',
+                        'File Produk Hukum'  => optional($data->dokumentasi)->file_produk_hukum ? '=HYPERLINK("' . private_file_url('dokumentasi/file_produk_hukum', $data->dokumentasi->file_produk_hukum) . '", "Lihat Produk Hukum")' : 'Tidak Ada',
                         'Nomor Tahun Berita Daerah' => optional($data->dokumentasi)->nomor_tahun_berita ?? '-',
                         'Tanggal Pengarsipan' => optional($data->dokumentasi)->tanggal_pengarsipan ? Carbon::parse($data->dokumentasi->tanggal_pengarsipan)->format('Y/m/d') : '-',
 
@@ -234,7 +235,7 @@ class SingleJenisExport implements FromCollection, WithHeadings, WithTitle, With
         ];
     }
 
-    public function styles(Worksheet $sheet)
+    public function styles(Worksheet $sheet): array
     {
         $highestRow = $sheet->getHighestRow();
         $highestColumn = $sheet->getHighestColumn();

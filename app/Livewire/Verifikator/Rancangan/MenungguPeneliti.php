@@ -41,7 +41,7 @@ class MenungguPeneliti extends Component
     public function openModal($id)
     {
 
-        $this->selectedRancangan = RancanganProdukHukum::find($id);
+        $this->selectedRancangan = RancanganProdukHukum::with(['user.perangkatDaerah', 'revisi.peneliti'])->find($id);
         $this->dispatch('openModal', 'modalPilihPeneliti');
     }
 
@@ -104,7 +104,7 @@ class MenungguPeneliti extends Component
     public function render()
     {
         // Query Rancangan dengan Status Berkas "Disetujui" dan Status Revisi "Belum Tahap Revisi"
-        $rancangan = RancanganProdukHukum::with('revisi') // Eager loading revisi
+        $rancangan = RancanganProdukHukum::with(['revisi.peneliti', 'user.perangkatDaerah'])
             ->where('status_berkas', 'Disetujui')
             ->where('status_rancangan', 'Dalam Proses')
             ->whereHas('revisi', function ($query) {

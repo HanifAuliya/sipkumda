@@ -78,6 +78,10 @@ class UserManagement extends Component
 
     public function sortBy($field)
     {
+        // Hanya kolom yang memang bisa diurutkan
+        if (! in_array($field, ['id', 'nama_user', 'NIP'], true)) {
+            return;
+        }
 
         if ($this->sortField === $field) {
             $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
@@ -123,7 +127,7 @@ class UserManagement extends Component
             // Kirim password ke email pengguna
             Mail::to($validated['email'])->send(new \App\Mail\SendPasswordToUser($generatedPassword));
 
-            $this->dispatch('closeModal', 'addUserModal');
+            $this->dispatch('closeModal', 'userModal');
             // Dispatch success event
             $this->dispatch('swal:modal', [
                 'type' => 'success',
@@ -161,10 +165,25 @@ class UserManagement extends Component
         // Mengambil nama role pertama yang terkait dengan user
         $this->role = $user->getRoleNames()->first(); // Pastikan hanya satu role yang diambil
         $this->perangkat_daerah_id = $user->perangkat_daerah_id;
+
+        $this->dispatch('openModal', 'userModal');
+    }
+
+    public function create()
+    {
+        if (!$this->isAdmin) {
+            abort(403, 'Anda tidak memiliki izin untuk menambah pengguna.');
+        }
+
+        $this->resetInput();
+        $this->dispatch('openModal', 'userModal');
     }
 
     public function update()
     {
+        if (!$this->isAdmin) {
+            abort(403, 'Anda tidak memiliki izin untuk mengubah pengguna.');
+        }
 
         try {
             $user = User::findOrFail($this->userIdToEdit);
@@ -203,7 +222,7 @@ class UserManagement extends Component
             // Reset input
             $this->resetInput();
 
-            $this->dispatch('closeModal', 'editUserModal');
+            $this->dispatch('closeModal', 'userModal');
             // Dispatch notifikasi sukses
             $this->dispatch('swal:modal', [
                 'type' => 'success',
@@ -260,9 +279,12 @@ class UserManagement extends Component
     {
         $users = User::with(['roles', 'perangkatDaerah']) // Eager loading relasi roles dan perangkat daerah
             ->when($this->search, function ($query) {
-                $query->where('nama_user', 'like', '%' . $this->search . '%')
-                    ->orWhere('NIP', 'like', '%' . $this->search . '%')
-                    ->orWhere('email', 'like', '%' . $this->search . '%');
+                // Dikelompokkan agar tidak "membatalkan" filter role
+                $query->where(function ($q) {
+                    $q->where('nama_user', 'like', '%' . $this->search . '%')
+                        ->orWhere('NIP', 'like', '%' . $this->search . '%')
+                        ->orWhere('email', 'like', '%' . $this->search . '%');
+                });
             })
             ->when($this->roleFilter, function ($query) {
                 $query->whereHas('roles', function ($q) {

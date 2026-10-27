@@ -17,7 +17,7 @@ class PerangkatDaerahFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'nama_perangkat_daerah' => 'Dinas ' . $this->faker->unique()->words(2, true),
         ];
     }
 }

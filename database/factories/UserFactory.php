@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\PerangkatDaerah;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -29,7 +30,7 @@ class UserFactory extends Factory
             'email' => $this->faker->unique()->safeEmail(),       // Email unik
             'email_verified_at' => now(),                        // Email terverifikasi secara default
             'password' => self::$defaultPassword ?: bcrypt('password'), // Password default
-            'perangkat_daerah_id' => $this->faker->numberBetween(1, 20), // Angka acak 1-20 
+            'perangkat_daerah_id' => PerangkatDaerah::factory(), // Buat perangkat daerah terkait
             'remember_token' => Str::random(10),                 // Token remember me
             'created_at' => now(),                               // Waktu pembuatan
             'updated_at' => now(),                               // Waktu pembaruan

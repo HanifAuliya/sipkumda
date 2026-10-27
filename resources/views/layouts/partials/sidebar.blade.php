@@ -1,244 +1,80 @@
-{{-- Sidenav --}}
-<nav class="sidenav navbar navbar-vertical fixed-left navbar-expand-xs navbar-light bg-white" id="sidenav-main">
-    <div class="scrollbar-inner">
-        {{-- Sidenav Header --}}
-        <div class="sidenav-header d-flex align-items-center justify-content-between position-relative">
-            {{-- Logo --}}
-            <a class="navbar-brand d-flex align-items-center" href="javascript:void(0)">
-                <img src="{{ asset('assets/img/brand/favicon.ico') }}" class="navbar-brand-img" alt="Logo" />
-                <span class="brand-text ms-2">SIPKUMDA</span>
-                {{-- Tambahkan teks SIPKUMDA di samping logo --}}
-            </a>
-        </div>
+{{-- Sidebar: laci di mobile, bisa diciutkan menjadi ikon di desktop. Menu diatur di App\Support\Navigation. --}}
+@php
+    $sections = \App\Support\Navigation::for(auth()->user());
+    $current = request()->route()?->getName();
+@endphp
 
-        {{-- Sidebar Menu --}}
-        <div class="navbar-inner">
-            {{-- Collapse --}}
-            <div class="collapse navbar-collapse" id="sidenav-collapse-main">
-                {{-- Nav items --}}
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link {{ Route::currentRouteName() == 'dashboard' ? 'active' : '' }}"
-                            href="{{ route('dashboard') }}">
-                            <i class="bi bi-window-fullscreen"></i>
-                            <span class="nav-link-text">Dashboard</span>
-                        </a>
-                    </li>
-                </ul>
+{{-- Latar gelap saat laci terbuka (mobile) --}}
+<div x-show="sidebarOpen" x-cloak x-transition.opacity x-on:click="sidebarOpen = false"
+    class="fixed inset-0 z-40 bg-navy-950/50 backdrop-blur-[2px] lg:hidden"></div>
 
-                {{-- Divider --}}
-                <hr class="my-3" />
+<aside
+    class="fixed inset-y-0 left-0 z-50 flex w-72 -translate-x-full flex-col bg-white shadow-xl transition-[transform,width] duration-200 lg:translate-x-0 lg:shadow-card dark:bg-navy-900 dark:shadow-none dark:ring-1 dark:ring-white/5"
+    x-bind:class="{ 'translate-x-0': sidebarOpen, 'lg:w-20': sidebarCollapsed }"
+    aria-label="Navigasi utama">
 
-                {{-- Heading --}}
-                <h6 class="navbar-heading p-0 text-muted">
-                    <span class="docs-normal">Manajemen User</span>
-                </h6>
-                {{-- User Navigation --}}
-                <ul class="navbar-nav mb-md--1">
-                    <li class="nav-item">
-                        <a class="nav-link {{ Route::currentRouteName() == 'profile.edit' ? 'active' : '' }}"
-                            href="{{ route('profile.edit') }}">
-                            <i class="bi bi-person-fill"></i>
-                            <span class="nav-link-text">Profile</span>
-                        </a>
-                    </li>
-                    {{-- Hanya untuk Admin, Verifikator, atau Super Admin --}}
-                    @if (Auth::user()->hasRole('Admin') || Auth::user()->hasRole('Verifikator') || Auth::user()->hasRole('Super Admin'))
-                        <li class="nav-item">
-                            <a class="nav-link {{ Route::currentRouteName() == 'user.management' ? 'active' : '' }}"
-                                href="{{ route('user.management') }}">
-                                <i class="bi bi-people-fill"></i>
-                                <span class="nav-link-text">Daftar Pengguna</span>
+    {{-- Logo --}}
+    <div class="flex h-16 shrink-0 items-center gap-3 border-b border-slate-100 px-5 dark:border-navy-800"
+        x-bind:class="sidebarCollapsed && 'lg:justify-center lg:px-0'">
+        <a href="{{ route('dashboard') }}" class="flex min-w-0 items-center gap-3">
+            <img src="{{ asset('assets/img/brand/loading_screen.png') }}" alt="Logo SIFKUMDA" class="size-9 shrink-0">
+            <span class="truncate text-lg font-extrabold tracking-tight text-navy-900 dark:text-white"
+                x-bind:class="sidebarCollapsed && 'lg:hidden'">
+                SIFKUMDA <span class="text-amber-500">HST</span>
+            </span>
+        </a>
+        <button type="button" class="ml-auto rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 lg:hidden dark:hover:bg-navy-800"
+            x-on:click="sidebarOpen = false" aria-label="Tutup menu">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+
+    {{-- Menu --}}
+    <nav class="flex-1 space-y-6 overflow-y-auto px-3 py-5">
+        @foreach ($sections as $section)
+            <div>
+                @if ($section['title'])
+                    <p class="mb-2 px-3 text-[0.68rem] font-bold tracking-wider text-slate-400 uppercase"
+                        x-bind:class="sidebarCollapsed && 'lg:hidden'">
+                        {{ $section['title'] }}
+                    </p>
+                    <hr class="mx-3 mb-2 hidden border-slate-100 dark:border-navy-800"
+                        x-bind:class="sidebarCollapsed && 'lg:block'">
+                @endif
+
+                <ul class="space-y-1">
+                    @foreach ($section['items'] as $item)
+                        @php $active = $current === $item['route']; @endphp
+                        <li>
+                            <a href="{{ route($item['route']) }}" title="{{ $item['label'] }}"
+                                @class([
+                                    'group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition',
+                                    'bg-accent-500 text-white shadow-soft' => $active,
+                                    'text-slate-600 hover:bg-slate-100 hover:text-navy-900 dark:text-slate-300 dark:hover:bg-navy-800 dark:hover:text-white' => ! $active,
+                                ])
+                                x-bind:class="sidebarCollapsed && 'lg:justify-center lg:px-0'"
+                                @if ($active) aria-current="page" @endif>
+                                <i @class([
+                                    'bi bi-' . $item['icon'],
+                                    'text-lg leading-none',
+                                    'text-primary-500 group-hover:text-primary-600 dark:text-primary-300' => ! $active,
+                                ])></i>
+                                <span class="truncate" x-bind:class="sidebarCollapsed && 'lg:hidden'">{{ $item['label'] }}</span>
                             </a>
                         </li>
-                    @endif
-                </ul>
-
-                {{-- Divider --}}
-                <hr class="my-3" />
-
-                {{-- Heading --}}
-                <h6 class="navbar-heading p-0 text-muted">
-                    <span class="docs-normal">Rancangan Produk Hukum</span>
-                </h6>
-                {{-- Navigation --}}
-                <ul class="navbar-nav mb-md--1">
-                    @if (Auth::user()->hasRole('Perangkat Daerah'))
-                        <li class="nav-item">
-                            <a class="nav-link {{ Route::currentRouteName() == 'rancanganku' ? 'active' : '' }} rancangan"
-                                href="{{ route('rancanganku') }}">
-                                <i class="bi bi-clipboard2"></i>
-                                <span class="nav-link-text">Rancanganku</span>
-                            </a>
-                        </li>
-                    @endif
-
-                    <li class="nav-item">
-                        <a class="nav-link {{ Route::currentRouteName() == 'daftar-rancangan' ? 'active' : '' }} rancangan"
-                            href="{{ route('daftar-rancangan') }}">
-                            <i class="bi bi-clipboard2-data"></i>
-                            <span class="nav-link-text">Daftar Rancangan</span>
-                        </a>
-                    </li>
-
-                    @if (Auth::user()->hasRole('Admin'))
-                        <li class="nav-item">
-                            <a class="nav-link {{ Route::currentRouteName() == 'admin.persetujuan' ? 'active' : '' }} rancangan"
-                                href="{{ route('admin.persetujuan') }}">
-                                <i class="bi bi-clipboard2-check"></i>
-                                <span class="nav-link-text">Persetujuan Berkas</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ Route::currentRouteName() == 'bahan-penting' ? 'active' : '' }} rancangan"
-                                href="{{ route('bahan-penting') }}">
-                                <i class="bi bi-list-task"></i>
-                                <span class="nav-link-text">Template Bahan Penting </span>
-                            </a>
-                        </li>
-                    @endif
-                    @if (Auth::user()->hasRole('Verifikator'))
-                        <li class="nav-item">
-                            <a class="nav-link  {{ Route::currentRouteName() == 'verifikator.pilih-peneliti' ? 'active' : '' }} rancangan"
-                                href="{{ route('verifikator.pilih-peneliti') }}">
-                                <i class="bi bi-person-check"></i>
-                                <span class="nav-link-text">Pilih Peneliti</span>
-                            </a>
-                        </li>
-                    @endif
-                    @if (Auth::user()->hasRole('Peneliti'))
-                        <li class="nav-item">
-                            <a class="nav-link {{ Route::currentRouteName() == 'revisi.rancangan' ? 'active' : '' }} rancangan"
-                                href="{{ route('revisi.rancangan') }}">
-                                <i class="bi bi-pencil-square"></i>
-                                <span class="nav-link-text">Upload Penelitian</span>
-                            </a>
-                        </li>
-                    @endif
-                    @if (Auth::user()->hasRole('Verifikator'))
-                        <li class="nav-item">
-                            <a class="nav-link {{ Route::currentRouteName() == 'verifikator.validasi-rancangan' ? 'active' : '' }} rancangan "
-                                href="{{ route('verifikator.validasi-rancangan') }}">
-                                <i class="bi bi-clipboard2-check"></i>
-                                <span class="nav-link-text">Validasi Rancangan</span>
-                            </a>
-                        </li>
-                    @endif
-
-                </ul>
-
-                {{-- Divider --}}
-                <hr class="my-3" />
-
-                {{-- Heading --}}
-                <h6 class="navbar-heading p-0 text-muted">
-                    <span class="docs-normal">Fasilitasi Produk Hukum</span>
-                </h6>
-
-                {{-- Navigation --}}
-                <ul class="navbar-nav mb-md--1">
-                    @if (Auth::user()->hasRole('Perangkat Daerah'))
-                        <li class="nav-item">
-                            <a class="nav-link nav-link {{ Route::currentRouteName() == 'fasilitasiku.main' ? 'active' : '' }} fasilitasi"
-                                href="{{ route('fasilitasiku.main') }}">
-                                <i class="bi bi-files"></i>
-                                <span class="nav-link-text">Fasilitasiku</span>
-                            </a>
-                        </li>
-                    @endif
-                    @if (Auth::user()->hasRole('Peneliti'))
-                        <li class="nav-item">
-                            <a class="nav-link {{ Route::currentRouteName() == 'persetujuan-fasilitasi.main' ? 'active' : '' }} fasilitasi"
-                                href="{{ route('persetujuan-fasilitasi.main') }}">
-                                <i class="bi bi-file-check"></i>
-                                <span class="nav-link-text">Persetujuan Fasilitasi</span>
-                            </a>
-                        </li>
-                    @endif
-
-                    @if (Auth::user()->hasRole('Verifikator'))
-                        <li class="nav-item ">
-                            <a class="nav-link {{ Route::currentRouteName() == 'validasi-fasilitasi' ? 'active' : '' }} fasilitasi"
-                                href="{{ route('validasi-fasilitasi') }}">
-                                <i class="bi bi-file-earmark-check"></i>
-                                <span class="nav-link-text">Validasi Fasilitasi </span>
-                            </a>
-                        </li>
-                        <li class="nav-item ">
-                            <a class="nav-link {{ Route::currentRouteName() == 'kelola-ttd.main' ? 'active' : '' }} fasilitasi"
-                                href="{{ route('kelola-ttd.main') }}">
-                                <i class="bi bi-pen"></i>
-                                <span class="nav-link-text">kelola TTD </span>
-                            </a>
-                        </li>
-                    @endif
-
-                    @if (Auth::user()->hasRole(['Admin', 'Verifikator', 'Perangkat Daerah']))
-                        <li class="nav-item">
-                            <a class="nav-link {{ Route::currentRouteName() == 'nota-dinas.generate' ? 'active' : '' }} fasilitasi"
-                                href="{{ route('nota-dinas.generate') }}">
-                                <i class="bi bi-file-text"></i>
-                                <span class="nav-link-text">Daftar Nota Dinas</span>
-                            </a>
-                        </li>
-                    @endif
-                    @if (Auth::user()->hasRole(['Admin', 'Tamu']))
-                        <li class="nav-item">
-                            <a class="nav-link {{ Route::currentRouteName() == 'manajemen-fasilitasi' ? 'active' : '' }} fasilitasi"
-                                href="{{ route('manajemen-fasilitasi') }}">
-                                <i class="bi bi-file-earmark-break"></i>
-                                <span class="nav-link-text">Manajemen Fasilitasi</span>
-                            </a>
-                        </li>
-                    @endif
-                    @if (Auth::user()->hasRole(['Admin', 'Verifikator', 'Peneliti', 'Super Admin']))
-                        <li class="nav-item">
-                            <a class="nav-link {{ Route::currentRouteName() == 'daftar-fasilitasi' ? 'active' : '' }} dokumentasi"
-                                href="{{ route('daftar-fasilitasi') }}">
-                                <i class="bi bi-files"></i>
-                                <span class="nav-link-text">Daftar Fasilitasi</span>
-                            </a>
-                        </li>
-                    @endif
-                </ul>
-
-                {{-- Divider --}}
-                <hr class="my-3" />
-
-                {{-- Heading --}}
-                <h6 class="navbar-heading p-0 text-muted">
-                    <span class="docs-normal">Dokumentasi Produk Hukum</span>
-                </h6>
-                {{-- Navigation --}}
-                <ul class="navbar-nav mb-md-3">
-                    @if (Auth::user()->hasRole(['Admin', 'Verifikator', 'Perangkat Daerah', 'Peneliti']))
-                        <li class="nav-item">
-                            <a class="nav-link {{ Route::currentRouteName() == 'dokumentasi.main' ? 'active' : '' }} dokumentasi"
-                                href="{{ route('dokumentasi.main') }}">
-                                <i class="bi bi-folder-check"></i>
-                                <span class="nav-link-text">Daftar Dokumentasi</span>
-                            </a>
-                        </li>
-                    @endif
-                    @if (Auth::user()->hasRole(['Admin', 'Verifikator', 'Peneliti', 'Super Admin']))
-                        <li class="nav-item">
-                            <a class="nav-link {{ Route::currentRouteName() == 'masterdata.main' ? 'active' : '' }} dokumentasi"
-                                href="{{ route('masterdata.main') }}">
-                                <i class="bi bi-journals"></i>
-                                <span class="nav-link-text">Master Data</span>
-                            </a>
-                        </li>
-                    @endif
-                    <br>
-                    <br>
-                    <br>
-                    <br>
-                    <br>
-                    <br>
-
+                    @endforeach
                 </ul>
             </div>
-        </div>
+        @endforeach
+    </nav>
+
+    {{-- Ciutkan (desktop) --}}
+    <div class="hidden border-t border-slate-100 p-3 lg:block dark:border-navy-800">
+        <button type="button" x-on:click="sidebarCollapsed = !sidebarCollapsed"
+            class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-500 transition hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-navy-800"
+            x-bind:class="sidebarCollapsed && 'justify-center px-0'">
+            <i class="bi text-lg" x-bind:class="sidebarCollapsed ? 'bi-chevron-double-right' : 'bi-chevron-double-left'"></i>
+            <span x-show="!sidebarCollapsed">Ciutkan menu</span>
+        </button>
     </div>
-</nav>
-{{-- End of Sidenav --}}
+</aside>

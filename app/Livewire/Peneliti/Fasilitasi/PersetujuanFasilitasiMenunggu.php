@@ -33,10 +33,13 @@ class PersetujuanFasilitasiMenunggu extends Component
 
     public function openDetailFasilitasi($fasilitasiId)
     {
-        $this->selectedFasilitasi = FasilitasiProdukHukum::with('rancangan')->findOrFail($fasilitasiId);
+        $this->selectedFasilitasi = FasilitasiProdukHukum::with(['rancangan.user.perangkatDaerah', 'rancangan.revisi', 'notaDinas'])
+            ->findOrFail($fasilitasiId);
+        $this->statusBerkas = null;
+        $this->catatan = null;
+        $this->resetValidation();
 
-        // Dispatch event untuk membuka modal di JavaScript
-        $this->dispatch('openModalDetailFasilitasi');
+        $this->dispatch('openModal', 'modalPersetujuanFasilitasi');
     }
 
     public function updateStatus()
@@ -89,7 +92,7 @@ class PersetujuanFasilitasiMenunggu extends Component
 
             // Reset Data
             $this->resetForm();
-            $this->dispatch('closeModalDetailFasilitasi'); // Tutup modal setelah aksi sukses
+            $this->dispatch('closeModal', 'modalPersetujuanFasilitasi');
         }
     }
 
@@ -107,7 +110,8 @@ class PersetujuanFasilitasiMenunggu extends Component
 
     public function render()
     {
-        $fasilitasiMenunggu = FasilitasiProdukHukum::where('status_berkas_fasilitasi', 'Menunggu Persetujuan')
+        $fasilitasiMenunggu = FasilitasiProdukHukum::with('rancangan.user.perangkatDaerah')
+            ->where('status_berkas_fasilitasi', 'Menunggu Persetujuan')
             ->whereHas('rancangan', function ($query) {
                 $query->where('tentang', 'like', "%{$this->search}%")
                     ->orWhere('no_rancangan', 'like', "%{$this->search}%");

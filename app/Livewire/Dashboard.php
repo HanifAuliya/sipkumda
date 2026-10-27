@@ -67,24 +67,14 @@ class Dashboard extends Component
             ]
         ];
 
-        // Debugging data untuk memastikan data dikirim dengan benar
-        // dd($this->chartData);
-
-        // Kirim event ke front-end untuk update chart
-        $this->dispatch('refreshChart', $this->chartData);
     }
 
     public function updateLineChartData($tahun = null)
     {
         $tahun = $tahun ?? now()->year;
 
-        // logger()->info("🚀 Memulai updateLineChartData untuk tahun: {$tahun}");
-
         // Label bulan (Januari - Desember)
         $months = collect(range(1, 12))->map(fn($m) => Carbon::create($tahun, $m, 1)->translatedFormat('F'))->toArray();
-
-        // 🟢 Debugging Awal: Pastikan Fungsi Dijalankan
-        // dd("Fungsi updateLineChartData() berjalan", $tahun, $months);
 
         // Hitung lama proses tiap tahap dalam hari
         $rancanganDurasi = RancanganProdukHukum::whereYear('tanggal_pengajuan', $tahun)
@@ -120,21 +110,31 @@ class Dashboard extends Component
             'fasilitasi' => collect(range(1, 12))->map(fn($m) => min($fasilitasiDurasi[$m] ?? 0, 100))->toArray(),
             'dokumentasi' => collect(range(1, 12))->map(fn($m) => min($dokumentasiDurasi[$m] ?? 0, 100))->toArray(),
         ];
-
-
-        // 🟢 Debugging: Pastikan Data Tersedia
-        logger()->info("📊 Data Line Chart:", $this->lineChartData);
-        // dd($this->lineChartData);
-
-        // Kirim event ke front-end untuk update chart
-        $this->dispatch('refreshLineChart', $this->lineChartData);
     }
 
+    /**
+     * File manual pengguna sesuai role; null bila role tidak punya manual.
+     */
+    public function panduanUrl(): ?string
+    {
+        $files = [
+            'Peneliti' => 'Manual_Pengguna-Peneliti-SIFKUMDA.pdf',
+            'Admin' => 'Manual_Pengguna-Admin-SIFKUMDA.pdf',
+            'Verifikator' => 'Manual_Pengguna-Verifikator-SIFKUMDA.pdf',
+            'Perangkat Daerah' => 'Manual_Pengguna-Perangkat_Daerah-SIFKUMDA.pdf',
+        ];
 
+        foreach ($files as $role => $file) {
+            if (auth()->user()->hasRole($role)) {
+                return asset('assets/document/' . $file);
+            }
+        }
 
+        return null;
+    }
 
     public function render()
     {
-        return view('livewire.dashboard')->layout('layouts.app');
+        return view('livewire.dashboard', ['panduanUrl' => $this->panduanUrl()])->layout('layouts.app');
     }
 }

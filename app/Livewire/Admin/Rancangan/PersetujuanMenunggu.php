@@ -214,7 +214,7 @@ class PersetujuanMenunggu extends Component
 
     public function render()
     {
-        $rancanganMenunggu = RancanganProdukHukum::with(['user', 'perangkatDaerah'])
+        $rancanganMenunggu = RancanganProdukHukum::with('user.perangkatDaerah')
             ->whereIn('status_berkas', ['Menunggu Persetujuan'])
             ->where('status_rancangan', 'Dalam Proses')
             ->where(function ($query) {

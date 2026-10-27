@@ -1,157 +1,76 @@
-<div>
-    <div>
-        {{-- Ikon Notifikasi dengan Jumlah Notifikasi Belum Dibaca --}}
-        <a class="nav-link position-relative" href="#" role="button" data-toggle="dropdown" aria-haspopup="true"
-            aria-expanded="false">
-            <i class="ni ni-bell-55"></i>
-            @if ($unreadCount > 0)
-                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger text-white"
-                    style="font-size: 0.7rem;">
-                    {{ $unreadCount }}
-                </span>
-            @endif
-        </a>
+@php
+    // Ikon & warna per jenis notifikasi.
+    $icons = [
+        'admin_persetujuan' => ['exclamation-circle', 'text-rose-500 bg-rose-50'],
+        'verifikator_detail' => ['info-circle', 'text-cyan-500 bg-cyan-50'],
+        'persetujuan_diterima' => ['check2-circle', 'text-emerald-500 bg-emerald-50'],
+        'persetujuan_ditolak' => ['x-circle', 'text-rose-500 bg-rose-50'],
+        'persetujuan_menunggu' => ['hourglass-split', 'text-orange-500 bg-orange-50'],
+        'pilih_peneliti' => ['person-exclamation', 'text-rose-500 bg-rose-50'],
+        'peneliti_dibatalkan' => ['person-dash', 'text-rose-500 bg-rose-50'],
+        'peneliti_dipilih' => ['person-check', 'text-emerald-500 bg-emerald-50'],
+        'upload_revisi' => ['person-lock', 'text-navy-700 bg-navy-50'],
+        'reset_validasi' => ['arrow-clockwise', 'text-orange-500 bg-orange-50'],
+        'validasi_revisi' => ['send', 'text-orange-500 bg-orange-50'],
+        'detail_validasi' => ['send-check', 'text-cyan-500 bg-cyan-50'],
+        'revisi_ulang' => ['arrow-repeat', 'text-cyan-500 bg-cyan-50'],
+        'rancangan_selesai' => ['check2-square', 'text-emerald-500 bg-emerald-50'],
+        'uploadUlang_fasilitasi' => ['info-lg', 'text-orange-500 bg-orange-50'],
+        'pengajuan_fasilitasi' => ['file-earmark', 'text-primary-500 bg-primary-50'],
+        'fasilitasi_diterima' => ['file-earmark-check', 'text-emerald-500 bg-emerald-50'],
+        'fasilitasi_ditolak' => ['file-x', 'text-rose-500 bg-rose-50'],
+        'fasilitasi_verifikasi' => ['question-square', 'text-orange-500 bg-orange-50'],
+    ];
+    $fallback = ['bell', 'text-slate-500 bg-slate-100'];
+@endphp
 
-        {{-- Dropdown Notifikasi --}}
-        <div class="dropdown-menu dropdown-menu-xl dropdown-menu-right py-0 overflow-hidden">
-            {{-- Dropdown Header --}}
-            <div class="px-3 py-3">
-                <h6 class="text-sm text-muted m-0">
-                    You have
-                    <strong class="text-primary">{{ $unreadCount }}</strong>
-                    notifications.
-                </h6>
-            </div>
+<div wire:poll.30s>
+    <x-ui.dropdown width="w-[22rem] max-w-[calc(100vw-2rem)]">
+        <x-slot:trigger>
+            <button type="button" class="relative rounded-lg p-2 text-white/80 transition hover:bg-white/10 hover:text-white"
+                aria-label="Notifikasi ({{ $unreadCount }} belum dibaca)">
+                <i class="bi bi-bell text-lg leading-none"></i>
+                @if ($unreadCount > 0)
+                    <span class="absolute -top-0.5 -right-0.5 grid min-w-5 place-items-center rounded-full bg-rose-500 px-1 text-[0.65rem] leading-5 font-bold text-white ring-2 ring-navy-900">
+                        {{ $unreadCount > 99 ? '99+' : $unreadCount }}
+                    </span>
+                @endif
+            </button>
+        </x-slot:trigger>
 
-            {{-- List Group --}}
-            <div class="list-group list-group-flush" style="max-height: 400px; overflow-y: auto;">
-                @forelse ($notifications as $notification)
-                    <button
-                        class="list-group-item list-group-item-action {{ $notification->read_at ? '' : 'font-weight-bold' }}"
-                        wire:click.prevent="markAsRead('{{ $notification->id }}')">
-
-                        <div class="d-flex align-items-center justify-content-between">
-                            {{-- Konten Notifikasi --}}
-                            <div>
-                                {{-- Header: Judul Notifikasi --}}
-                                <h4 class="mb-0 text-sm {{ $notification->read_at ? 'text-dark' : 'text-primary' }}">
-                                    {{ $notification->data['title'] }}
-                                </h4>
-
-                                {{-- Pesan --}}
-                                <div class="d-flex justify-content-center mr-1">
-                                    <p class="text-sm mb-0 mt-2">
-                                        {{ $notification->data['message'] }}
-                                    </p>
-                                </div>
-
-
-                                {{-- Waktu --}}
-                                <small class="text-muted d-block mt-1">
-                                    {{ $notification->created_at->diffForHumans() }}
-                                </small>
-                            </div>
-
-                            {{-- Ikon Berdasarkan Tipe Notifikasi --}}
-                            <div class="ms-2">
-                                @if (isset($notification->data['type']))
-                                    @switch($notification->data['type'])
-                                        @case('admin_persetujuan')
-                                            <i class="bi bi-exclamation-circle text-danger" style="font-size: 2rem;"></i>
-                                        @break
-
-                                        @case('verifikator_detail')
-                                            <i class="bi bi-info-circle text-info" style="font-size: 2rem;"></i>
-                                        @break
-
-                                        @case('persetujuan_diterima')
-                                            <i class="bi bi-check2-circle text-success" style="font-size: 2rem;"></i>
-                                        @break
-
-                                        @case('persetujuan_ditolak')
-                                            <i class="bi bi-x-circle text-danger" style="font-size: 2rem;"></i>
-                                        @break
-
-                                        @case('persetujuan_menunggu')
-                                            <i class="bi bi-info-circle text-warning" style="font-size: 2rem;"></i>
-                                        @break
-
-                                        @case('pilih_peneliti')
-                                            <i class="bi bi-person-exclamation text-danger" style="font-size: 2rem;"></i>
-                                        @break
-
-                                        @case('peneliti_dibatalkan')
-                                            <i class="bi bi-person-dash text-danger" style="font-size: 2rem;"></i>
-                                        @break
-
-                                        @case('peneliti_dipilih')
-                                            <i class="bi bi-person-check text-success" style="font-size: 2rem;"></i>
-                                        @break
-
-                                        @case('upload_revisi')
-                                            <i class="bi bi-person-lock text-default" style="font-size: 2rem;"></i>
-                                        @break
-
-                                        @case('reset_validasi')
-                                            <i class="bi bi-arrow-clockwise text-warning" style="font-size: 2rem;"></i>
-                                        @break
-
-                                        @case('validasi_revisi')
-                                            <i class="bi bi-send text-warning" style="font-size: 2rem;"></i> <!-- Ganti Ikon -->
-                                        @break
-
-                                        @case('detail_validasi')
-                                            <i class="bi bi-send-check text-info" style="font-size: 2rem;"></i>
-                                            <!-- Ganti Ikon -->
-                                        @break
-
-                                        @case('revisi_ulang')
-                                            <i class="bi bi-arrow-repeat text-info" style="font-size: 2rem;"></i>
-                                            <!-- Ganti Ikon -->
-                                        @break
-
-                                        @case('rancangan_selesai')
-                                            <i class="bi bi-check2-square text-success" style="font-size: 2rem;"></i>
-                                        @break
-
-                                        @case('uploadUlang_fasilitasi')
-                                            <i class="bi bi-info-lg text-warning" style="font-size: 2rem;"></i>
-                                        @break
-
-                                        @case('pengajuan_fasilitasi')
-                                            <i class="bi bi-file-earmark" style="font-size: 2rem;"></i>
-                                        @break
-
-                                        @case('fasilitasi_diterima')
-                                            <i class="bi bi-file-earmark-check text-success" style="font-size: 2rem;"></i>
-                                        @break
-
-                                        @case('fasilitasi_ditolak')
-                                            <i class="bi bi-file-x text-danger" style="font-size: 2rem;"></i>
-                                        @break
-
-                                        @case('fasilitasi_verifikasi')
-                                            <i class="bi-question-square text-warning" style="font-size: 2rem;"></i>
-                                        @break
-
-                                        @default
-                                            <i class="bi bi-app-indicator fs-1 text-default" style="font-size: 2rem;"></i>
-                                    @endswitch
-                                @endif
-
-                            </div>
-
-                        </div>
-                    </button>
-
-                    @empty
-                        {{-- Jika Tidak Ada Notifikasi --}}
-                        <div class="text-center py-3">
-                            <p class="text-muted mb-0">Tidak ada notifikasi baru.</p>
-                        </div>
-                    @endforelse
-                    </wire:poll.15000ms=>
-                </div>
-            </div>
+        <div class="flex items-center justify-between px-3 pt-1.5 pb-2.5">
+            <p class="text-sm font-semibold text-navy-900 dark:text-white">Notifikasi</p>
+            <x-ui.badge :color="$unreadCount ? 'primary' : 'slate'">{{ $unreadCount }} belum dibaca</x-ui.badge>
         </div>
-    </div>
+
+        <div class="-mx-1.5 max-h-[26rem] overflow-y-auto border-t border-slate-100 dark:border-navy-700">
+            @forelse ($notifications as $notification)
+                @php [$icon, $color] = $icons[$notification->data['type']] ?? $fallback; @endphp
+                <button type="button" wire:key="notif-{{ $notification->id }}"
+                    wire:click="markAsRead('{{ $notification->id }}')"
+                    @class([
+                        'flex w-full items-start gap-3 px-4 py-3 text-left transition hover:bg-slate-50 dark:hover:bg-navy-700/50',
+                        'bg-primary-50/50 dark:bg-primary-500/5' => ! $notification->read_at,
+                    ])>
+                    <span class="grid size-9 shrink-0 place-items-center rounded-full {{ $color }} dark:bg-white/5">
+                        <i class="bi bi-{{ $icon }}"></i>
+                    </span>
+                    <span class="min-w-0 flex-1">
+                        <span @class([
+                            'block text-sm',
+                            'font-semibold text-navy-900 dark:text-white' => ! $notification->read_at,
+                            'font-medium text-slate-700 dark:text-slate-300' => $notification->read_at,
+                        ])>{{ $notification->data['title'] ?? 'Notifikasi' }}</span>
+                        <span class="mt-0.5 block text-xs leading-relaxed text-slate-500 dark:text-slate-400">{{ $notification->data['message'] ?? '' }}</span>
+                        <span class="mt-1 block text-[0.7rem] text-slate-400">{{ $notification->created_at->diffForHumans() }}</span>
+                    </span>
+                    @unless ($notification->read_at)
+                        <span class="mt-1.5 size-2 shrink-0 rounded-full bg-primary-500"></span>
+                    @endunless
+                </button>
+            @empty
+                <x-ui.empty-state icon="bell-slash" title="Tidak ada notifikasi." class="py-8" />
+            @endforelse
+        </div>
+    </x-ui.dropdown>
+</div>
