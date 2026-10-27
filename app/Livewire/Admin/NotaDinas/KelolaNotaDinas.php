@@ -8,7 +8,9 @@ use App\Models\TandaTangan;
 use App\Models\User;
 use App\Notifications\ValidationResultNotification;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\WithoutUrlPagination;
@@ -74,39 +76,37 @@ class KelolaNotaDinas extends Component
             'kepada' => 'required|string|max:255',
         ]);
 
-        $fasilitasi = $this->fasilitasiTersedia()->with('rancangan.user')->find($this->fasilitasiId);
+        // Cek ketersediaan, cek nomor ganda, dan simpan dilakukan bergiliran
+        // agar dua admin yang menyimpan bersamaan tidak sama-sama lolos.
+        $nota = Cache::lock('nomor-nota-dinas', 15)->block(10, function () {
+            $fasilitasi = $this->fasilitasiTersedia()->with('rancangan.user')->find($this->fasilitasiId)
+                ?? throw ValidationException::withMessages(['fasilitasiId' => 'Fasilitasi tidak tersedia atau sudah memiliki nota dinas.']);
 
-        if (! $fasilitasi) {
-            $this->addError('fasilitasiId', 'Fasilitasi tidak tersedia atau sudah memiliki nota dinas.');
-            return;
-        }
+            $jenisRancangan = $fasilitasi->rancangan->jenis_rancangan ?? '';
+            $tahun = now()->year;
 
-        $jenisRancangan = $fasilitasi->rancangan->jenis_rancangan ?? '';
-        $tahun = now()->year;
+            // Nomor inputan harus unik untuk jenis rancangan yang sama di tahun berjalan ("013" sama dengan "13").
+            $nomorDipakai = NotaDinas::whereRaw('CAST(nomor_inputan AS UNSIGNED) = ?', [(int) $this->nomorInputan])
+                ->whereYear('tanggal_nota', $tahun)
+                ->whereHas('fasilitasi.rancangan', fn ($query) => $query->where('jenis_rancangan', $jenisRancangan))
+                ->exists();
 
-        // Nomor inputan harus unik untuk jenis rancangan yang sama di tahun berjalan ("013" sama dengan "13").
-        $nomorDipakai = NotaDinas::whereRaw('CAST(nomor_inputan AS UNSIGNED) = ?', [(int) $this->nomorInputan])
-            ->whereYear('tanggal_nota', $tahun)
-            ->whereHas('fasilitasi.rancangan', fn ($query) => $query->where('jenis_rancangan', $jenisRancangan))
-            ->exists();
+            if ($nomorDipakai) {
+                throw ValidationException::withMessages(['nomorInputan' => "Nomor {$this->nomorInputan} sudah digunakan untuk {$jenisRancangan} tahun {$tahun}."]);
+            }
 
-        if ($nomorDipakai) {
-            $this->addError('nomorInputan', "Nomor {$this->nomorInputan} sudah digunakan untuk {$jenisRancangan} tahun {$tahun}.");
-            return;
-        }
+            return NotaDinas::create([
+                'fasilitasi_id' => $fasilitasi->id,
+                'nomor_inputan' => $this->nomorInputan,
+                'nomor_nota' => "180/{$this->nomorInputan}/{$this->kodeJenis($jenisRancangan)}/KUM/{$tahun}",
+                'tanggal_nota' => now(),
+                'tanda_tangan_id' => $this->tandaTanganId,
+                'kepada' => $this->kepada,
+            ])->setRelation('fasilitasi', $fasilitasi);
+        });
 
-        $nomorNota = "180/{$this->nomorInputan}/{$this->kodeJenis($jenisRancangan)}/KUM/{$tahun}";
-
-        NotaDinas::create([
-            'fasilitasi_id' => $fasilitasi->id,
-            'nomor_inputan' => $this->nomorInputan,
-            'nomor_nota' => $nomorNota,
-            'tanggal_nota' => now(),
-            'tanda_tangan_id' => $this->tandaTanganId,
-            'kepada' => $this->kepada,
-        ]);
-
-        $rancangan = $fasilitasi->rancangan;
+        $nomorNota = $nota->nomor_nota;
+        $rancangan = $nota->fasilitasi->rancangan;
 
         Notification::send(User::role('Verifikator')->get(), new ValidationResultNotification([
             'title' => 'Nota Dinas Baru Telah Dibuat!',

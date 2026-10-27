@@ -122,29 +122,34 @@ class AjukanRancangan extends Component
             ? implode('; ', $this->catatanKurang)
             : null;
 
-        $rancangan = RancanganProdukHukum::create([
-            'id_user'                    => auth()->id(),
-            'jenis_rancangan'            => $this->jenisRancangan,
-            'tentang'                    => $this->tentang,
-            'rancangan'                  => $rancanganPath,
-            'matrik'                     => $matrikPath,
-            'nota_dinas_pd'              => $notaDinasPath,
-            'bahan_pendukung'            => $bahanPendukungPath,
-            'status_berkas'              => 'Menunggu Persetujuan',
-            'status_rancangan'           => 'Dalam Proses',
-            'tanggal_pengajuan'          => now(),
-            'tanggal_nota'               => $this->tanggalNota,
-            'nomor_nota'                 => $this->nomorNota,
-            'hasil_prediksi_kelengkapan' => $this->hasilPrediksi, // tersimpan otomatis
-            'catatan_berkas'             => $catatan,             // tersimpan otomatis
-        ]);
+        // Nomor rancangan aman dari pengajuan bersamaan; rancangan + revisi tersimpan utuh.
+        $rancangan = RancanganProdukHukum::denganNomorTerkunci(function () use ($rancanganPath, $matrikPath, $notaDinasPath, $bahanPendukungPath, $catatan) {
+            $rancangan = RancanganProdukHukum::create([
+                'id_user'                    => auth()->id(),
+                'jenis_rancangan'            => $this->jenisRancangan,
+                'tentang'                    => $this->tentang,
+                'rancangan'                  => $rancanganPath,
+                'matrik'                     => $matrikPath,
+                'nota_dinas_pd'              => $notaDinasPath,
+                'bahan_pendukung'            => $bahanPendukungPath,
+                'status_berkas'              => 'Menunggu Persetujuan',
+                'status_rancangan'           => 'Dalam Proses',
+                'tanggal_pengajuan'          => now(),
+                'tanggal_nota'               => $this->tanggalNota,
+                'nomor_nota'                 => $this->nomorNota,
+                'hasil_prediksi_kelengkapan' => $this->hasilPrediksi, // tersimpan otomatis
+                'catatan_berkas'             => $catatan,             // tersimpan otomatis
+            ]);
 
-        Revisi::create([
-            'id_rancangan'    => $rancangan->id_rancangan,
-            'status_revisi'   => 'Belum Tahap Revisi',
-            'status_validasi' => 'Belum Tahap Validasi',
-            'catatan_revisi'  => null,
-        ]);
+            Revisi::create([
+                'id_rancangan'    => $rancangan->id_rancangan,
+                'status_revisi'   => 'Belum Tahap Revisi',
+                'status_validasi' => 'Belum Tahap Validasi',
+                'catatan_revisi'  => null,
+            ]);
+
+            return $rancangan;
+        });
 
         Notification::send(User::role(['Admin'])->get(), new RancanganBaruNotification([
             'title'   => 'Rancangan Menunggu Persetujuan Berkas',

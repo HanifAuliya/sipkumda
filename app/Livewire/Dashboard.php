@@ -7,6 +7,7 @@ use App\Models\RancanganProdukHukum;
 use App\Models\Revisi;
 use App\Models\FasilitasiProdukHukum;
 use App\Models\DokumentasiProdukHukum;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
@@ -23,14 +24,27 @@ class Dashboard extends Component
 
     public function mount()
     {
-        $this->jumlahRancangan = RancanganProdukHukum::count();
-        $this->jumlahRevisi = Revisi::count();
-        $this->jumlahFasilitasi = FasilitasiProdukHukum::count();
-        $this->jumlahDokumentasi = DokumentasiProdukHukum::count();
-
-        $this->updateChartData();
         $this->selectedYear = now()->year;
-        $this->updateLineChartData($this->selectedYear);
+
+        // Statistik sama untuk semua pengguna: dihitung sekali lalu dibagi lewat cache.
+        // Segar 2 menit; hingga 10 menit data lama tetap dipakai sambil dihitung ulang di belakang.
+        $statistik = Cache::flexible('dashboard:statistik:' . $this->selectedYear, [120, 600], function () {
+            $this->updateChartData();
+            $this->updateLineChartData($this->selectedYear);
+
+            return [
+                'jumlahRancangan' => RancanganProdukHukum::count(),
+                'jumlahRevisi' => Revisi::count(),
+                'jumlahFasilitasi' => FasilitasiProdukHukum::count(),
+                'jumlahDokumentasi' => DokumentasiProdukHukum::count(),
+                'chartData' => $this->chartData,
+                'lineChartData' => $this->lineChartData,
+            ];
+        });
+
+        foreach ($statistik as $properti => $nilai) {
+            $this->{$properti} = $nilai;
+        }
     }
 
     public function updateChartData()

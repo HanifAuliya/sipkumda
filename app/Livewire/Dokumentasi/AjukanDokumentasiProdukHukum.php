@@ -8,6 +8,7 @@ use App\Models\PerangkatDaerah;
 use App\Models\User;
 use App\Notifications\DokumentasiNotification;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -113,23 +114,28 @@ class AjukanDokumentasiProdukHukum extends Component
             ];
         }
 
-        // Cek nomor ganda sebelum menyimpan file: nama file memakai nomor & tahun,
-        // jadi file dokumen lain dengan nomor yang sama bisa tertimpa.
-        if (DokumentasiProdukHukum::nomorDipakai($this->nomor, $data['tahun'])) {
-            $this->addError('nomor', "Nomor {$this->nomor} untuk tahun {$data['tahun']} sudah ada.");
-            return;
-        }
+        DokumentasiProdukHukum::denganNomorTerkunci(function () use ($data) {
+            // Cek nomor ganda sebelum menyimpan file: nama file memakai nomor & tahun,
+            // jadi file dokumen lain dengan nomor yang sama bisa tertimpa.
+            if (DokumentasiProdukHukum::nomorDipakai($this->nomor, $data['tahun'])) {
+                throw ValidationException::withMessages(['nomor' => "Nomor {$this->nomor} untuk tahun {$data['tahun']} sudah ada."]);
+            }
 
-        $namaFile = str_replace(' ', '_', $data['jenis_dokumentasi'])
-            . "_Nomor_{$this->nomor}_Tahun_{$data['tahun']}_Kabupaten_Hulu_Sungai_Tengah.pdf";
+            if (isset($data['rancangan_id']) && DokumentasiProdukHukum::where('rancangan_id', $data['rancangan_id'])->exists()) {
+                throw ValidationException::withMessages(['rancanganId' => 'Rancangan ini sudah diarsipkan.']);
+            }
 
-        DokumentasiProdukHukum::create($data + [
-            'nomor' => $this->nomor,
-            'nomor_tahun_berita' => ($this->nomor_berita ?: '-') . '/' . ($this->tahun_berita ?: '-'),
-            'tanggal_pengarsipan' => now(),
-            'tanggal_penetapan' => $this->tanggal_penetapan,
-            'file_produk_hukum' => $this->file_produk_hukum->storeAs('dokumentasi/file_produk_hukum', $namaFile, 'local'),
-        ]);
+            $namaFile = str_replace(' ', '_', $data['jenis_dokumentasi'])
+                . "_Nomor_{$this->nomor}_Tahun_{$data['tahun']}_Kabupaten_Hulu_Sungai_Tengah.pdf";
+
+            DokumentasiProdukHukum::create($data + [
+                'nomor' => $this->nomor,
+                'nomor_tahun_berita' => ($this->nomor_berita ?: '-') . '/' . ($this->tahun_berita ?: '-'),
+                'tanggal_pengarsipan' => now(),
+                'tanggal_penetapan' => $this->tanggal_penetapan,
+                'file_produk_hukum' => $this->file_produk_hukum->storeAs('dokumentasi/file_produk_hukum', $namaFile, 'local'),
+            ]);
+        });
 
         Notification::send(User::role('Verifikator')->get(), new DokumentasiNotification([
             'title' => 'Dokumentasi Produk Hukum Baru',

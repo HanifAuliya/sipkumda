@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -34,68 +35,39 @@ class RancanganProdukHukum extends Model
         'hasil_prediksi_kelengkapan',
     ];
 
-    // Mutator untuk nomor rancangan otomatis
+    /**
+     * Jalankan pembuatan rancangan di dalam kunci + transaksi.
+     *
+     * Nomor rancangan dihitung dari nomor terakhir, jadi dua pengajuan pada saat
+     * yang sama bisa mendapat nomor yang sama. Kunci memastikan perhitungan nomor
+     * dan penyimpanan terjadi bergiliran; transaksi menjaga rancangan beserta
+     * data terkaitnya tersimpan utuh.
+     */
+    public static function denganNomorTerkunci(callable $buat): mixed
+    {
+        return Cache::lock('nomor-rancangan', 15)->block(10, fn () => DB::transaction($buat));
+    }
+
     protected static function boot()
     {
         parent::boot();
 
-        // static::creating(function ($rancangan) {
-        //     $tahun = now()->year;
-        //     $jenis = $rancangan->jenis_rancangan; // PB atau KP
-        //     $count = self::where('jenis_rancangan', $jenis)
-        //         ->whereYear('created_at', $tahun)
-        //         ->count() + 1;
-
-        //     // Format nomor rancangan: PB-2024-001
-        //     $rancangan->no_rancangan = sprintf('%s-%d-%03d', $jenis, $tahun, $count);
-        // });
+        // Nomor rancangan otomatis: PB-2026-001 / SK-2026-001, berurutan per jenis per tahun.
         static::creating(function ($model) {
+            $singkatan = ['Surat Keputusan' => 'SK', 'Peraturan Bupati' => 'PB'][$model->jenis_rancangan]
+                ?? throw new \InvalidArgumentException('Jenis rancangan tidak valid.');
 
-            DB::transaction(function () use ($model) {
+            $tahun = now()->year;
 
-                $tahun = now()->year;
+            $terakhir = self::where('jenis_rancangan', $model->jenis_rancangan)
+                ->whereYear('created_at', $tahun)
+                ->orderByDesc('id_rancangan')
+                ->value('no_rancangan');
 
-                $map = [
-                    'Surat Keputusan' => 'SK',
-                    'Peraturan Bupati' => 'PB',
-                ];
+            $berikutnya = $terakhir ? (int) Str::afterLast($terakhir, '-') + 1 : 1;
 
-                if (!isset($map[$model->jenis_rancangan])) {
-                    throw new \Exception("Jenis rancangan tidak valid.");
-                }
-
-                $singkatan = $map[$model->jenis_rancangan];
-
-                // Ambil nomor terakhir tahun & jenis yang sama
-                $last = self::where('jenis_rancangan', $model->jenis_rancangan)
-                    ->whereYear('created_at', $tahun)
-                    ->orderByDesc('id_rancangan')
-                    ->lockForUpdate()
-                    ->first();
-
-                $nextNumber = 1;
-
-                if ($last) {
-                    $parts = explode('-', $last->no_rancangan);
-                    $nextNumber = (int) end($parts) + 1;
-                }
-
-                $model->no_rancangan = sprintf(
-                    '%s-%d-%03d',
-                    $singkatan,
-                    $tahun,
-                    $nextNumber
-                );
-
-                // Generate slug UUID
-                $model->slug = Str::uuid();
-            });
-        });
-
-        static::creating(function ($model) {
-            if (empty($model->slug)) {
-                $model->slug = Str::uuid(); // Anda bisa mengganti dengan slug lain, misalnya menggunakan `no_rancangan`
-            }
+            $model->no_rancangan = sprintf('%s-%d-%03d', $singkatan, $tahun, $berikutnya);
+            $model->slug = $model->slug ?: (string) Str::uuid();
         });
     }
 

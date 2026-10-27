@@ -152,17 +152,26 @@ class DemoSeeder extends Seeder
         ]);
         $rancangan->forceFill(['tanggal_rancangan_disetujui' => $sampai('disetujui') ? $hari(12) : null])->save();
 
+        // Baris revisi dibuat sejak pengajuan, seperti di AjukanRancangan.
         if (in_array($tahap, ['menunggu', 'ditolak'])) {
+            Revisi::create([
+                'id_rancangan' => $rancangan->id_rancangan,
+                'status_revisi' => 'Belum Tahap Revisi',
+                'status_validasi' => 'Belum Tahap Validasi',
+            ]);
+
             return;
         }
 
+        // Alur status: Menunggu Peneliti → Proses Revisi (peneliti upload: validasi
+        // "Menunggu Validasi", revisi tetap Proses Revisi) → Direvisi saat validasi diterima.
         $ditunjuk = $tahap !== 'pilih_peneliti';
         $direvisi = $sampai('validasi');
         Revisi::create([
             'id_rancangan' => $rancangan->id_rancangan,
             'id_user' => $ditunjuk ? $peneliti->id : null,
             'status_revisi' => match (true) {
-                $direvisi => 'Direvisi',
+                $sampai('disetujui') => 'Direvisi',
                 $ditunjuk => 'Proses Revisi',
                 default => 'Menunggu Peneliti',
             },

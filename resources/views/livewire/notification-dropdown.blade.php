@@ -24,7 +24,8 @@
     $fallback = ['bell', 'text-slate-500 bg-slate-100'];
 @endphp
 
-<div wire:poll.30s>
+{{-- Polling 60 detik; Livewire otomatis memperlambatnya di tab yang tidak aktif. --}}
+<div wire:poll.60s>
     <x-ui.dropdown width="w-[22rem] max-w-[calc(100vw-2rem)]">
         <x-slot:trigger>
             <button type="button" class="relative rounded-lg p-2 text-white/80 transition hover:bg-white/10 hover:text-white"
@@ -40,12 +41,18 @@
 
         <div class="flex items-center justify-between px-3 pt-1.5 pb-2.5">
             <p class="text-sm font-semibold text-navy-900 dark:text-white">Notifikasi</p>
-            <x-ui.badge :color="$unreadCount ? 'primary' : 'slate'">{{ $unreadCount }} belum dibaca</x-ui.badge>
+            @if ($unreadCount)
+                <button type="button" wire:click="markAllAsRead" class="text-xs font-semibold text-primary-600 hover:underline dark:text-primary-300">
+                    Tandai semua dibaca ({{ $unreadCount }})
+                </button>
+            @else
+                <x-ui.badge color="slate">Semua sudah dibaca</x-ui.badge>
+            @endif
         </div>
 
         <div class="-mx-1.5 max-h-[26rem] overflow-y-auto border-t border-slate-100 dark:border-navy-700">
             @forelse ($notifications as $notification)
-                @php [$icon, $color] = $icons[$notification->data['type']] ?? $fallback; @endphp
+                @php [$icon, $color] = $icons[$notification->data['type'] ?? ''] ?? $fallback; @endphp
                 <button type="button" wire:key="notif-{{ $notification->id }}"
                     wire:click="markAsRead('{{ $notification->id }}')"
                     @class([

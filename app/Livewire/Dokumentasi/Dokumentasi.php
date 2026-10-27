@@ -11,6 +11,7 @@ use App\Notifications\DokumentasiNotification;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -142,26 +143,30 @@ class Dokumentasi extends Component
             'file_produk_hukum' => 'nullable|mimes:pdf|max:20480',
         ]);
 
-        // Cek nomor ganda sebelum menyentuh file agar file lama tidak hilang saat gagal.
-        if (DokumentasiProdukHukum::nomorDipakai($this->nomor, $dokumentasi->tahun, $dokumentasi->id)) {
-            $this->addError('nomor', "Nomor {$this->nomor} untuk tahun {$dokumentasi->tahun} sudah digunakan.");
-            return;
-        }
-
-        $data = [
-            'nomor' => $this->nomor,
-            'nomor_tahun_berita' => "{$this->nomor_berita}/{$this->tahun_berita}",
-            'tanggal_penetapan' => $this->tanggal_penetapan,
-        ];
-
         $fileLama = $dokumentasi->file_produk_hukum;
-        if ($this->file_produk_hukum) {
-            $data['file_produk_hukum'] = $this->file_produk_hukum->store('dokumentasi/file_produk_hukum', 'local');
-        }
 
-        $dokumentasi->update($data);
+        $data = DokumentasiProdukHukum::denganNomorTerkunci(function () use ($dokumentasi) {
+            // Cek nomor ganda sebelum menyentuh file agar file lama tidak hilang saat gagal.
+            if (DokumentasiProdukHukum::nomorDipakai($this->nomor, $dokumentasi->tahun, $dokumentasi->id)) {
+                throw ValidationException::withMessages(['nomor' => "Nomor {$this->nomor} untuk tahun {$dokumentasi->tahun} sudah digunakan."]);
+            }
 
-        if ($this->file_produk_hukum && $fileLama && $fileLama !== $data['file_produk_hukum'] && Storage::exists($fileLama)) {
+            $data = [
+                'nomor' => $this->nomor,
+                'nomor_tahun_berita' => "{$this->nomor_berita}/{$this->tahun_berita}",
+                'tanggal_penetapan' => $this->tanggal_penetapan,
+            ];
+
+            if ($this->file_produk_hukum) {
+                $data['file_produk_hukum'] = $this->file_produk_hukum->store('dokumentasi/file_produk_hukum', 'local');
+            }
+
+            $dokumentasi->update($data);
+
+            return $data;
+        });
+
+        if (isset($data['file_produk_hukum']) && $fileLama && $fileLama !== $data['file_produk_hukum'] && Storage::exists($fileLama)) {
             Storage::delete($fileLama);
         }
 

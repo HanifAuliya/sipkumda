@@ -4,7 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class DokumentasiProdukHukum extends Model
 {
@@ -50,6 +51,15 @@ class DokumentasiProdukHukum extends Model
                 ->orWhereHas('rancangan', fn ($r) => $r->where('no_rancangan', 'like', "%{$search}%"))))
             ->when($jenis, fn ($q) => $q->where('jenis_dokumentasi', $jenis))
             ->when($tahun, fn ($q) => $q->where('tahun', $tahun));
+    }
+
+    /**
+     * Jalankan cek nomor + simpan secara bergiliran (kunci + transaksi), agar dua
+     * pengguna yang menyimpan nomor yang sama pada saat bersamaan tidak sama-sama lolos.
+     */
+    public static function denganNomorTerkunci(callable $simpan): mixed
+    {
+        return Cache::lock('nomor-dokumentasi', 15)->block(10, fn () => DB::transaction($simpan));
     }
 
     /** Apakah nomor sudah dipakai pada tahun yang sama (selain $exceptId). */

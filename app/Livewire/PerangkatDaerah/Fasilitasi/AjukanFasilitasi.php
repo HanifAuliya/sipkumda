@@ -7,6 +7,7 @@ use Livewire\WithFileUploads;
 use App\Models\FasilitasiProdukHukum;
 use App\Models\RancanganProdukHukum;
 use App\Models\User;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Notification;
 use App\Notifications\StatusFasilitasiNotification;
 
@@ -20,42 +21,18 @@ class AjukanFasilitasi extends Component
     public $fileRancangan; // File rancangan yang diupload
     public $rancanganOptions = []; // Daftar rancangan untuk dropdown
 
-    public function loadRancanganOption()
-    {
-        // Ambil ID user yang sedang login
-        $userId = auth()->id();
-
-        // Ambil ID rancangan yang sudah diajukan ke fasilitasi
-        $rancanganTerfasilitasi = FasilitasiProdukHukum::pluck('rancangan_id')->toArray();
-
-        // Ambil rancangan dengan status_rancangan = 'Disetujui', milik user, dan belum diajukan ke fasilitasi
-        $this->rancanganOptions = RancanganProdukHukum::where('status_rancangan', 'Disetujui')
-            ->where('id_user', $userId) // Filter hanya rancangan milik pengguna yang login
-            ->whereNotIn('id_rancangan', $rancanganTerfasilitasi) // Filter rancangan yang belum difasilitasi
-            ->get()
-            ->mapWithKeys(function ($item) {
-                return [$item->id_rancangan => "{$item->no_rancangan} - {$item->tentang}"];
-            });
-    }
-
     public function mount()
     {
-        $this->loadRancanganOption();
+        $this->loadRancanganOptions();
     }
 
     public function loadRancanganOptions()
     {
-        // Ambil ID user yang sedang login
-        $userId = auth()->id();
-
-        // Ambil ID rancangan yang sudah diajukan ke fasilitasi
-        $rancanganTerfasilitasi = FasilitasiProdukHukum::pluck('rancangan_id')->toArray();
-
-        // Ambil rancangan dengan status_rancangan = 'Disetujui', milik user, dan belum diajukan ke fasilitasi
+        // Rancangan milik pengguna yang sudah disetujui dan belum diajukan ke fasilitasi
         $this->rancanganOptions = RancanganProdukHukum::where('status_rancangan', 'Disetujui')
-            ->where('id_user', $userId) // Filter hanya rancangan milik pengguna yang login
-            ->whereNotIn('id_rancangan', $rancanganTerfasilitasi) // Filter rancangan yang belum difasilitasi
-            ->get()
+            ->where('id_user', auth()->id())
+            ->whereDoesntHave('fasilitasi')
+            ->get(['id_rancangan', 'no_rancangan', 'tentang'])
             ->mapWithKeys(function ($item) {
                 return [$item->id_rancangan => "{$item->no_rancangan} - {$item->tentang}"];
             });
@@ -68,34 +45,39 @@ class AjukanFasilitasi extends Component
             'fileRancangan' => 'required|file|mimes:pdf|max:20480',
         ]);
 
-        // Hanya rancangan milik pengguna, sudah disetujui, dan belum difasilitasi (sama dengan isi dropdown)
-        $this->loadRancanganOptions();
-        $rancangan = collect($this->rancanganOptions)->has($this->rancanganId)
-            ? RancanganProdukHukum::find($this->rancanganId)
-            : null;
+        // Dikunci per rancangan: klik ganda / dua tab tidak membuat fasilitasi ganda.
+        $fasilitasi = Cache::lock("ajukan-fasilitasi-{$this->rancanganId}", 15)->block(10, function () {
+            // Hanya rancangan milik pengguna, sudah disetujui, dan belum difasilitasi (sama dengan isi dropdown)
+            $this->loadRancanganOptions();
+            $rancangan = collect($this->rancanganOptions)->has($this->rancanganId)
+                ? RancanganProdukHukum::find($this->rancanganId)
+                : null;
 
-        if (!$rancangan) {
+            if (! $rancangan) {
+                return null;
+            }
+
+            $safeNoRancangan = str_replace('/', '-', $rancangan->no_rancangan);
+            $safeTentang = str_replace(' ', '_', strtolower($rancangan->tentang));
+            $fileName = "{$safeNoRancangan}_{$safeTentang}_fasilitasi_produk_hukum.pdf";
+
+            return FasilitasiProdukHukum::create([
+                'rancangan_id' => $rancangan->id_rancangan,
+                'tanggal_fasilitasi' => now(),
+                'file_rancangan' => $this->fileRancangan->storeAs('fasilitasi/rancangan', $fileName, 'local'),
+                'status_berkas_fasilitasi' => 'Menunggu Persetujuan',
+                'status_validasi_fasilitasi' => 'Belum Tahap Validasi',
+            ]);
+        });
+
+        if (! $fasilitasi) {
             $this->dispatch('swal:modal', [
                 'type' => 'error',
                 'title' => 'Kesalahan',
-                'message' => 'Rancangan tidak ditemukan.',
+                'message' => 'Rancangan tidak ditemukan atau sudah diajukan fasilitasi.',
             ]);
             return;
         }
-
-        // Format Nama File
-        $safeNoRancangan = str_replace('/', '-', $rancangan->no_rancangan);
-        $safeTentang = str_replace(' ', '_', strtolower($rancangan->tentang));
-        $fileName = "{$safeNoRancangan}_{$safeTentang}_fasilitasi_produk_hukum.pdf";
-
-        // Simpan fasilitasi
-        $fasilitasi = FasilitasiProdukHukum::create([
-            'rancangan_id' => $this->rancanganId,
-            'tanggal_fasilitasi' => now(),
-            'file_rancangan' => $this->fileRancangan->storeAs('fasilitasi/rancangan', $fileName, 'local'),
-            'status_berkas_fasilitasi' => 'Menunggu Persetujuan',
-            'status_validasi_fasilitasi' => 'Belum Tahap Validasi',
-        ]);
 
         // 🔹 Ambil `id_user` dari revisi terakhir yang berelasi dengan rancangan
         $penelitiId = $fasilitasi->rancangan->revisi()->latest()->first()->id_user ?? null;
