@@ -15,6 +15,12 @@ pest()->extend(Tests\TestCase::class)
     ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
     ->in('Feature');
 
+// Halaman publik memakai pencarian FULLTEXT yang hanya melihat data ter-commit,
+// jadi tes di sini memakai truncation, bukan transaksi yang di-rollback.
+pest()->extend(Tests\TestCase::class)
+    ->use(Illuminate\Foundation\Testing\DatabaseTruncation::class)
+    ->in('Publik');
+
 /*
 |--------------------------------------------------------------------------
 | Expectations

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Support\Jdih;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -87,6 +88,10 @@ class DokumentasiProdukHukum extends Model
     protected static function boot()
     {
         parent::boot();
+
+        // Halaman JDIH publik di-cache; setiap perubahan arsip memperbarui cache tersebut.
+        static::saved(fn () => Jdih::segarkan());
+        static::deleted(fn () => Jdih::segarkan());
 
         static::creating(function ($dokumentasi) {
             $tahun = $dokumentasi->tahun;

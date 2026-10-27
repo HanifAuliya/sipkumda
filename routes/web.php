@@ -14,6 +14,7 @@ use App\Livewire\Admin\NotaDinas\KelolaNotaDinas;
 
 use App\Livewire\Admin\Rancangan\PersetujuanMain;
 use App\Http\Controllers\DokumentasiPdfController;
+use App\Http\Controllers\JdihController;
 use App\Http\Controllers\PrivateFileController;
 use App\Livewire\Peneliti\Rancangan\RevisiRancangan;
 
@@ -28,20 +29,23 @@ use App\Livewire\FasilitasiProdukHukum\DaftarFasilitasi;
 use App\Livewire\PerangkatDaerah\Fasilitasi\Fasilitasiku;
 use App\Livewire\Verifikator\Fasilitasi\ValidasiFasilitasi;
 use App\Livewire\Peneliti\Fasilitasi\PersetujuanFasilitasiMain;
-use App\Models\RancanganProdukHukum;
-use App\Models\DokumentasiProdukHukum;
 
 
-Route::get('/', function () {
-    // "Keputusan Bupati" (input manual dokumentasi) sama dengan "Surat Keputusan".
-    $suratKeputusan = ['Surat Keputusan', 'Keputusan Bupati'];
-
-    return view('welcome', [
-        'sk_rancangan' => RancanganProdukHukum::whereIn('jenis_rancangan', $suratKeputusan)->count(),
-        'pb_rancangan' => RancanganProdukHukum::where('jenis_rancangan', 'Peraturan Bupati')->count(),
-        'sk_dokumentasi' => DokumentasiProdukHukum::whereIn('jenis_dokumentasi', $suratKeputusan)->count(),
-        'pb_dokumentasi' => DokumentasiProdukHukum::where('jenis_dokumentasi', 'Peraturan Bupati')->count(),
-    ]);
+// Halaman publik (JDIH): tanpa sesi & cookie agar ringan untuk banyak pengunjung
+// dan bisa di-cache browser/proxy. Jangan memakai fitur yang butuh sesi di sini.
+Route::withoutMiddleware([
+    \Illuminate\Cookie\Middleware\EncryptCookies::class,
+    \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+    \Illuminate\Session\Middleware\StartSession::class,
+    \Illuminate\View\Middleware\ShareErrorsFromSession::class,
+    \Illuminate\Foundation\Http\Middleware\PreventRequestForgery::class,
+])->middleware('throttle:jdih')->group(function () {
+    Route::get('/', [JdihController::class, 'beranda'])->name('beranda');
+    Route::get('/produk-hukum', [JdihController::class, 'index'])->name('jdih.index');
+    Route::get('/produk-hukum/{dokumentasi}', [JdihController::class, 'show'])
+        ->whereNumber('dokumentasi')->name('jdih.show');
+    Route::get('/produk-hukum/{dokumentasi}/dokumen', [JdihController::class, 'dokumen'])
+        ->whereNumber('dokumentasi')->middleware('throttle:jdih-unduhan')->name('jdih.dokumen');
 });
 
 Route::middleware('auth')->group(function () {
