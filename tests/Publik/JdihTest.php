@@ -28,10 +28,11 @@ beforeEach(function () {
     Storage::disk('local')->put('dokumentasi/file_produk_hukum/contoh.pdf', '%PDF-1.4 contoh');
 });
 
-it('menampilkan beranda dengan produk hukum terbaru', function () {
+it('menampilkan beranda SIFKUMDA dengan cuplikan produk hukum', function () {
     $this->get('/')->assertOk()
-        ->assertSee('Jaringan Dokumentasi')
-        ->assertSee('Pengelolaan Sampah Rumah Tangga');
+        ->assertSee('Sistem Informasi')
+        ->assertSee('Pengelolaan Sampah Rumah Tangga')
+        ->assertSee(route('jdih.index'));
 });
 
 it('mencari berdasarkan kata kunci tentang', function () {

@@ -36,7 +36,10 @@
                     <li class="text-white" aria-current="page">Produk Hukum</li>
                 </ol>
             </nav>
-            <h1 class="mt-3 text-2xl font-extrabold text-white sm:text-3xl">{{ $judul }}</h1>
+            <p class="mt-4 inline-flex items-center gap-2 text-xs font-bold tracking-wider text-brand-500 uppercase">
+                <i class="bi bi-journal-bookmark"></i> JDIH · Jaringan Dokumentasi dan Informasi Hukum
+            </p>
+            <h1 class="mt-1 text-2xl font-extrabold text-white sm:text-3xl">{{ $judul }}</h1>
             <x-jdih.form-cari :opsi="$opsi" :q="$q" :jenis="$jenis" :tahun="$tahun" :urut="$urut === 'terbaru' || $urut === 'relevan' ? null : $urut" class="mt-6" />
         </div>
     </section>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\DokumentasiProdukHukum;
 use App\Support\Jdih;
+use App\Support\StatistikPublik;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
@@ -11,16 +12,22 @@ use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
- * Halaman publik JDIH: beranda, pencarian, detail, dan dokumen produk hukum.
+ * Halaman publik: beranda SIFKUMDA serta sub-halaman JDIH (pencarian, detail,
+ * dan dokumen produk hukum).
  *
  * Route-nya berjalan tanpa sesi/cookie (lihat routes/web.php), sehingga tidak ada
  * penulisan sesi per kunjungan dan respons bisa di-cache browser maupun proxy.
  */
 class JdihController extends Controller
 {
+    /** Beranda SIFKUMDA; JDIH hanya tampil sebagai cuplikan. */
     public function beranda(): Response
     {
-        return $this->publik(view('welcome', Jdih::beranda() + ['opsi' => Jdih::opsi()]));
+        return $this->publik(view('welcome', [
+            'statistik' => StatistikPublik::ringkasan(),
+            'terbaru' => Jdih::beranda()['terbaru']->take(3),
+            'opsi' => Jdih::opsi(),
+        ]));
     }
 
     public function index(Request $request): Response
