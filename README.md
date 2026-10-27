@@ -66,6 +66,14 @@ php artisan serve
 ```
 
 Buka `http://localhost:8000`. Seeder membuat akun contoh untuk setiap peran (lihat `database/seeders/UserSeeder.php`).
+Untuk mengisi data contoh di semua tahap alur: `php artisan db:seed --class=DemoSeeder`.
+
+Halaman publik JDIH (pencarian produk hukum) tersedia di `/` dan `/produk-hukum`.
+
+## Server Production
+
+Sebelum dipakai banyak orang, ikuti [docs/DEPLOY.md](docs/DEPLOY.md): `config:cache` wajib
+(terutama di Windows), pengaturan MySQL & web server, serta hasil load test.
 
 ## Struktur Singkat
 

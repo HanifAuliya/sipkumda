@@ -5,8 +5,9 @@
 | JDIH publik
 |--------------------------------------------------------------------------
 | Halaman pencarian produk hukum untuk umum (/produk-hukum). Batas request
-| dihitung per IP per menit; naikkan bila banyak pengunjung berbagi satu IP
-| (mis. jaringan kantor), atau bila sudah ada CDN/reverse proxy di depan.
+| dihitung per IP per menit dan hanya berlaku untuk pencarian kata kunci
+| (batas_halaman) serta unduhan PDF (batas_unduhan). Naikkan bila banyak
+| pengunjung berbagi satu IP (mis. jaringan kantor).
 */
 
 return [

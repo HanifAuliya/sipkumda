@@ -113,14 +113,16 @@ it('memperbarui cache saat dokumentasi berubah', function () {
     $this->get('/produk-hukum')->assertSee('Pengelolaan Limbah Domestik')->assertDontSee('Pengelolaan Sampah Rumah Tangga');
 });
 
-it('membatasi jumlah request per IP', function () {
+it('membatasi jumlah pencarian per IP, tetapi tidak membatasi halaman yang ter-cache', function () {
     config(['jdih.batas_halaman' => 3]);
 
-    foreach (range(1, 3) as $i) {
-        $this->get('/produk-hukum')->assertOk();
+    foreach (range(1, 3) as $_) {
+        $this->get('/produk-hukum?q=sampah')->assertOk();
     }
+    $this->get('/produk-hukum?q=stunting')->assertStatus(429);
 
-    $this->get('/produk-hukum')->assertStatus(429);
+    // Tanpa kata kunci: tidak ada penghitung yang ditulis.
+    $this->get('/produk-hukum')->assertOk()->assertHeaderMissing('X-RateLimit-Limit');
 });
 
 it('tidak membuka file privat lewat halaman publik', function () {

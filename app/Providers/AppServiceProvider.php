@@ -28,8 +28,12 @@ class AppServiceProvider extends ServiceProvider
         config(['app.locale' => 'id']);
         Carbon::setLocale('id');
 
-        // Batas request halaman JDIH publik per IP.
-        RateLimiter::for('jdih', fn (Request $request) => Limit::perMinute(config('jdih.batas_halaman'))->by($request->ip()));
+        // Batas request JDIH publik per IP, hanya untuk pencarian kata kunci (query tanpa cache).
+        // Halaman lain sudah ringan (cache / lookup ID); Limit::none() membuat throttle tidak
+        // menulis penghitung sama sekali. Banjir request kasar ditangani di web server/CDN.
+        RateLimiter::for('jdih', fn (Request $request) => filled($request->query('q'))
+            ? Limit::perMinute(config('jdih.batas_halaman'))->by($request->ip())
+            : Limit::none());
         RateLimiter::for('jdih-unduhan', fn (Request $request) => Limit::perMinute(config('jdih.batas_unduhan'))->by($request->ip()));
 
         $this->app->booted(function () {

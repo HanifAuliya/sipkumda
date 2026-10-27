@@ -18,9 +18,9 @@ return [
     'default' => env('CACHE_STORE', 'database'),
 
     /*
-    | Store untuk rate limiter (throttle). Kosong = memakai store default.
-    | Pada lalu lintas tinggi, "redis" (atau "file" untuk satu server) jauh
-    | lebih ringan daripada "database" karena setiap request menulis penghitung.
+    | Store untuk rate limiter (throttle). Kosong = store default (database).
+    | Pada lalu lintas tinggi gunakan "redis". Hindari "file" di Windows: kunci
+    | file eksklusif di sana menolak tulis bersamaan sehingga request gagal.
     */
 
     'limiter' => env('CACHE_LIMITER'),

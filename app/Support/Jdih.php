@@ -121,10 +121,10 @@ class Jdih
             ->when($filter['jenis'], fn ($q, $jenis) => $q->whereIn('jenis_dokumentasi', self::varianJenis($jenis)))
             ->when($filter['tahun'], fn ($q, $tahun) => $q->where('tahun', $tahun));
 
-        $skor = self::terapkanKataKunci($query, $filter['q']);
+        $relevan = self::terapkanKataKunci($query, $filter['q']);
 
         match (true) {
-            $filter['urut'] === 'relevan' && $skor !== null => $query->orderByRaw(...$skor),
+            $filter['urut'] === 'relevan' && $relevan !== null => $relevan($query),
             $filter['urut'] === 'terlama' => $query->orderBy('tanggal_penetapan')->orderBy('id'),
             $filter['urut'] === 'nomor' => $query->orderByDesc('tahun')->orderByRaw('CAST(nomor AS UNSIGNED) DESC'),
             default => $query->orderByDesc('tanggal_penetapan')->orderByDesc('id'),
@@ -161,17 +161,26 @@ class Jdih
 
     /**
      * Kata kunci: nomor ("12", "12/2025", "nomor 12 tahun 2025") atau teks "tentang".
-     * Mengembalikan [sql, bindings] untuk urutan relevansi bila FULLTEXT dipakai.
+     * Mengembalikan fungsi pengurut "paling relevan" untuk jenis pencarian tersebut.
      */
-    private static function terapkanKataKunci(Builder $query, string $q): ?array
+    private static function terapkanKataKunci(Builder $query, string $q): ?Closure
     {
         if ($q === '') {
             return null;
         }
 
-        $nomor = $tahun = null;
+        // Pencarian yang hanya berisi nomor/tahun cukup memakai kolom terindeks, tanpa FULLTEXT.
         if (preg_match('/^(?:no(?:mor)?\.?\s*)?(\d{1,4})(?:\s*(?:\/|tahun|th\.?)\s*(\d{4}))?$/iu', $q, $m)) {
-            [$nomor, $tahun] = [(int) $m[1], $m[2] ?? null];
+            [$nomor, $tahun] = [(int) $m[1], isset($m[2]) ? (int) $m[2] : null];
+
+            $query->where(fn (Builder $w) => $w
+                ->where(fn ($n) => $n->where('nomor', $nomor)->when($tahun, fn ($t) => $t->where('tahun', $tahun)))
+                // Angka empat digit tanpa "/" bisa juga berarti tahun, mis. "2020".
+                ->when(! $tahun && $nomor >= 1900 && $nomor <= 2100, fn ($t) => $t->orWhere('tahun', $nomor)));
+
+            // Urut per tahun (indeks tahun, nomor). Urutan tanggal + LIMIT membuat MySQL
+            // menelusuri seluruh indeks tanggal bila hasilnya sedikit.
+            return fn (Builder $q) => $q->orderByDesc('tahun')->orderByDesc('nomor');
         }
 
         $kata = collect(preg_split('/\s+/u', preg_replace('/[^\pL\pN\s]+/u', ' ', mb_strtolower($q)), -1, PREG_SPLIT_NO_EMPTY))
@@ -182,18 +191,12 @@ class Jdih
         $fulltext = $kata->isNotEmpty() && in_array($query->getConnection()->getDriverName(), ['mysql', 'mariadb']);
         $ekspresi = $kata->map(fn ($k) => "+{$k}*")->join(' ');
 
-        $query->where(function (Builder $w) use ($q, $nomor, $tahun, $fulltext, $ekspresi) {
-            if ($nomor) {
-                $w->orWhere(fn ($n) => $n->where('nomor', $nomor)->when($tahun, fn ($t) => $t->where('tahun', $tahun)));
-            }
+        $fulltext
+            ? $query->whereFullText('tentang_dokumentasi', $ekspresi, ['mode' => 'boolean'])
+            : $query->where('tentang_dokumentasi', 'like', '%' . addcslashes($q, '%_\\') . '%');
 
-            if ($fulltext) {
-                $w->orWhereFullText('tentang_dokumentasi', $ekspresi, ['mode' => 'boolean']);
-            } elseif (! $nomor) {
-                $w->orWhere('tentang_dokumentasi', 'like', '%' . addcslashes($q, '%_\\') . '%');
-            }
-        });
-
-        return $fulltext ? ['MATCH(tentang_dokumentasi) AGAINST (? IN BOOLEAN MODE) DESC', [$ekspresi]] : null;
+        return $fulltext
+            ? fn (Builder $q) => $q->orderByRaw('MATCH(tentang_dokumentasi) AGAINST (? IN BOOLEAN MODE) DESC', [$ekspresi])
+            : null;
     }
 }
