@@ -68,7 +68,7 @@ php artisan serve
 Buka `http://localhost:8000`. Seeder membuat akun contoh untuk setiap peran (lihat `database/seeders/UserSeeder.php`).
 Untuk mengisi data contoh di semua tahap alur: `php artisan db:seed --class=DemoSeeder`.
 
-Halaman publik JDIH (pencarian produk hukum) tersedia di `/` dan `/produk-hukum`.
+Beranda publik SIFKUMDA ada di `/`; pencarian produk hukum untuk umum (JDIH) ada di `/produk-hukum`.
 
 ## Server Production
 
