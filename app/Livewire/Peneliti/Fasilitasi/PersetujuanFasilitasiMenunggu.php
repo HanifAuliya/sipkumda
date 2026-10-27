@@ -33,7 +33,9 @@ class PersetujuanFasilitasiMenunggu extends Component
 
     public function openDetailFasilitasi($fasilitasiId)
     {
+        // Hanya fasilitasi yang masih menunggu persetujuan
         $this->selectedFasilitasi = FasilitasiProdukHukum::with(['rancangan.user.perangkatDaerah', 'rancangan.revisi', 'notaDinas'])
+            ->where('status_berkas_fasilitasi', 'Menunggu Persetujuan')
             ->findOrFail($fasilitasiId);
         $this->statusBerkas = null;
         $this->catatan = null;

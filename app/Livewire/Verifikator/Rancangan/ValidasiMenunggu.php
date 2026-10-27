@@ -25,7 +25,9 @@ class ValidasiMenunggu extends Component
     public function openModalValidasiRancangan($idRancangan)
     {
         // Cari rancangan berdasarkan ID
+        // Hanya rancangan yang revisinya menunggu validasi
         $this->selectedRancangan = RancanganProdukHukum::with(['user.perangkatDaerah', 'revisi.peneliti'])
+            ->whereHas('revisi', fn ($query) => $query->where('status_revisi', 'Proses Revisi')->where('status_validasi', 'Menunggu Validasi'))
             ->findOrFail($idRancangan);
 
         // Reset form jika sebelumnya ada

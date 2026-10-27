@@ -47,7 +47,9 @@ class ValidasiMenunggu extends Component
     public function openModalValidasiFasilitasi($idFasilitasi)
     {
         // Cari fasilitasi berdasarkan ID
+        // Hanya fasilitasi yang masih menunggu validasi
         $this->selectedFasilitasi = FasilitasiProdukHukum::with(['rancangan.user.perangkatDaerah', 'notaDinas'])
+            ->where('status_validasi_fasilitasi', 'Menunggu Validasi')
             ->findOrFail($idFasilitasi);
 
         // Reset form jika sebelumnya ada

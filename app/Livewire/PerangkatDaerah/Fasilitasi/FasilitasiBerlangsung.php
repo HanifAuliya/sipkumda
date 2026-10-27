@@ -2,6 +2,8 @@
 
 namespace App\Livewire\PerangkatDaerah\Fasilitasi;
 
+use Livewire\Attributes\Locked;
+
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\WithoutUrlPagination;
@@ -29,6 +31,7 @@ class FasilitasiBerlangsung extends Component
     public $perPage = 10; // Default jumlah item per halaman
 
     // Upload Ulang
+    #[Locked]
     public $fasilitasiId;
     public $fileRancanganUlang;
 

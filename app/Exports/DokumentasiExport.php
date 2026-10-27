@@ -2,9 +2,11 @@
 
 namespace App\Exports;
 
+use App\Exports\Concerns\MencegahFormulaInjection;
 use App\Models\DokumentasiProdukHukum;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
@@ -14,8 +16,10 @@ use PhpOffice\PhpSpreadsheet\Style\Font;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 
-class DokumentasiExport implements FromCollection, WithHeadings, WithTitle, WithColumnWidths, WithStyles
+class DokumentasiExport implements FromCollection, WithHeadings, WithTitle, WithColumnWidths, WithStyles, WithCustomValueBinder
 {
+    use MencegahFormulaInjection;
+
     protected $search;
     protected $jenisRancangan;
     protected $tahun;

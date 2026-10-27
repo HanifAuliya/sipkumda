@@ -4,7 +4,7 @@
     </x-form.field>
 
     <x-form.field label="NIP" for="NIP">
-        <x-form.input id="NIP" wire:model="NIP" icon="person-badge" readonly disabled />
+        <x-form.input id="NIP" :value="$NIP" icon="person-badge" readonly disabled />
     </x-form.field>
 
     <x-form.field label="Email" for="email" error="email" required>

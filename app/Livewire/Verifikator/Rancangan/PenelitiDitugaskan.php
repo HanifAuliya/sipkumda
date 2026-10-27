@@ -43,6 +43,16 @@ class PenelitiDitugaskan extends Component
     {
         $rancangan = RancanganProdukHukum::find($idRancangan);
 
+        // Hanya akun ber-role Peneliti yang boleh ditunjuk.
+        if (! User::role('Peneliti')->whereKey($idPeneliti)->exists()) {
+            $this->dispatch('swal:modal', [
+                'type' => 'error',
+                'title' => 'Kesalahan',
+                'message' => 'Peneliti tidak valid.',
+            ]);
+            return;
+        }
+
         if (!$rancangan) {
             $this->dispatch('swal:modal', [
                 'type' => 'error',

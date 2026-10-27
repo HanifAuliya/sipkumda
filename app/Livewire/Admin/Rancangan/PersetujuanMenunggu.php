@@ -67,7 +67,10 @@ class PersetujuanMenunggu extends Component
 
     public function openModal($id)
     {
-        $this->selectedRancangan = RancanganProdukHukum::with(['user', 'perangkatDaerah'])->find($id);
+        // Hanya berkas yang masih menunggu persetujuan
+        $this->selectedRancangan = RancanganProdukHukum::with(['user', 'perangkatDaerah'])
+            ->where('status_berkas', 'Menunggu Persetujuan')
+            ->find($id);
         if (!$this->selectedRancangan || Gate::denies('view', $this->selectedRancangan)) {
             abort(403, 'Unauthorized access');
         }

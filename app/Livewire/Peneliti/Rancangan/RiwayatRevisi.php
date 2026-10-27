@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Peneliti\Rancangan;
 
+use Livewire\Attributes\Locked;
+
 use App\Models\RancanganProdukHukum;
 use Livewire\Component;
 use App\Models\Revisi;
@@ -24,6 +26,7 @@ class RiwayatRevisi extends Component
     public $selectedRevisi;
 
     public $revisiRancangan;
+    #[Locked]
     public $selectedRevisiId;
     public $revisiMatrik;
     public $catatanRevisi;

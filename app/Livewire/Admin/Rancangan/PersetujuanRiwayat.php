@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Admin\Rancangan;
 
+use Livewire\Attributes\Locked;
+
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\WithoutUrlPagination;
@@ -22,6 +24,7 @@ class PersetujuanRiwayat extends Component
 
     public $catatan;
     public $statusBerkas;
+    #[Locked]
     public $selectedRancanganId;
 
     public function openModal($id)

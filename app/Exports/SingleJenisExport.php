@@ -2,9 +2,11 @@
 
 namespace App\Exports;
 
+use App\Exports\Concerns\MencegahFormulaInjection;
 use App\Models\RancanganProdukHukum;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
@@ -21,8 +23,10 @@ use Maatwebsite\Excel\Concerns\WithCustomStartCell;
 
 use Carbon\Carbon;
 
-class SingleJenisExport implements FromCollection, WithHeadings, WithTitle, WithColumnWidths, WithStyles, WithColumnFormatting, WithCustomStartCell
+class SingleJenisExport implements FromCollection, WithHeadings, WithTitle, WithColumnWidths, WithStyles, WithColumnFormatting, WithCustomStartCell, WithCustomValueBinder
 {
+    use MencegahFormulaInjection;
+
     protected $tahun;
     protected $jenis;
 

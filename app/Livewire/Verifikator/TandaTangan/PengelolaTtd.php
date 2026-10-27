@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Verifikator\TandaTangan;
 
+use Livewire\Attributes\Locked;
+
 use App\Models\TandaTangan;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -16,6 +18,7 @@ class PengelolaTtd extends Component
     public $perPage = 5;
 
     // Form tambah/edit (editId null = tambah)
+    #[Locked]
     public $editId;
     public $nama_ttd, $nip_ttd, $jabatan, $status, $file_ttd;
     public $existingFile;

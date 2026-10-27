@@ -11,80 +11,74 @@ use Illuminate\Validation\ValidationException;
 
 class LoginRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
+    /** Percobaan gagal per kombinasi NIP + IP sebelum dikunci sementara. */
+    private const MAKS_PER_NIP = 5;
+
+    /** Percobaan gagal per IP (semua NIP) dalam 15 menit, mencegah tebak password massal. */
+    private const MAKS_PER_IP = 20;
+
     public function authorize(): bool
     {
         return true; // Semua pengguna diizinkan untuk mencoba login
     }
 
     /**
-     * Get the validation rules that apply to the request.
-     *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         return [
-            'combined_fields' => function ($attribute, $value, $fail) {
-                if (empty($this->NIP) || empty($this->password)) {
-                    $fail('NIP dan Password wajib diisi.');
-                }
-            },
+            'NIP' => ['required', 'string', 'max:50'],
+            'password' => ['required', 'string', 'max:255'],
         ];
     }
 
-
-    /**
-     * Custom error messages for validation.
-     */
     public function messages(): array
     {
         return [
-            'NIP.exists' => 'NIP atau Password salah.', // Ganti pesan default untuk validasi 'exists'
-            'NIP.required' => 'NIP wajib diisi.',       // Pesan jika NIP kosong
-            'password.required' => 'Password wajib diisi.', // Pesan jika password kosong
+            'NIP.required' => 'NIP wajib diisi.',
+            'password.required' => 'Password wajib diisi.',
         ];
     }
 
     /**
-     * Attempt to authenticate the request's credentials.
-     *
      * @throws \Illuminate\Validation\ValidationException
      */
     public function authenticate(): void
     {
         $this->ensureIsNotRateLimited();
 
-        // Autentikasi berdasarkan NIP dan password
         if (! Auth::attempt($this->only('NIP', 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
+            RateLimiter::hit($this->ipThrottleKey(), 15 * 60);
 
-            // Tampilkan pesan jika login gagal
             throw ValidationException::withMessages([
-                'NIP' => 'NIP atau Password salah.', // Pesan login gagal
+                'NIP' => 'NIP atau Password salah.',
             ]);
         }
 
+        // Kunci per IP sengaja tidak dihapus agar tidak bisa di-reset dengan login ke akun sendiri.
         RateLimiter::clear($this->throttleKey());
     }
 
-
     /**
-     * Ensure the login request is not rate limited.
-     *
      * @throws \Illuminate\Validation\ValidationException
      */
     public function ensureIsNotRateLimited(): void
     {
-        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 3)) { // Maks 5 percobaan login
+        $key = match (true) {
+            RateLimiter::tooManyAttempts($this->throttleKey(), self::MAKS_PER_NIP) => $this->throttleKey(),
+            RateLimiter::tooManyAttempts($this->ipThrottleKey(), self::MAKS_PER_IP) => $this->ipThrottleKey(),
+            default => null,
+        };
+
+        if (! $key) {
             return;
         }
 
         event(new Lockout($this));
 
-        $seconds = RateLimiter::availableIn($this->throttleKey());
+        $seconds = RateLimiter::availableIn($key);
 
         throw ValidationException::withMessages([
             'NIP' => trans('auth.throttle', [
@@ -94,11 +88,13 @@ class LoginRequest extends FormRequest
         ]);
     }
 
-    /**
-     * Get the rate limiting throttle key for the request.
-     */
     public function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->string('NIP')) . '|' . $this->ip()); // Gunakan NIP untuk identifikasi throttle
+        return Str::transliterate(Str::lower($this->string('NIP')) . '|' . $this->ip());
+    }
+
+    public function ipThrottleKey(): string
+    {
+        return 'login-ip|' . $this->ip();
     }
 }

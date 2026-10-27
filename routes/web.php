@@ -6,17 +6,15 @@ use App\Livewire\ProfileManagement;
 
 use Illuminate\Support\Facades\Route;
 
-use Illuminate\Support\Facades\Storage;
 use App\Livewire\Dokumentasi\MasterData;
-use Illuminate\Support\Facades\Response;
 use App\Livewire\Dokumentasi\Dokumentasi;
-use App\Http\Controllers\ProfileController;
 use App\Livewire\Rancangan\DaftarRancangan;
 use App\Livewire\Rancangan\TambahBahanPenting;
 use App\Livewire\Admin\NotaDinas\KelolaNotaDinas;
 
 use App\Livewire\Admin\Rancangan\PersetujuanMain;
 use App\Http\Controllers\DokumentasiPdfController;
+use App\Http\Controllers\PrivateFileController;
 use App\Livewire\Peneliti\Rancangan\RevisiRancangan;
 
 use App\Livewire\Verifikator\Rancangan\ValidasiMain;
@@ -32,8 +30,6 @@ use App\Livewire\Verifikator\Fasilitasi\ValidasiFasilitasi;
 use App\Livewire\Peneliti\Fasilitasi\PersetujuanFasilitasiMain;
 use App\Models\RancanganProdukHukum;
 use App\Models\DokumentasiProdukHukum;
-
-use App\Http\Controllers\Admin\PrediksiController;
 
 
 Route::get('/', function () {
@@ -95,32 +91,9 @@ Route::middleware('auth')->group(function () {
             ->name('revisi.rancangan');
     });
     // View Private Files
-    Route::get('/view-private/{folder}/{subfolder}/{filename}', function ($folder, $subfolder, $filename) {
-        // Periksa apakah user sudah login
-        if (!auth()->check()) {
-            abort(403, 'Unauthorized access.');
-        }
-
-        // Path lengkap file
-        $filePath = "{$folder}/{$subfolder}/{$filename}";
-
-        // Cek apakah file ada
-        if (!Storage::disk('local')->exists($filePath)) {
-            abort(404, 'File not found.');
-        }
-
-        // Ambil konten file
-        $fileContent = Storage::disk('local')->get($filePath);
-
-        // Tentukan MIME type berdasarkan ekstensi file
-        $mimeType = Storage::disk('local')->mimeType($filePath);
-
-        // Kembalikan file untuk ditampilkan di browser
-        return Response::make($fileContent, 200, [
-            'Content-Type' => $mimeType,
-            'Content-Disposition' => 'inline; filename="' . $filename . '"',
-        ]);
-    });
+    Route::get('/view-private/{folder}/{subfolder}/{filename}', PrivateFileController::class)
+        ->where(['folder' => '[a-z_]+', 'subfolder' => '[a-z_]+', 'filename' => '[^/\\\\]+'])
+        ->name('private-file');
 
     // Fasilitasi
     Route::middleware(['role:Verifikator'])->group(function () {

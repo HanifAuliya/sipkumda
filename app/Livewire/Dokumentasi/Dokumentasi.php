@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Dokumentasi;
 
+use Livewire\Attributes\Locked;
+
 use App\Exports\DokumentasiExport;
 use App\Models\DokumentasiProdukHukum;
 use App\Models\User;
@@ -36,7 +38,9 @@ class Dokumentasi extends Component
     ];
 
     // Form edit
+    #[Locked]
     public $editId;
+    #[Locked]
     public $editTahun;
     public $nomor;
     public $nomor_berita;

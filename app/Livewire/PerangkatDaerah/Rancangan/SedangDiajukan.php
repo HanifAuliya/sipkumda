@@ -2,6 +2,8 @@
 
 namespace App\Livewire\PerangkatDaerah\Rancangan;
 
+use Livewire\Attributes\Locked;
+
 use Livewire\Component;
 use App\Models\RancanganProdukHukum;
 use Livewire\WithPagination;
@@ -25,6 +27,7 @@ class SedangDiajukan extends Component
     public $perPage  = 3;
 
     public $jenisRancangan;
+    #[Locked]
     public $selectedRancanganId;
     public $selectedRancangan;
     public $fileRancangan;
@@ -101,7 +104,8 @@ class SedangDiajukan extends Component
 
     public function openUploadUlangModal($id)
     {
-        $rancangan = RancanganProdukHukum::findOrFail($id);
+        // Hanya rancangan milik pengguna yang sedang login
+        $rancangan = RancanganProdukHukum::where('id_user', auth()->id())->findOrFail($id);
         $this->selectedRancanganId = $rancangan->id_rancangan;
         $this->tanggalNota         = $rancangan->tanggal_nota;
         $this->nomorNota           = $rancangan->nomor_nota;
@@ -123,7 +127,7 @@ class SedangDiajukan extends Component
             'nomorNota'          => 'required|string|max:255',
         ]);
 
-        $rancangan = RancanganProdukHukum::find($this->selectedRancanganId);
+        $rancangan = RancanganProdukHukum::where('id_user', auth()->id())->find($this->selectedRancanganId);
 
         if (!$rancangan) {
             $this->dispatch('swal:modal', [
