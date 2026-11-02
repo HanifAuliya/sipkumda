@@ -62,8 +62,10 @@
 <x-publik-layout :transparan="true">
     {{-- Hero --}}
     <section class="relative isolate overflow-hidden bg-navy-950 pt-32 pb-24 sm:pt-40 lg:pb-32">
-        <img src="{{ asset('assets/img/theme/sulangking.jpg') }}" alt="" class="absolute inset-0 -z-20 size-full object-cover opacity-30" fetchpriority="high">
-        <div class="absolute inset-0 -z-10 bg-linear-to-br from-navy-950 via-navy-950/90 to-primary-900/70"></div>
+        <img src="{{ asset('assets/img/theme/sulangking.jpg') }}" alt="" class="absolute inset-0 -z-20 size-full object-cover opacity-70" fetchpriority="high">
+        {{-- Gelap di sisi teks, lebih terang di sisi kanan agar gambar latar tetap terlihat. --}}
+        <div class="absolute inset-0 -z-10 bg-linear-to-r from-navy-950/95 via-navy-950/75 to-navy-950/40"></div>
+        <div class="absolute inset-x-0 bottom-0 -z-10 h-40 bg-linear-to-t from-navy-950/80 to-transparent"></div>
         <div class="pointer-events-none absolute -top-40 -right-40 -z-10 size-[32rem] rounded-full bg-primary-500/20 blur-3xl"></div>
         <div class="pointer-events-none absolute -bottom-48 -left-24 -z-10 size-[28rem] rounded-full bg-brand-500/15 blur-3xl"></div>
 
@@ -99,7 +101,8 @@
             {{-- Ilustrasi pelacakan status (dekoratif) --}}
             <div class="relative mx-auto w-full max-w-md lg:max-w-none" aria-hidden="true">
                 <div class="absolute -inset-4 rounded-[2rem] bg-linear-to-br from-primary-500/30 to-brand-500/20 blur-2xl"></div>
-                <div class="relative rounded-3xl bg-white/95 p-6 shadow-2xl ring-1 ring-white/20 backdrop-blur dark:bg-navy-900/95">
+                {{-- Ruang ekstra atas/bawah (sm:pt-12 / sm:pb-14) untuk chip & kartu notifikasi yang menempel, agar tidak menutupi isi. --}}
+                <div class="relative rounded-3xl bg-white/95 p-6 shadow-2xl ring-1 ring-white/20 backdrop-blur sm:pt-12 sm:pb-14 dark:bg-navy-900/95">
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-xs font-semibold tracking-wider text-slate-400 uppercase">Rancangan Peraturan Bupati</p>
@@ -129,11 +132,11 @@
                     </div>
                 </div>
 
-                <div class="absolute -bottom-12 -left-6 hidden items-center gap-3 rounded-2xl bg-white p-3 pr-5 shadow-xl ring-1 ring-slate-100 sm:flex dark:bg-navy-900 dark:ring-navy-800">
+                <div class="absolute -bottom-7 -left-6 hidden items-center gap-3 rounded-2xl bg-white p-3 pr-5 shadow-xl ring-1 ring-slate-100 sm:flex dark:bg-navy-900 dark:ring-navy-800">
                     <span class="grid size-10 place-items-center rounded-xl bg-emerald-50 text-xl text-emerald-600 dark:bg-emerald-500/15"><i class="bi bi-bell"></i></span>
                     <span class="text-xs leading-tight"><strong class="block text-navy-900 dark:text-white">Notifikasi baru</strong><span class="text-slate-500">Hasil penelitian siap divalidasi</span></span>
                 </div>
-                <div class="absolute -top-5 left-6 hidden items-center gap-2 rounded-2xl bg-white px-4 py-2.5 shadow-xl ring-1 ring-slate-100 sm:flex dark:bg-navy-900 dark:ring-navy-800">
+                <div class="absolute -top-5 right-6 hidden items-center gap-2 rounded-2xl bg-white px-4 py-2.5 shadow-xl ring-1 ring-slate-100 sm:flex dark:bg-navy-900 dark:ring-navy-800">
                     <i class="bi bi-patch-check-fill text-primary-500"></i>
                     <span class="text-xs font-semibold text-navy-900 dark:text-white">Berkas lengkap</span>
                 </div>
