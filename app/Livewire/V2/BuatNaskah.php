@@ -50,7 +50,7 @@ class BuatNaskah extends Component
         // Dibaca sebelum menyimpan apa pun: file rusak cukup memberi pesan, tanpa naskah setengah jadi.
         if ($this->word) {
             try {
-                $baris = $pembaca->baca($this->word->getRealPath(), $this->jenis)['baris'];
+                $baris = TemplateNaskah::denganPenutup($pembaca->baca($this->word->getRealPath(), $this->jenis)['baris'], $this->jenis);
             } catch (RuntimeException $e) {
                 throw ValidationException::withMessages(['word' => $e->getMessage()]);
             }

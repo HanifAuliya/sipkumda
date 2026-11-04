@@ -19,6 +19,12 @@
                     @class(['rounded-lg px-3 py-1.5 font-medium transition', 'bg-white/10 text-white' => request()->routeIs('v2.beranda'), 'text-white/60 hover:text-white' => ! request()->routeIs('v2.beranda')])>
                     Pekerjaan
                 </a>
+                @hasanyrole('Admin|Verifikator|Super Admin')
+                    <a href="{{ route('v2.pengaturan') }}" wire:navigate
+                        @class(['rounded-lg px-3 py-1.5 font-medium transition', 'bg-white/10 text-white' => request()->routeIs('v2.pengaturan'), 'text-white/60 hover:text-white' => ! request()->routeIs('v2.pengaturan')])>
+                        Pengaturan
+                    </a>
+                @endhasanyrole
             </nav>
 
             <div class="ml-auto flex items-center gap-4 text-sm">

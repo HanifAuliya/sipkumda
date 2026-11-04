@@ -192,48 +192,15 @@
                 </div>
             </div>
         @elseif ($tab === 'naskah')
-            {{-- Bentuk naskah bila dicetak saat ini: kolom 4 kalau terisi, selain itu kolom 3 --}}
-            @php $serif = "font-['Bookman_Old_Style',Georgia,'Times_New_Roman',serif]"; @endphp
-            <div class="mx-auto max-w-3xl bg-white px-8 py-12 text-[0.95rem] leading-relaxed text-black shadow-card sm:px-16 {{ $serif }}">
-                <p class="text-center font-bold">BUPATI HULU SUNGAI TENGAH</p>
-                @php $sebelumnya = null; @endphp
-                @foreach ($isiNaskah as $baris)
-                    @php $teks = $baris->teksAkhir(); @endphp
-                    @continue($teks === null || ($baris->bagian === 'lampiran' && blank($teks)))
-
-                    @if ($baris->bagian !== $sebelumnya)
-                        @if ($sebelumnya === 'judul')
-                            @if ($naskah->jenis === 'Peraturan Bupati')
-                                <p class="mt-6 text-center">DENGAN RAHMAT TUHAN YANG MAHA ESA</p>
-                            @endif
-                            <p class="mt-6 text-center">BUPATI HULU SUNGAI TENGAH,</p>
-                        @endif
-                        @if ($baris->bagian === 'menimbang') <p class="mt-6 font-semibold">Menimbang :</p> @endif
-                        @if ($baris->bagian === 'mengingat') <p class="mt-6 font-semibold">Mengingat :</p> @endif
-                        @if ($baris->bagian === 'diktum' && $naskah->jenis === 'Surat Keputusan')
-                            <p class="mt-6 text-center">MEMUTUSKAN :</p>
-                            <p class="mt-2">Menetapkan :</p>
-                        @endif
-                        @php $sebelumnya = $baris->bagian; @endphp
-                    @endif
-
-                    @if ($baris->bagian === 'judul')
-                        <p class="mt-6 text-center whitespace-pre-line">{{ $teks }}</p>
-                    @elseif (in_array($baris->bagian, ['menimbang', 'mengingat'], true))
-                        <p class="mt-2 flex gap-3 text-justify"><span class="shrink-0">{{ $penanda[$baris->id] }}</span><span class="whitespace-pre-line">{{ $teks }}</span></p>
-                    @elseif ($baris->bagian === 'diktum' && $naskah->jenis === 'Surat Keputusan')
-                        <p class="mt-3 grid grid-cols-[7rem_1fr] gap-3 text-justify"><span>{{ $penanda[$baris->id] }} :</span><span class="whitespace-pre-line">{{ $teks }}</span></p>
-                    @elseif ($baris->bagian === 'batang_tubuh' && $baris->label)
-                        <p @class(['mt-6 text-center', 'font-semibold' => str_starts_with($baris->label, 'BAB')])>{{ $baris->label }}</p>
-                        <p @class(['mt-2 whitespace-pre-line', 'text-center' => ! str_starts_with($baris->label, 'Pasal'), 'text-justify' => str_starts_with($baris->label, 'Pasal')])>{{ $teks }}</p>
-                    @elseif ($baris->bagian === 'penutup')
-                        <p class="mt-10 ml-auto w-72 whitespace-pre-line">{{ $teks }}</p>
-                    @else
-                        <p class="mt-4 text-justify whitespace-pre-line">{{ $teks }}</p>
-                    @endif
-                @endforeach
+            <div class="mx-auto mb-4 flex max-w-3xl flex-wrap items-center justify-between gap-2">
+                <p class="text-xs text-slate-500 dark:text-slate-400">Bentuk naskah bila dicetak saat ini. Nomor, tanggal, dan tanda tangan diisi saat penandatanganan basah.</p>
+                <div class="flex flex-wrap gap-2">
+                    <x-ui.button size="sm" variant="outline" icon="file-earmark-word" :href="route('v2.naskah.cetak', [$naskah, 'naskah-word'])">Naskah Word</x-ui.button>
+                    <x-ui.button size="sm" variant="outline" icon="file-earmark-pdf" :href="route('v2.naskah.cetak', [$naskah, 'naskah-pdf'])">Naskah PDF</x-ui.button>
+                    <x-ui.button size="sm" variant="outline" icon="table" :href="route('v2.naskah.cetak', [$naskah, 'matriks-pdf'])">Matriks PDF</x-ui.button>
+                </div>
             </div>
-            <p class="mt-3 text-center text-xs text-slate-500">Pratinjau isi. Tata letak cetak Word dan PDF menyusul.</p>
+            @include('v2.partials.isi-naskah', ['blok' => $blokNaskah])
         @elseif ($tab === 'berkas')
             <div class="mx-auto max-w-3xl space-y-4">
                 <div class="divide-y divide-slate-100 overflow-hidden rounded-xl bg-white ring-1 ring-slate-200/70 dark:divide-navy-800 dark:bg-navy-900 dark:ring-navy-800">

@@ -6,6 +6,7 @@ use App\Models\Naskah;
 use App\Models\NaskahBaris;
 use App\Models\User;
 use App\Services\AlurNaskah;
+use App\Support\TemplateNaskah;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Storage;
 use RuntimeException;
@@ -96,7 +97,7 @@ class V2DemoSeeder extends Seeder
                 'tanggal_nota' => now(),
             ]);
 
-            $alur->isiBaris($naskah, $baris);
+            $alur->isiBaris($naskah, TemplateNaskah::denganPenutup($baris, $jenis));
 
             $path = "naskah/{$naskah->slug}/nota-dinas.pdf";
             Storage::disk('local')->put($path, '%PDF-1.4 contoh');

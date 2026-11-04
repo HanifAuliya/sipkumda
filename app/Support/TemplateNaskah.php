@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Models\Naskah;
 use App\Models\NaskahBaris;
+use App\Models\Pengaturan;
 use Illuminate\Support\Collection;
 
 /**
@@ -39,7 +40,7 @@ class TemplateNaskah
     public static function kerangka(string $jenis, string $tentang): array
     {
         $tentang = mb_strtoupper($tentang);
-        $penutup = "Ditetapkan di Barabai\npada tanggal ...";
+        $penutup = self::penutup($jenis);
 
         if ($jenis === 'Surat Keputusan') {
             return [
@@ -62,6 +63,44 @@ class TemplateNaskah
             ['bagian' => 'penutup', 'label' => null, 'teks' => $penutup],
             ['bagian' => 'lampiran', 'label' => null, 'teks' => ''],
         ];
+    }
+
+    /**
+     * Teks penutup dengan nama pejabat dari Pengaturan. Tanggal dan nomor dikosongkan,
+     * karena diisi saat penandatanganan basah.
+     */
+    public static function penutup(string $jenis): string
+    {
+        $titik = '.......................';
+        $bupati = Pengaturan::ambil(Pengaturan::NAMA_BUPATI, $titik);
+
+        $ditetapkan = "Ditetapkan di Barabai\npada tanggal ...\nBUPATI HULU SUNGAI TENGAH,\n\n\n\n{$bupati}";
+
+        if ($jenis === 'Surat Keputusan') {
+            return $ditetapkan;
+        }
+
+        $sekda = Pengaturan::ambil(Pengaturan::NAMA_SEKDA, $titik);
+
+        return "{$ditetapkan}\n\nDiundangkan di Barabai\npada tanggal ...\nSEKRETARIS DAERAH\nKABUPATEN HULU SUNGAI TENGAH,\n\n\n\n{$sekda}"
+            . "\n\nBERITA DAERAH KABUPATEN HULU SUNGAI TENGAH TAHUN ... NOMOR ...";
+    }
+
+    /**
+     * Mengganti penutup hasil pembacaan Word: nama pejabat di file bisa sudah usang.
+     *
+     * @param  array<int, array{bagian: string, label: ?string, teks: ?string}>  $baris
+     */
+    public static function denganPenutup(array $baris, string $jenis): array
+    {
+        $baru = ['bagian' => 'penutup', 'label' => null, 'teks' => self::penutup($jenis)];
+        $hasil = array_values(array_filter($baris, fn ($b) => $b['bagian'] !== 'penutup'));
+
+        // Penutup berada tepat sebelum baris Lampiran.
+        $posisi = array_search('lampiran', array_column($hasil, 'bagian'), true);
+        array_splice($hasil, $posisi === false ? count($hasil) : $posisi, 0, [$baru]);
+
+        return $hasil;
     }
 
     /**

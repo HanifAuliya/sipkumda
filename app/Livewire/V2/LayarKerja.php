@@ -8,6 +8,7 @@ use App\Models\NaskahBaris as B;
 use App\Models\NaskahBerkas;
 use App\Models\User;
 use App\Services\AlurNaskah;
+use App\Support\TataLetakNaskah;
 use App\Support\TemplateNaskah;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -186,7 +187,7 @@ class LayarKerja extends Component
             'aksi' => $alur->aksiTersedia($this->naskah, $user),
             'peneliti' => $this->aksiTerpilih === 'tugaskan_peneliti' ? User::role('Peneliti')->orderBy('nama_user')->get(['id', 'nama_user']) : collect(),
             'bolehUnggah' => $this->bolehUnggah($alur),
-            'isiNaskah' => $this->tab === 'naskah' ? $this->naskah->baris()->get() : collect(),
+            'blokNaskah' => $this->tab === 'naskah' ? TataLetakNaskah::susun($this->naskah, $this->naskah->baris()->get()) : [],
             'berkas' => $this->tab === 'berkas' ? $this->naskah->berkas()->with('pengunggah:id,nama_user')->get() : collect(),
             'riwayat' => $this->tab === 'riwayat' ? $this->naskah->riwayat()->with(['user:id,nama_user', 'baris:id,label,bagian'])->limit(200)->get() : collect(),
             'versi' => $this->tab === 'riwayat' ? $this->naskah->versi()->with('user:id,nama_user')->get(['id', 'naskah_id', 'versi', 'tahap', 'user_id', 'created_at']) : collect(),
