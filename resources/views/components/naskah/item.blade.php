@@ -6,7 +6,8 @@
 
 @php
     $tahap = $naskah->tahap;
-    $jenisPesan = ['warning' => 'warning', 'info' => 'navy', 'success' => 'success'][$tahap->warna()] ?? 'primary';
+    // Pesan biasa memakai ungu lembut tema; oranye dan hijau hanya untuk yang perlu tindakan atau sudah selesai.
+    $jenisPesan = in_array($tahap->warna(), ['warning', 'success'], true) ? $tahap->warna() : 'primary';
     $ikon = match (true) {
         $tahap === App\Enums\TahapNaskah::Selesai => 'check-circle',
         $tahap->terkunci() => 'lock',
@@ -47,7 +48,7 @@
 
         <div class="flex shrink-0 flex-col items-start gap-2.5 lg:min-w-52 lg:items-end lg:text-right">
             <x-ui.badge :color="$tahap->warna()" size="lg" :icon="$ikon">{{ $tahap->label() }}</x-ui.badge>
-            <p class="text-xs text-slate-500">Dibuat tahun {{ $naskah->created_at->year }}</p>
+            <p class="text-sm text-slate-500 dark:text-slate-400">Dibuat tahun {{ $naskah->created_at->year }}</p>
             <x-naskah.detail-button :naskah="$naskah" label="Detail" />
         </div>
     </div>

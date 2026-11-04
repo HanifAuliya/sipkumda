@@ -107,7 +107,7 @@
         </div>
 
         <div class="ml-auto flex shrink-0 items-center gap-1">
-            @include('layouts.partials.menu-pengguna')
+            @include('layouts.partials.menu-pengguna', ['modeV2' => true])
         </div>
     </header>
 
@@ -325,7 +325,11 @@
 
                 <x-ui.card :padding="false"
                     :title="$blokAktif['nama'].($blokAktif['sub'] ? ': '.$blokAktif['sub'] : '')"
-                    :description="$mode === A::MODE_SUSUN ? TemplateNaskah::PETUNJUK[$blokAktif['bagian']] : null">
+                    :description="match ($mode) {
+                        A::MODE_SUSUN => TemplateNaskah::PETUNJUK[$blokAktif['bagian']],
+                        A::MODE_TELITI => 'Tetap bila rumusan sudah benar. Ubah bila Anda bisa memperbaikinya sendiri. Minta PD Perbaiki bila hanya PD yang tahu isinya, misalnya data atau besaran.',
+                        default => null,
+                    }">
                     @if ($tahap !== TahapNaskah::Draf && $mode !== A::MODE_SESUAIKAN)
                         <x-slot:actions>
                             <x-ui.badge :color="$selesaiBlok === count($blokAktif['ids']) ? 'success' : 'slate'" size="lg">{{ $selesaiBlok }} dari {{ count($blokAktif['ids']) }} baris diperiksa</x-ui.badge>

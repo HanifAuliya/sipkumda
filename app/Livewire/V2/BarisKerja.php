@@ -50,9 +50,10 @@ class BarisKerja extends Component
         $this->jalankan(fn () => $alur->hapus($this->baris, auth()->user(), $keterangan));
     }
 
-    public function mintaPd(?string $teks, ?string $keterangan, AlurNaskah $alur): void
+    /** @return bool berhasil atau tidak, supaya panel arahan tetap terbuka saat isiannya ditolak */
+    public function mintaPd(?string $teks, ?string $keterangan, AlurNaskah $alur): bool
     {
-        $this->jalankan(fn () => $alur->mintaPerbaikan($this->baris, auth()->user(), $keterangan, $teks));
+        return $this->jalankan(fn () => $alur->mintaPerbaikan($this->baris, auth()->user(), $keterangan, $teks));
     }
 
     public function simpanSesuaian(?string $teks, AlurNaskah $alur): void

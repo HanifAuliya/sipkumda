@@ -24,6 +24,8 @@
 <article id="baris-{{ $baris->id }}" data-baris="{{ $baris->id }}"
     x-data="{
         ubah: false,
+        minta: false,
+        ketSemula: '',
         sorotan: false,
         label: @js((string) $baris->label),
         teks: @js($sempurna !== '' ? $sempurna : $awal),
@@ -37,6 +39,8 @@
         {{-- x-show baru menampilkan editor setelah microtask, jadi $nextTick kadang masih terlalu awal. --}}
         buka() { this.ubah = true; setTimeout(() => this.$refs.editor.focus(), 30); },
         batal() { this.ubah = false; this.teks = this.semula; },
+        bukaMinta() { this.ketSemula = this.ket; this.minta = true; setTimeout(() => this.$refs.arahan.focus(), 30); },
+        batalMinta() { this.minta = false; this.ket = this.ketSemula; this.$wire.$refresh(); },
         selesai() { this.ubah = false; this.semula = this.teks; },
         kembalikan() { this.teks = this.semula = @js($awal); },
         {{-- Diberi event input supaya simpan otomatis saat menyusun ikut berjalan. --}}
@@ -135,6 +139,8 @@
                         <span class="font-sans font-semibold text-emerald-600 dark:text-emerald-300">Tetap</span>
                     @elseif ($sempurna !== '')
                         @include('v2.partials.rumusan', ['teks' => $sempurna, 'lama' => $awal])
+                    @elseif ($status === B::PERLU_PD)
+                        <span class="font-sans text-sm font-semibold text-orange-600 dark:text-orange-300">Menunggu perbaikan PD</span>
                     @else
                         <span class="font-sans text-sm text-slate-400">Belum ada penyempurnaan</span>
                     @endif
@@ -159,7 +165,7 @@
                 @enderror
             </div>
 
-            <div class="min-w-0 @xl:col-span-2 @5xl:col-span-1">
+            <div class="min-w-0 @xl:col-span-2 @5xl:col-span-1" x-show="!minta">
                 @if ($mode && $mode !== A::MODE_SESUAIKAN)
                     <label class="{{ $judulKolom }}" for="ket-{{ $baris->id }}">Keterangan</label>
                     <textarea id="ket-{{ $baris->id }}" x-model="ket" rows="4" placeholder="Alasan atau arahan untuk Perangkat Daerah" class="{{ $bidang }} mt-1.5"></textarea>
@@ -173,8 +179,33 @@
             </div>
         </div>
 
+        @if ($mode === A::MODE_TELITI)
+            {{-- Dibuka tombol Minta PD Perbaiki: kapan dipakai, apa yang ditulis, dan apa yang terjadi sesudahnya. --}}
+            <div x-show="minta" x-cloak class="mt-4 rounded-xl bg-primary-50 p-4 ring-1 ring-primary-100 ring-inset dark:bg-primary-500/10 dark:ring-primary-500/20">
+                <p class="text-sm font-semibold text-navy-900 dark:text-white">Minta PD memperbaiki baris ini</p>
+                <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">
+                    Pakai ini bila hanya PD yang tahu isinya, misalnya data, besaran, atau dasar kebijakan. Bila Anda bisa merumuskannya sendiri, pilih Batal lalu Ubah.
+                </p>
+
+                <label class="{{ $judulKolom }} mt-3" for="arahan-{{ $baris->id }}">Apa yang perlu diperbaiki PD?</label>
+                <textarea id="arahan-{{ $baris->id }}" x-ref="arahan" x-model="ket" rows="3" placeholder="Contoh: Mohon lengkapi besaran tarif dan dasar perhitungannya." class="{{ $bidang }} mt-1.5"></textarea>
+                @error('keterangan')
+                    <p class="mt-1 text-sm font-medium text-rose-600 dark:text-rose-300">{{ $message }}</p>
+                @enderror
+
+                <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                    Belum langsung terkirim. Baris ini ditandai dulu, lalu semua baris bertanda dikirim sekaligus lewat tombol Kirim ke PD setelah seluruh baris diperiksa.
+                </p>
+
+                <div class="mt-3 flex flex-wrap justify-end gap-2">
+                    <x-ui.button size="rapat" variant="outline" x-on:click="batalMinta()">Batal</x-ui.button>
+                    <x-ui.button size="rapat" icon="check2" x-on:click="$wire.mintaPd(null, ket).then((berhasil) => { if (berhasil) minta = false; })">Tandai untuk PD</x-ui.button>
+                </div>
+            </div>
+        @endif
+
         @if ($mode === A::MODE_TELITI || $mode === A::MODE_KOREKSI)
-            <div class="mt-4 flex flex-wrap items-center justify-between gap-2" x-show="!ubah">
+            <div class="mt-4 flex flex-wrap items-center justify-between gap-2" x-show="!ubah && !minta">
                 <div class="flex flex-wrap gap-2">
                     @if ($mode === A::MODE_TELITI && $bisaDiatur)
                         <x-ui.button size="rapat" variant="ghost" icon="plus-lg" wire:click="tambah">Sisipkan Baris</x-ui.button>
@@ -187,11 +218,11 @@
                 </div>
                 <div class="ml-auto flex flex-wrap justify-end gap-2">
                     @if ($mode === A::MODE_TELITI)
-                        <x-ui.button size="rapat" variant="outline" icon="person-exclamation" x-on:click="$wire.mintaPd(null, ket)">Minta PD Perbaiki</x-ui.button>
+                        <x-ui.button size="rapat" variant="outline" icon="person-exclamation" title="Hanya PD yang tahu isinya, misalnya data atau besaran" x-on:click="bukaMinta()">{{ $status === B::PERLU_PD ? 'Ubah Arahan ke PD' : 'Minta PD Perbaiki' }}</x-ui.button>
                     @endif
-                    <x-ui.button size="rapat" variant="outline-primary" icon="pencil" x-on:click="buka()">Ubah</x-ui.button>
+                    <x-ui.button size="rapat" variant="outline-primary" icon="pencil" title="Anda perbaiki sendiri rumusannya" x-on:click="buka()">Ubah</x-ui.button>
                     @unless ($baris->sisipan())
-                        <x-ui.button size="rapat" variant="primary" icon="check2" x-on:click="$wire.tetap(ket).then(() => kembalikan())">Tetap</x-ui.button>
+                        <x-ui.button size="rapat" variant="primary" icon="check2" title="Rumusan sudah benar, tidak perlu diubah" x-on:click="$wire.tetap(ket).then(() => kembalikan())">Tetap</x-ui.button>
                     @endunless
                 </div>
             </div>

@@ -24,7 +24,7 @@
         @endif
 
         <div class="ml-auto flex items-center gap-1 sm:gap-2">
-            @include('layouts.partials.menu-pengguna')
+            @include('layouts.partials.menu-pengguna', ['modeV2' => $modeV2])
         </div>
     </div>
 </header>

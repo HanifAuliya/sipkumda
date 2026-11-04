@@ -1,9 +1,11 @@
 <?php
 
 use App\Enums\TahapNaskah as T;
+use App\Livewire\NotificationDropdown;
 use App\Livewire\V2\BarisKerja;
 use App\Livewire\V2\BuatNaskah;
 use App\Livewire\V2\LayarKerja;
+use App\Livewire\V2\Lonceng;
 use App\Livewire\V2\PratinjauNaskah;
 use App\Models\Naskah;
 use App\Models\NaskahBaris as B;
@@ -729,11 +731,65 @@ describe('bagian wajib dan lembar kerja', function () {
         $this->actingAs($this->peneliti)->get(route('v2.beranda'))->assertOk()->assertSeeHtml('sticky top-0 z-30');
     });
 
+    it('lonceng lembar kerja tetap lonceng v2, juga saat halaman dirender ulang', function () {
+        $n = naskahPenelitian($this);
+
+        Livewire::actingAs($this->peneliti)
+            ->test(LayarKerja::class, ['naskah' => $n])
+            ->assertSeeLivewire(Lonceng::class)
+            ->assertDontSeeLivewire(NotificationDropdown::class)
+            ->call('pilihBlok', 'menimbang')
+            ->assertDontSeeLivewire(NotificationDropdown::class);
+    });
+
     it('badge Surat Keputusan berbeda warna dari Peraturan Bupati', function () {
         $sk = naskahDraf($this->pd, 'Surat Keputusan');
 
         $this->actingAs($this->pd)->get(route('v2.naskah.kerja', $sk))->assertOk()
             ->assertSee('Surat Keputusan')
             ->assertSeeHtml('bg-accent-500');
+    });
+});
+
+describe('minta PD perbaiki', function () {
+    it('tombolnya membuka panel berisi penjelasan, dan bagian memuat panduan tiga tombol', function () {
+        $n = naskahPenelitian($this);
+        $baris = $n->baris()->where('bagian', 'menimbang')->first();
+
+        Livewire::actingAs($this->peneliti)
+            ->test(BarisKerja::class, ['baris' => $baris, 'naskah' => $n])
+            ->assertSee(['Apa yang perlu diperbaiki PD?', 'hanya PD yang tahu isinya', 'Belum langsung terkirim', 'Tandai untuk PD']);
+
+        Livewire::actingAs($this->peneliti)
+            ->test(LayarKerja::class, ['naskah' => $n, 'blok' => 'menimbang'])
+            ->assertSee('Minta PD Perbaiki bila hanya PD yang tahu isinya');
+    });
+
+    it('arahan kosong ditolak dan melaporkan gagal, arahan terisi menandai baris', function () {
+        $n = naskahPenelitian($this);
+        $baris = $n->baris()->where('bagian', 'menimbang')->first();
+
+        $komponen = Livewire::actingAs($this->peneliti)->test(BarisKerja::class, ['baris' => $baris, 'naskah' => $n]);
+
+        $komponen->call('mintaPd', null, '')->assertReturned(false)->assertHasErrors('keterangan');
+        expect($baris->fresh()->status)->toBe(B::BELUM);
+
+        $komponen->call('mintaPd', null, 'Lengkapi besaran')->assertReturned(true)->assertHasNoErrors()
+            ->assertSee(['Menunggu perbaikan PD', 'Ubah Arahan ke PD']);
+
+        expect($baris->fresh()->status)->toBe(B::PERLU_PD)
+            ->and($baris->fresh()->keterangan)->toBe('Lengkapi besaran');
+    });
+
+    it('panel tidak ada untuk Verifikator yang mengoreksi', function () {
+        $n = naskahPenelitian($this);
+        $baris = $n->baris()->where('bagian', 'menimbang')->first();
+        $n->update(['tahap' => T::ValidasiFasilitasi]);
+
+        Livewire::actingAs($this->verifikator)
+            ->test(BarisKerja::class, ['baris' => $baris, 'naskah' => $n->fresh()])
+            ->assertSee('Ubah')
+            ->assertDontSee('Tandai untuk PD')
+            ->assertDontSee('Minta PD Perbaiki');
     });
 });
