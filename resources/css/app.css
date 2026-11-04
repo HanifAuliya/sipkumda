@@ -64,6 +64,26 @@
     }
 }
 
+/* Penanda perubahan pada rumusan penyempurnaan (v2). */
+.v2-diff del {
+    background: rgb(244 63 94 / 0.15);
+    color: #be123c;
+}
+
+.v2-diff ins {
+    background: rgb(16 185 129 / 0.18);
+    color: #047857;
+    text-decoration: none;
+}
+
+.dark .v2-diff del {
+    color: #fda4af;
+}
+
+.dark .v2-diff ins {
+    color: #6ee7b7;
+}
+
 @layer base {
     html {
         -webkit-tap-highlight-color: transparent;
