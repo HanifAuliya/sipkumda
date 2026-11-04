@@ -26,7 +26,10 @@
         .teks { white-space: pre-line; text-align: left; }
         .penanda { font-weight: bold; }
         .ttd { margin-top: 18pt; margin-left: 65%; text-align: center; page-break-inside: avoid; }
+        .ttd p { margin: 0; }
         .ttd .ruang { height: 60pt; }
+        .ttd .gambar-ttd { height: 60pt; }
+        .ttd .nama { font-weight: bold; text-decoration: underline; }
     </style>
 </head>
 
@@ -34,12 +37,14 @@
     <div class="lampiran">
         Lampiran Nota Dinas Kepala Bagian Hukum Setda Kabupaten Hulu Sungai Tengah
         <table>
-            <tr><td>Nomor</td><td>:</td><td>............................</td></tr>
-            <tr><td>Tanggal</td><td>:</td><td>............................</td></tr>
+            <tr><td>Nomor</td><td>:</td><td>{{ $nota?->nomor_nota ?? '............................' }}</td></tr>
+            <tr><td>Tanggal</td><td>:</td><td>{{ $nota?->tanggal_nota->translatedFormat('j F Y') ?? '............................' }}</td></tr>
         </table>
     </div>
 
-    <div class="draf">DRAF: belum ditandatangani Kepala Bagian Hukum</div>
+    @unless ($nota)
+        <div class="draf">DRAF: belum ditandatangani Kepala Bagian Hukum</div>
+    @endunless
 
     <div class="judul">
         <p>MATRIK RANCANGAN {{ $judul }} KABUPATEN HULU SUNGAI TENGAH</p>
@@ -80,8 +85,18 @@
 
     <div class="ttd">
         <p>KEPALA BAGIAN HUKUM</p>
-        <div class="ruang"></div>
-        <p>............................</p>
+        @if ($nota?->pathTandaTangan())
+            <img src="{{ $nota->pathTandaTangan() }}" alt="Tanda Tangan" class="gambar-ttd">
+        @else
+            <div class="ruang"></div>
+        @endif
+        @if ($nota)
+            <p class="nama">{{ $nota->tandaTangan->nama_ttd }}</p>
+            <p>{{ $nota->tandaTangan->jabatan }}</p>
+            <p>NIP {{ $nota->tandaTangan->nip_ttd }}</p>
+        @else
+            <p>............................</p>
+        @endif
     </div>
 </body>
 

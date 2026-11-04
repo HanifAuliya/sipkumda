@@ -54,6 +54,18 @@
             </div>
         @else
             @foreach ($b['baris'] as $baris)
+                @if (isset($baris['tabel']))
+                    <table class="my-2 w-full border-collapse text-sm">
+                        @foreach ($baris['tabel'] as $sel)
+                            <tr>
+                                @foreach ($sel as $isi)
+                                    <td class="border border-black px-2 py-1 align-top">{{ $isi }}</td>
+                                @endforeach
+                            </tr>
+                        @endforeach
+                    </table>
+                    @continue
+                @endif
                 <div class="mb-1 flex gap-3 text-justify" style="margin-left: {{ $baris['tingkat'] * 1.75 }}rem">
                     @if ($baris['nomor'] !== null)
                         <span class="w-8 shrink-0">{{ $baris['nomor'] }}</span>

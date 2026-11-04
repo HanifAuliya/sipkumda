@@ -42,6 +42,10 @@
                 </div>
 
                 <div class="flex flex-wrap items-center justify-end gap-2">
+                    @if ($tahap === TahapNaskah::Draf && $naskah->pemrakarsa_id === auth()->id())
+                        <x-ui.button size="sm" variant="ghost" icon="trash" wire:click="buangDraf"
+                            wire:confirm="Buang draf ini beserta semua barisnya? Tindakan ini tidak bisa dibatalkan.">Buang draf</x-ui.button>
+                    @endif
                     @foreach ($aksi as $kunci => $tombol)
                         <span @if ($tombol['hambatan']) title="{{ $tombol['hambatan'] }}" @endif wire:key="aksi-{{ $kunci }}">
                             <x-ui.button size="sm" :variant="$tombol['varian']" :icon="$tombol['ikon']"
@@ -88,12 +92,79 @@
 
     {{-- Giliran & catatan terakhir --}}
     <div class="mx-auto mt-4 max-w-[1500px] space-y-2 px-4 lg:px-6">
+        <ol class="flex flex-wrap items-center gap-x-1 gap-y-1 text-xs" aria-label="Tahapan naskah">
+            @foreach (TahapNaskah::LANGKAH as $i => $langkah)
+                <li @class([
+                    'flex items-center gap-1.5 rounded-full px-2.5 py-1 font-semibold',
+                    'bg-brand-500/15 text-brand-600 dark:text-brand-500' => $i < $tahap->langkah() || $tahap === TahapNaskah::Selesai,
+                    'bg-primary-500 text-white' => $i === $tahap->langkah() && $tahap !== TahapNaskah::Selesai,
+                    'text-slate-400' => $i > $tahap->langkah(),
+                ]) @if ($i === $tahap->langkah()) aria-current="step" @endif>
+                    @if ($i < $tahap->langkah() || $tahap === TahapNaskah::Selesai)<i class="bi bi-check2"></i>@endif
+                    {{ $langkah }}
+                </li>
+                @unless ($loop->last)
+                    <li aria-hidden="true" class="text-slate-300 dark:text-navy-600"><i class="bi bi-chevron-right text-[0.6rem]"></i></li>
+                @endunless
+            @endforeach
+        </ol>
+
         @if (filled($naskah->catatan_tahap))
             <p class="rounded-lg bg-orange-50 px-4 py-2.5 text-sm text-orange-900 ring-1 ring-orange-200 dark:bg-orange-500/10 dark:text-orange-200 dark:ring-orange-500/20">
                 <i class="bi bi-chat-left-text"></i> <strong>Catatan:</strong> {{ $naskah->catatan_tahap }}
             </p>
         @endif
-        @unless ($naskah->giliranMilik(auth()->user()))
+        @if ($tahap->terkunci())
+            <section class="rounded-xl bg-white p-4 ring-1 ring-slate-200/70 dark:bg-navy-900 dark:ring-navy-800" aria-labelledby="judul-tahap-akhir">
+                <h2 id="judul-tahap-akhir" class="flex items-center gap-2 text-sm font-bold text-navy-900 dark:text-white">
+                    <i class="bi bi-lock text-brand-600"></i> Isi naskah terkunci
+                </h2>
+                <dl class="mt-3 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-6">
+                    <div class="lg:col-span-2">
+                        <dt class="text-xs text-slate-500">Nota dinas</dt>
+                        <dd class="mt-0.5 font-semibold text-navy-900 dark:text-slate-100">
+                            @if ($nota)
+                                <a href="{{ route('v2.naskah.cetak', [$naskah, 'nota-dinas']) }}" class="text-primary-600 hover:underline dark:text-primary-300">
+                                    <i class="bi bi-download"></i> {{ $nota->nomor_nota }}
+                                </a>
+                            @else
+                                Belum terbit
+                            @endif
+                        </dd>
+                    </div>
+                    @foreach (A::TAHAPAN_TTD as $kunci => $nama)
+                        <div wire:key="ttd-{{ $kunci }}">
+                            <dt class="text-xs text-slate-500">{{ $nama }}</dt>
+                            <dd class="mt-0.5 font-semibold text-navy-900 dark:text-slate-100">
+                                @if (isset($naskah->tahapan_ttd[$kunci]))
+                                    <i class="bi bi-check2-circle text-brand-600"></i> {{ tanggal($naskah->tahapan_ttd[$kunci]) }}
+                                @else
+                                    <span class="font-normal text-slate-400">Belum</span>
+                                @endif
+                            </dd>
+                        </div>
+                    @endforeach
+                </dl>
+                @if ($naskah->dokumentasi_id)
+                    <a href="{{ route('jdih.show', $naskah->dokumentasi_id) }}" class="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-primary-600 hover:underline dark:text-primary-300">
+                        <i class="bi bi-box-arrow-up-right"></i> Lihat di JDIH
+                    </a>
+                @endif
+            </section>
+        @endif
+
+        @if ($peringatan)
+            <details class="rounded-lg bg-amber-50 px-4 py-2.5 text-sm text-amber-900 ring-1 ring-amber-200 dark:bg-amber-500/10 dark:text-amber-200 dark:ring-amber-500/20">
+                <summary class="cursor-pointer font-semibold"><i class="bi bi-exclamation-triangle"></i> {{ count($peringatan) }} hal pada penomoran perlu diperiksa</summary>
+                <ul class="mt-2 list-disc space-y-1 pl-5">
+                    @foreach ($peringatan as $p)
+                        <li wire:key="peringatan-{{ $loop->index }}">{{ $p['pesan'] }}</li>
+                    @endforeach
+                </ul>
+            </details>
+        @endif
+
+        @unless ($naskah->giliranMilik(auth()->user()) || $tahap === TahapNaskah::Selesai)
             <p class="rounded-lg bg-slate-200/60 px-4 py-2.5 text-sm text-slate-600 dark:bg-navy-800 dark:text-slate-300">
                 <i class="bi bi-eye"></i> Hanya baca. Saat ini giliran <strong>{{ $tahap->peran() }}</strong>{{ $tahap->peran() === 'Peneliti' && $naskah->peneliti ? ' ('.$naskah->peneliti->nama_user.')' : '' }}.
             </p>
@@ -198,6 +269,9 @@
                     <x-ui.button size="sm" variant="outline" icon="file-earmark-word" :href="route('v2.naskah.cetak', [$naskah, 'naskah-word'])">Naskah Word</x-ui.button>
                     <x-ui.button size="sm" variant="outline" icon="file-earmark-pdf" :href="route('v2.naskah.cetak', [$naskah, 'naskah-pdf'])">Naskah PDF</x-ui.button>
                     <x-ui.button size="sm" variant="outline" icon="table" :href="route('v2.naskah.cetak', [$naskah, 'matriks-pdf'])">Matriks PDF</x-ui.button>
+                    @if ($nota)
+                        <x-ui.button size="sm" variant="outline" icon="file-earmark-text" :href="route('v2.naskah.cetak', [$naskah, 'nota-dinas'])">Nota Dinas</x-ui.button>
+                    @endif
                 </div>
             </div>
             @include('v2.partials.isi-naskah', ['blok' => $blokNaskah])
@@ -249,6 +323,8 @@
                                     <strong class="text-navy-900 dark:text-white">{{ $r->user->nama_user ?? 'Sistem' }}</strong>
                                     @if ($r->aksi === 'tahap')
                                         memindahkan naskah: {{ $r->sebelum }} <i class="bi bi-arrow-right"></i> {{ $r->sesudah }}
+                                    @elseif ($r->aksi === 'tahapan')
+                                        mencatat tahap {{ $r->sesudah }} selesai
                                     @elseif ($r->aksi === 'tambah_baris')
                                         menambah baris {{ $sasaran }}
                                     @else
@@ -260,6 +336,19 @@
                             @if ($r->catatan)
                                 <p class="mt-1 text-slate-500">{{ $r->catatan }}</p>
                             @endif
+                            @if ($rincian)
+                                @php
+                                    $lama = json_decode((string) $r->sebelum, true) ?? [];
+                                    $teksLama = ($lama['penyempurnaan'] ?? null) ?: ($lama['awal'] ?? '');
+                                    $teksBaru = ($rincian['penyempurnaan'] ?? null) ?: ($rincian['awal'] ?? '');
+                                @endphp
+                                @if ($teksLama !== $teksBaru)
+                                    <details class="mt-1">
+                                        <summary class="cursor-pointer text-xs font-semibold text-primary-600 dark:text-primary-300">Lihat perubahan</summary>
+                                        <p class="v2-diff mt-1 whitespace-pre-line text-slate-600 dark:text-slate-300">{!! App\Support\DiffKata::html($teksLama, $teksBaru) !!}</p>
+                                    </details>
+                                @endif
+                            @endif
                         </li>
                     @empty
                         <li class="rounded-lg bg-white px-5 py-10 text-center text-sm text-slate-500 ring-1 ring-slate-200/70 dark:bg-navy-900 dark:ring-navy-800">Belum ada riwayat.</li>
@@ -270,8 +359,10 @@
                     <ul class="mt-2 space-y-1.5 text-sm">
                         @forelse ($versi as $v)
                             <li wire:key="versi-{{ $v->id }}">
-                                <span class="font-semibold">Versi {{ $v->versi }}</span>
-                                <span class="block text-xs text-slate-500">{{ TahapNaskah::from($v->tahap)->label() }} · {{ $v->created_at->translatedFormat('d M Y H:i') }}</span>
+                                <button type="button" wire:click="lihatVersi({{ $v->id }})" class="block w-full rounded-lg px-2 py-1 text-left transition hover:bg-slate-100 dark:hover:bg-navy-800">
+                                    <span class="font-semibold text-primary-600 dark:text-primary-300">Versi {{ $v->versi }}</span>
+                                    <span class="block text-xs text-slate-500">{{ TahapNaskah::from($v->tahap)->label() }} · {{ $v->created_at->translatedFormat('d M Y H:i') }}</span>
+                                </button>
                             </li>
                         @empty
                             <li class="text-slate-500">Versi dibuat setiap kali naskah berpindah giliran.</li>
@@ -299,13 +390,87 @@
             </x-form.field>
         @endif
 
-        <x-form.field :label="! empty($aksiModal['catatan']) ? 'Alasan' : 'Catatan (opsional)'" for="catatan" error="catatan" :required="! empty($aksiModal['catatan'])" class="mt-3">
-            <textarea id="catatan" wire:model="catatan" rows="3" class="w-full rounded-lg border-0 text-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-primary-300 dark:bg-navy-800 dark:ring-navy-700"></textarea>
-        </x-form.field>
+        @php
+            $isian = 'w-full rounded-lg border-0 text-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-primary-300 dark:bg-navy-800 dark:ring-navy-700';
+            $bentuk = $aksiModal['form'] ?? null;
+        @endphp
+
+        @if ($bentuk === 'nota')
+            <div class="space-y-3">
+                <x-form.field label="Nomor nota dinas" for="nomorInputan" error="nomorInputan" required hint="Angka tengah pada 180/…/KUM/{{ now()->year }}.">
+                    <input id="nomorInputan" type="text" inputmode="numeric" maxlength="3" wire:model="nomorInputan" class="{{ $isian }}">
+                </x-form.field>
+                <x-form.field label="Kepada" for="kepada" error="kepada" required>
+                    <input id="kepada" type="text" wire:model="kepada" class="{{ $isian }}">
+                </x-form.field>
+                <x-form.field label="Tanda tangan" for="tandaTanganId" error="tandaTanganId" required hint="Nomor dan tanda tangan ini otomatis masuk ke matriks.">
+                    <select id="tandaTanganId" wire:model="tandaTanganId" class="{{ $isian }}">
+                        <option value="">Pilih tanda tangan</option>
+                        @foreach ($daftarTtd as $ttd)
+                            <option value="{{ $ttd->id }}">{{ $ttd->nama_ttd }} ({{ $ttd->jabatan }})</option>
+                        @endforeach
+                    </select>
+                </x-form.field>
+            </div>
+        @elseif ($bentuk === 'tahapan')
+            <x-form.field label="Tanggal selesai" for="tanggalTahapan" error="tanggalTahapan" required>
+                <input id="tanggalTahapan" type="date" max="{{ now()->toDateString() }}" wire:model="tanggalTahapan" class="{{ $isian }}">
+            </x-form.field>
+        @elseif ($bentuk === 'arsip')
+            <div class="space-y-3">
+                <div class="grid gap-3 sm:grid-cols-2">
+                    <x-form.field label="Nomor produk hukum" for="nomorArsip" error="nomorArsip" required>
+                        <input id="nomorArsip" type="text" inputmode="numeric" maxlength="3" wire:model="nomorArsip" class="{{ $isian }}">
+                    </x-form.field>
+                    <x-form.field label="Tanggal penetapan" for="tanggalPenetapan" error="tanggalPenetapan" required>
+                        <input id="tanggalPenetapan" type="date" wire:model="tanggalPenetapan" class="{{ $isian }}">
+                    </x-form.field>
+                    <x-form.field label="Nomor Berita Daerah" for="nomorBerita" error="nomorBerita">
+                        <input id="nomorBerita" type="text" inputmode="numeric" maxlength="3" wire:model="nomorBerita" class="{{ $isian }}">
+                    </x-form.field>
+                    <x-form.field label="Tahun Berita Daerah" for="tahunBerita" error="tahunBerita">
+                        <input id="tahunBerita" type="text" inputmode="numeric" maxlength="4" wire:model="tahunBerita" class="{{ $isian }}">
+                    </x-form.field>
+                </div>
+                <x-form.field label="PDF bertanda tangan basah" for="fileArsip" error="fileArsip" required hint="Dokumen ini langsung tampil untuk umum di JDIH.">
+                    <input id="fileArsip" type="file" accept="application/pdf" wire:model="fileArsip" class="block w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-sm file:font-semibold dark:file:bg-navy-800 dark:file:text-slate-200">
+                </x-form.field>
+            </div>
+        @else
+            <x-form.field :label="! empty($aksiModal['catatan']) ? 'Alasan' : 'Catatan (opsional)'" for="catatan" error="catatan" :required="! empty($aksiModal['catatan'])" class="mt-3">
+                <textarea id="catatan" wire:model="catatan" rows="3" class="{{ $isian }}"></textarea>
+            </x-form.field>
+        @endif
 
         <x-slot:footer>
             <x-ui.button variant="ghost" x-on:click="close()">Batal</x-ui.button>
-            <x-ui.button icon="check2" wire:click="jalankanAksi" loading="jalankanAksi">Lanjutkan</x-ui.button>
+            <x-ui.button icon="check2" wire:click="jalankanAksi" loading="jalankanAksi,fileArsip">Lanjutkan</x-ui.button>
         </x-slot:footer>
+    </x-ui.modal>
+
+    {{-- Isi naskah pada versi lama --}}
+    <x-ui.modal id="modalVersi" :title="$isiVersi ? 'Versi '.$isiVersi->versi : 'Versi'" :description="$isiVersi ? TahapNaskah::from($isiVersi->tahap)->label().' · '.$isiVersi->created_at->translatedFormat('d M Y H:i') : null" size="5xl">
+        @if ($isiVersi)
+            <table class="w-full table-fixed border-collapse text-sm">
+                <thead class="text-left text-xs text-slate-500">
+                    <tr>
+                        <th class="w-28 pb-2 font-semibold">Baris</th>
+                        <th class="pb-2 font-semibold">Rumusan awal</th>
+                        <th class="pb-2 font-semibold">Penyempurnaan</th>
+                        <th class="w-40 pb-2 font-semibold">Keterangan</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-navy-800">
+                    @foreach ($isiVersi->isi as $b)
+                        <tr wire:key="versi-baris-{{ $b['id'] }}" class="align-top">
+                            <td class="py-2 pr-2 font-semibold">{{ $b['label'] ?: TemplateNaskah::BAGIAN[$b['bagian']] }}</td>
+                            <td class="py-2 pr-3 whitespace-pre-line">{{ $b['rumusan_awal'] }}</td>
+                            <td class="py-2 pr-3 whitespace-pre-line">{{ $b['status'] === B::DIHAPUS ? 'Dihapus' : ($b['status'] === B::TETAP ? 'Tetap' : $b['rumusan_penyempurnaan']) }}</td>
+                            <td class="py-2 text-slate-500">{{ $b['keterangan'] }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        @endif
     </x-ui.modal>
 </div>

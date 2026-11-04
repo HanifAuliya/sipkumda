@@ -27,9 +27,14 @@ Route::middleware(['auth', 'verified'])->prefix('v2')->name('v2.')->group(functi
 
     // Membuat Word/PDF cukup berat, jadi dibatasi per pengguna.
     Route::get('/naskah/{naskah}/cetak/{berkas}', CetakNaskahController::class)
-        ->whereIn('berkas', ['naskah-word', 'naskah-pdf', 'matriks-pdf'])
+        ->whereIn('berkas', ['naskah-word', 'naskah-pdf', 'matriks-pdf', 'nota-dinas'])
         ->middleware('throttle:30,1')
         ->name('naskah.cetak');
+
+    Route::get('/template/{jenis}', [CetakNaskahController::class, 'template'])
+        ->whereIn('jenis', ['peraturan-bupati', 'surat-keputusan'])
+        ->middleware('throttle:30,1')
+        ->name('template');
 
     Route::livewire('/pengaturan', PengaturanNaskah::class)
         ->middleware('role:Admin|Verifikator|Super Admin')

@@ -138,17 +138,24 @@ class PembacaNaskahWord
             }
         }
 
+        // Tabel yang hanya mengatur tata letak Menimbang/Mengingat/diktum dibaca sebagai paragraf,
+        // sedangkan tabel data dipertahankan dalam bentuk baris "| a | b |".
+        $tataLetak = preg_match('/menimbang|mengingat|menetapkan|\bKE\s*SATU\b/iu', $tabel->textContent) === 1;
+
         $hasil = [];
         foreach ($baris as $nomor => $tr) {
             $sel = iterator_to_array($this->xpath->query('./w:tc', $tr));
 
             if ($kolomRumusan === null) {
-                // Tabel biasa: tiap baris menjadi satu paragraf.
                 $isi = array_filter(array_map(fn ($s) => trim(implode(' ', $this->paragrafSel($s))), $sel), 'strlen');
-                if (count($isi) >= 3) {
+
+                if (count($isi) >= 3 && ! $tataLetak) {
                     $this->peringatan[] = 'Dokumen memuat tabel. Periksa baris yang berisi tabel setelah dibaca.';
+                    $hasil[] = ['| ' . implode(' | ', array_map(fn ($s) => str_replace('|', '/', $s), $isi)) . ' |', null];
+                } else {
+                    $hasil[] = [implode(' ', $isi), null];
                 }
-                $hasil[] = [implode(' ', $isi), null];
+
                 continue;
             }
 
@@ -338,6 +345,11 @@ class PembacaNaskahWord
                 }
                 $teks = trim($m[1]);
             }
+        }
+
+        // Naskah tanpa baris "Menetapkan": kepala BAB atau Pasal tetap menandai awal Batang Tubuh.
+        if ($this->jenis !== 'Surat Keputusan' && in_array($this->bagian, ['menimbang', 'mengingat'], true) && $this->labelStruktur($teks)) {
+            $this->bagian = 'batang_tubuh';
         }
 
         match ($this->bagian) {

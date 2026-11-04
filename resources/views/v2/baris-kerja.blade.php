@@ -31,6 +31,15 @@
         batal() { this.ubah = false; this.teks = this.semula; },
         selesai() { this.ubah = false; this.semula = this.teks; },
         kembalikan() { this.teks = this.semula = this.$refs.awal.dataset.kosong ? '' : this.$refs.awal.textContent; },
+        {{-- Diberi event input supaya simpan otomatis saat menyusun ikut berjalan. --}}
+        setel(nilai) { this.teks = nilai; this.$nextTick(() => this.$refs.editor.dispatchEvent(new Event('input'))); },
+        rapikan() { this.$wire.rapikanNomor(this.teks).then((hasil) => this.setel(hasil)); },
+        sisipTabel() {
+            const posisi = this.$refs.editor.selectionStart ?? this.teks.length;
+            const sebelum = this.teks.slice(0, posisi);
+            const contoh = (sebelum && ! sebelum.endsWith('\n') ? '\n' : '') + '| Kolom 1 | Kolom 2 | Kolom 3 |\n| isi | isi | isi |\n';
+            this.setel(sebelum + contoh + this.teks.slice(posisi));
+        },
     }"
     @class(['scroll-mt-48 rounded-xl border-l-4 bg-white shadow-sm ring-1 ring-slate-200/70 dark:bg-navy-900 dark:ring-navy-800', $tema])>
 
@@ -58,11 +67,15 @@
                         x-on:input.debounce.800ms="tersimpan = false; $wire.simpanSusun(label, teks).then(() => tersimpan = true)"
                         class="{{ $bidang }} max-w-56 py-1.5">
                 @endif
-                <textarea rows="{{ min(12, max(2, substr_count($awal, "\n") + 2 + (int) (mb_strlen($awal) / 90))) }}" x-model="teks" aria-label="Rumusan"
+                <textarea x-ref="editor" rows="{{ min(12, max(2, substr_count($awal, "\n") + 2 + (int) (mb_strlen($awal) / 90))) }}" x-model="teks" aria-label="Rumusan"
                     x-on:input.debounce.800ms="tersimpan = false; $wire.simpanSusun(label, teks).then(() => tersimpan = true)"
                     class="{{ $bidang }} {{ $serif }} leading-relaxed"></textarea>
             </div>
             <div class="mt-2 flex flex-wrap gap-1">
+                @if ($baris->bagian === 'batang_tubuh')
+                    <x-ui.button size="xs" variant="ghost" icon="list-ol" x-on:click="rapikan()">Rapikan nomor</x-ui.button>
+                    <x-ui.button size="xs" variant="ghost" icon="table" x-on:click="sisipTabel()">Sisipkan tabel</x-ui.button>
+                @endif
                 <x-ui.button size="xs" variant="ghost" icon="plus-lg" wire:click="tambah">Tambah di bawah</x-ui.button>
                 <x-ui.button size="xs" variant="ghost" icon="arrow-up" wire:click="geser(-1)">Naik</x-ui.button>
                 <x-ui.button size="xs" variant="ghost" icon="arrow-down" wire:click="geser(1)">Turun</x-ui.button>
@@ -95,6 +108,12 @@
                     <div x-show="ubah" x-cloak class="mt-1">
                         <textarea x-ref="editor" rows="{{ min(14, max(4, substr_count($awal, "\n") + 3 + (int) (mb_strlen($awal) / 60))) }}" x-model="teks" aria-label="Rumusan penyempurnaan"
                             class="{{ $bidang }} {{ $serif }} leading-relaxed"></textarea>
+                        @if ($baris->bagian === 'batang_tubuh')
+                            <div class="mt-1 flex flex-wrap gap-1">
+                                <x-ui.button size="xs" variant="ghost" icon="list-ol" x-on:click="rapikan()">Rapikan nomor</x-ui.button>
+                                <x-ui.button size="xs" variant="ghost" icon="table" x-on:click="sisipTabel()">Sisipkan tabel</x-ui.button>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>

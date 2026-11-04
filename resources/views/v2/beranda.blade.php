@@ -42,12 +42,23 @@
     <section class="mt-10" aria-labelledby="judul-semua">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <h2 id="judul-semua" class="text-xs font-bold tracking-wider text-slate-500 uppercase">Semua naskah</h2>
-            <label class="relative">
-                <span class="sr-only">Cari naskah</span>
-                <i class="bi bi-search pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-slate-400"></i>
-                <input type="search" wire:model.live.debounce.400ms="cari" placeholder="Cari nomor atau judul…"
-                    class="w-64 rounded-lg border-0 bg-white py-2 pr-3 pl-9 text-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-primary-300 dark:bg-navy-900 dark:ring-navy-700">
-            </label>
+            <div class="flex flex-wrap items-center gap-2">
+                <label>
+                    <span class="sr-only">Tahap</span>
+                    <select wire:model.live="tahap" class="rounded-lg border-0 bg-white py-2 pr-8 pl-3 text-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-primary-300 dark:bg-navy-900 dark:ring-navy-700">
+                        <option value="">Semua tahap</option>
+                        @foreach (App\Enums\TahapNaskah::cases() as $pilihan)
+                            <option value="{{ $pilihan->value }}">{{ $pilihan->label() }}</option>
+                        @endforeach
+                    </select>
+                </label>
+                <label class="relative">
+                    <span class="sr-only">Cari naskah</span>
+                    <i class="bi bi-search pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-slate-400"></i>
+                    <input type="search" wire:model.live.debounce.400ms="cari" placeholder="Cari nomor atau judul…"
+                        class="w-64 max-w-full rounded-lg border-0 bg-white py-2 pr-3 pl-9 text-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-primary-300 dark:bg-navy-900 dark:ring-navy-700">
+                </label>
+            </div>
         </div>
 
         <div class="mt-3 divide-y divide-slate-100 overflow-hidden rounded-xl bg-white ring-1 ring-slate-200/70 dark:divide-navy-800 dark:bg-navy-900 dark:ring-navy-800">

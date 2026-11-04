@@ -111,14 +111,15 @@ class PengelolaTtd extends Component
 
     public function delete($id)
     {
-        $ttd = TandaTangan::withCount('notaDinas')->findOrFail($id);
+        $ttd = TandaTangan::withCount(['notaDinas', 'naskahNotaDinas'])->findOrFail($id);
+        $dipakai = $ttd->nota_dinas_count + $ttd->naskah_nota_dinas_count;
 
         // Relasi nota_dinas memakai cascade: menghapus TTD akan ikut menghapus Nota Dinas.
-        if ($ttd->nota_dinas_count > 0) {
+        if ($dipakai > 0) {
             $this->dispatch('swal:modal', [
                 'type' => 'warning',
                 'title' => 'Tidak dapat dihapus',
-                'message' => "TTD ini dipakai di {$ttd->nota_dinas_count} Nota Dinas. Ubah statusnya menjadi Tidak Aktif sebagai gantinya.",
+                'message' => "TTD ini dipakai di {$dipakai} Nota Dinas. Ubah statusnya menjadi Tidak Aktif sebagai gantinya.",
             ]);
             return;
         }

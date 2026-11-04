@@ -17,6 +17,14 @@ enum TahapNaskah: string
     case PerbaikanFasilitasi = 'perbaikan_fasilitasi';
     case CekPeneliti = 'cek_peneliti';
     case Final = 'final';
+    case Penandatanganan = 'penandatanganan';
+    case Arsip = 'arsip';
+    case Selesai = 'selesai';
+
+    public const LANGKAH = ['Penyusunan', 'Penelitian', 'Validasi', 'Fasilitasi', 'Penandatanganan', 'Selesai'];
+
+    /** Tahap ketika isi naskah sudah dikunci dan yang berjalan hanya proses di luar sistem. */
+    public const TERKUNCI = [self::Final, self::Penandatanganan, self::Arsip, self::Selesai];
 
     public function label(): string
     {
@@ -32,18 +40,32 @@ enum TahapNaskah: string
             self::ValidasiFasilitasi => 'Validasi Fasilitasi',
             self::PerbaikanFasilitasi => 'Perbaikan Fasilitasi',
             self::CekPeneliti => 'Pengecekan Peneliti',
-            self::Final => 'Naskah Final',
+            self::Final => 'Menunggu Nota Dinas',
+            self::Penandatanganan => 'Penandatanganan',
+            self::Arsip => 'Menunggu Arsip',
+            self::Selesai => 'Selesai',
         };
     }
 
-    /** Peran yang memegang giliran pada tahap ini. */
+    /** Peran utama yang memegang giliran pada tahap ini. */
     public function peran(): string
     {
         return match ($this) {
             self::Draf, self::PerbaikanPd, self::Disetujui, self::PerbaikanFasilitasi => 'Perangkat Daerah',
-            self::PersetujuanBerkas, self::PersetujuanFasilitasi, self::Final => 'Admin',
+            self::PersetujuanBerkas, self::PersetujuanFasilitasi, self::Final,
+            self::Penandatanganan, self::Arsip, self::Selesai => 'Admin',
             self::PilihPeneliti, self::ValidasiRancangan, self::ValidasiFasilitasi => 'Verifikator',
             self::Penelitian, self::CekPeneliti => 'Peneliti',
+        };
+    }
+
+    /** Semua peran yang boleh bertindak; nota dinas dan arsip bisa oleh Admin maupun Verifikator. */
+    public function pemegang(): array
+    {
+        return match ($this) {
+            self::Final, self::Arsip => ['Admin', 'Verifikator'],
+            self::Selesai => [],
+            default => [$this->peran()],
         };
     }
 
@@ -53,7 +75,7 @@ enum TahapNaskah: string
             self::Draf => 'slate',
             self::PerbaikanPd, self::PerbaikanFasilitasi => 'warning',
             self::Penelitian, self::CekPeneliti => 'info',
-            self::Disetujui, self::Final => 'success',
+            self::Disetujui, self::Selesai => 'success',
             default => 'primary',
         };
     }
@@ -67,15 +89,19 @@ enum TahapNaskah: string
             self::ValidasiRancangan => 2,
             self::Disetujui, self::PersetujuanFasilitasi, self::ValidasiFasilitasi,
             self::PerbaikanFasilitasi, self::CekPeneliti => 3,
-            self::Final => 4,
+            self::Final, self::Penandatanganan, self::Arsip => 4,
+            self::Selesai => 5,
         };
     }
 
-    public const LANGKAH = ['Penyusunan', 'Penelitian', 'Validasi', 'Fasilitasi', 'Final'];
+    public function terkunci(): bool
+    {
+        return in_array($this, self::TERKUNCI, true);
+    }
 
-    /** Tahap yang menunggu tindakan suatu peran. Naskah final sudah tidak menunggu siapa pun. */
+    /** Tahap yang menunggu tindakan suatu peran. */
     public static function menungguPeran(string $peran): array
     {
-        return array_values(array_filter(self::cases(), fn (self $t) => $t !== self::Final && $t->peran() === $peran));
+        return array_values(array_filter(self::cases(), fn (self $t) => in_array($peran, $t->pemegang(), true)));
     }
 }

@@ -44,13 +44,37 @@ class CetakNaskah
     /** @return string path file sementara; pemanggil yang menghapusnya */
     public function wordNaskah(Naskah $naskah): string
     {
+        return $this->tulisWord("{$naskah->nomor} - {$naskah->tentang}", TataLetakNaskah::susun($naskah, $naskah->baris()->get()));
+    }
+
+    /** Template kosong untuk PD: bila ditulis mengikuti ini, pembacaan Word menjadi akurat. */
+    public function wordTemplate(string $jenis): string
+    {
+        $naskah = new Naskah(['jenis' => $jenis]);
+
+        $baris = collect(TemplateNaskah::kerangka($jenis, '...'))->map(function (array $item, int $i) {
+            $contoh = match (true) {
+                filled($item['teks']) => $item['teks'],
+                str_starts_with((string) $item['label'], 'Pasal') => "(1) ...\n(2) ...",
+                default => '...',
+            };
+
+            return (new NaskahBaris(['bagian' => $item['bagian'], 'label' => $item['label'], 'rumusan_awal' => $contoh]))
+                ->forceFill(['id' => $i + 1, 'status' => NaskahBaris::BELUM]);
+        });
+
+        return $this->tulisWord("Template {$jenis}", TataLetakNaskah::susun($naskah, $baris));
+    }
+
+    private function tulisWord(string $judul, array $susunan): string
+    {
         // Tanda & dan < di rumusan harus lolos sebagai teks, bukan merusak XML dokumen.
         Settings::setOutputEscapingEnabled(true);
 
         $word = new PhpWord();
         $word->setDefaultFontName('Bookman Old Style');
         $word->setDefaultFontSize(12);
-        $word->getDocInfo()->setTitle("{$naskah->nomor} - {$naskah->tentang}")->setCreator('SIFKUMDA');
+        $word->getDocInfo()->setTitle($judul)->setCreator('SIFKUMDA');
 
         $halaman = $word->addSection([
             'pageSizeW' => self::F4_LEBAR,
@@ -67,7 +91,7 @@ class CetakNaskah
         }
         $halaman->addText(TataLetakNaskah::KOP, ['bold' => true, 'size' => 14], ['alignment' => Jc::CENTER, 'spaceAfter' => 240]);
 
-        foreach (TataLetakNaskah::susun($naskah, $naskah->baris()->get()) as $blok) {
+        foreach ($susunan as $blok) {
             match ($blok['tipe']) {
                 'tengah' => $this->wordTengah($halaman, $blok),
                 'daftar' => $this->wordDaftar($halaman, $blok),
@@ -144,6 +168,13 @@ class CetakNaskah
         $tabel = null;
 
         foreach ($blok['baris'] as $baris) {
+            if (isset($baris['tabel'])) {
+                $tabel = null;
+                $this->wordTabel($halaman, $baris['tabel']);
+
+                continue;
+            }
+
             if ($baris['nomor'] === null) {
                 $tabel = null;
                 $halaman->addText($baris['isi'], null, ['alignment' => Jc::BOTH, 'spaceAfter' => 60]);
@@ -162,6 +193,23 @@ class CetakNaskah
             $tr->addCell($lebarNomor)->addText($baris['nomor']);
             $tr->addCell(self::LEBAR_ISI - $inden - $lebarNomor)->addText($baris['isi'], null, ['alignment' => Jc::BOTH, 'spaceAfter' => 60]);
         }
+    }
+
+    /** @param array<int, array<int, string>> $isi */
+    private function wordTabel(Section $halaman, array $isi): void
+    {
+        $kolom = max(array_map('count', $isi));
+        $lebar = (int) (self::LEBAR_ISI / $kolom);
+        $tabel = $halaman->addTable(['layout' => 'fixed', 'borderSize' => 6, 'borderColor' => '000000', 'cellMargin' => 60]);
+
+        foreach ($isi as $sel) {
+            $tr = $tabel->addRow();
+            for ($i = 0; $i < $kolom; $i++) {
+                $tr->addCell($lebar)->addText($sel[$i] ?? '', ['size' => 11]);
+            }
+        }
+
+        $halaman->addTextBreak(1, null, ['spaceAfter' => 0]);
     }
 
     private function wordPenutup(Section $halaman, array $blok): void
@@ -228,6 +276,13 @@ class CetakNaskah
         return $hasil;
     }
 
+    public function pdfNotaDinas(Naskah $naskah): string
+    {
+        $nota = $naskah->notaDinas()->with('tandaTangan')->firstOrFail();
+
+        return Pdf::loadView('pdf.v2.nota-dinas', ['naskah' => $naskah, 'nota' => $nota])->setPaper('A4', 'portrait')->output();
+    }
+
     public function pdfNaskah(Naskah $naskah): string
     {
         return Pdf::loadView('pdf.v2.naskah', [
@@ -278,8 +333,12 @@ class CetakNaskah
                 ]);
         });
 
+        // Saat dibuka kembali untuk koreksi, matriks kembali bertanda draf sampai disetujui ulang.
+        $nota = $naskah->tahap->terkunci() ? $naskah->notaDinas()->with('tandaTangan')->first() : null;
+
         return Pdf::loadView('pdf.v2.matriks', [
             'naskah' => $naskah,
+            'nota' => $nota,
             'isi' => $isi,
             'singkatan' => $naskah->jenis === 'Surat Keputusan' ? 'Rancangan Keputusan' : 'Raperbup',
             'judul' => $naskah->jenis === 'Surat Keputusan' ? 'KEPUTUSAN BUPATI' : 'PERATURAN BUPATI',

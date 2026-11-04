@@ -2,6 +2,7 @@
 
 namespace App\Livewire\V2;
 
+use App\Enums\TahapNaskah;
 use App\Models\Naskah;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Layout;
@@ -19,7 +20,15 @@ class Beranda extends Component
     #[Url(as: 'q', except: '')]
     public string $cari = '';
 
+    #[Url(except: '')]
+    public string $tahap = '';
+
     public function updatedCari(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedTahap(): void
     {
         $this->resetPage();
     }
@@ -36,7 +45,10 @@ class Beranda extends Component
                 ->orWhere('nomor', 'like', "%{$this->cari}%")));
 
         return view('v2.beranda', [
-            'halaman' => (clone $semua)->latest('updated_at')->paginate(20),
+            'halaman' => (clone $semua)
+                ->when(TahapNaskah::tryFrom($this->tahap), fn ($q, $tahap) => $q->where('tahap', $tahap))
+                ->latest('updated_at')
+                ->paginate(20),
             'giliranSaya' => (clone $semua)->menunggu($user)->latest('updated_at')->limit(50)->get(),
             'bisaBuat' => Gate::allows('create', Naskah::class),
         ]);

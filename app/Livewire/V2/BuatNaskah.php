@@ -24,7 +24,8 @@ class BuatNaskah extends Component
 
     public string $jenis = 'Peraturan Bupati';
 
-    #[Validate('required|string|max:1000')]
+    // Mengikuti panjang kolom "tentang" di arsip JDIH.
+    #[Validate('required|string|max:255')]
     public string $tentang = '';
 
     #[Validate('required|string|max:50|unique:naskah,nomor_nota')]

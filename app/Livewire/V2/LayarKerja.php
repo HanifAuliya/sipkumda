@@ -6,8 +6,10 @@ use App\Enums\TahapNaskah;
 use App\Models\Naskah;
 use App\Models\NaskahBaris as B;
 use App\Models\NaskahBerkas;
+use App\Models\TandaTangan;
 use App\Models\User;
 use App\Services\AlurNaskah;
+use App\Support\PemeriksaPenomoran;
 use App\Support\TataLetakNaskah;
 use App\Support\TemplateNaskah;
 use Illuminate\Support\Facades\DB;
@@ -44,6 +46,23 @@ class LayarKerja extends Component
     public ?string $aksiTerpilih = null;
     public string $catatan = '';
     public ?int $penelitiId = null;
+
+    /** Isian nota dinas. */
+    public string $nomorInputan = '';
+    public string $kepada = '';
+    public ?int $tandaTanganId = null;
+
+    public string $tanggalTahapan = '';
+
+    /** Isian arsip. */
+    public string $nomorArsip = '';
+    public string $tanggalPenetapan = '';
+    public string $nomorBerita = '';
+    public string $tahunBerita = '';
+    public $fileArsip;
+
+    #[Locked]
+    public ?int $versiTerpilih = null;
 
     public $berkasBaru;
     public string $jenisBerkas = NaskahBerkas::LAMPIRAN;
@@ -93,8 +112,9 @@ class LayarKerja extends Component
         $tersedia = app(AlurNaskah::class)->aksiTersedia($this->naskah->fresh(), auth()->user());
         abort_unless(isset($tersedia[$aksi]), 403);
 
+        $this->resetIsianAksi();
         $this->aksiTerpilih = $aksi;
-        $this->reset('catatan', 'penelitiId');
+        $this->tanggalTahapan = now()->toDateString();
         $this->resetValidation();
         $this->dispatch('openModal', 'modalAksi');
     }
@@ -102,11 +122,59 @@ class LayarKerja extends Component
     public function jalankanAksi(AlurNaskah $alur): void
     {
         abort_unless($this->aksiTerpilih, 403);
+        $user = auth()->user();
 
-        $this->naskah = $alur->jalankan($this->naskah, auth()->user(), $this->aksiTerpilih, $this->catatan ?: null, $this->penelitiId);
+        // Galat dari percobaan sebelumnya jangan tertinggal saat pengguna sudah memperbaiki isiannya.
+        $this->resetValidation();
 
-        $this->reset('aksiTerpilih', 'catatan', 'penelitiId', 'filter');
+        $this->naskah = match ($this->aksiTerpilih) {
+            'terbitkan_nota' => $alur->terbitkanNota($this->naskah, $user, $this->nomorInputan, $this->kepada, $this->tandaTanganId),
+            'tandai_tahapan' => $alur->tandaiTahapan($this->naskah, $user, $this->tanggalTahapan),
+            'arsipkan' => $this->arsipkan($alur),
+            default => $alur->jalankan($this->naskah, $user, $this->aksiTerpilih, $this->catatan ?: null, $this->penelitiId),
+        };
+
+        $this->resetIsianAksi();
+        $this->reset('filter');
         $this->dispatch('closeModal', 'modalAksi');
+    }
+
+    private function arsipkan(AlurNaskah $alur): Naskah
+    {
+        $this->validate([
+            'nomorArsip' => 'required|numeric|digits_between:1,3',
+            'tanggalPenetapan' => 'required|date',
+            'nomorBerita' => 'nullable|numeric|digits_between:1,3',
+            'tahunBerita' => 'nullable|numeric|digits:4',
+            'fileArsip' => 'required|file|mimes:pdf|max:20480',
+        ], [], [
+            'nomorArsip' => 'nomor',
+            'tanggalPenetapan' => 'tanggal penetapan',
+            'nomorBerita' => 'nomor berita daerah',
+            'tahunBerita' => 'tahun berita daerah',
+            'fileArsip' => 'file bertanda tangan',
+        ]);
+
+        return $alur->arsipkan($this->naskah, auth()->user(), $this->nomorArsip, $this->tanggalPenetapan, $this->nomorBerita ?: null, $this->tahunBerita ?: null, $this->fileArsip);
+    }
+
+    private function resetIsianAksi(): void
+    {
+        $this->reset('aksiTerpilih', 'catatan', 'penelitiId', 'nomorInputan', 'kepada', 'tandaTanganId', 'tanggalTahapan',
+            'nomorArsip', 'tanggalPenetapan', 'nomorBerita', 'tahunBerita', 'fileArsip');
+    }
+
+    public function buangDraf(AlurNaskah $alur)
+    {
+        $alur->buangDraf($this->naskah, auth()->user());
+
+        return $this->redirectRoute('v2.beranda', navigate: true);
+    }
+
+    public function lihatVersi(int $id): void
+    {
+        $this->versiTerpilih = $this->naskah->versi()->whereKey($id)->firstOrFail()->id;
+        $this->dispatch('openModal', 'modalVersi');
     }
 
     public function unggahBerkas(AlurNaskah $alur): void
@@ -162,6 +230,7 @@ class LayarKerja extends Component
         $mode = $alur->modeBaris($this->naskah, $user);
 
         $semuaBaris = $this->naskah->baris()->get(['id', 'naskah_id', 'urutan', 'bagian', 'label', 'status', 'giliran_diubah', 'diubah_oleh']);
+        $bertugas = $mode !== null || ($this->naskah->tahap === TahapNaskah::ValidasiRancangan && $this->naskah->giliranMilik($user));
         $hitung = $semuaBaris->countBy('status');
         $total = $semuaBaris->count();
         $filter = in_array($this->filter, self::FILTER, true) ? $this->filter : $this->filterAwal($mode, $hitung);
@@ -186,6 +255,12 @@ class LayarKerja extends Component
             'diperiksa' => $total - ($hitung[B::BELUM] ?? 0),
             'aksi' => $alur->aksiTersedia($this->naskah, $user),
             'peneliti' => $this->aksiTerpilih === 'tugaskan_peneliti' ? User::role('Peneliti')->orderBy('nama_user')->get(['id', 'nama_user']) : collect(),
+            'daftarTtd' => $this->aksiTerpilih === 'terbitkan_nota' ? TandaTangan::where('status', 'Aktif')->get(['id', 'nama_ttd', 'jabatan']) : collect(),
+            'peringatan' => $this->tab === 'kerja' && $bertugas
+                ? PemeriksaPenomoran::periksa($this->naskah->baris()->where('bagian', 'batang_tubuh')->get())
+                : [],
+            'nota' => $this->naskah->tahap->langkah() >= 4 || $this->naskah->tahap === TahapNaskah::ValidasiFasilitasi ? $this->naskah->notaDinas()->first() : null,
+            'isiVersi' => $this->versiTerpilih ? $this->naskah->versi()->find($this->versiTerpilih) : null,
             'bolehUnggah' => $this->bolehUnggah($alur),
             'blokNaskah' => $this->tab === 'naskah' ? TataLetakNaskah::susun($this->naskah, $this->naskah->baris()->get()) : [],
             'berkas' => $this->tab === 'berkas' ? $this->naskah->berkas()->with('pengunggah:id,nama_user')->get() : collect(),

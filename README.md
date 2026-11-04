@@ -75,6 +75,23 @@ Beranda publik SIFKUMDA ada di `/`; pencarian produk hukum untuk umum (JDIH) ada
 Sebelum dipakai banyak orang, ikuti [docs/DEPLOY.md](docs/DEPLOY.md): `config:cache` wajib
 (terutama di Windows), pengaturan MySQL & web server, serta hasil load test.
 
+## Aplikasi v2
+
+Alur baru di `/v2`, berjalan berdampingan dengan alur lama memakai login dan data pengguna yang sama.
+Matriks menjadi sumber utama; naskah Word/PDF dan matriks PDF dicetak dari baris matriks, dan hasil
+akhirnya masuk ke tabel arsip yang sama dengan JDIH.
+
+- Aturan alur: `app/Services/AlurNaskah.php` dan `app/Enums/TahapNaskah.php`
+- Pembacaan Word: `app/Services/PembacaNaskahWord.php`
+- Cetak: `app/Services/CetakNaskah.php` dan `app/Support/TataLetakNaskah.php`
+- Layar: `app/Livewire/V2/` dan `resources/views/v2/`
+- Data contoh (lokal): `php artisan db:seed --class=DemoSeeder` lalu `--class=V2DemoSeeder`
+- Lambang Garuda pada kop: simpan di `public/assets/img/garuda.png`
+
+Di Laragon, permintaan bersamaan bisa gagal 404 selama konfigurasi belum di-cache (lihat docs/DEPLOY.md).
+Untuk mencoba lokal gunakan `php artisan serve`. Jangan menjalankan tes saat `config:cache` aktif,
+karena tes akan memakai database utama.
+
 ## Struktur Singkat
 
 ```

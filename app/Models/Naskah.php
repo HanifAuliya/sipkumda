@@ -27,6 +27,8 @@ class Naskah extends Model
         'tanggal_nota',
         'diajukan_at',
         'terkunci_at',
+        'tahapan_ttd',
+        'dokumentasi_id',
     ];
 
     protected $attributes = [
@@ -41,6 +43,7 @@ class Naskah extends Model
             'tanggal_nota' => 'date',
             'diajukan_at' => 'datetime',
             'terkunci_at' => 'datetime',
+            'tahapan_ttd' => 'array',
         ];
     }
 
@@ -101,6 +104,16 @@ class Naskah extends Model
         return $this->hasMany(NaskahVersi::class)->latest('versi');
     }
 
+    public function notaDinas()
+    {
+        return $this->hasOne(NaskahNotaDinas::class);
+    }
+
+    public function dokumentasi()
+    {
+        return $this->belongsTo(DokumentasiProdukHukum::class, 'dokumentasi_id');
+    }
+
     /** Naskah yang boleh dilihat pengguna: sejalan dengan NaskahPolicy::view. */
     public function scopeTerlihatOleh(Builder $query, User $user): Builder
     {
@@ -132,7 +145,7 @@ class Naskah extends Model
         return match ($this->tahap->peran()) {
             'Perangkat Daerah' => $this->pemrakarsa_id === $user->id,
             'Peneliti' => $this->peneliti_id === $user->id,
-            default => $user->hasRole($this->tahap->peran()),
+            default => $user->hasAnyRole($this->tahap->pemegang()),
         };
     }
 }

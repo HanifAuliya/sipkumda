@@ -45,6 +45,13 @@
                 class="block w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-sm file:font-semibold dark:file:bg-navy-800 dark:file:text-slate-200">
         </x-form.field>
 
+        <p class="rounded-lg bg-slate-50 px-3 py-2.5 text-sm text-slate-600 dark:bg-navy-800 dark:text-slate-300">
+            <i class="bi bi-lightbulb"></i> Pembacaan paling akurat bila naskah ditulis mengikuti template:
+            <a class="font-semibold text-primary-600 hover:underline dark:text-primary-300" href="{{ route('v2.template', 'peraturan-bupati') }}">Peraturan Bupati</a> atau
+            <a class="font-semibold text-primary-600 hover:underline dark:text-primary-300" href="{{ route('v2.template', 'surat-keputusan') }}">Surat Keputusan</a>.
+            Lampiran dan bahan pendukung diunggah di tab Berkas setelah naskah dibuat.
+        </p>
+
         <div class="flex justify-end border-t border-slate-100 pt-5 dark:border-navy-800">
             <x-ui.button type="submit" icon="arrow-right" loading="simpan">Lanjut ke matriks</x-ui.button>
         </div>

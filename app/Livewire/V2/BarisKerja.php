@@ -5,9 +5,11 @@ namespace App\Livewire\V2;
 use App\Models\Naskah;
 use App\Models\NaskahBaris;
 use App\Services\AlurNaskah;
+use App\Support\TataLetakNaskah;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Locked;
+use Livewire\Attributes\Renderless;
 use Livewire\Component;
 
 /**
@@ -55,6 +57,13 @@ class BarisKerja extends Component
     public function simpanSesuaian(?string $teks, AlurNaskah $alur): void
     {
         $this->jalankan(fn () => $alur->sesuaikan($this->baris, auth()->user(), $teks));
+    }
+
+    /** Hanya mengolah teks di editor; tersimpan saat pengguna menyimpan barisnya. */
+    #[Renderless]
+    public function rapikanNomor(?string $teks): string
+    {
+        return TataLetakNaskah::rapikanNomor($teks);
     }
 
     public function tambah(AlurNaskah $alur): void

@@ -8,7 +8,8 @@
         @page { margin: 2cm 2cm 2cm 3cm; }
         body { font-family: 'Times New Roman', Times, serif; font-size: 12pt; line-height: 1.35; color: #000; }
         .kop { text-align: center; font-weight: bold; font-size: 14pt; margin-bottom: 14pt; }
-        .kop img { width: 70px; display: block; margin: 0 auto 6pt; }
+        .lambang { margin-bottom: 6pt; }
+        .lambang img { width: 70px; }
         .tengah { text-align: center; margin: 12pt 0 6pt; }
         .tengah p { margin: 0; }
         table { width: 100%; border-collapse: collapse; }
@@ -19,6 +20,8 @@
         .isi { white-space: pre-line; }
         .paragraf { text-align: justify; margin: 0 0 3pt; }
         .daftar { margin-bottom: 8pt; }
+        .tabel-isi { margin: 4pt 0 8pt; }
+        .tabel-isi td { border: 1px solid #000; padding: 2pt 4pt; font-size: 11pt; text-align: left; }
         .penutup { margin-top: 16pt; page-break-inside: avoid; }
         .penutup p { margin: 0; min-height: 14pt; }
         .ditetapkan { margin-left: 8cm; }
@@ -30,7 +33,7 @@
 <body>
     <div class="kop">
         @if ($lambang)
-            <img src="{{ $lambang }}" alt="">
+            <div class="lambang"><img src="{{ $lambang }}" alt=""></div>
         @endif
         {{ App\Support\TataLetakNaskah::KOP }}
     </div>
@@ -85,7 +88,17 @@
             </div>
         @else
             @foreach ($b['baris'] as $baris)
-                @if ($baris['nomor'] === null)
+                @if (isset($baris['tabel']))
+                    <table class="tabel-isi">
+                        @foreach ($baris['tabel'] as $sel)
+                            <tr>
+                                @foreach ($sel as $isi)
+                                    <td>{{ $isi }}</td>
+                                @endforeach
+                            </tr>
+                        @endforeach
+                    </table>
+                @elseif ($baris['nomor'] === null)
                     <p class="paragraf">{{ $baris['isi'] }}</p>
                 @else
                     <table>

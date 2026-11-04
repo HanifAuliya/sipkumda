@@ -26,6 +26,11 @@ class TandaTangan extends Model
         return $this->hasMany(NotaDinas::class, 'tanda_tangan_id');
     }
 
+    public function naskahNotaDinas()
+    {
+        return $this->hasMany(NaskahNotaDinas::class, 'tanda_tangan_id');
+    }
+
     // Relasi ke tabel users
     public function user()
     {

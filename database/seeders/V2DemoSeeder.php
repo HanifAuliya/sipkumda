@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Naskah;
 use App\Models\NaskahBaris;
+use App\Models\TandaTangan;
 use App\Models\User;
 use App\Services\AlurNaskah;
 use App\Support\TemplateNaskah;
@@ -84,6 +85,20 @@ class V2DemoSeeder extends Seeder
         $perbaikan->baris()->whereKeyNot($pasal->id)->get()->each(fn ($b) => $alur->tetapkan($b, $peneliti));
         $alur->mintaPerbaikan($pasal, $peneliti, 'Tambahkan definisi Pemerintah Desa.');
         $alur->jalankan($perbaikan, $peneliti, 'kirim_ke_pd');
+
+        // Sudah bernota dinas dan sedang beredar untuk ditandatangani.
+        if ($ttd = TandaTangan::where('status', 'Aktif')->first()) {
+            $ttdNaskah = $this->buat($alur, $pd, 'Peraturan Bupati', 'Pedoman Pemberian Hibah Daerah', self::PERBUP);
+            $this->sampaiPenelitian($alur, $ttdNaskah, $pd, $admin, $verifikator, $peneliti);
+            $ttdNaskah->baris()->get()->each(fn ($b) => $alur->tetapkan($b, $peneliti));
+            $alur->jalankan($ttdNaskah, $peneliti, 'teruskan_ke_verifikator');
+            $alur->jalankan($ttdNaskah, $verifikator, 'setujui_rancangan');
+            $alur->jalankan($ttdNaskah, $pd, 'ajukan_fasilitasi');
+            $alur->jalankan($ttdNaskah, $admin, 'setujui_fasilitasi');
+            $alur->jalankan($ttdNaskah, $verifikator, 'finalkan');
+            $alur->terbitkanNota($ttdNaskah, $admin, (string) random_int(500, 999), 'Sekretaris Daerah', $ttd->id);
+            $alur->tandaiTahapan($ttdNaskah, $admin);
+        }
     }
 
     private function buat(AlurNaskah $alur, User $pd, string $jenis, string $tentang, array $baris): Naskah

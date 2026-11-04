@@ -18,6 +18,7 @@ class Navigation
                 'title' => null,
                 'items' => [
                     ['label' => 'Dashboard', 'route' => 'dashboard', 'icon' => 'grid-1x2'],
+                    ['label' => 'SIFKUMDA v2', 'route' => 'v2.beranda', 'icon' => 'stars'],
                 ],
             ],
             [

@@ -176,6 +176,23 @@ class TataLetakNaskah
         $hasil = [];
 
         foreach (self::barisIsi($teks) as $baris) {
+            // Tabel ditulis sebagai baris "| a | b |"; baris yang berurutan menjadi satu tabel.
+            if (str_starts_with($baris, '|')) {
+                $terakhir = array_key_last($hasil);
+                $sel = self::selTabel($baris);
+
+                if ($sel === null) {
+                    continue;
+                }
+                if ($terakhir !== null && isset($hasil[$terakhir]['tabel'])) {
+                    $hasil[$terakhir]['tabel'][] = $sel;
+                } else {
+                    $hasil[] = ['tingkat' => 0, 'nomor' => null, 'isi' => '', 'tabel' => [$sel]];
+                }
+
+                continue;
+            }
+
             $nomor = null;
             $tingkat = 0;
 
@@ -196,5 +213,43 @@ class TataLetakNaskah
         }
 
         return $hasil;
+    }
+
+    /** @return array<int, string>|null isi sel, atau null untuk baris pemisah "| --- |" */
+    private static function selTabel(string $baris): ?array
+    {
+        $isi = preg_replace('/^\||\|$/', '', trim($baris));
+        $sel = array_map('trim', explode('|', $isi));
+
+        return array_filter($sel, fn ($s) => ! preg_match('/^-*$/', $s)) ? $sel : null;
+    }
+
+    /**
+     * Mengurutkan ulang nomor ayat dan butir setelah ada yang disisipkan atau dihapus.
+     * Rujukan di dalam kalimat, misalnya "ayat (1)", tidak diubah dan tetap perlu diperiksa.
+     */
+    public static function rapikanNomor(?string $teks): string
+    {
+        $ayat = $huruf = $angka = 0;
+        $hasil = [];
+
+        foreach (preg_split('/\R/u', (string) $teks) as $baris) {
+            if (preg_match('/^(\s*)\(\d+[a-z]?\)\s*(.*)$/su', $baris, $m)) {
+                $baris = $m[1] . '(' . ++$ayat . ') ' . $m[2];
+                $huruf = $angka = 0;
+            } elseif (preg_match('/^(\s*)[a-z]([.)])\s+(.*)$/su', $baris, $m)) {
+                $baris = $m[1] . chr(97 + $huruf++ % 26) . $m[2] . ' ' . $m[3];
+                $angka = 0;
+            } elseif (preg_match('/^(\s*)\d{1,3}([.)])\s+(.*)$/su', $baris, $m)) {
+                $baris = $m[1] . ++$angka . $m[2] . ' ' . $m[3];
+            } elseif (trim($baris) !== '' && ! str_starts_with(ltrim($baris), '|')) {
+                // Kalimat biasa mengakhiri daftar yang sedang berjalan.
+                $huruf = $angka = 0;
+            }
+
+            $hasil[] = $baris;
+        }
+
+        return implode("\n", $hasil);
     }
 }
