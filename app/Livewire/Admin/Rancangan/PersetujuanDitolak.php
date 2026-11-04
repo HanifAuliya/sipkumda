@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Admin\Rancangan;
 
+use Livewire\Attributes\Locked;
+
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\WithoutUrlPagination;
@@ -22,6 +24,7 @@ class PersetujuanDitolak extends Component
 
     public $catatan;
     public $statusBerkas;
+    #[Locked]
     public $selectedRancanganId;
 
 
@@ -164,7 +167,8 @@ class PersetujuanDitolak extends Component
 
     public function render()
     {
-        $berkasRancanganDitolak = RancanganProdukHukum::where('status_berkas', 'Ditolak')
+        $berkasRancanganDitolak = RancanganProdukHukum::with('user.perangkatDaerah')
+            ->where('status_berkas', 'Ditolak')
             ->where('status_rancangan', 'Dalam Proses')
             ->where(function ($query) {
                 $query->where('no_rancangan', 'like', "%{$this->search}%")

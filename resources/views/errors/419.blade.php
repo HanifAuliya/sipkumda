@@ -1,5 +1,7 @@
 @extends('errors::minimal')
 
-@section('title', __('Page Expired'))
+@section('title', 'Sesi Berakhir')
 @section('code', '419')
-@section('message', __('Page Expired'))
+@section('icon', 'hourglass-bottom')
+@section('message', 'Sesi Berakhir')
+@section('description', 'Sesi Anda telah berakhir. Muat ulang halaman lalu coba lagi.')

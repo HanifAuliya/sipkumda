@@ -1,635 +1,362 @@
-<!DOCTYPE html>
-<html lang="en">
+{{-- Beranda publik SIFKUMDA. JDIH hanya tampil sebagai cuplikan. Data dari JdihController@beranda. --}}
+@php
+    $fitur = [
+        ['send-check', 'Pengajuan daring', 'Rancangan, matrik, dan nota dinas diajukan langsung dari kantor perangkat daerah tanpa berkas fisik bolak-balik.'],
+        ['clipboard2-check', 'Cek kelengkapan otomatis', 'Berkas yang diunggah diperiksa kelengkapannya sebelum diajukan, sehingga lebih jarang dikembalikan.'],
+        ['activity', 'Status yang transparan', 'Setiap tahap — verifikasi, penelitian, validasi, hingga paraf — tercatat dan bisa dipantau kapan saja.'],
+        ['bell', 'Notifikasi setiap tahap', 'Perangkat daerah, verifikator, dan peneliti mendapat pemberitahuan begitu ada yang perlu ditindaklanjuti.'],
+        ['file-earmark-text', 'Nota dinas otomatis', 'Nota dinas fasilitasi dibuat dari sistem lengkap dengan nomor dan tanda tangan, siap dicetak.'],
+        ['archive', 'Arsip & JDIH', 'Produk hukum yang telah ditetapkan diarsipkan dan dapat dicari oleh masyarakat melalui JDIH.'],
+    ];
 
-<head>
-    <meta charset="utf-8" />
-    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>SIFKUMDA</title>
-    <meta name="description" content="" />
-    <meta name="keywords" content="" />
+    // Sesuai alur di public/assets/img/alur.
+    $alur = [
+        'rancangan' => ['Pengajuan Rancangan', 'file-earmark-plus', [
+            ['Perangkat Daerah', 'Mengajukan rancangan', 'Unggah rancangan & matrik (Word) serta nota dinas (PDF).'],
+            ['Admin Bagian Hukum', 'Memeriksa berkas', 'Berkas lengkap diteruskan; bila ditolak, perangkat daerah mengunggah ulang sesuai catatan.'],
+            ['Verifikator', 'Menunjuk peneliti', 'Rancangan diteruskan kepada peneliti yang ditugaskan.'],
+            ['Peneliti', 'Meneliti & merevisi', 'Peneliti meneliti rancangan dan mengunggah hasil revisi beserta matriknya.'],
+            ['Verifikator', 'Memvalidasi hasil penelitian', 'Hasil penelitian divalidasi; bila belum sesuai, dikembalikan ke peneliti.'],
+            ['Perangkat Daerah', 'Menyesuaikan rancangan', 'Rancangan diperbaiki sesuai hasil penelitian sebagai bahan fasilitasi.'],
+        ]],
+        'fasilitasi' => ['Fasilitasi & Penetapan', 'patch-check', [
+            ['Perangkat Daerah', 'Mengajukan fasilitasi', 'Unggah rancangan hasil perbaikan (PDF) melalui menu Fasilitasiku.'],
+            ['Peneliti', 'Memeriksa kesesuaian', 'Dicocokkan dengan hasil penelitian; bila belum sesuai, perangkat daerah mengunggah ulang.'],
+            ['Verifikator', 'Memvalidasi fasilitasi', 'Fasilitasi yang sesuai divalidasi untuk dibuatkan nota dinas.'],
+            ['Admin Bagian Hukum', 'Menerbitkan nota dinas', 'Nota dinas fasilitasi diterbitkan dan dapat dicetak perangkat daerah.'],
+            ['Perangkat Daerah', 'Proses paraf', 'Paraf koordinasi, asisten, sekda, hingga bupati — setiap tahap dicatat di sistem.'],
+            ['Admin Bagian Hukum', 'Mengarsipkan', 'Produk hukum yang ditetapkan diarsipkan dan tampil di JDIH untuk umum.'],
+        ]],
+    ];
 
-    {{-- Favicons --}}
-    <link href="{{ asset('assets/img/brand/favicon.ico') }}" rel="icon" />
-    <link href="{{ asset('assets/img/brand/favicon.ico') }}" rel="apple-touch-icon" />
+    $peran = [
+        ['building', 'Perangkat Daerah', 'Mengajukan rancangan dan fasilitasi, memantau status, serta mencetak nota dinas.'],
+        ['person-check', 'Admin Bagian Hukum', 'Memeriksa kelengkapan berkas, menerbitkan nota dinas, dan mengarsipkan produk hukum.'],
+        ['patch-check', 'Verifikator', 'Menunjuk peneliti dan memvalidasi hasil penelitian maupun fasilitasi.'],
+        ['search', 'Peneliti', 'Meneliti rancangan, mengunggah revisi, dan memeriksa berkas fasilitasi.'],
+    ];
 
-    {{-- Fonts --}}
-    <link href="https://fonts.googleapis.com" rel="preconnect" />
-    <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin />
-    <link
-        href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Raleway:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
-        rel="stylesheet" />
+    $faq = [
+        ['Siapa yang dapat menggunakan SIFKUMDA?', 'Perangkat daerah di lingkungan Pemerintah Kabupaten Hulu Sungai Tengah serta pegawai Bagian Hukum Sekretariat Daerah. Akun disediakan oleh Bagian Hukum; tidak ada pendaftaran mandiri.'],
+        ['Berkas apa saja yang perlu disiapkan untuk pengajuan?', 'Rancangan dan matrik dalam format Word (.doc/.docx), nota dinas dalam format PDF, dan bahan pendukung (opsional) dalam format PDF. Ukuran setiap berkas maksimal 20 MB.'],
+        ['Bagaimana cara mengetahui status pengajuan?', 'Masuk ke SIFKUMDA lalu buka menu Rancanganku atau Fasilitasiku. Setiap perubahan status juga dikirim sebagai notifikasi di dalam aplikasi.'],
+        ['Saya lupa password, apa yang harus dilakukan?', 'Gunakan tautan "Lupa password?" di halaman masuk untuk menerima tautan atur ulang melalui email yang terdaftar, atau hubungi Bagian Hukum.'],
+        ['Apakah masyarakat umum dapat melihat produk hukum?', 'Ya. Produk hukum yang telah ditetapkan dapat dicari dan diunduh tanpa akun melalui halaman Produk Hukum (JDIH).'],
+    ];
 
-    {{-- Vendor CSS Files --}}
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.css" rel="stylesheet" />
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/glightbox/3.2.0/css/glightbox.min.css" rel="stylesheet" />
+    $logo = fn ($file) => 'https://ik.imagekit.io/bertawedding/ppid/logo%20lembaga/' . $file;
+    $links = [
+        ['https://diskominfo.hstkab.go.id', $logo('Kominfo%20(1).png?updatedAt=1728977390499'), 'Diskominfo HST'],
+        ['https://hstkab.go.id', $logo('Pemkab.png?updatedAt=1728977715130'), 'Pemkab HST'],
+        ['https://opendata.hstkab.go.id', $logo('OpenData.png?updatedAt=1728978182768'), 'Open Data HST'],
+        ['https://www.youtube.com/@mediacenterhst', $logo('Kominfo%20(2).png?updatedAt=1729128401636'), 'Media Center HST'],
+        ['https://ppidutama.kalselprov.go.id', $logo('PPID%20UTAMA.png?updatedAt=1728978540123'), 'PPID Utama Kalsel'],
+        ['https://lapor.go.id', $logo('LAPOR.png?updatedAt=1729127779226'), 'LAPOR'],
+    ];
 
-    {{-- Main CSS File --}}
-    @vite(['resources/js/app.js'])
+    $angka = fn (int $n) => number_format($n, 0, ',', '.');
+    $hitung = fn (int $n) => "x-data=\"{ v: {$n} }\" x-intersect.once=\"v = 0; const to = {$n}, s = performance.now(); const t = (n) => { const p = Math.min((n - s) / 1200, 1); v = Math.round(to * (1 - Math.pow(1 - p, 3))); if (p < 1) requestAnimationFrame(t); }; requestAnimationFrame(t);\" x-text=\"v.toLocaleString('id-ID')\"";
+    $reveal = 'x-data="{ shown: false }" x-intersect.once.margin.-80px="shown = true" x-bind:class="shown ? \'opacity-100 translate-y-0\' : \'opacity-0 translate-y-6\'"';
+@endphp
 
-    <link href="{{ asset('assets/css/main.css') }}" rel="stylesheet" />
-</head>
+<x-publik-layout :transparan="true">
+    {{-- Hero --}}
+    <section class="relative isolate overflow-hidden bg-navy-950 pt-32 pb-24 sm:pt-40 lg:pb-32">
+        <img src="{{ asset('assets/img/theme/sulangking.jpg') }}" alt="" class="absolute inset-0 -z-20 size-full object-cover opacity-70" fetchpriority="high">
+        {{-- Gelap di sisi teks, lebih terang di sisi kanan agar gambar latar tetap terlihat. --}}
+        <div class="absolute inset-0 -z-10 bg-linear-to-r from-navy-950/95 via-navy-950/75 to-navy-950/40"></div>
+        <div class="absolute inset-x-0 bottom-0 -z-10 h-40 bg-linear-to-t from-navy-950/80 to-transparent"></div>
+        <div class="pointer-events-none absolute -top-40 -right-40 -z-10 size-[32rem] rounded-full bg-primary-500/20 blur-3xl"></div>
+        <div class="pointer-events-none absolute -bottom-48 -left-24 -z-10 size-[28rem] rounded-full bg-brand-500/15 blur-3xl"></div>
 
-<body class="index-page">
-    <header id="header" class="header d-flex align-items-center fixed-top">
-        <div class="container-fluid container-xl position-relative d-flex align-items-center justify-content-between">
-            <a href="index.html" class="logo d-flex align-items-center me-auto me-lg-0">
-                {{-- Uncomment the line below if you also wish to use an image logo --}}
-                <img src="{{ asset('assets/img/brand/barabai.png') }}" alt="" />
-                <img src="{{ asset('assets/img/brand/favicon.ico') }}" alt="" />
-                <h1 class="sitename">SIFKUMDA</h1>
-                <span>.</span>
-            </a>
-
-            <nav id="navmenu" class="navmenu">
-                <ul>
-                    <li>
-                        <a href="#hero" class="active">
-                            Home
-                            <br />
-                        </a>
-                    </li>
-                    <li><a href="#about">Tentang SIFKUMDA</a></li>
-                    <li><a href="#services">Fasilitasi Produk Hukum</a></li>
-                    <li><a href="#stats">Produk Hukum</a></li>
-                </ul>
-                <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
-            </nav>
-
-            <a class="btn-getstarted" href="{{ Auth::check() ? route('dashboard') : route('login') }}">
-                {{ Auth::check() ? 'Dashboard' : 'Login' }}
-            </a>
-        </div>
-    </header>
-
-    <main class="main">
-        {{-- Hero Section --}}
-        <section id="hero" class="hero section dark-background">
-            <img src="{{ asset('assets/img/theme/sulangking.jpg') }}" alt="" data-aos="fade-in" />
-
-            <div class="container">
-                <div class="row justify-content-center text-center" data-aos="fade-up" data-aos-delay="100">
-                    <div class="col-xl-8 col-lg-8">
-                        <h2 class="fw-bold">Sistem Fasilitasi Produk Hukum Daerah</h2>
-                        <h4>Kabupaten Hulu Sungai Tengah</h4>
-                        <p>
-                            <small>
-                                Platform digital yang mempermudah fasilitasi produk hukum
-                                daerah secara cepat, transparan, dan efisien.
-                            </small>
-                        </p>
-                    </div>
-                </div>
-
-                <div class="row gy-4 mt-5 justify-content-center" data-aos="fade-up" data-aos-delay="200">
-                    <div class="col-xl-4 col-md-4" data-aos="fade-up" data-aos-delay="300">
-                        <a href="{{ route('login') }}" class="icon-box-link">
-                            <div class="icon-box">
-                                <i class="bi bi-file-earmark-text"></i> {{-- Ikon yang lebih relevan --}}
-                                <h3>Pengajuan Produk Hukum</h3>
-                                <p class="desc-text">
-                                    Ajukan rancangan produk hukum daerah dengan mudah dan cepat melalui sistem digital.
-                                </p>
-                            </div>
-                        </a>
-
-                    </div>
-
-                    <div class="col-xl-4 col-md-4" data-aos="fade-up" data-aos-delay="300">
-                        <a href="{{ asset('assets/document/SIFKUMDA-PanduanLogin.pdf') }}" target="_blank"
-                            class="text-decoration-none">
-                            <div class="icon-box">
-                                <i class="bi bi-person-lock"></i> {{-- Ikon Login --}}
-                                <h3>Panduan Login</h3>
-                                <p class="desc-text">
-                                    Pelajari cara masuk ke sistem dan mengakses fitur SIFKUMDA.<br>
-                                    <strong>Klik di sini untuk membuka panduan.</strong>
-                                </p>
-                            </div>
-                        </a>
-                    </div>
-
-                </div>
-            </div>
-        </section>
-
-        {{-- About Section --}}
-        <section id="about" class="about section">
-            <div class="container" data-aos="fade-up" data-aos-delay="100">
-                <div class="row gy-4">
-                    <div class="col-lg-6 order-1 order-lg-2">
-                        <img src="{{ asset('assets/img/theme/Surat-Keputusan.jpg') }}" class="img-fluid"
-                            alt="Tentang SIFKUMDA" />
-                    </div>
-                    <div class="col-lg-6 order-2 order-lg-1 content">
-                        <h3>
-                            SIFKUMDA - Sistem Informasi Fasilitasi Produk Hukum Daerah
-                        </h3>
-                        <p class="fst-italic">
-                            SIFKUMDA adalah platform digital yang dirancang untuk
-                            mempermudah proses penyusunan dan fasilitasi produk hukum daerah
-                            secara efektif dan transparan.
-                        </p>
-                        <ul>
-                            <li>
-                                <i class="bi bi-check2-all"></i>
-                                <span>
-                                    Mengelola produk hukum daerah seperti
-                                    <strong>Peraturan Bupati</strong>
-                                    dan
-                                    <strong>Surat Keputusan Bupati</strong>
-                                    .
-                                </span>
-                            </li>
-                            <li>
-                                <i class="bi bi-check2-all"></i>
-                                <span>
-                                    Memfasilitasi
-                                    <strong>
-                                        pengajuan, pemeriksaan, penelitian, dan penyimpanan
-                                    </strong>
-                                    dokumen hukum secara digital.
-                                </span>
-                            </li>
-                            <li>
-                                <i class="bi bi-check2-all"></i>
-                                <span>
-                                    Meningkatkan efisiensi dan transparansi dalam penyusunan
-                                    produk hukum dengan sistem yang terintegrasi.
-                                </span>
-                            </li>
-                        </ul>
-                        <p>
-                            Dengan SIFKUMDA, setiap tahap dalam pembentukan produk hukum
-                            dapat dilakukan secara lebih mudah dan cepat, memastikan bahwa
-                            setiap dokumen hukum telah melalui proses yang sesuai dengan
-                            standar dan regulasi yang berlaku.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </section>
-        {{-- /About Section --}}
-
-        {{-- Clients Section (Tautan Penting) --}}
-        <section id="clients" class="clients section">
-            <div class="container" data-aos="fade-up" data-aos-delay="100">
-                <h2 class="text-center mb-4">Tautan Penting</h2>
-                <div class="swiper init-swiper">
-                    <script type="application/json" class="swiper-config">
-              {
-                "loop": true,
-                "speed": 600,
-                "autoplay": {
-                  "delay": 1000
-                },
-                "slidesPerView": "auto",
-                "pagination": {
-                  "el": ".swiper-pagination",
-                  "type": "bullets",
-                  "clickable": true
-                },
-                "breakpoints": {
-                  "320": {
-                    "slidesPerView": 2,
-                    "spaceBetween": 40
-                  },
-                  "480": {
-                    "slidesPerView": 3,
-                    "spaceBetween": 50
-                  },
-                  "640": {
-                    "slidesPerView": 4,
-                    "spaceBetween": 60
-                  },
-                  "992": {
-                    "slidesPerView": 6,
-                    "spaceBetween": 80
-                  }
-                }
-              }
-            </script>
-                    <div class="swiper-wrapper align-items-center">
-                        <div class="swiper-slide">
-                            <a href="https://diskominfo.hstkab.go.id" target="_blank">
-                                <img src="https://ik.imagekit.io/bertawedding/ppid/logo%20lembaga/Kominfo%20(1).png?updatedAt=1728977390499"
-                                    class="img-fluid" alt="Diskominfo HST" />
-                            </a>
-                        </div>
-                        <div class="swiper-slide">
-                            <a href="https://hstkab.go.id" target="_blank">
-                                <img src="https://ik.imagekit.io/bertawedding/ppid/logo%20lembaga/Pemkab.png?updatedAt=1728977715130"
-                                    class="img-fluid" alt="Pemkab HST" />
-                            </a>
-                        </div>
-                        <div class="swiper-slide">
-                            <a href="https://opendata.hstkab.go.id" target="_blank">
-                                <img src="https://ik.imagekit.io/bertawedding/ppid/logo%20lembaga/OpenData.png?updatedAt=1728978182768"
-                                    class="img-fluid" alt="Open Data HST" />
-                            </a>
-                        </div>
-                        <div class="swiper-slide">
-                            <a href="https://www.youtube.com/@mediacenterhst" target="_blank">
-                                <img src="https://ik.imagekit.io/bertawedding/ppid/logo%20lembaga/Kominfo%20(2).png?updatedAt=1729128401636"
-                                    class="img-fluid" alt="Media Center HST" />
-                            </a>
-                        </div>
-                        <div class="swiper-slide">
-                            <a href="https://ppidutama.kalselprov.go.id" target="_blank">
-                                <img src="https://ik.imagekit.io/bertawedding/ppid/logo%20lembaga/PPID%20UTAMA.png?updatedAt=1728978540123"
-                                    class="img-fluid" alt="PPID Utama Kalsel" />
-                            </a>
-                        </div>
-                        <div class="swiper-slide">
-                            <a href="https://lapor.go.id" target="_blank">
-                                <img src="https://ik.imagekit.io/bertawedding/ppid/logo%20lembaga/LAPOR.png?updatedAt=1729127779226"
-                                    class="img-fluid" alt="LAPOR" />
-                            </a>
-                        </div>
-                    </div>
-                    <div class="swiper-pagination"></div>
-                </div>
-            </div>
-        </section>
-        {{-- /Clients Section (Tautan) --}}
-
-        {{-- Services Section --}}
-        <section id="services" class="services section">
-            {{-- Section Title --}}
-            <div class="container section-title" data-aos="fade-up">
-                <h2>Layanan Kami</h2>
-                <p>Fasilitasi Produk Hukum Daerah Secara Cepat dan Transparan</p>
-            </div>
-            {{-- End Section Title --}}
-
-            <div class="container">
-                <div class="row gy-4">
-                    <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="100">
-                        <div class="service-item position-relative">
-                            <div class="icon">
-                                <i class="bi bi-upload"></i>
-                            </div>
-                            <a href="#" class="stretched-link">
-                                <h3>Pengajuan Produk Hukum</h3>
-                            </a>
-                            <p>
-                                Ajukan rancangan produk hukum daerah secara digital dengan
-                                proses yang lebih cepat dan transparan.
-                            </p>
-                        </div>
-                    </div>
-                    {{-- End Service Item --}}
-
-                    <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="200">
-                        <div class="service-item position-relative">
-                            <div class="icon">
-                                <i class="bi bi-check-circle"></i>
-                            </div>
-                            <a href="#" class="stretched-link">
-                                <h3>Pemeriksaan dan Validasi</h3>
-                            </a>
-                            <p>
-                                Proses verifikasi dan validasi dokumen dilakukan secara
-                                sistematis untuk memastikan kelengkapan dan keabsahan.
-                            </p>
-                        </div>
-                    </div>
-                    {{-- End Service Item --}}
-
-                    <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="300">
-                        <div class="service-item position-relative">
-                            <div class="icon">
-                                <i class="bi bi-pencil-square"></i>
-                            </div>
-                            <a href="#" class="stretched-link">
-                                <h3>Penyusunan dan Penelitian</h3>
-                            </a>
-                            <p>
-                                Dokumen yang diajukan dapat diteleti dengan mudah,
-                                memungkinkan kolaborasi yang lebih efektif.
-                            </p>
-                        </div>
-                    </div>
-                    {{-- End Service Item --}}
-
-                    <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="400">
-                        <div class="service-item position-relative">
-                            <div class="icon">
-                                <i class="bi bi-file-earmark-text"></i>
-                            </div>
-                            <a href="#" class="stretched-link">
-                                <h3>Dokumentasi dan Arsip</h3>
-                            </a>
-                            <p>
-                                Seluruh dokumen yang telah difasilitasi akan tersimpan dalam
-                                sistem secara aman dan dapat diakses kapan saja.
-                            </p>
-                        </div>
-                    </div>
-                    {{-- End Service Item --}}
-
-                    <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="500">
-                        <div class="service-item position-relative">
-                            <div class="icon">
-                                <i class="bi bi-globe"></i>
-                            </div>
-                            <a href="#" class="stretched-link">
-                                <h3>Akses Mudah dan Terintegrasi</h3>
-                            </a>
-                            <p>
-                                Platform berbasis web yang dapat diakses oleh seluruh pihak
-                                terkait secara aman dan efisien.
-                            </p>
-                        </div>
-                    </div>
-                    {{-- End Service Item --}}
-
-                    <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="600">
-                        <div class="service-item position-relative">
-                            <div class="icon">
-                                <i class="bi bi-chat-square-text"></i>
-                            </div>
-                            <a href="#" class="stretched-link">
-                                <h3>Bantuan dan Dukungan</h3>
-                            </a>
-                            <p>
-                                Dapatkan bantuan teknis dan informasi terkait proses
-                                fasilitasi produk hukum kapan saja.
-                            </p>
-                        </div>
-                    </div>
-                    {{-- End Service Item --}}
-                </div>
-            </div>
-        </section>
-        {{-- /Services Section --}}
-
-        {{-- Stats Section --}}
-
-        <section id="stats" class="stats section">
-            <div class="container" data-aos="fade-up" data-aos-delay="100">
-                <div class="row gy-4 align-items-center justify-content-between">
-                    <div class="col-lg-5">
-                        <img src="{{ asset('assets/img/theme/card-1.jpg') }}" alt="" class="img-fluid" />
-                    </div>
-                    <div class="col-lg-6">
-                        <h3 class="fw-bold fs-2 mb-3">Statistik Produk Hukum</h3>
-                        <p>
-                            Sistem ini mencatat berbagai jenis produk hukum daerah, termasuk
-                            <strong>Peraturan Bupati</strong> dan <strong>Surat Keputusan Bupati</strong>.
-                            Berikut adalah jumlah produk hukum yang telah tercatat dalam sistem:
-                        </p>
-
-                        <div class="row gy-4">
-                            <!-- Surat Keputusan Rancangan Produk Hukum -->
-                            <div class="col-lg-6">
-                                <div class="stats-item d-flex">
-                                    <i class="bi bi-file-earmark-text flex-shrink-0"></i>
-                                    <div>
-                                        <span data-purecounter-start="0" data-purecounter-end="{{ $sk_rancangan }}"
-                                            data-purecounter-duration="1" class="purecounter"></span>
-                                        <p>
-                                            <span>Rancangan Produk Hukum</span>
-                                            <strong>Surat Keputusan</strong>
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Keputusan Bupati Rancangan Produk Hukum -->
-                            <div class="col-lg-6">
-                                <div class="stats-item d-flex">
-                                    <i class="bi bi-file-earmark-text flex-shrink-0"></i>
-                                    <!-- Ikon yang sedikit berbeda -->
-                                    <div>
-                                        <span data-purecounter-start="0" data-purecounter-end="{{ $kb_rancangan }}"
-                                            data-purecounter-duration="1" class="purecounter"></span>
-                                        <p>
-                                            <span>Rancangan Produk Hukum</span>
-                                            <strong>Keputusan Bupati</strong>
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Surat Keputusan Dokumentasi Produk Hukum -->
-                            <div class="col-lg-6">
-                                <div class="stats-item d-flex">
-                                    <i class="bi bi-folder flex-shrink-0"></i>
-                                    <div>
-                                        <span data-purecounter-start="0" data-purecounter-end="{{ $sk_dokumentasi }}"
-                                            data-purecounter-duration="1" class="purecounter"></span>
-                                        <p>
-                                            <span>Dokumentasi Produk Hukum</span>
-                                            <strong>Surat Keputusan</strong>
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Keputusan Bupati Dokumentasi Produk Hukum -->
-                            <div class="col-lg-6">
-                                <div class="stats-item d-flex">
-                                    <i class="bi bi-folder-folder flex-shrink-0"></i>
-                                    <!-- Ikon yang sedikit berbeda -->
-                                    <div>
-                                        <span data-purecounter-start="0" data-purecounter-end="{{ $kb_dokumentasi }}"
-                                            data-purecounter-duration="1" class="purecounter"></span>
-                                        <p>
-                                            <span>Dokumentasi Produk Hukum</span>
-                                            <strong>Keputusan Bupati</strong>
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-
-
-
-        {{-- /Stats Section --}}
-
-        {{-- Contact Section --}}
-        <section id="contact" class="contact section">
-            {{-- Section title --}}
-            <div class="container section-title" data-aos="fade-up">
-                <h2>Kontak Kami</h2>
-                <p>Hubungi Kami untuk Informasi Lebih Lanjut</p>
-            </div>
-            {{-- End Section Title --}}
-
-            <div class="container" data-aos="fade-up" data-aos-delay="100">
-                <div class="mb-4" data-aos="fade-up" data-aos-delay="200">
-                    <iframe style="border: 0; width: 100%; height: 270px"
-                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15934.265820741635!2d115.38191621594372!3d-2.5891951377680394!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2de420cf5f1f93b7%3A0xa81c2d6ec6b4e62d!2sJl.%20Perwira%2C%20Barabai%20Sel.%2C%20Kec.%20Barabai%2C%20Kabupaten%20Hulu%20Sungai%20Tengah%2C%20Kalimantan%20Selatan%2071315!5e0!3m2!1sen!2sid!4v1713456789012!5m2!1sen!2sid"
-                        frameborder="0" allowfullscreen="" loading="lazy"
-                        referrerpolicy="no-referrer-when-downgrade"></iframe>
-                </div>
-                {{-- End Google Maps --}}
-            </div>
-        </section>
-        {{-- /Contact Section --}}
-    </main>
-
-    {{-- Footer Section --}}
-    <footer id="footer" class="footer dark-background">
-        <div class="footer-top">
-            <div class="container">
-                <div class="row gy-4">
-                    <div class="col-lg-4 col-md-6 footer-about">
-                        <a href="index.html" class="logo d-flex align-items-center">
-                            <span class="sitename">SIFKUMDA</span>
-                        </a>
-                        <div class="footer-contact pt-3">
-                            <p>
-                                C98M+5R3, Jl. Perwira, Barabai Sel., Kec. Barabai, Kabupaten
-                                Hulu Sungai Tengah, Kalimantan Selatan 71315
-                            </p>
-                            <p>Kalimantan Selatan, Indonesia</p>
-                            <p class="mt-3">
-                                <strong>Phone:</strong>
-                                <span>-</span>
-                            </p>
-                            <p>
-                                <strong>Email:</strong>
-                                <span>-</span>
-                            </p>
-                        </div>
-                        <div class="social-links d-flex mt-4">
-                            <a href="https://www.facebook.com/SetdaHSTMenyala" target="_blank">
-                                <i class="bi bi-facebook"></i>
-                            </a>
-                            <a href="https://www.instagram.com/setdahstmenyala/" target="_blank">
-                                <i class="bi bi-instagram"></i>
-                            </a>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-2 col-md-3 footer-links">
-                        <h4>Informasi Publik</h4>
-                        <ul>
-                            <li>
-                                <i class="bi bi-chevron-right"></i>
-                                <a href="#">Beranda</a>
-                            </li>
-                            <li>
-                                <i class="bi bi-chevron-right"></i>
-                                <a href="#">Tentang Aplikasi</a>
-                            </li>
-                            <li>
-                                <i class="bi bi-chevron-right"></i>
-                                <a href="#">Peraturan dan Kebijakan</a>
-                            </li>
-                            <li>
-                                <i class="bi bi-chevron-right"></i>
-                                <a href="#">Hubungi Kami</a>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <div class="col-lg-2 col-md-3 footer-links">
-                        <h4>Layanan</h4>
-                        <ul>
-                            <li>
-                                <i class="bi bi-chevron-right"></i>
-                                <a href="#">Pengajuan Produk Hukum</a>
-                            </li>
-                            <li>
-                                <i class="bi bi-chevron-right"></i>
-                                <a href="#">Pemeriksaan dan Validasi</a>
-                            </li>
-                            <li>
-                                <i class="bi bi-chevron-right"></i>
-                                <a href="#">Penyusunan dan Revisi</a>
-                            </li>
-                            <li>
-                                <i class="bi bi-chevron-right"></i>
-                                <a href="#">Dokumentasi dan Arsip</a>
-                            </li>
-                            <li>
-                                <i class="bi bi-chevron-right"></i>
-                                <a href="#">Dukungan dan Bantuan</a>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <div class="col-lg-4 col-md-12 footer-links">
-                        <h4>Unit Terkait</h4>
-                        <ul>
-                            <li>
-                                <i class="bi bi-chevron-right"></i>
-                                <a href="https://hstkab.go.id" target="_blank">
-                                    Pemerintah Kabupaten HST
-                                </a>
-                            </li>
-                            <li>
-                                <i class="bi bi-chevron-right"></i>
-                                <a href="https://diskominfo.hstkab.go.id" target="_blank">
-                                    Dinas Kominfo HST
-                                </a>
-                            </li>
-                            <li>
-                                <i class="bi bi-chevron-right"></i>
-                                <a href="https://opendata.hstkab.go.id" target="_blank">
-                                    Open Data HST
-                                </a>
-                            </li>
-                            <li>
-                                <i class="bi bi-chevron-right"></i>
-                                <a href="https://lapor.go.id" target="_blank">
-                                    Layanan Aspirasi Publik
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="copyright">
-            <div class="container text-center">
-                <p>
-                    ©
-                    <span>2024</span>
-                    <strong class="px-1 sitename">SIFKUMDA</strong>
-                    <span>Semua Hak Dilindungi</span>
+        <div class="mx-auto grid max-w-7xl items-center gap-14 px-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:px-8">
+            <div class="text-white">
+                <p class="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-xs font-semibold tracking-wide ring-1 ring-white/15 backdrop-blur">
+                    <i class="bi bi-bank text-brand-500"></i> Bagian Hukum Setda Kabupaten Hulu Sungai Tengah
                 </p>
-                <div class="credits">
-                    Dikembangkan oleh
-                    <a href="#">Bagian Hukum Sekretariat Daerah Kabupaten Hulu Sungai Tengah</a>
+                <h1 class="mt-6 text-4xl leading-[1.1] font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
+                    Sistem Informasi <span class="bg-linear-to-r from-brand-500 to-emerald-300 bg-clip-text text-transparent">Fasilitasi</span> Produk Hukum Daerah
+                </h1>
+                <p class="mt-6 max-w-xl text-base leading-relaxed text-white/75 sm:text-lg">
+                    Pengajuan, penelitian, fasilitasi, hingga dokumentasi Peraturan Bupati dan Keputusan Bupati dalam satu sistem — lebih cepat, tertib, dan transparan.
+                </p>
+
+                <div class="mt-9 flex flex-wrap items-center gap-3">
+                    <a href="{{ route('login') }}" class="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-6 py-3.5 text-sm font-semibold text-white shadow-xl shadow-brand-500/25 transition hover:-translate-y-0.5 hover:bg-brand-600">
+                        <i class="bi bi-box-arrow-in-right"></i> Masuk ke SIFKUMDA
+                    </a>
+                    <a href="{{ route('jdih.index') }}" class="inline-flex items-center gap-2 rounded-xl bg-white/10 px-6 py-3.5 text-sm font-semibold text-white ring-1 ring-white/20 backdrop-blur transition hover:-translate-y-0.5 hover:bg-white/15">
+                        <i class="bi bi-search"></i> Cari Produk Hukum
+                    </a>
+                </div>
+
+                <p class="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-white/60">
+                    <span class="inline-flex items-center gap-1.5"><i class="bi bi-shield-check text-brand-500"></i> Akses khusus perangkat daerah</span>
+                    <a href="{{ asset('assets/document/SIFKUMDA-PanduanLogin.pdf') }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 hover:text-white">
+                        <i class="bi bi-book"></i> Panduan login
+                    </a>
+                </p>
+            </div>
+
+            {{-- Ilustrasi pelacakan status (dekoratif) --}}
+            <div class="relative mx-auto w-full max-w-md lg:max-w-none" aria-hidden="true">
+                <div class="absolute -inset-4 rounded-[2rem] bg-linear-to-br from-primary-500/30 to-brand-500/20 blur-2xl"></div>
+                {{-- Ruang ekstra atas/bawah (sm:pt-12 / sm:pb-14) untuk chip & kartu notifikasi yang menempel, agar tidak menutupi isi. --}}
+                <div class="relative rounded-3xl bg-white/95 p-6 shadow-2xl ring-1 ring-white/20 backdrop-blur sm:pt-12 sm:pb-14 dark:bg-navy-900/95">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-semibold tracking-wider text-slate-400 uppercase">Rancangan Peraturan Bupati</p>
+                            <p class="mt-1 font-bold text-navy-900 dark:text-white">Pengelolaan Barang Milik Daerah</p>
+                        </div>
+                        <span class="rounded-full bg-orange-50 px-2.5 py-1 text-xs font-semibold text-orange-600 ring-1 ring-orange-200 dark:bg-orange-500/10 dark:ring-orange-500/30">Penelitian</span>
+                    </div>
+
+                    <ol class="mt-6 space-y-4">
+                        @foreach ([['Diajukan perangkat daerah', 'selesai'], ['Berkas diverifikasi', 'selesai'], ['Diteliti peneliti', 'aktif'], ['Validasi verifikator', 'menunggu'], ['Fasilitasi & nota dinas', 'menunggu']] as [$langkah, $status])
+                            <li class="flex items-center gap-3">
+                                <span @class([
+                                    'grid size-8 shrink-0 place-items-center rounded-full text-sm',
+                                    'bg-emerald-500 text-white' => $status === 'selesai',
+                                    'bg-primary-500 text-white ring-4 ring-primary-100 dark:ring-primary-500/20' => $status === 'aktif',
+                                    'bg-slate-100 text-slate-400 dark:bg-navy-800' => $status === 'menunggu',
+                                ])>
+                                    <i @class(['bi', 'bi-check-lg' => $status === 'selesai', 'bi-hourglass-split' => $status === 'aktif', 'bi-circle' => $status === 'menunggu'])></i>
+                                </span>
+                                <span @class(['text-sm', 'font-semibold text-navy-900 dark:text-white' => $status !== 'menunggu', 'text-slate-400' => $status === 'menunggu'])>{{ $langkah }}</span>
+                            </li>
+                        @endforeach
+                    </ol>
+
+                    <div class="mt-6 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-navy-800">
+                        <div class="h-full w-1/2 rounded-full bg-linear-to-r from-emerald-500 to-primary-500"></div>
+                    </div>
+                </div>
+
+                <div class="absolute -bottom-7 -left-6 hidden items-center gap-3 rounded-2xl bg-white p-3 pr-5 shadow-xl ring-1 ring-slate-100 sm:flex dark:bg-navy-900 dark:ring-navy-800">
+                    <span class="grid size-10 place-items-center rounded-xl bg-emerald-50 text-xl text-emerald-600 dark:bg-emerald-500/15"><i class="bi bi-bell"></i></span>
+                    <span class="text-xs leading-tight"><strong class="block text-navy-900 dark:text-white">Notifikasi baru</strong><span class="text-slate-500">Hasil penelitian siap divalidasi</span></span>
+                </div>
+                <div class="absolute -top-5 right-6 hidden items-center gap-2 rounded-2xl bg-white px-4 py-2.5 shadow-xl ring-1 ring-slate-100 sm:flex dark:bg-navy-900 dark:ring-navy-800">
+                    <i class="bi bi-patch-check-fill text-primary-500"></i>
+                    <span class="text-xs font-semibold text-navy-900 dark:text-white">Berkas lengkap</span>
                 </div>
             </div>
         </div>
-    </footer>
-    {{-- /Footer Section --}}
+    </section>
 
-    {{-- Scroll Top --}}
-    <a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center">
-        <i class="bi bi-arrow-up-short"></i>
-    </a>
+    {{-- Statistik --}}
+    <section class="relative z-10 mx-auto -mt-12 max-w-6xl px-5 lg:px-8">
+        <dl class="grid grid-cols-2 gap-px overflow-hidden rounded-3xl bg-slate-200 shadow-card ring-1 ring-slate-200 lg:grid-cols-4 dark:bg-navy-800 dark:ring-navy-800">
+            @foreach ([
+                ['file-earmark-text', $statistik['rancangan'], 'Rancangan diajukan'],
+                ['hourglass-split', $statistik['diproses'], 'Sedang diproses'],
+                ['patch-check', $statistik['fasilitasi'], 'Fasilitasi'],
+                ['journal-bookmark', $statistik['ditetapkan'], 'Produk hukum terarsip'],
+            ] as [$ikon, $nilai, $label])
+                <div class="flex items-center gap-4 bg-white p-5 sm:p-6 dark:bg-navy-900">
+                    <span class="hidden size-12 shrink-0 place-items-center rounded-2xl bg-primary-50 text-xl text-primary-500 sm:grid dark:bg-primary-500/15"><i class="bi bi-{{ $ikon }}"></i></span>
+                    <div>
+                        <dd class="text-2xl font-extrabold text-navy-900 sm:text-3xl dark:text-white" {!! $hitung($nilai) !!}>{{ $angka($nilai) }}</dd>
+                        <dt class="mt-0.5 text-xs text-slate-500 sm:text-sm dark:text-slate-400">{{ $label }}</dt>
+                    </div>
+                </div>
+            @endforeach
+        </dl>
+    </section>
 
-    {{-- Preloader --}}
-    <div id="preloader"></div>
+    {{-- Keunggulan --}}
+    <section id="layanan" class="scroll-mt-20 py-20 lg:py-28">
+        <div class="mx-auto max-w-7xl px-5 lg:px-8">
+            <div class="mx-auto max-w-2xl text-center">
+                <p class="text-sm font-bold tracking-wider text-brand-600 uppercase">Layanan</p>
+                <h2 class="mt-2 text-3xl font-extrabold tracking-tight text-navy-900 sm:text-4xl dark:text-white">Fasilitasi produk hukum tanpa berkas bolak-balik</h2>
+                <p class="mt-4 text-slate-600 dark:text-slate-400">Semua pihak bekerja pada sistem yang sama, dari pengajuan pertama hingga produk hukum diarsipkan.</p>
+            </div>
 
-    {{-- Vendor JS Files --}}
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/bootstrapmade/php-email-form/validate.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/glightbox/3.2.0/js/glightbox.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/imagesloaded/5.0.0/imagesloaded.pkgd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/isotope-layout/3.0.6/isotope.pkgd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@srexi/purecounterjs@1.5.0/dist/purecounter_vanilla.js"></script>
+            <div class="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                @foreach ($fitur as $i => [$ikon, $judul, $isi])
+                    <div class="group rounded-3xl border border-slate-100 bg-white p-7 transition duration-700 hover:-translate-y-1 hover:border-primary-100 hover:shadow-card dark:border-navy-800 dark:bg-navy-900 dark:hover:border-primary-500/30"
+                        style="transition-delay: {{ $i * 60 }}ms" {!! $reveal !!}>
+                        <span class="grid size-12 place-items-center rounded-2xl bg-linear-to-br from-primary-500 to-primary-600 text-xl text-white shadow-lg shadow-primary-500/25 transition group-hover:scale-110">
+                            <i class="bi bi-{{ $ikon }}"></i>
+                        </span>
+                        <h3 class="mt-5 text-lg font-bold text-navy-900 dark:text-white">{{ $judul }}</h3>
+                        <p class="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">{{ $isi }}</p>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </section>
 
-    {{-- Main JS File --}}
-    <script src="{{ asset('assets/js/main.js') }}"></script>
-</body>
+    {{-- Alur --}}
+    <section id="alur" class="scroll-mt-20 bg-slate-50 py-20 lg:py-28 dark:bg-navy-900" x-data="{ tab: 'rancangan' }">
+        <div class="mx-auto max-w-7xl px-5 lg:px-8">
+            <div class="flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-end">
+                <div class="max-w-2xl">
+                    <p class="text-sm font-bold tracking-wider text-brand-600 uppercase">Alur</p>
+                    <h2 class="mt-2 text-3xl font-extrabold tracking-tight text-navy-900 sm:text-4xl dark:text-white">Dari pengajuan sampai penetapan</h2>
+                    <p class="mt-4 text-slate-600 dark:text-slate-400">Dua tahap besar dengan peran yang jelas di setiap langkahnya.</p>
+                </div>
 
-</html>
+                <div class="inline-flex rounded-2xl bg-white p-1.5 shadow-sm ring-1 ring-slate-200 dark:bg-navy-950 dark:ring-navy-800" role="tablist">
+                    @foreach ($alur as $kunci => [$label, $ikon])
+                        <button type="button" role="tab" x-on:click="tab = '{{ $kunci }}'" x-bind:aria-selected="tab === '{{ $kunci }}'"
+                            x-bind:class="tab === '{{ $kunci }}' ? 'bg-navy-900 text-white shadow dark:bg-primary-500' : 'text-slate-600 hover:text-navy-900 dark:text-slate-300 dark:hover:text-white'"
+                            class="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition">
+                            <i class="bi bi-{{ $ikon }}"></i> {{ $label }}
+                        </button>
+                    @endforeach
+                </div>
+            </div>
+
+            @foreach ($alur as $kunci => [$label, $ikon, $langkah])
+                <ol x-show="tab === '{{ $kunci }}'" @if (! $loop->first) x-cloak @endif
+                    x-transition:enter="transition duration-300" x-transition:enter-start="opacity-0 translate-y-2"
+                    class="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3" role="tabpanel" aria-label="{{ $label }}">
+                    @foreach ($langkah as $i => [$siapa, $judul, $isi])
+                        <li class="relative rounded-3xl bg-white p-6 ring-1 ring-slate-200/70 dark:bg-navy-950 dark:ring-navy-800">
+                            <div class="flex items-center justify-between">
+                                <span class="grid size-11 place-items-center rounded-2xl bg-navy-900 text-lg font-extrabold text-white dark:bg-primary-500">{{ $i + 1 }}</span>
+                                <span class="rounded-full bg-primary-50 px-3 py-1 text-xs font-semibold text-primary-700 dark:bg-primary-500/10 dark:text-primary-300">{{ $siapa }}</span>
+                            </div>
+                            <h3 class="mt-5 font-bold text-navy-900 dark:text-white">{{ $judul }}</h3>
+                            <p class="mt-1.5 text-sm leading-relaxed text-slate-600 dark:text-slate-400">{{ $isi }}</p>
+                        </li>
+                    @endforeach
+                </ol>
+            @endforeach
+        </div>
+    </section>
+
+    {{-- Peran --}}
+    <section class="py-20 lg:py-28">
+        <div class="mx-auto grid max-w-7xl items-center gap-12 px-5 lg:grid-cols-2 lg:px-8">
+            <div class="relative" {!! $reveal !!}>
+                <img src="{{ asset('assets/img/theme/Surat-Keputusan.jpg') }}" alt="Penandatanganan dokumen produk hukum" class="aspect-[4/3] w-full rounded-3xl object-cover shadow-2xl" loading="lazy">
+                <div class="absolute -right-4 -bottom-6 hidden rounded-2xl bg-white p-5 shadow-xl ring-1 ring-slate-100 sm:block dark:bg-navy-900 dark:ring-navy-800">
+                    <p class="text-3xl font-extrabold text-navy-900 dark:text-white">{{ $angka($statistik['instansi']) }}</p>
+                    <p class="text-sm text-slate-500">perangkat daerah terhubung</p>
+                </div>
+            </div>
+
+            <div>
+                <p class="text-sm font-bold tracking-wider text-brand-600 uppercase">Peran Pengguna</p>
+                <h2 class="mt-2 text-3xl font-extrabold tracking-tight text-navy-900 sm:text-4xl dark:text-white">Setiap pihak tahu apa yang harus dikerjakan</h2>
+                <div class="mt-8 grid gap-4 sm:grid-cols-2">
+                    @foreach ($peran as [$ikon, $judul, $isi])
+                        <div class="rounded-2xl border border-slate-100 p-5 transition hover:border-primary-100 hover:bg-slate-50/60 dark:border-navy-800 dark:hover:bg-navy-900">
+                            <span class="grid size-10 place-items-center rounded-xl bg-brand-500/10 text-lg text-brand-600 dark:text-brand-500"><i class="bi bi-{{ $ikon }}"></i></span>
+                            <h3 class="mt-3 font-bold text-navy-900 dark:text-white">{{ $judul }}</h3>
+                            <p class="mt-1 text-sm leading-relaxed text-slate-600 dark:text-slate-400">{{ $isi }}</p>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {{-- Cuplikan JDIH --}}
+    <section class="relative overflow-hidden bg-navy-950 py-20 lg:py-24">
+        <div class="pointer-events-none absolute -top-32 left-1/3 size-96 rounded-full bg-primary-500/20 blur-3xl"></div>
+        <div class="relative mx-auto max-w-7xl px-5 lg:px-8">
+            <div class="grid items-end gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
+                <div class="text-white">
+                    <p class="inline-flex items-center gap-2 text-sm font-bold tracking-wider text-brand-500 uppercase">
+                        <i class="bi bi-journal-bookmark"></i> JDIH · Produk Hukum
+                    </p>
+                    <h2 class="mt-2 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">Produk hukum yang ditetapkan terbuka untuk umum</h2>
+                    <p class="mt-4 text-white/70">
+                        Cari Peraturan Bupati dan Keputusan Bupati Kabupaten Hulu Sungai Tengah berdasarkan judul atau nomor — tanpa perlu akun.
+                    </p>
+                </div>
+                <x-jdih.form-cari :opsi="$opsi" />
+            </div>
+
+            @if ($terbaru->isNotEmpty())
+                <div class="mt-10 grid gap-5 md:grid-cols-3">
+                    @foreach ($terbaru as $dokumen)
+                        <x-jdih.kartu :dokumen="$dokumen" class="dark:border-white/10 dark:bg-white/5" />
+                    @endforeach
+                </div>
+            @endif
+
+            <div class="mt-8 text-center">
+                <a href="{{ route('jdih.index') }}" class="inline-flex items-center gap-2 rounded-xl bg-white/10 px-5 py-3 text-sm font-semibold text-white ring-1 ring-white/15 transition hover:bg-white/15">
+                    Jelajahi semua produk hukum <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    {{-- FAQ --}}
+    <section class="py-20 lg:py-28">
+        <div class="mx-auto grid max-w-7xl gap-12 px-5 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:px-8">
+            <div>
+                <p class="text-sm font-bold tracking-wider text-brand-600 uppercase">Tanya Jawab</p>
+                <h2 class="mt-2 text-3xl font-extrabold tracking-tight text-navy-900 sm:text-4xl dark:text-white">Pertanyaan yang sering diajukan</h2>
+                <p class="mt-4 text-slate-600 dark:text-slate-400">Belum menemukan jawabannya? Hubungi Bagian Hukum Sekretariat Daerah.</p>
+                <a href="#kontak" class="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-primary-600 hover:underline dark:text-primary-300">
+                    Lihat kontak <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+
+            <div class="divide-y divide-slate-200 rounded-3xl border border-slate-200 dark:divide-navy-800 dark:border-navy-800" x-data="{ buka: 0 }">
+                @foreach ($faq as $i => [$tanya, $jawab])
+                    <div>
+                        <h3>
+                            <button type="button" class="flex w-full items-center justify-between gap-4 px-6 py-5 text-left font-semibold text-navy-900 dark:text-white"
+                                x-on:click="buka = buka === {{ $i }} ? null : {{ $i }}" x-bind:aria-expanded="buka === {{ $i }}">
+                                {{ $tanya }}
+                                <i class="bi bi-chevron-down shrink-0 text-slate-400 transition" x-bind:class="buka === {{ $i }} && 'rotate-180'"></i>
+                            </button>
+                        </h3>
+                        <div x-show="buka === {{ $i }}" x-collapse @if ($i !== 0) x-cloak @endif>
+                            <p class="px-6 pb-5 text-sm leading-relaxed text-slate-600 dark:text-slate-400">{{ $jawab }}</p>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </section>
+
+    {{-- Tautan penting --}}
+    <section class="border-y border-slate-100 bg-slate-50 py-10 dark:border-navy-800 dark:bg-navy-900">
+        <h2 class="text-center text-sm font-bold tracking-wider text-slate-500 uppercase">Tautan Penting</h2>
+        <div class="group relative mt-6 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
+            <div class="flex w-max animate-marquee items-center gap-16 group-hover:[animation-play-state:paused]">
+                @foreach ([...$links, ...$links] as $i => [$href, $img, $alt])
+                    <a href="{{ $href }}" target="_blank" rel="noopener" @if ($i >= count($links)) aria-hidden="true" tabindex="-1" @endif
+                        class="opacity-70 grayscale transition hover:opacity-100 hover:grayscale-0">
+                        <img src="{{ $img }}" alt="{{ $alt }}" class="h-12 w-auto" loading="lazy">
+                    </a>
+                @endforeach
+            </div>
+        </div>
+    </section>
+
+    {{-- Kontak --}}
+    <section id="kontak" class="scroll-mt-20 py-20 lg:py-28">
+        <div class="mx-auto grid max-w-7xl gap-8 px-5 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:px-8">
+            <div class="flex flex-col justify-between rounded-3xl bg-navy-900 p-8 text-white">
+                <div>
+                    <p class="text-sm font-bold tracking-wider text-brand-500 uppercase">Kontak</p>
+                    <h2 class="mt-2 text-3xl font-extrabold tracking-tight text-white">Bagian Hukum Setda Kabupaten Hulu Sungai Tengah</h2>
+                    <ul class="mt-8 space-y-5 text-sm text-white/80">
+                        <li class="flex gap-3"><i class="bi bi-geo-alt text-lg text-brand-500"></i> C98M+5R3, Jl. Perwira, Barabai Sel., Kec. Barabai, Kabupaten Hulu Sungai Tengah, Kalimantan Selatan 71315</li>
+                        <li class="flex gap-3"><i class="bi bi-facebook text-lg text-brand-500"></i> <a href="https://www.facebook.com/SetdaHSTMenyala" target="_blank" rel="noopener" class="hover:text-white">SetdaHSTMenyala</a></li>
+                        <li class="flex gap-3"><i class="bi bi-instagram text-lg text-brand-500"></i> <a href="https://www.instagram.com/setdahstmenyala/" target="_blank" rel="noopener" class="hover:text-white">@setdahstmenyala</a></li>
+                    </ul>
+                </div>
+                <a href="https://maps.google.com/?q=Jl.+Perwira,+Barabai" target="_blank" rel="noopener"
+                    class="mt-8 inline-flex items-center gap-2 self-start rounded-xl bg-white/10 px-4 py-2.5 text-sm font-semibold ring-1 ring-white/15 transition hover:bg-white/15">
+                    <i class="bi bi-signpost-split"></i> Petunjuk arah
+                </a>
+            </div>
+            <div class="overflow-hidden rounded-3xl shadow-card ring-1 ring-slate-100 dark:ring-navy-800">
+                <iframe class="h-full min-h-80 w-full border-0" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen
+                    title="Lokasi Sekretariat Daerah Kabupaten Hulu Sungai Tengah"
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15934.265820741635!2d115.38191621594372!3d-2.5891951377680394!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2de420cf5f1f93b7%3A0xa81c2d6ec6b4e62d!2sJl.%20Perwira%2C%20Barabai%20Sel.%2C%20Kec.%20Barabai%2C%20Kabupaten%20Hulu%20Sungai%20Tengah%2C%20Kalimantan%20Selatan%2071315!5e0!3m2!1sen!2sid!4v1713456789012!5m2!1sen!2sid"></iframe>
+            </div>
+        </div>
+    </section>
+</x-publik-layout>

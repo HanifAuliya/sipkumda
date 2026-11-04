@@ -1,573 +1,100 @@
 @section('title', 'Daftar Pengajuan Rancangan')
-@section('manual')
-    <div class="card  mb--2">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <div class="d-flex flex-column">
-                <h3 class="mb-0">Menu Daftar Rancangan</h3>
-                <p class="description">
-                    Pengajuan Rancangan Produk Hukum
-                </p>
-            </div>
 
-            {{-- Tombol untuk Verifikator --}}
-            <a href="{{ route('dashboard') }}" class="btn btn-outline-primary">
-                <i class="bi bi-skip-backward mr-2"></i> Kembali
-            </a>
-        </div>
-    </div>
-@endsection
 <div>
-    <div class="row mb-1">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <div>
-                        <h3 class="mb-0">Tabel Rancangan Produk Hukum</h3>
-                    </div>
-                    @unless (auth()->user()->hasRole('Perangkat Daerah'))
-                        <button wire:click="exportPDF" class="btn btn-outline-danger" wire:loading.attr="disabled"
-                            wire:target="exportPDF">
-                            <i class="bi bi-file-earmark-pdf" wire:loading.remove wire:target="exportPDF"></i>
-                            <span wire:loading.remove wire:target="exportPDF">Export PDF</span>
-                            <span wire:loading wire:target="exportPDF">
-                                <i class="spinner-border spinner-border-sm"></i> Loading...
-                            </span>
-                        </button>
-                    @endunless
+    <x-ui.page-header title="Daftar Rancangan" description="Pengajuan rancangan produk hukum" icon="clipboard2-data" />
 
+    <x-ui.card title="Tabel Rancangan Produk Hukum">
+        @unless (auth()->user()->hasRole('Perangkat Daerah'))
+            <x-slot:actions>
+                <x-ui.button variant="outline-danger" icon="file-earmark-pdf" wire:click="exportPDF" loading="exportPDF">
+                    Export PDF
+                </x-ui.button>
+            </x-slot:actions>
+        @endunless
 
-                </div>
-                <div class="card-body">
-                    {{-- 🔍 Pencarian --}}
-                    <div class="row align-items-center mt-4">
+        {{-- Filter --}}
+        <div class="grid gap-3 md:grid-cols-12">
+            <x-form.select wire:model.live="tahun" icon="calendar3" class="md:col-span-3" aria-label="Tahun">
+                <option value="">Semua Tahun</option>
+                @foreach ($tahunOptions as $year)
+                    <option value="{{ $year }}">{{ $year }}</option>
+                @endforeach
+            </x-form.select>
 
-                        {{-- Filter Tahun --}}
-                        <div class="col-md-3 position-relative">
-                            {{-- Loading Spinner (di atas filter) --}}
-                            <div wire:loading wire:target="tahun"
-                                class="text-sm text-muted position-absolute w-100  text-primary" style="top: -22px;">
-                                <div class="spinner-border spinner-border-sm text-primary mr-2" role="status"></div>
-                                Memuat
-                                data...
-                            </div>
+            <x-form.select wire:model.live="jenisRancangan" icon="tags" class="md:col-span-3" aria-label="Jenis rancangan">
+                <option value="">Semua Jenis Rancangan</option>
+                <option value="Peraturan Bupati">Peraturan Bupati</option>
+                <option value="Surat Keputusan">Surat Keputusan</option>
+            </x-form.select>
 
-                            <div class="input-group">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="ni ni-calendar-grid-58"></i></span>
-                                </div>
-                                <select class="form-control" wire:model.live="tahun">
-                                    <option value="">Semua Tahun</option>
-                                    @foreach ($tahunOptions as $year)
-                                        <option value="{{ $year }}">{{ $year }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
+            <x-form.select wire:model.live="perPage" icon="list-ol" class="md:col-span-2" aria-label="Data per halaman">
+                @foreach ([5, 10, 20, 50] as $size)
+                    <option value="{{ $size }}">{{ $size }} / halaman</option>
+                @endforeach
+            </x-form.select>
 
-
-                        {{-- Filter by Jenis Rancangan --}}
-                        <div class="col-md-3 position-relative">
-                            {{-- Loading Spinner (di atas dropdown) --}}
-                            <div wire:loading wire:target="jenisRancangan"
-                                class="text-sm text-muted position-absolute w-100 text-primary" style="top: -22px;">
-                                <div class="spinner-border spinner-border-sm text-primary mr-2" role="status"></div>
-                                Memfilter data...
-                            </div>
-
-                            <div class="input-group">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="ni ni-single-02"></i></span>
-                                </div>
-                                <select class="form-control" wire:model.live="jenisRancangan">
-                                    <option value="">Semua Jenis Rancangan</option>
-                                    <option value="Peraturan Bupati">Peraturan Bupati</option>
-                                    <option value="Surat Keputusan">Surat Keputusan</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        {{-- Per Page Dropdown --}}
-                        <div class="col-md-2 position-relative">
-                            {{-- Loading Spinner (di atas dropdown) --}}
-                            <div wire:loading wire:target="perPage"
-                                class="text-sm text-muted position-absolute w-100 text-primary" style="top: -22px;">
-                                <div class="spinner-border spinner-border-sm text-primary mr-2" role="status"></div>
-                                Memperbarui daftar...
-                            </div>
-
-                            <div class="input-group">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="ni ni-bullet-list-67"></i></span>
-                                </div>
-                                <select class="form-control" wire:model.live="perPage">
-                                    <option value="5">5</option>
-                                    <option value="10">10</option>
-                                    <option value="20">20</option>
-                                    <option value="50">50</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        {{-- Search Bar --}}
-                        <div class="col-md-4 position-relative">
-                            {{-- Loading Spinner (di atas input) --}}
-                            <div wire:loading wire:target="search"
-                                class="text-sm text-muted position-absolute w-100  text-primary" style="top: -22px;">
-                                <div class="spinner-border spinner-border-sm text-primary mr-2" role="status"></div>
-                                Mencari...
-                            </div>
-
-                            <div class="input-group">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="ni ni-zoom-split-in"></i></span>
-                                </div>
-                                <input type="text" class="form-control" wire:model.live="search"
-                                    placeholder="Cari tentang, Nomor Rancangan...">
-                            </div>
-                        </div>
-
-                    </div>
-                    {{-- Responsive table container --}}
-                    <div class="table-responsive">
-                        <table class="table text-sm">
-                            <thead>
-                                <tr>
-                                    <th> No Rancangan
-                                    </th>
-                                    <th>Tentang</th>
-                                    <th>Jenis Rancangan </th>
-                                    <th>Tanggal Pengajuan
-                                    </th>
-                                    <th>Persetujuan Berkas</th>
-                                    <th>Hasil Penelitian</th>
-                                    <th>Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse ($rancanganProdukHukum as $rancangan)
-                                    <tr>
-                                        <td>{{ $rancangan->no_rancangan }}</td>
-                                        <td class="text-wrap ">{{ $rancangan->tentang }}</td>
-                                        <td class="text-wrap">
-                                            <mark
-                                                class="badge-{{ $rancangan->jenis_rancangan === 'Peraturan Bupati' ? 'primary' : '' }} badge-pill">
-                                                {{ $rancangan->jenis_rancangan }}
-                                            </mark>
-                                        </td>
-                                        <td>
-                                            {{ $rancangan->tanggal_pengajuan ? \Carbon\Carbon::parse($rancangan->tanggal_pengajuan)->translatedFormat('d F Y') : 'N/A' }}
-                                        </td>
-                                        <td class="text-wrap">
-                                            <mark
-                                                class="badge-{{ $rancangan->status_berkas === 'Disetujui' ? 'success' : ($rancangan->status_berkas === 'Ditolak' ? 'danger' : 'warning') }} badge-pill">
-                                                {{ $rancangan->status_berkas }}
-                                            </mark>
-                                        </td>
-                                        <td class="text-wrap">
-                                            @foreach ($rancangan->revisi as $revisi)
-                                                <mark
-                                                    class="badge-{{ $revisi->status_revisi === 'Direvisi'
-                                                        ? 'success'
-                                                        : ($revisi->status_revisi === 'Menunggu Peneliti'
-                                                            ? 'info text-default'
-                                                            : ($revisi->status_revisi === 'Proses Revisi'
-                                                                ? 'warning'
-                                                                : ($revisi->status_revisi === 'Belum Tahap Revisi'
-                                                                    ? 'danger'
-                                                                    : 'secondary'))) }} badge-pill">
-                                                    {{ $revisi->status_revisi }}
-                                                </mark>
-                                            @endforeach
-                                        </td>
-
-                                        <td>
-                                            @can('view', $rancangan)
-                                                <button class="btn btn-default btn-sm"
-                                                    wire:click="showDetail({{ $rancangan->id_rancangan }})"
-                                                    class="btn btn-info btn-sm" data-target="#detailModal"
-                                                    data-toggle="modal">
-                                                    <i class="bi bi-eye"></i>
-                                                </button>
-                                                @if (!auth()->user()->hasRole('Perangkat Daerah'))
-                                                    <button type="button" class="btn btn-danger btn-sm"
-                                                        onclick="confirmDelete({{ $rancangan->id_rancangan }})">
-                                                        <i class="bi bi-trash-fill"></i>
-                                                    </button>
-                                                @endif
-                                            @else
-                                                <small class="text-danger">Perlu Izin!</small>
-                                            @endcan
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="7" class="text-center">Tidak ada data.</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                        <div class="mt-3">
-                            {{ $rancanganProdukHukum->links('pagination::bootstrap-4') }}
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <x-form.input wire:model.live.debounce.400ms="search" icon="search" class="md:col-span-4"
+                placeholder="Cari tentang atau nomor rancangan..." aria-label="Cari" />
         </div>
-    </div>
-    <div wire:ignore.self class="modal fade" id="detailModal" tabindex="-1" role="dialog"
-        aria-labelledby="detailModalLabel" data-backdrop="static" data-keyboard="false">
-        <div class="modal-dialog modal-xl no-style-modal" role="document">
-            <div class="modal-content ">
-                {{-- Body Modal untuk header --}}
+        <x-ui.loading target="tahun, jenisRancangan, perPage, search" class="mt-3">Memuat data...</x-ui.loading>
 
-                {{-- Header --}}
-                @if ($selectedRancangan)
-                    <div class="row mt-3">
-                        {{-- Informasi Utama --}}
-                        <div class="col-md-6 mb-2">
-                            <div class="card mb-3">
-                                <div class="card-header">
-                                    <h5 class="mb-0 ">Informasi Utama</h5>
-                                </div>
-                                <div class="card-body mt--4">
-                                    <div class="table-responsive modal-table">
-                                        <table class="table table-sm table-borderless">
-                                            <tbody>
-                                                <tr>
-                                                    <th class="info-text w-25">Nomor</th>
-                                                    <td class="text-wrap w-75">
-                                                        {{ $selectedRancangan->no_rancangan ?? 'N/A' }}
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <th class="info-text w-25">Jenis</th>
-                                                    <td class="text-wrap w-75">
-                                                        @if ($selectedRancangan && $selectedRancangan->jenis_rancangan)
-                                                            <mark
-                                                                class="badge-{{ $selectedRancangan->jenis_rancangan === 'Peraturan Bupati' ? 'primary' : '' }} badge-pill">
-                                                                {{ $selectedRancangan->jenis_rancangan }}
-                                                            </mark>
-                                                        @else
-                                                            <span class="text-danger">Data tidak tersedia</span>
-                                                        @endif
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <th class="info-text w-25">Tentang</th>
-                                                    <td class="text-wrap w-75">
-                                                        {{ $selectedRancangan->tentang ?? 'N/A' }}
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <th class="info-text w-25">Tanggal Pengajuan</th>
-                                                    <td class="text-wrap w-75">
-                                                        {{ $selectedRancangan->tanggal_pengajuan
-                                                            ? \Carbon\Carbon::parse($selectedRancangan->tanggal_pengajuan)->translatedFormat('d F Y, H:i')
-                                                            : 'N/A' }}
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <th class="info-text w-25">User Pengaju</th>
-                                                    <td class="text-wrap w-75">
-                                                        {{ $selectedRancangan->user->nama_user ?? 'N/A' }}
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <th class="info-text w-25">Perangkat Daerah</th>
-                                                    <td class="text-wrap w-75">
-                                                        {{ $selectedRancangan->user->perangkatDaerah->nama_perangkat_daerah ?? 'N/A' }}
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <th class="info-text w-25">Nomor Nota</th>
-                                                    <td class="text-wrap w-75">
-                                                        {{ $selectedRancangan->nomor_nota ?? 'N/A' }}
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <th class="info-text w-25">Tanggal Nota</th>
-                                                    <td class="text-wrap w-75">
-                                                        {{ $selectedRancangan->tanggal_nota
-                                                            ? \Carbon\Carbon::parse($selectedRancangan->tanggal_nota)->translatedFormat('d F Y')
-                                                            : 'N/A' }}
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <th class="info-text w-25">Status Rancangan</th>
-                                                    <td class="text-wrap w-75">
-                                                        @if ($selectedRancangan && $selectedRancangan->status_rancangan)
-                                                            <mark
-                                                                class="badge-{{ $selectedRancangan->status_rancangan === 'Disetujui'
-                                                                    ? 'success'
-                                                                    : ($selectedRancangan->status_rancangan === 'Ditolak'
-                                                                        ? 'danger'
-                                                                        : 'warning') }} badge-pill">
-                                                                {{ $selectedRancangan->status_rancangan }}
-                                                            </mark>
-                                                        @else
-                                                            <span class="badge badge-secondary">N/A</span>
-                                                        @endif
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <th class="info-text w-25">Tanggal Rancangan disetujui</th>
-                                                    <td class="text-wrap w-75">
-                                                        {{ $selectedRancangan->tanggal_rancangan_disetujui
-                                                            ? \Carbon\Carbon::parse($selectedRancangan->tanggal_rancangan_disetujui)->translatedFormat('d F Y, H:i')
-                                                            : 'N/A' }}
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <th class="info-text w-25">Status Berkas</th>
-                                                    @if ($selectedRancangan && $selectedRancangan->status_berkas)
-                                                        <td class="text-wrap w-75">
-                                                            <mark
-                                                                class="badge-{{ $selectedRancangan->status_berkas === 'Disetujui' ? 'success' : ($selectedRancangan->status_berkas === 'Ditolak' ? 'danger' : 'warning') }} badge-pill">
-                                                                {{ $selectedRancangan->status_berkas }}
-                                                            </mark>
-                                                        </td>
-                                                    @else
-                                                        <td class="text-wrap w-75">
-                                                            <span class="badge badge-secondary">N/A</span>
-                                                        </td>
-                                                    @endif
-                                                </tr>
-                                                <tr>
-                                                    <th class="info-text w-25">Tanggal Berkas Disetujui</th>
-                                                    <td class="text-wrap w-75">
-                                                        {{ $selectedRancangan->tanggal_berkas_disetujui
-                                                            ? \Carbon\Carbon::parse($selectedRancangan->tanggal_berkas_disetujui)->translatedFormat('d F Y, H:i')
-                                                            : 'N/A' }}
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <th class="info-text w-25">Nota Dinas</th>
-                                                    <td class="text-wrap w-75">
-                                                        @if (isset($selectedRancangan->nota_dinas_pd))
-                                                            <a href="{{ url('/view-private/rancangan/nota_dinas/' . basename($selectedRancangan->nota_dinas_pd)) }}"
-                                                                target="_blank" class="d-flex align-items-center">
-                                                                <i
-                                                                    class="bi bi-file-earmark-pdf mr-2 text-warning"></i>
-                                                                <span>Lihat Nota</span>
-                                                            </a>
-                                                        @else
-                                                            <span style="color: #6c757d;">Data Tidak Ada</span>
-                                                        @endif
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <th class="info-text w-25">File Rancangan</th>
-                                                    <td class="text-wrap w-75">
-                                                        @if (isset($selectedRancangan->rancangan))
-                                                            <a href="{{ url('/view-private/rancangan/rancangan/' . basename($selectedRancangan->rancangan)) }}"
-                                                                target="_blank" class="d-flex align-items-center">
-                                                                <i
-                                                                    class="bi bi-file-earmark-word mr-2 text-primary"></i>
-                                                                <span>Lihat Rancangan</span>
-                                                            </a>
-                                                        @else
-                                                            <span style="color: #6c757d;">Data Tidak Ada</span>
-                                                        @endif
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <th class="info-text w-25">Matrik</th>
-                                                    <td class="text-wrap w-75">
-                                                        @if (isset($selectedRancangan->matrik))
-                                                            <a href="{{ url('/view-private/rancangan/matrik/' . basename($selectedRancangan->matrik)) }}"
-                                                                target="_blank" class="d-flex align-items-center">
-                                                                <i
-                                                                    class="bi bi-file-earmark-word mr-2 text-success"></i>
-                                                                <span>Lihat Matrik</span>
-                                                            </a>
-                                                        @else
-                                                            <span style="color: #6c757d;">Data Tidak Ada</span>
-                                                        @endif
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <th class="info-text w-25">Bahan Pendukung</th>
-                                                    <td class="text-wrap w-75">
-                                                        @if (isset($selectedRancangan->bahan_pendukung))
-                                                            <a href="{{ url('/view-private/rancangan/bahan_pendukung/' . basename($selectedRancangan->bahan_pendukung)) }}"
-                                                                target="_blank" class="d-flex align-items-center">
-                                                                <i class="bi bi-file-earmark-pdf mr-2 text-danger"></i>
-                                                                <span>Lihat Bahan</span>
-                                                            </a>
-                                                        @else
-                                                            <span style="color: #6c757d;">Data Tidak Ada</span>
-                                                        @endif
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <th class="info-text w-25">Catatan Berkas</th>
-                                                    <td class="text-wrap w-75">
-                                                        {{ $selectedRancangan->catatan_berkas ?? 'Tidak Ada Catatan' }}
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
+        {{-- Tabel --}}
+        <x-ui.table class="mt-5" wire:loading.class="opacity-60" wire:target="tahun, jenisRancangan, perPage, search, gotoPage, nextPage, previousPage">
+            <x-slot:head>
+                <th>No Rancangan</th>
+                <th>Tentang</th>
+                <th>Jenis</th>
+                <th>Diajukan</th>
+                <th>Berkas</th>
+                <th>Penelitian</th>
+                <th class="text-right">Aksi</th>
+            </x-slot:head>
+
+            @forelse ($rancanganProdukHukum as $rancangan)
+                <tr wire:key="rancangan-{{ $rancangan->id_rancangan }}">
+                    <td class="font-semibold whitespace-nowrap text-navy-900 dark:text-white">{{ $rancangan->no_rancangan }}</td>
+                    <td class="min-w-56">{{ $rancangan->tentang }}</td>
+                    <td><x-ui.status-badge :value="$rancangan->jenis_rancangan" /></td>
+                    <td class="whitespace-nowrap">{{ tanggal($rancangan->tanggal_pengajuan, empty: 'N/A') }}</td>
+                    <td><x-ui.status-badge :value="$rancangan->status_berkas" /></td>
+                    <td>
+                        <div class="flex flex-wrap gap-1">
+                            @foreach ($rancangan->revisi as $revisi)
+                                <x-ui.status-badge :value="$revisi->status_revisi" />
+                            @endforeach
                         </div>
-                        {{-- Informasi Revisi --}}
-                        <div class="col-md-6 mb-2">
-                            <div class="card mb-3">
-                                <div class="card-header">
-                                    <h5 class="mb-0 ">Hasil Penelitian</h5>
-                                </div>
-                                <div class="card-body mt--4">
-                                    <div class="table-responsive modal-table">
-                                        <table class="table table-sm table-borderless">
-                                            <tbody>
-                                                @forelse ($selectedRancangan->revisi as $revisi)
-                                                    <tr>
-                                                        <th class="info-text w-25">Status Revisi</th>
-                                                        <td class="text-wrap w-75">
-                                                            <mark
-                                                                class="badge-{{ $revisi->status_revisi === 'Direvisi'
-                                                                    ? 'success'
-                                                                    : ($revisi->status_revisi === 'Menunggu Peneliti'
-                                                                        ? 'info text-default'
-                                                                        : ($revisi->status_revisi === 'Proses Revisi'
-                                                                            ? 'warning'
-                                                                            : ($revisi->status_revisi === 'Belum Tahap Revisi'
-                                                                                ? 'danger'
-                                                                                : 'secondary'))) }} badge-pill">
-                                                                {{ $revisi->status_revisi }}
-                                                            </mark>
-                                                        </td>
-                                                    </tr>
-
-                                                    <tr>
-                                                        <th class="info-text w-25">Status Validasi Revisi</th>
-                                                        <td class="text-wrap w-75">
-                                                            <mark
-                                                                class="badge-{{ $revisi->status_validasi === 'Diterima'
-                                                                    ? 'success'
-                                                                    : ($revisi->status_validasi === 'Ditolak'
-                                                                        ? 'danger'
-                                                                        : ($revisi->status_validasi === 'Belum Tahap Validasi'
-                                                                            ? 'danger'
-                                                                            : 'warning')) }} badge-pill">
-                                                                {{ $revisi->status_validasi }}
-                                                            </mark>
-                                                        </td>
-                                                    </tr>
-
-                                                    <tr>
-                                                        <th class="info-text w-25">Tanggal Revisi</th>
-                                                        <td class="text-wrap w-75">
-                                                            {{ $revisi->tanggal_revisi
-                                                                ? \Carbon\Carbon::parse($revisi->tanggal_revisi)->translatedFormat('d F Y, H:i')
-                                                                : 'N/A' }}
-                                                        </td>
-                                                    </tr>
-
-                                                    <tr>
-                                                        <th class="info-text w-25">Tanggal Validasi</th>
-                                                        <td class="text-wrap w-75">
-                                                            {{ $revisi->tanggal_validasi
-                                                                ? \Carbon\Carbon::parse($revisi->tanggal_validasi)->translatedFormat('d F Y, H:i')
-                                                                : 'N/A' }}
-                                                        </td>
-                                                    </tr>
-
-                                                    <tr>
-                                                        <th class="info-text w-25">Peneliti</th>
-                                                        <td class="text-wrap w-75">
-                                                            {{ $revisi->peneliti->nama_user ?? 'Belum Ditentukan' }}
-                                                        </td>
-                                                    </tr>
-
-                                                    <tr>
-                                                        <th class="info-text w-25">Tanggal Peneliti Ditunjuk</th>
-                                                        <td class="text-wrap w-75">
-                                                            {{ $revisi->tanggal_peneliti_ditunjuk
-                                                                ? \Carbon\Carbon::parse($revisi->tanggal_peneliti_ditunjuk)->translatedFormat('d F Y H:i')
-                                                                : 'N/A' }}
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <th class="info-text w-25">Revisi Matrik</th>
-                                                        <td class="text-wrap w-75">
-                                                            @if (!empty($revisi->revisi_matrik))
-                                                                <a href="{{ url('/view-private/revisi/matrik/' . basename($revisi->revisi_matrik)) }}"
-                                                                    target="_blank" class="d-flex align-items-center">
-                                                                    <i
-                                                                        class="bi bi-file-earmark-word mr-2 text-success"></i>
-                                                                    <span>Lihat Matrik Revisi</span>
-                                                                </a>
-                                                            @else
-                                                                <span style="color: #6c757d;">Data Tidak Ada</span>
-                                                            @endif
-                                                        </td>
-                                                    </tr>
-
-                                                    <tr>
-                                                        <th class="info-text w-25">Catatan Revisi</th>
-                                                        <td class="text-wrap w-75">
-                                                            {{ $revisi->catatan_revisi ?? 'Tidak Ada Catatan' }}
-                                                        </td>
-                                                    </tr>
-                                                @empty
-                                                    <tr>
-                                                        <td colspan="2" class="text-center">
-                                                            <span class="badge badge-secondary">Tidak Ada Revisi</span>
-                                                        </td>
-                                                    </tr>
-                                                @endforelse
-                                            </tbody>
-
-
-                                        </table>
-                                    </div>
-                                    <div class="d-flex justify-content-end mt-4">
-                                        {{-- Tombol Tutup --}}
-                                        <button type="button" class="btn btn-outline-warning mr-3"
-                                            data-dismiss="modal" wire:click="resetDetail"></i> tutup
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
+                    </td>
+                    <td>
+                        <div class="flex justify-end gap-1.5">
+                            @can('view', $rancangan)
+                                <x-ui.button variant="navy" size="sm" square icon="eye" title="Lihat detail"
+                                    wire:click="showDetail({{ $rancangan->id_rancangan }})"
+                                    loading="showDetail({{ $rancangan->id_rancangan }})" />
+                                @unless (auth()->user()->hasRole('Perangkat Daerah'))
+                                    <x-ui.button variant="soft-danger" size="sm" square icon="trash" title="Hapus"
+                                        x-on:click="$confirm({ text: 'Rancangan yang dihapus tidak dapat dikembalikan!', confirmText: 'Ya, hapus' })
+                                            .then(ok => ok && $wire.delete({{ $rancangan->id_rancangan }}))" />
+                                @endunless
+                            @else
+                                <x-ui.badge color="danger" icon="lock">Perlu izin</x-ui.badge>
+                            @endcan
                         </div>
-                    </div>
-                @else
-                    <div class="card">
-                        <div class="d-flex justify-content-center align-items-start"
-                            style="min-height: 200px; padding-top: 50px;">
-                            <div class="text-center">
-                                <div class="spinner-border text-primary" role="status">
-                                    <span class="sr-only">Loading...</span>
-                                </div>
-                                <p class="mt-3 info-text">Sedang memuat data, harap tunggu...</p>
-                            </div>
-                        </div>
-                    </div>
-                @endif
-            </div>
-        </div>
-    </div>
+                    </td>
+                </tr>
+            @empty
+                <x-ui.empty-row colspan="7" message="Tidak ada rancangan yang cocok dengan filter." />
+            @endforelse
+        </x-ui.table>
 
-    <script>
-        function confirmDelete(id) {
-            Swal.fire({
-                title: 'Apakah Anda yakin?',
-                text: "Data yang dihapus tidak dapat dikembalikan!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Ya, Hapus!',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Livewire.dispatch('deleteRancangan', {
-                        id: id
-                    }); // Kirim event ke Livewire hanya jika dikonfirmasi
-                }
-            });
-        }
-    </script>
+        <div class="mt-5">{{ $rancanganProdukHukum->links() }}</div>
+    </x-ui.card>
+
+    {{-- Detail --}}
+    <x-ui.modal id="detailModal" title="Detail Rancangan" :description="$selectedRancangan?->no_rancangan" size="6xl" on-close="resetDetail">
+        <x-rancangan.detail :rancangan="$selectedRancangan" />
+
+        <x-slot:footer>
+            <x-ui.button variant="outline" x-on:click="close()">Tutup</x-ui.button>
+        </x-slot:footer>
+    </x-ui.modal>
 </div>

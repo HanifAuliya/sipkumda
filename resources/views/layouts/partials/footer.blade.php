@@ -1,29 +1,12 @@
-{{-- Footer --}}
-<footer class="footer pt-0">
-    <div class="row align-items-center justify-content-lg-between">
-        <div class="col-lg-6">
-            <div class="copyright text-center text-lg-left text-muted">
-                &copy; {{ date('Y') }}
-                <span class="font-weight-bold text-default">
-                    Sekretariat Daerah Kabupaten Hulu Sungai Tengah
-                </span>.
-                Semua Hak Dilindungi.
-            </div>
-        </div>
-        <div class="col-lg-6">
-            <ul class="nav nav-footer justify-content-center justify-content-lg-end">
-                <li class="nav-item">
-                    <a href="https://www.creative-tim.com/product/argon-dashboard" class="nav-link  text-default"
-                        target="_blank">
-                        Dibangun dengan Argon Dashboard
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="https://github.com/HanifAuliya" class="nav-link  text-default" target="_blank">
-                        Developed by Han
-                    </a>
-                </li>
-            </ul>
-        </div>
+<footer class="px-4 pb-6 sm:px-6 lg:px-8">
+    <div class="mx-auto flex w-full max-w-[1600px] flex-col items-center justify-between gap-2 border-t border-slate-200 pt-5 text-sm text-slate-500 sm:flex-row dark:border-navy-800 dark:text-slate-400">
+        <p class="text-center sm:text-left">
+            &copy; {{ date('Y') }}
+            <span class="font-semibold text-navy-900 dark:text-slate-200">Sekretariat Daerah Kabupaten Hulu Sungai Tengah</span>.
+            Semua Hak Dilindungi.
+        </p>
+        <a href="https://github.com/HanifAuliya" target="_blank" rel="noopener" class="transition hover:text-primary-600">
+            Developed by Han
+        </a>
     </div>
 </footer>

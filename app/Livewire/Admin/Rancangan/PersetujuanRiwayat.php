@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Admin\Rancangan;
 
+use Livewire\Attributes\Locked;
+
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\WithoutUrlPagination;
@@ -22,6 +24,7 @@ class PersetujuanRiwayat extends Component
 
     public $catatan;
     public $statusBerkas;
+    #[Locked]
     public $selectedRancanganId;
 
     public function openModal($id)
@@ -113,7 +116,8 @@ class PersetujuanRiwayat extends Component
 
     public function render()
     {
-        $riwayatRancangan = RancanganProdukHukum::where('status_berkas', 'Disetujui')
+        $riwayatRancangan = RancanganProdukHukum::with('user.perangkatDaerah')
+            ->where('status_berkas', 'Disetujui')
             ->where('status_rancangan', 'Dalam Proses')
             ->where(function ($query) {
                 $query->where('no_rancangan', 'like', "%{$this->search}%")

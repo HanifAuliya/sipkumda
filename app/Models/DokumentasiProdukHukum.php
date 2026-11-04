@@ -3,8 +3,10 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Support\Jdih;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class DokumentasiProdukHukum extends Model
 {
@@ -38,6 +40,39 @@ class DokumentasiProdukHukum extends Model
     }
 
     /**
+     * Filter daftar dokumentasi; dipakai tabel, ekspor PDF, dan ekspor Excel.
+     * Pencarian mencakup arsip manual (tanpa rancangan) lewat kolom tentang_dokumentasi.
+     */
+    public function scopeFilter($query, ?string $search, ?string $jenis, $tahun)
+    {
+        return $query
+            ->when($search, fn ($q) => $q->where(fn ($sub) => $sub
+                ->where('tentang_dokumentasi', 'like', "%{$search}%")
+                ->orWhere('nomor', $search)
+                ->orWhereHas('rancangan', fn ($r) => $r->where('no_rancangan', 'like', "%{$search}%"))))
+            ->when($jenis, fn ($q) => $q->where('jenis_dokumentasi', $jenis))
+            ->when($tahun, fn ($q) => $q->where('tahun', $tahun));
+    }
+
+    /**
+     * Jalankan cek nomor + simpan secara bergiliran (kunci + transaksi), agar dua
+     * pengguna yang menyimpan nomor yang sama pada saat bersamaan tidak sama-sama lolos.
+     */
+    public static function denganNomorTerkunci(callable $simpan): mixed
+    {
+        return Cache::lock('nomor-dokumentasi', 15)->block(10, fn () => DB::transaction($simpan));
+    }
+
+    /** Apakah nomor sudah dipakai pada tahun yang sama (selain $exceptId). */
+    public static function nomorDipakai($nomor, $tahun, ?int $exceptId = null): bool
+    {
+        return self::where('tahun', $tahun)
+            ->where('nomor', $nomor)
+            ->when($exceptId, fn ($q) => $q->whereKeyNot($exceptId))
+            ->exists();
+    }
+
+    /**
      * ✅ Mutator untuk menampilkan nomor dalam format: "Nomor 003 Tahun 2025"
      */
     public function getNomorFormattedAttribute()
@@ -53,6 +88,10 @@ class DokumentasiProdukHukum extends Model
     protected static function boot()
     {
         parent::boot();
+
+        // Halaman JDIH publik di-cache; setiap perubahan arsip memperbarui cache tersebut.
+        static::saved(fn () => Jdih::segarkan());
+        static::deleted(fn () => Jdih::segarkan());
 
         static::creating(function ($dokumentasi) {
             $tahun = $dokumentasi->tahun;

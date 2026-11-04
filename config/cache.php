@@ -18,6 +18,14 @@ return [
     'default' => env('CACHE_STORE', 'database'),
 
     /*
+    | Store untuk rate limiter (throttle). Kosong = store default (database).
+    | Pada lalu lintas tinggi gunakan "redis". Hindari "file" di Windows: kunci
+    | file eksklusif di sana menolak tulis bersamaan sehingga request gagal.
+    */
+
+    'limiter' => env('CACHE_LIMITER'),
+
+    /*
     |--------------------------------------------------------------------------
     | Cache Stores
     |--------------------------------------------------------------------------
@@ -104,5 +112,18 @@ return [
     */
 
     'prefix' => env('CACHE_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_').'_cache_'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Serializable Classes
+    |--------------------------------------------------------------------------
+    |
+    | Daftar class PHP yang boleh di-unserialize dari cache. Nilai false
+    | menolak semua objek, mencegah serangan "gadget chain" bila APP_KEY
+    | bocor. Aplikasi ini hanya menyimpan array/skalar di cache.
+    |
+    */
+
+    'serializable_classes' => false,
 
 ];

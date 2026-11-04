@@ -1,101 +1,19 @@
-<div class="card-body">
-    <form wire:submit.prevent="updatePassword">
-        {{-- Current Password --}}
-        <div class="form-group">
-            <label for="current_password" class="form-control-label">{{ __('Current Password') }}</label>
-            <div class="input-group input-group-alternative">
-                <div class="input-group-prepend">
-                    <span class="input-group-text"><i class="ni ni-lock-circle-open"></i></span>
-                </div>
-                <input type="password" id="current_password" wire:model.defer="current_password" class="form-control"
-                    autocomplete="current-password" required>
-                <div class="input-group-append">
-                    <button type="button" class="btn btn-outline-default"
-                        onclick="togglePassword('current_password', this)">
-                        <i class="bi bi-eye-fill"></i>
-                    </button>
-                </div>
-            </div>
-            @error('current_password')
-                <span class="text-danger text-sm mt-2">{{ $message }}</span>
-            @enderror
-        </div>
+<form wire:submit="updatePassword" class="space-y-5">
+    <x-form.field label="Password Saat Ini" for="current_password" error="current_password" required>
+        <x-form.password id="current_password" name="current_password" wire:model="current_password" autocomplete="current-password" required />
+    </x-form.field>
 
-        {{-- New Password --}}
-        <div class="form-group">
-            <label for="password" class="form-control-label">{{ __('New Password') }}</label>
-            <div class="input-group input-group-alternative">
-                <div class="input-group-prepend">
-                    <span class="input-group-text"><i class="ni ni-lock-circle-open"></i></span>
-                </div>
-                <input type="password" id="password" wire:model.defer="password" class="form-control"
-                    autocomplete="new-password" required>
-                <div class="input-group-append">
-                    <button type="button" class="btn btn-outline-default" onclick="togglePassword('password', this)">
-                        <i class="bi bi-eye-fill"></i>
-                    </button>
-                </div>
-            </div>
-            {{-- Penjelasan Persyaratan Password --}}
-            <small class="form-text text-muted">
-                Password harus memiliki minimal 8 karakter, mengandung huruf, angka, dan satu karakter spesial (@, $, !,
-                %, *, ?, &, #).
-            </small>
-            @error('password')
-                <span class="text-danger text-sm mt-2">{{ $message }}</span>
-            @enderror
-        </div>
+    <x-form.field label="Password Baru" for="password" error="password" required
+        hint="Minimal 8 karakter, mengandung huruf, angka, dan satu karakter spesial (@, $, !, %, *, ?, &, #).">
+        <x-form.password id="password" name="password" wire:model="password" autocomplete="new-password" required />
+    </x-form.field>
 
-        {{-- Confirm Password --}}
-        <div class="form-group">
-            <label for="password_confirmation" class="form-control-label">{{ __('Confirm Password') }}</label>
-            <div class="input-group input-group-alternative">
-                <div class="input-group-prepend">
-                    <span class="input-group-text"><i class="ni ni-lock-circle-open"></i></span>
-                </div>
-                <input type="password" id="password_confirmation" wire:model.defer="password_confirmation"
-                    class="form-control" autocomplete="new-password" required>
-                <div class="input-group-append">
-                    <button type="button" class="btn btn-outline-default"
-                        onclick="togglePassword('password_confirmation', this)">
-                        <i class="bi bi-eye-fill"></i>
-                    </button>
-                </div>
-            </div>
-            {{-- Penjelasan untuk Konfirmasi Password --}}
-            <small class="form-text text-muted">
-                Pastikan password yang dimasukkan sesuai dengan password di atas.
-            </small>
-            @error('password_confirmation')
-                <span class="text-danger text-sm mt-2">{{ $message }}</span>
-            @enderror
-        </div>
+    <x-form.field label="Konfirmasi Password Baru" for="password_confirmation" error="password_confirmation" required
+        hint="Ketik ulang password baru yang sama.">
+        <x-form.password id="password_confirmation" name="password_confirmation" wire:model="password_confirmation" autocomplete="new-password" required />
+    </x-form.field>
 
-
-        {{-- Save Button --}}
-        <div class="form-group text-right">
-            <button type="submit" class="btn btn-default" wire:loading.attr="disabled" wire:target="updatePassword">
-                <span wire:loading wire:target="updatePassword">
-                    <i class="fa fa-spinner fa-spin"></i>
-                </span>
-                <i class="bi bi-floppy2-fill mr-2"></i> {{ __('Save') }}
-            </button>
-        </div>
-    </form>
-
-    <script>
-        function togglePassword(fieldId, button) {
-            let field = document.getElementById(fieldId);
-            let icon = button.querySelector("i");
-
-            if (field.type === "password") {
-                field.type = "text";
-                icon.classList.replace("bi-eye-fill", "bi-eye-slash-fill");
-            } else {
-                field.type = "password";
-                icon.classList.replace("bi-eye-slash-fill", "bi-eye-fill");
-            }
-        }
-    </script>
-
-</div>
+    <div class="flex justify-end">
+        <x-ui.button type="submit" variant="navy" icon="shield-lock" loading="updatePassword">Perbarui Password</x-ui.button>
+    </div>
+</form>

@@ -4,6 +4,7 @@ namespace App\Livewire\Profile;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 use RealRashid\SweetAlert\Facades\Alert;
 
@@ -14,6 +15,8 @@ class UpdateProfileInformation extends Component
     public $email;
     public $password;
     public $password_confirmation;
+    // NIP adalah identitas login dan hanya diubah oleh admin.
+    #[Locked]
     public $NIP;
     public $role;
     public $perangkat_daerah_id;
@@ -57,7 +60,6 @@ class UpdateProfileInformation extends Component
 
             // Perbarui data pengguna
             $user->nama_user = $this->nama_user;
-            $user->NIP = $this->NIP;
             $user->email = $this->email;
             $user->perangkat_daerah_id = $this->perangkat_daerah_id;
 

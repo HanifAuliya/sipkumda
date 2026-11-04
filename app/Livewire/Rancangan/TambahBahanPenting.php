@@ -104,15 +104,15 @@ class TambahBahanPenting extends Component
 
         switch ($extension) {
             case 'pdf':
-                return 'bi bi-file-earmark-pdf text-danger'; // Ikon untuk PDF
+                return 'bi bi-file-earmark-pdf-fill text-rose-500'; // Ikon untuk PDF
             case 'doc':
             case 'docx':
-                return 'bi bi-file-earmark-word text-primary'; // Ikon untuk Word
+                return 'bi bi-file-earmark-word-fill text-primary-500'; // Ikon untuk Word
             case 'xls':
             case 'xlsx':
-                return 'bi bi-file-earmark-excel text-warning'; // Ikon untuk Excel
+                return 'bi bi-file-earmark-excel-fill text-emerald-500'; // Ikon untuk Excel
             default:
-                return 'bi bi-file-earmark'; // Ikon default
+                return 'bi bi-file-earmark-fill text-slate-400'; // Ikon default
         }
     }
 

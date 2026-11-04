@@ -14,6 +14,9 @@ class DatabaseSeeder extends Seeder
 {
     /**
      * Seed the application's database.
+     *
+     * Data contoh untuk melihat tampilan halaman (lokal saja):
+     *   php artisan db:seed --class=DemoSeeder
      */
     public function run()
     {

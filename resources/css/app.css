@@ -1,3 +1,149 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+@import '@fontsource-variable/open-sans';
+@import 'bootstrap-icons/font/bootstrap-icons.css';
+
+@plugin '@tailwindcss/forms';
+
+@source '../views';
+@source '../../app';
+
+/* Dark mode dikendalikan class "dark" pada <html> (lihat resources/js/theme.js). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+    --font-sans: 'Open Sans Variable', ui-sans-serif, system-ui, sans-serif;
+
+    /* Warna utama (indigo khas Argon). */
+    --color-primary-50: #eef0fd;
+    --color-primary-100: #e0e4fb;
+    --color-primary-200: #c6cdf8;
+    --color-primary-300: #a3aef2;
+    --color-primary-400: #8090eb;
+    --color-primary-500: #5e72e4;
+    --color-primary-600: #4a5cd6;
+    --color-primary-700: #3d4bbc;
+    --color-primary-800: #343f98;
+    --color-primary-900: #2f3878;
+    --color-primary-950: #1d2147;
+
+    /* Navy untuk topbar & teks tegas. */
+    --color-navy-50: #f2f5fa;
+    --color-navy-100: #e3e9f3;
+    --color-navy-200: #c3cfe3;
+    --color-navy-300: #94a8c9;
+    --color-navy-400: #5f7aa8;
+    --color-navy-500: #3e5a8a;
+    --color-navy-600: #2f4672;
+    --color-navy-700: #26395d;
+    --color-navy-800: #1d3054;
+    --color-navy-900: #172b4d;
+    --color-navy-950: #0d1a31;
+
+    /* Aksen menu aktif & hijau logo. */
+    --color-accent-500: #fb6340;
+    --color-accent-600: #ea4f2b;
+    --color-brand-500: #2dce89;
+    --color-brand-600: #24a46d;
+
+    --color-surface: #f8f9fe;
+
+    --shadow-card: 0 0 2rem 0 rgb(136 152 170 / 0.15);
+    --shadow-soft: 0 4px 6px rgb(50 50 93 / 0.08), 0 1px 3px rgb(0 0 0 / 0.06);
+
+    --animate-fade-in: fade-in 0.25s ease-out;
+    --animate-marquee: marquee 30s linear infinite;
+
+    @keyframes fade-in {
+        from { opacity: 0; transform: translateY(4px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes marquee {
+        from { transform: translateX(0); }
+        to { transform: translateX(-50%); }
+    }
+}
+
+@layer base {
+    html {
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+        @apply bg-surface text-slate-700 antialiased dark:bg-navy-950 dark:text-slate-300;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        @apply text-navy-900 dark:text-white;
+    }
+
+    [x-cloak] {
+        display: none !important;
+    }
+}
+
+@layer components {
+    /* Kontrol form dasar; dipakai komponen <x-form.*>. */
+    .form-control {
+        @apply block w-full rounded-lg border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-700 shadow-xs
+            placeholder:text-slate-400
+            focus:border-primary-400 focus:ring-3 focus:ring-primary-100
+            disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400
+            dark:border-navy-700 dark:bg-navy-900 dark:text-slate-200 dark:placeholder:text-slate-500
+            dark:focus:border-primary-500 dark:focus:ring-primary-500/20;
+    }
+
+    .form-control-invalid {
+        @apply border-rose-300 focus:border-rose-400 focus:ring-rose-100 dark:border-rose-500/60;
+    }
+
+    /* Tabel data standar. */
+    .table-base {
+        @apply w-full text-left text-sm;
+
+        & thead th {
+            @apply border-b border-slate-100 bg-slate-50/70 px-3 py-3 text-[0.68rem] font-semibold tracking-wider
+                text-slate-500 uppercase dark:border-navy-800 dark:bg-navy-900/60 dark:text-slate-400;
+        }
+
+        & tbody td {
+            @apply border-b border-slate-100 px-3 py-3.5 align-top text-slate-600 dark:border-navy-800 dark:text-slate-300;
+        }
+
+        /* Sejajarkan tepi tabel dengan padding kartu (tabel dibuat full-bleed oleh <x-ui.table>). */
+        & :is(th, td):first-child {
+            @apply pl-5 sm:pl-6;
+        }
+
+        & :is(th, td):last-child {
+            @apply pr-5 sm:pr-6;
+        }
+
+        & tbody tr {
+            @apply transition-colors hover:bg-slate-50/70 dark:hover:bg-navy-800/40;
+        }
+    }
+
+    /* Teks konten panjang (catatan, deskripsi). */
+    .prose-note {
+        @apply text-sm leading-relaxed whitespace-pre-line text-slate-600 dark:text-slate-300;
+    }
+}
+
+/* SweetAlert2 menyesuaikan tema aplikasi. */
+.swal2-popup {
+    @apply rounded-2xl! font-sans!;
+}
+
+.swal2-styled.swal2-confirm {
+    @apply bg-primary-500!;
+}
+
+.dark .swal2-popup {
+    @apply bg-navy-900! text-slate-200!;
+}
+
+.dark .swal2-title,
+.dark .swal2-html-container {
+    @apply text-slate-200!;
+}

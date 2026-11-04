@@ -1,5 +1,7 @@
 @extends('errors::minimal')
 
-@section('title', __('Service Unavailable'))
+@section('title', 'Sedang Dalam Pemeliharaan')
 @section('code', '503')
-@section('message', __('Service Unavailable'))
+@section('icon', 'tools')
+@section('message', 'Sedang Dalam Pemeliharaan')
+@section('description', 'Layanan sedang dalam pemeliharaan. Silakan kembali beberapa saat lagi.')

@@ -1,52 +1,27 @@
 <div>
-    <div class="mb-4">
-        <input type="text" class="form-control" placeholder="Cari..." wire:model="search">
-    </div>
+    <x-form.input wire:model.live.debounce.400ms="search" icon="search" class="mb-5" placeholder="Cari nomor rancangan atau tentang..." aria-label="Cari" />
 
-    <div class="table-responsive">
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th style="width: 5%;">#</th> <!-- Kolom nomor lebih kecil -->
-                    <th style="width: 15%;">Nomor Rancangan</th> <!-- Kolom nomor rancangan -->
-                    <th style="width: 50%;">Tentang</th> <!-- Kolom tentang lebih besar -->
-                    <th style="width: 15%;">Status Validasi</th> <!-- Kolom status lebih kecil -->
-                    <th style="width: 15%;">Tanggal Revisi</th> <!-- Kolom tanggal lebih kecil -->
-                </tr>
-            </thead>
-            <tbody>
-                @forelse ($revisiList as $index => $revisi)
-                    <tr>
-                        <td>{{ $loop->iteration }}</td>
-                        <td class="text-truncate" style="max-width: 150px;">
-                            {{ $revisi->rancangan->no_rancangan ?? '-' }}
-                        </td>
-                        <td class="text-wrap">
-                            {{ $revisi->rancangan->tentang ?? '-' }} asjdlasjdaslkdl jasdjasldjlaskda
-                            jasdjasjdklasdasdjaskldjas
-                            ajsdasdjas klj
-                        </td>
-                        <td>
-                            <span
-                                class="badge badge-{{ $revisi->status_validasi === 'Diterima' ? 'success' : ($revisi->status_validasi === 'Ditolak' ? 'danger' : 'warning') }}">
-                                {{ $revisi->status_validasi }}
-                            </span>
-                        </td>
-                        <td>
-                            {{ $revisi->tanggal_revisi ? \Carbon\Carbon::parse($revisi->tanggal_revisi)->format('d M Y') : '-' }}
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="6" class="text-center">Tidak ada revisi ditemukan.</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
+    <x-ui.table>
+        <x-slot:head>
+            <th class="w-12">No</th>
+            <th>Nomor Rancangan</th>
+            <th>Tentang</th>
+            <th>Validasi</th>
+            <th>Tanggal Revisi</th>
+        </x-slot:head>
 
-    </div>
+        @forelse ($revisiList as $revisi)
+            <tr wire:key="daftar-revisi-{{ $revisi->id_revisi }}">
+                <td class="text-slate-400">{{ $revisiList->firstItem() + $loop->index }}</td>
+                <td class="font-semibold whitespace-nowrap text-navy-900 dark:text-white">{{ $revisi->rancangan->no_rancangan ?? '-' }}</td>
+                <td class="min-w-64">{{ $revisi->rancangan->tentang ?? '-' }}</td>
+                <td><x-ui.status-badge :value="$revisi->status_validasi" /></td>
+                <td class="whitespace-nowrap">{{ tanggal($revisi->tanggal_revisi) }}</td>
+            </tr>
+        @empty
+            <x-ui.empty-row colspan="5" icon="journal-check" message="Belum ada revisi yang selesai divalidasi." />
+        @endforelse
+    </x-ui.table>
 
-    <div class="mt-3">
-        {{ $revisiList->links('pagination::bootstrap-4') }}
-    </div>
+    <div class="mt-5">{{ $revisiList->links() }}</div>
 </div>

@@ -2,152 +2,94 @@
 
 namespace App\Livewire\Dokumentasi;
 
-use Livewire\Component;
-use Livewire\WithPagination;
+use App\Exports\MasterDataExport;
+use App\Models\DokumentasiProdukHukum;
+use App\Models\FasilitasiProdukHukum;
 use App\Models\RancanganProdukHukum;
 use App\Models\Revisi;
-use App\Models\FasilitasiProdukHukum;
-use App\Models\DokumentasiProdukHukum;
-
-use App\Exports\MasterDataExport;
-use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
+use Livewire\Component;
+use Livewire\WithPagination;
+use Livewire\WithoutUrlPagination;
+use Maatwebsite\Excel\Facades\Excel;
 
-
+/**
+ * Rekap data sistem per tahap (rancangan, revisi, fasilitasi, dokumentasi),
+ * difilter tahun pengajuan dan jenis rancangan.
+ */
 class MasterData extends Component
 {
-    use WithPagination;
+    use WithPagination, WithoutUrlPagination;
+
+    /** Tipe data => model yang terhubung ke rancangan lewat relasi "rancangan". */
+    private const TIPE = [
+        'Rancangan' => RancanganProdukHukum::class,
+        'Revisi' => Revisi::class,
+        'Fasilitasi' => FasilitasiProdukHukum::class,
+        'Dokumentasi' => DokumentasiProdukHukum::class,
+    ];
 
     public $tahun;
-    public $tahunList;
-    public $jenis; // Pastikan default berupa array
+    public $jenis = 'all';
     public $dataType = 'Rancangan';
     public $search = '';
 
+    // Dipanggil sebagai controller oleh route export.masterdata.
     public function export(Request $request)
     {
-        $tahun = $request->tahun ?? "";
-        $jenis = $request->jenis ?? "all";
-
-        return Excel::download(new MasterDataExport($tahun, $jenis), 'MasterData.xlsx');
+        return Excel::download(new MasterDataExport($request->tahun ?? '', $request->jenis ?? 'all'), 'MasterData.xlsx');
     }
 
     public function mount()
     {
-        $this->tahun = date('Y'); // Set default tahun sekarang
-
-        // Ambil tahun unik dari semua tabel yang terkait
-        $this->tahunList = RancanganProdukHukum::selectRaw('YEAR(tanggal_pengajuan) as tahun')
-            ->distinct()
-            ->orderBy('tahun', 'desc')
-            ->pluck('tahun')
-            ->toArray();
-
-        $this->jenis = "all"; // Simpan "all" sebagai string, bukan array
+        $this->tahun = date('Y');
     }
 
+    public function updating($property)
+    {
+        if (in_array($property, ['tahun', 'jenis', 'search'])) {
+            $this->resetPage();
+        }
+    }
 
     public function loadData($type)
     {
-        $this->dataType = $type;
-        $this->resetPage(); // Reset pagination setiap kali data diubah
-    }
-
-    public function updatedJenis($value)
-    {
-        $this->jenis = $value;
-        $this->resetPage();
-    }
-
-    public function getSelectedDataProperty()
-    {
-        // Pastikan jenis selalu dalam bentuk array
-        $jenisFilter = $this->jenis === "all" ? ["Peraturan Bupati", "Surat Keputusan"] : [$this->jenis];
-
-        if ($this->dataType === 'Rancangan') {
-            return RancanganProdukHukum::with('user')
-                ->when($this->tahun, function ($query) {
-                    if ($this->tahun !== "") { // Hanya filter jika tahun dipilih
-                        return $query->whereYear('tanggal_pengajuan', $this->tahun);
-                    }
-                })
-                ->whereIn('jenis_rancangan', $jenisFilter)
-                ->where(function ($query) {
-                    $query->where('tentang', 'like', '%' . $this->search . '%')
-                        ->orWhere('no_rancangan', 'like', '%' . $this->search . '%');
-                })
-                ->paginate(10);
-        } elseif ($this->dataType === 'Revisi') {
-            return Revisi::with('rancangan.user')
-                ->whereHas('rancangan', function ($query) use ($jenisFilter) {
-                    if ($this->tahun !== "") { // Hanya filter jika tahun dipilih
-                        $query->whereYear('tanggal_pengajuan', $this->tahun);
-                    }
-                    $query->whereIn('jenis_rancangan', $jenisFilter)
-                        ->where(function ($query) {
-                            $query->where('tentang', 'like', '%' . $this->search . '%')
-                                ->orWhere('no_rancangan', 'like', '%' . $this->search . '%');
-                        });
-                })->paginate(10);
-        } elseif ($this->dataType === 'Fasilitasi') {
-            return FasilitasiProdukHukum::with('rancangan.user')
-                ->whereHas('rancangan', function ($query) use ($jenisFilter) {
-                    if ($this->tahun !== "") { // Hanya filter jika tahun dipilih
-                        $query->whereYear('tanggal_pengajuan', $this->tahun);
-                    }
-                    $query->whereIn('jenis_rancangan', $jenisFilter)
-                        ->where(function ($query) {
-                            $query->where('tentang', 'like', '%' . $this->search . '%')
-                                ->orWhere('no_rancangan', 'like', '%' . $this->search . '%');
-                        });
-                })->paginate(10);
-        } elseif ($this->dataType === 'Dokumentasi') {
-            return DokumentasiProdukHukum::with('rancangan.user')
-                ->whereHas('rancangan', function ($query) use ($jenisFilter) {
-                    if ($this->tahun !== "") { // Hanya filter jika tahun dipilih
-                        $query->whereYear('tanggal_pengajuan', $this->tahun);
-                    }
-                    $query->whereIn('jenis_rancangan', $jenisFilter)
-                        ->where(function ($query) {
-                            $query->where('tentang', 'like', '%' . $this->search . '%')
-                                ->orWhere('no_rancangan', 'like', '%' . $this->search . '%');
-                        });
-                })->paginate(10);
+        if (array_key_exists($type, self::TIPE)) {
+            $this->dataType = $type;
+            $this->resetPage();
         }
+    }
+
+    /** Kondisi filter pada tabel rancangan. */
+    private function filterRancangan($query, bool $denganPencarian = false)
+    {
+        return $query
+            ->when($this->tahun, fn ($q) => $q->whereYear('tanggal_pengajuan', $this->tahun))
+            ->whereIn('jenis_rancangan', $this->jenis === 'all' ? ['Peraturan Bupati', 'Surat Keputusan'] : [$this->jenis])
+            ->when($denganPencarian && $this->search, fn ($q) => $q->where(fn ($sub) => $sub
+                ->where('tentang', 'like', "%{$this->search}%")
+                ->orWhere('no_rancangan', 'like', "%{$this->search}%")));
+    }
+
+    private function query(string $tipe, bool $denganPencarian = false)
+    {
+        $model = self::TIPE[$tipe];
+
+        return $model === RancanganProdukHukum::class
+            ? $this->filterRancangan(RancanganProdukHukum::query(), $denganPencarian)
+            : $model::whereHas('rancangan', fn ($q) => $this->filterRancangan($q, $denganPencarian));
     }
 
     public function render()
     {
-        // Pastikan jenis selalu dalam bentuk array
-        $jenisFilter = $this->jenis === "all" ? ["Peraturan Bupati", "Surat Keputusan"] : [$this->jenis];
+        $tipe = array_key_exists($this->dataType, self::TIPE) ? $this->dataType : 'Rancangan';
+        $relasi = $tipe === 'Rancangan' ? ['user.perangkatDaerah'] : ['rancangan.user.perangkatDaerah'];
 
         return view('livewire.dokumentasi.master-data', [
-            'countRancangan' => RancanganProdukHukum::when($this->tahun, function ($query) {
-                if ($this->tahun !== "") { // Hanya filter jika tahun dipilih
-                    return $query->whereYear('tanggal_pengajuan', $this->tahun);
-                }
-            })
-                ->whereIn('jenis_rancangan', $jenisFilter)
-                ->count(),
-            'countRevisi' => Revisi::whereHas('rancangan', function ($query) use ($jenisFilter) {
-                if ($this->tahun !== "") { // Hanya filter jika tahun dipilih
-                    $query->whereYear('tanggal_pengajuan', $this->tahun);
-                }
-                $query->whereIn('jenis_rancangan', $jenisFilter);
-            })->count(),
-            'countFasilitasi' => FasilitasiProdukHukum::whereHas('rancangan', function ($query) use ($jenisFilter) {
-                if ($this->tahun !== "") { // Hanya filter jika tahun dipilih
-                    $query->whereYear('tanggal_pengajuan', $this->tahun);
-                }
-                $query->whereIn('jenis_rancangan', $jenisFilter);
-            })->count(),
-            'countDokumentasi' => DokumentasiProdukHukum::whereHas('rancangan', function ($query) use ($jenisFilter) {
-                if ($this->tahun !== "") { // Hanya filter jika tahun dipilih
-                    $query->whereYear('tanggal_pengajuan', $this->tahun);
-                }
-                $query->whereIn('jenis_rancangan', $jenisFilter);
-            })->count(),
-            'selectedData' => $this->selectedData,
+            'counts' => collect(self::TIPE)->map(fn ($model, $nama) => $this->query($nama)->count()),
+            'selectedData' => $this->query($tipe, true)->with($relasi)->latest()->paginate(10),
+            'tahunList' => RancanganProdukHukum::selectRaw('YEAR(tanggal_pengajuan) as tahun')
+                ->whereNotNull('tanggal_pengajuan')->distinct()->orderByDesc('tahun')->pluck('tahun'),
         ])->layout('layouts.app');
     }
 }

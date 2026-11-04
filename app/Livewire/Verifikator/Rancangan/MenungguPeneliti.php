@@ -29,9 +29,17 @@ class MenungguPeneliti extends Component
         $this->resetPage(); // Reset ke halaman pertama
     }
 
-    protected $rules = [
-        'selectedPeneliti' => 'required|exists:users,id',
-    ];
+    protected function rules()
+    {
+        return [
+            // Hanya akun ber-role Peneliti yang boleh ditunjuk.
+            'selectedPeneliti' => ['required', function ($attribute, $value, $fail) {
+                if (! User::role('Peneliti')->whereKey($value)->exists()) {
+                    $fail('Peneliti tidak valid.');
+                }
+            }],
+        ];
+    }
 
     public function updatedSearch()
     {
@@ -40,8 +48,13 @@ class MenungguPeneliti extends Component
 
     public function openModal($id)
     {
-
-        $this->selectedRancangan = RancanganProdukHukum::find($id);
+        // Hanya rancangan yang memang sedang menunggu peneliti
+        $this->selectedRancangan = RancanganProdukHukum::with(['user.perangkatDaerah', 'revisi.peneliti'])
+            ->where('status_berkas', 'Disetujui')
+            ->whereHas('revisi', fn ($query) => $query->where('status_revisi', 'Menunggu Peneliti'))
+            ->findOrFail($id);
+        $this->reset('selectedPeneliti');
+        $this->resetValidation();
         $this->dispatch('openModal', 'modalPilihPeneliti');
     }
 
@@ -104,7 +117,7 @@ class MenungguPeneliti extends Component
     public function render()
     {
         // Query Rancangan dengan Status Berkas "Disetujui" dan Status Revisi "Belum Tahap Revisi"
-        $rancangan = RancanganProdukHukum::with('revisi') // Eager loading revisi
+        $rancangan = RancanganProdukHukum::with(['revisi.peneliti', 'user.perangkatDaerah'])
             ->where('status_berkas', 'Disetujui')
             ->where('status_rancangan', 'Dalam Proses')
             ->whereHas('revisi', function ($query) {

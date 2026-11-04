@@ -7,24 +7,16 @@ use Illuminate\Support\Facades\Auth;
 
 class NotificationDropdown extends Component
 {
-    public $notifications;
-    public $unreadCount;
+    /** Jumlah notifikasi terbaru yang ditampilkan di dropdown. */
+    private const BATAS = 20;
 
-    protected $listeners = ['refreshNotifications' => 'loadNotifications'];
+    // Tidak ada state publik: daftar diambil ulang saat render sehingga snapshot Livewire tetap kecil
+    // walau polling berjalan untuk banyak pengguna sekaligus.
+    protected $listeners = ['refreshNotifications' => '$refresh'];
 
-
-    public function loadNotifications()
+    public function markAllAsRead()
     {
-        $user = auth()->user();
-
-        $this->notifications = $user->notifications()->latest()->get()->map(function ($notification) {
-            $data = $notification->data; // Ambil salinan data
-            $data['type'] = $data['type'] ?? 'default'; // Set default type jika tidak ada
-            $notification->data = $data; // Tetapkan kembali data yang telah dimodifikasi
-            return $notification;
-        });
-
-        $this->unreadCount = $user->unreadNotifications()->count();
+        Auth::user()->unreadNotifications()->update(['read_at' => now()]);
     }
 
 
@@ -67,14 +59,16 @@ class NotificationDropdown extends Component
                 $this->dispatch($typeToEventMap[$type], $slug);
             }
         }
-
-        $this->loadNotifications();
     }
 
 
     public function render()
     {
-        $this->loadNotifications();
-        return view('livewire.notification-dropdown');
+        $user = Auth::user();
+
+        return view('livewire.notification-dropdown', [
+            'notifications' => $user->notifications()->latest()->limit(self::BATAS)->get(),
+            'unreadCount' => $user->unreadNotifications()->count(),
+        ]);
     }
 }

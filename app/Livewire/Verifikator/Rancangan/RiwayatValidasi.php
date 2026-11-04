@@ -17,32 +17,6 @@ class RiwayatValidasi extends Component
 
     public $search = '';
     public $perPage = 5;
-    public $selectedRancangan;
-
-    public function loadDetailValidasi($id)
-    {
-        // Cari data rancangan berdasarkan ID
-        $this->selectedRancangan = RancanganProdukHukum::with(['user.perangkatDaerah', 'revisi'])
-            ->where('id_rancangan', $id)
-            ->first();
-
-        if (!$this->selectedRancangan) {
-            $this->dispatch('swal:modal', [
-                'type' => 'error',
-                'title' => 'Kesalahan',
-                'message' => 'Detail rancangan tidak ditemukan.',
-            ]);
-            return;
-        }
-
-        // Emit event untuk membuka modal
-        $this->dispatch('openModal', 'detailValidasiModal');
-    }
-
-    public function resetDetail()
-    {
-        $this->selectedRancangan = null;
-    }
 
     protected $listeners = [
         'resetValidasiConfirmed' => 'resetValidasi',
@@ -119,7 +93,7 @@ class RiwayatValidasi extends Component
     public function render()
     {
         // Ambil data rancangan dengan filter pencarian dan status validasi
-        $riwayatValidasi = RancanganProdukHukum::with(['revisi', 'user.perangkatDaerah',])
+        $riwayatValidasi = RancanganProdukHukum::with(['revisi.peneliti', 'user.perangkatDaerah'])
             ->whereHas('revisi', function ($query) {
                 $query->whereIn('status_revisi', ['Proses Revisi', 'Direvisi'])
                     ->whereIn('status_validasi', ['Diterima', 'Ditolak']);

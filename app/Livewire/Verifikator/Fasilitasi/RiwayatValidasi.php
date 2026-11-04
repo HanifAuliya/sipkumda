@@ -14,26 +14,20 @@ class RiwayatValidasi extends Component
 
     public $search = ''; // Pencarian
     public $perPage = 10; // Default jumlah item per halaman
-    public $selectedFasilitasi;
 
-    public function openModalRiwayatFasilitasi($idFasilitasi)
+    public function updatingSearch()
     {
-        // Cari fasilitasi berdasarkan ID
-        $this->selectedFasilitasi = FasilitasiProdukHukum::with(['rancangan.user', 'rancangan.perangkatDaerah'])
-            ->findOrFail($idFasilitasi);
-
-        // Buka modal
-        $this->dispatch('openModalRiwayatFasilitasi');
+        $this->resetPage();
     }
 
-    public function resetData()
+    public function updatingPerPage()
     {
-        $this->selectedFasilitasi = null;
+        $this->resetPage();
     }
 
     public function render()
     {
-        $fasilitasiRiwayat = FasilitasiProdukHukum::with('rancangan')
+        $fasilitasiRiwayat = FasilitasiProdukHukum::with(['rancangan.user.perangkatDaerah', 'notaDinas'])
             ->whereIn('status_berkas_fasilitasi', ['Disetujui', 'Ditolak'])
             ->whereIn('status_validasi_fasilitasi', ['Diterima', 'Ditolak'])
             ->whereHas('rancangan', function ($query) {

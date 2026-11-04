@@ -1,269 +1,59 @@
 <div>
-    {{-- Search Bar --}}
-    {{-- Searching dan PerPage --}}
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        {{-- Pencarian --}}
-        <div class="input-group w-50">
-            <div class="input-group-prepend">
-                <span class="input-group-text"><i class="bi bi-search"></i></span>
+    <x-ui.list-toolbar placeholder="Cari nomor rancangan atau tentang..." :options="[3, 5, 10, 50]" />
+
+    <div class="space-y-4">
+        @forelse ($fasilitasiMenunggu as $fasilitasi)
+            <x-rancangan.item :rancangan="$fasilitasi->rancangan" wire:key="validasi-fasilitasi-{{ $fasilitasi->id }}">
+                <x-slot:meta>
+                    <x-rancangan.meta icon="person">Pemohon: {{ $fasilitasi->rancangan->user->nama_user ?? '-' }}</x-rancangan.meta>
+                    <x-rancangan.meta icon="check2-square">Berkas diperiksa {{ tanggal($fasilitasi->tanggal_persetujuan_berkas, true) }}</x-rancangan.meta>
+                </x-slot:meta>
+
+                <x-ui.file-link folder="fasilitasi/rancangan" :path="$fasilitasi->file_rancangan" label="Lihat berkas fasilitasi" />
+
+                <x-slot:aside>
+                    <x-ui.status-badge :value="$fasilitasi->status_validasi_fasilitasi" size="lg" />
+                    <p class="text-xs text-slate-500">Berkas <x-ui.status-badge :value="$fasilitasi->status_berkas_fasilitasi" /></p>
+                    <x-ui.button variant="navy" icon="patch-check" wire:click="openModalValidasiFasilitasi({{ $fasilitasi->id }})"
+                        loading="openModalValidasiFasilitasi({{ $fasilitasi->id }})">Validasi</x-ui.button>
+                </x-slot:aside>
+            </x-rancangan.item>
+        @empty
+            <x-ui.empty-state icon="patch-check" title="Tidak ada fasilitasi yang menunggu validasi." class="py-12" />
+        @endforelse
+    </div>
+
+    <div class="mt-5">{{ $fasilitasiMenunggu->links() }}</div>
+
+    {{-- Validasi fasilitasi --}}
+    <x-ui.modal id="modalValidasiFasilitasi" title="Validasi Fasilitasi" :description="$selectedFasilitasi?->rancangan?->no_rancangan"
+        size="5xl" static on-close="resetData">
+        @if ($selectedFasilitasi)
+            <div class="grid gap-5 lg:grid-cols-5">
+                <section class="rounded-xl px-4 ring-1 ring-slate-100 lg:col-span-3 dark:ring-navy-800">
+                    <x-fasilitasi.info :fasilitasi="$selectedFasilitasi" />
+                </section>
+
+                <form id="validasiFasilitasiForm" wire:submit="validasiFasilitasi" class="space-y-5 lg:col-span-2">
+                    <p class="text-sm text-slate-500 dark:text-slate-400">
+                        Periksa hasil persetujuan peneliti, lalu tentukan validasi fasilitasi.
+                    </p>
+                    <x-form.field label="Status Validasi" error="statusValidasi" required>
+                        <x-form.decision model="statusValidasi" :value="$statusValidasi" approve="Diterima" reject="Ditolak"
+                            approve-label="Terima" reject-label="Tolak" />
+                    </x-form.field>
+                    <x-form.field label="Catatan Validasi" for="catatanValidasi" error="catatanValidasi" required hint="Maksimal 1000 karakter.">
+                        <x-form.textarea id="catatanValidasi" wire:model="catatanValidasi" rows="8" placeholder="Tambahkan catatan validasi..." />
+                    </x-form.field>
+                </form>
             </div>
-            <input type="text" class="form-control" placeholder="Cari berdasarkan No Rancangan atau Tentang"
-                wire:model.live="search">
-        </div>
-        {{-- Per Page Dropdown --}}
-        <div class="col-md-3">
-            <div class="input-group">
-                <div class="input-group-prepend">
-                    <span class="input-group-text"><i class="ni ni-bullet-list-67"></i></span>
-                </div>
-                <select class="form-control" wire:model.live="perPage">
-                    <option value="3">3 Data per Halaman</option>
-                    <option value="5">5 Data per Halaman</option>
-                    <option value="10">10 Data per Halaman</option>
-                    <option value="50">50 Data per Halaman</option>
-                </select>
-            </div>
-        </div>
-    </div>
+        @else
+            <x-rancangan.detail :rancangan="null" />
+        @endif
 
-    {{-- Table --}}
-    <div class="table-responsive">
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>Nomor Rancangan</th>
-                    <th>Tentang</th>
-                    <th>Perangkat Daerah</th>
-                    <th>Status Validasi Fasilitasi</th>
-                    <th>Aksi</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse ($fasilitasiMenunggu as $fasilitasi)
-                    <tr>
-                        <td class="wrap-text">{{ $fasilitasi->rancangan->no_rancangan }}</td>
-                        <td class="wrap-text w-50">{{ $fasilitasi->rancangan->tentang }}</td>
-                        <td class="wrap-text w-25">
-                            {{ $fasilitasi->rancangan->user->perangkatDaerah->nama_perangkat_daerah }}</td>
-                        <td>
-                            <mark
-                                class="badge-{{ $fasilitasi->status_validasi_fasilitasi === 'Diterima'
-                                    ? 'success'
-                                    : ($fasilitasi->status_validasi_fasilitasi === 'Ditolak'
-                                        ? 'danger'
-                                        : ($fasilitasi->status_validasi_fasilitasi === 'Menunggu Validasi'
-                                            ? 'warning'
-                                            : 'dark')) }} badge-pill">
-                                {{ $fasilitasi->status_validasi_fasilitasi ?? 'N/A' }}
-                            </mark>
-                        </td>
-                        <td class="w-25">
-                            {{-- Tombol Verifikasi --}}
-                            <button class="btn btn-neutral" href="#"
-                                wire:click.prevent="openModalValidasiFasilitasi({{ $fasilitasi->id }})"
-                                data-target="#modalValidasiFasilitasi" data-toggle="modal">
-                                <i class="bi bi-check2-square"></i> Verifikasi Berkas
-                            </button>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="6" class="text-center">Tidak ada data</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
-
-    {{-- Pagination --}}
-    <div class="mt-3">
-        {{ $fasilitasiMenunggu->links('pagination::bootstrap-4') }}
-    </div>
-
-    {{-- modal detail fasilitasi --}}
-    <div wire:ignore.self class="modal fade" id="modalValidasiFasilitasi" tabindex="-1" role="dialog"
-        data-backdrop="static" data-keyboard="false">
-        <div class="modal-dialog modal-xl no-style-modal">
-            <div class="modal-content">
-
-                @if ($selectedFasilitasi)
-                    <div class="row mt-3">
-                        <div class="col-md-6 mb-2">
-                            <div class="card shadow-sm">
-                                {{-- Tabel Detail --}}
-                                <div class="card-header">
-                                    <h4 class="mb-0">Informasi Utama</h4>
-                                </div>
-                                <div class="card-body">
-                                    <table class="table table-sm table-borderless">
-                                        <table class="table table-sm table-borderless">
-                                            <tbody>
-                                                <tr>
-                                                    <th class="info-text w-25">Nomor</th>
-                                                    <td class="wrap-text w-75">
-                                                        {{ $selectedFasilitasi->rancangan->no_rancangan ?? 'N/A' }}
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <th class="info-text w-25">Jenis</th>
-                                                    <td class="wrap-text w-75">
-                                                        <mark
-                                                            class="badge-{{ $selectedFasilitasi->rancangan->jenis_rancangan === 'Peraturan Bupati' ? 'primary' : '' }} badge-pill">
-                                                            {{ $selectedFasilitasi->rancangan->jenis_rancangan ?? 'N/A' }}
-                                                        </mark>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <th class="info-text w-25">Tentang</th>
-                                                    <td class="wrap-text w-75">
-                                                        {{ $selectedFasilitasi->rancangan->tentang ?? 'N/A' }}
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <th class="info-text w-25">Tanggal Pengajuan Fasilitasi</th>
-                                                    <td class="wrap-text w-75">
-                                                        {{ $selectedFasilitasi->tanggal_fasilitasi ? \Carbon\Carbon::parse($selectedFasilitasi->tanggal_fasilitasi)->translatedFormat('d F Y') : 'N/A' }}
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <th class="info-text w-25">User Pengaju</th>
-                                                    <td class="wrap-text w-75">
-                                                        {{ $selectedFasilitasi->rancangan->user->nama_user ?? 'N/A' }}
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <th class="info-text w-25">Perangkat Daerah</th>
-                                                    <td class="wrap-text w-75">
-                                                        {{ $selectedFasilitasi->rancangan->user->perangkatDaerah->nama_perangkat_daerah ?? 'N/A' }}
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <th class="info-text w-25">Status Berkas Fasiliatsi</th>
-                                                    <td class="wrap-text w-75">
-                                                        <mark
-                                                            class="badge-{{ $selectedFasilitasi->status_berkas_fasilitasi === 'Disetujui' ? 'success' : ($selectedFasilitasi->status_berkas_fasilitasi === 'Ditolak' ? 'danger' : 'warning') }} badge-pill">
-                                                            {{ $selectedFasilitasi->status_berkas_fasilitasi ?? 'N/A' }}
-                                                        </mark>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <th class="info-text w-25">Status Validasi Fasilitasi</th>
-                                                    <td class="wrap-text w-75">
-                                                        <mark
-                                                            class="badge-{{ $selectedFasilitasi->status_validasi_fasilitasi === 'Diterima'
-                                                                ? 'success'
-                                                                : ($selectedFasilitasi->status_validasi_fasilitasi === 'Ditolak'
-                                                                    ? 'danger'
-                                                                    : ($selectedFasilitasi->status_validasi_fasilitasi === 'Belum Tahap Validasi'
-                                                                        ? 'dark'
-                                                                        : 'warning')) }} badge-pill">
-                                                            {{ $selectedFasilitasi->status_validasi_fasilitasi ?? 'N/A' }}
-                                                        </mark>
-
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <th class="info-text w-25">Tanggal Persetujuan Fasilitasi</th>
-                                                    <td class="wrap-text w-75">
-                                                        {{ $selectedFasilitasi->tanggal_persetujuan_berkas ? \Carbon\Carbon::parse($selectedFasilitasi->tanggal_persetujuan_berkas)->translatedFormat('d F Y') : 'Belum di Verifikasi' }}
-                                                    </td>
-                                                </tr>
-
-                                                <tr>
-                                                    <th class="info-text w-25">File Rancangan Fasilitasi</th>
-                                                    <td class="wrap-text w-75">
-                                                        @if ($selectedFasilitasi->file_rancangan)
-                                                            <a href="{{ url('/view-private/fasilitasi/rancangan/' . basename($selectedFasilitasi->file_rancangan)) }}"
-                                                                target="_blank" class="d-flex align-items-center">
-                                                                <i class="bi bi-file-earmark-pdf mr-2 text-primary"></i>
-                                                                Lihat File
-                                                            </a>
-                                                        @else
-                                                            <span class="text-muted">Tidak Ada File</span>
-                                                        @endif
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <th class="info-text w-25">Catatan Fasilitasi</th>
-                                                    <td class="wrap-text w-75">
-                                                        {{ $selectedFasilitasi->catatan_persetujuan_fasilitasi ?? 'Tidak Ada Catatan' }}
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- Validasi Persetujuan --}}
-                        <div class="col-md-6 mb-2">
-                            <div class="card shadow-sm">
-                                <div class="card-header">
-                                    <h4 class="mb-0">Validasi Fasilitasi</h4>
-                                </div>
-                                <div class="card-body">
-                                    {{-- Pilih Status Validasi --}}
-                                    <div class="form-group">
-                                        <label>Pilih Status Validasi</label>
-                                        <select class="form-control" wire:model="statusValidasi">
-                                            <option hidden>Pilih Status</option>
-                                            <option value="Diterima">Diterima</option>
-                                            <option value="Ditolak">Ditolak</option>
-                                        </select>
-                                        @error('statusValidasi')
-                                            <small class="text-danger">{{ $message }}</small>
-                                        @enderror
-                                    </div>
-
-                                    {{-- Catatan Validasi --}}
-                                    <div class="form-group">
-                                        <label>Catatan Validasi</label>
-                                        <textarea class="form-control" wire:model.defer="catatanValidasi" rows="3" placeholder="Tambahkan catatan..."></textarea>
-                                        @error('catatanValidasi')
-                                            <small class="text-danger">{{ $message }}</small>
-                                        @enderror
-                                    </div>
-
-                                    {{-- Tombol Aksi --}}
-                                    <div class="d-flex justify-content-end mt-3">
-                                        {{-- Tombol Batalkan --}}
-                                        <button class="btn btn-outline-warning" data-dismiss="modal"
-                                            wire:click="resetData">
-                                            <i class="bi bi-x-circle"></i> Batalkan
-                                        </button>
-
-                                        {{-- Tombol Validasi dengan Loading --}}
-                                        <button class="btn btn-outline-success ml-2" wire:click="validasiFasilitasi"
-                                            wire:loading.attr="disabled">
-                                            <span wire:loading.remove wire:target="validasiFasilitasi">
-                                                <i class="bi bi-check-circle"></i> Validasi
-                                            </span>
-                                            <span wire:loading wire:target="validasiFasilitasi">
-                                                <i class="spinner-border spinner-border-sm"></i> Memproses...
-                                            </span>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-                @else
-                    <div class="card">
-                        <div class="d-flex justify-content-center align-items-start"
-                            style="min-height: 200px; padding-top: 50px;">
-                            <div class="text-center">
-                                <div class="spinner-border text-primary" role="status">
-                                    <span class="sr-only">Loading...</span>
-                                </div>
-                                <p class="mt-3 info-text">Sedang memuat data, harap tunggu...</p>
-                            </div>
-                        </div>
-                    </div>
-                @endif
-            </div>
-        </div>
-    </div>
+        <x-slot:footer>
+            <x-ui.button variant="outline" x-on:click="close()">Batal</x-ui.button>
+            <x-ui.button type="submit" form="validasiFasilitasiForm" variant="navy" icon="check-circle" loading="validasiFasilitasi">Simpan Validasi</x-ui.button>
+        </x-slot:footer>
+    </x-ui.modal>
 </div>

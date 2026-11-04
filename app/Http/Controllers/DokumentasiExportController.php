@@ -10,6 +10,6 @@ class DokumentasiExportController extends Controller
 {
     public function export(Request $request)
     {
-        return Excel::download(new DokumentasiExport($request->search, $request->jenisRancangan), 'Dokumentasi.xlsx');
+        return Excel::download(new DokumentasiExport($request->search, $request->jenisRancangan, $request->tahun), 'Dokumentasi.xlsx');
     }
 }

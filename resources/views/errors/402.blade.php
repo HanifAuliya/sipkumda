@@ -1,5 +1,7 @@
 @extends('errors::minimal')
 
-@section('title', __('Payment Required'))
+@section('title', 'Pembayaran Diperlukan')
 @section('code', '402')
-@section('message', __('Payment Required'))
+@section('icon', 'credit-card')
+@section('message', 'Pembayaran Diperlukan')
+@section('description', 'Akses ke halaman ini memerlukan pembayaran.')

@@ -19,9 +19,6 @@ class PilihPeneliti extends Component
 
     public function render()
     {
-        // Dapatkan daftar user dengan role "peneliti"
-        $listPeneliti = User::role('peneliti')->pluck('nama_user', 'id');
-
-        return view('livewire.verifikator.rancangan.pilih-peneliti', compact('listPeneliti'))->layout('layouts.app');
+        return view('livewire.verifikator.rancangan.pilih-peneliti')->layout('layouts.app');
     }
 }

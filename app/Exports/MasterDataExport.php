@@ -5,10 +5,11 @@ namespace App\Exports;
 use App\Models\RancanganProdukHukum;
 use Maatwebsite\Excel\Concerns\FromCollection;
 
+use Maatwebsite\Excel\Concerns\Export;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
-class MasterDataExport implements WithMultipleSheets
+class MasterDataExport implements Export, WithMultipleSheets
 {
     /**
      * @return \Illuminate\Support\Collection

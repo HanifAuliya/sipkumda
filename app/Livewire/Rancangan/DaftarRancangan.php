@@ -14,7 +14,6 @@ use Illuminate\Support\Str;
 class DaftarRancangan extends Component
 {
     use WithPagination;
-    protected $paginationTheme = 'bootstrap';
 
     public $search = '';
     public $jenisRancangan = '';
@@ -54,29 +53,12 @@ class DaftarRancangan extends Component
         $this->isVerifier = Auth::user()->hasRole('Verifikator');
     }
 
-    public function updatingSearch()
+    // Kembali ke halaman 1 setiap kali filter berubah
+    public function updated($property)
     {
-        $this->resetPage();
-    }
-
-    public function updatingJenisFilter()
-    {
-        $this->resetPage();
-    }
-
-    public function updatingStatusBerkasFilter()
-    {
-        $this->resetPage();
-    }
-
-    public function updatingStatusRevisiFilter()
-    {
-        $this->resetPage();
-    }
-
-    public function updatingPerPage()
-    {
-        $this->resetPage();
+        if (in_array($property, ['search', 'jenisRancangan', 'tahun', 'perPage'])) {
+            $this->resetPage();
+        }
     }
 
     public function sortBy($field)
