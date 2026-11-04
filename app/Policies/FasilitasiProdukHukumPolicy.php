@@ -74,6 +74,12 @@ class FasilitasiProdukHukumPolicy
         return false;
     }
 
+    /** Tamu hanya boleh mencatat tahapan paraf dan tanda tangan, tidak mengubah hal lain pada fasilitasi. */
+    public function perbaruiTahapan(User $user): bool
+    {
+        return $user->hasAnyRole(['Admin', 'Tamu']);
+    }
+
     /**
      * Determine whether the user can delete fasilitasi.
      */

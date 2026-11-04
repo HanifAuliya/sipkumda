@@ -12,7 +12,7 @@ class BerkasNaskahController extends Controller
 {
     public function __invoke(Naskah $naskah, NaskahBerkas $berkas)
     {
-        Gate::authorize('view', $naskah);
+        Gate::authorize('unduh', $naskah);
         abort_unless($berkas->naskah_id === $naskah->id, 404);
 
         return Storage::disk('local')->download($berkas->path, $berkas->nama_asli);

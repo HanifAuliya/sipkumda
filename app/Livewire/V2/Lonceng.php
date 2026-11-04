@@ -16,7 +16,7 @@ class Lonceng extends Component
         $notifikasi->markAsRead();
 
         if (($notifikasi->data['type'] ?? null) === 'naskah' && filled($notifikasi->data['slug'] ?? null)) {
-            return $this->redirectRoute('v2.naskah.kerja', $notifikasi->data['slug'], navigate: true);
+            $this->dispatch('bukaDetailNaskah', slug: $notifikasi->data['slug']);
         }
     }
 

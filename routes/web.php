@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\PilihAplikasiController;
 use App\Livewire\Dashboard;
 use App\Livewire\UserManagement;
 use App\Livewire\ProfileManagement;
@@ -46,6 +47,11 @@ Route::withoutMiddleware([
         ->whereNumber('dokumentasi')->name('jdih.show');
     Route::get('/produk-hukum/{dokumentasi}/dokumen', [JdihController::class, 'dokumen'])
         ->whereNumber('dokumentasi')->middleware('throttle:jdih-unduhan')->name('jdih.dokumen');
+});
+
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/pilih-aplikasi', [PilihAplikasiController::class, 'create'])->name('aplikasi.pilih');
+    Route::post('/pilih-aplikasi', [PilihAplikasiController::class, 'store'])->name('aplikasi.simpan');
 });
 
 Route::middleware('auth')->group(function () {
@@ -126,7 +132,7 @@ Route::middleware('auth')->group(function () {
         Route::livewire('/kelola-bahan-penting', TambahBahanPenting::class)
             ->name('bahan-penting');
     });
-    // Tamu hanya dapat melihat; pembaruan tahapan dicek lewat policy.
+    // Tamu hanya mengatur tahapan paraf dan tanda tangan.
     Route::middleware(['role:Admin|Tamu'])->group(function () {
         Route::livewire('/manajemen-fasilitasi', ManajemenFasilitasi::class)
             ->name('manajemen-fasilitasi');

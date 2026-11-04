@@ -1,8 +1,7 @@
-<div class="mx-auto max-w-2xl px-4 py-8">
-    <h1 class="text-2xl font-extrabold tracking-tight text-navy-900 dark:text-white">Pengaturan</h1>
-    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Nama pejabat untuk bagian penutup naskah baru. Naskah yang sudah dibuat tidak berubah; perbaiki lewat baris Penutup bila perlu.</p>
+<div class="mx-auto max-w-3xl">
+    <x-ui.page-header title="Pengaturan Naskah" description="Nama pejabat untuk bagian penutup naskah baru. Naskah yang sudah dibuat tidak berubah; perbaiki lewat baris Penutup bila perlu." icon="gear" :back="route('v2.beranda')" />
 
-    <form wire:submit="simpan" class="mt-6 space-y-5 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200/70 dark:bg-navy-900 dark:ring-navy-800">
+    <form wire:submit="simpan" class="space-y-5 rounded-2xl bg-white p-6 shadow-card dark:bg-navy-900 dark:shadow-none dark:ring-1 dark:ring-white/5">
         <x-form.field label="Nama Bupati" for="namaBupati" error="namaBupati" required>
             <x-form.input id="namaBupati" wire:model="namaBupati" />
         </x-form.field>

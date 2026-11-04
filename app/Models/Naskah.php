@@ -121,7 +121,9 @@ class Naskah extends Model
             return $query;
         }
 
-        return $query->where(fn ($q) => $q->where('pemrakarsa_id', $user->id)->orWhere('peneliti_id', $user->id));
+        return $query->where(fn ($q) => $q->where('pemrakarsa_id', $user->id)
+            ->orWhere('peneliti_id', $user->id)
+            ->when($user->hasRole('Tamu'), fn ($s) => $s->orWhereIn('tahap', TahapNaskah::TERLIHAT_TAMU)));
     }
 
     /** Naskah yang sedang menunggu tindakan pengguna ini. */
@@ -131,7 +133,7 @@ class Naskah extends Model
             $q->where(fn ($s) => $s->where('pemrakarsa_id', $user->id)->whereIn('tahap', TahapNaskah::menungguPeran('Perangkat Daerah')))
                 ->orWhere(fn ($s) => $s->where('peneliti_id', $user->id)->whereIn('tahap', TahapNaskah::menungguPeran('Peneliti')));
 
-            foreach (['Admin', 'Verifikator'] as $peran) {
+            foreach (['Admin', 'Verifikator', 'Tamu'] as $peran) {
                 if ($user->hasRole($peran)) {
                     $q->orWhereIn('tahap', TahapNaskah::menungguPeran($peran));
                 }

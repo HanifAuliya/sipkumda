@@ -11,7 +11,7 @@ class CetakNaskahController extends Controller
 {
     public function __invoke(Naskah $naskah, string $berkas, CetakNaskah $cetak)
     {
-        Gate::authorize('view', $naskah);
+        Gate::authorize('unduh', $naskah);
 
         return match ($berkas) {
             'naskah-word' => response()->download(

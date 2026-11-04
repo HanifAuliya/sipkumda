@@ -49,7 +49,7 @@ class ManajemenFasilitasi extends Component
     public function openUpdateStatus($id)
     {
         $this->selectedFasilitasi = FasilitasiProdukHukum::with('rancangan.user.perangkatDaerah')->findOrFail($id);
-        $this->authorize('update', $this->selectedFasilitasi);
+        $this->authorize('perbaruiTahapan', $this->selectedFasilitasi);
 
         // Pilih otomatis tahapan berikutnya yang belum selesai.
         $this->selectedStatus = array_key_first($this->tahapanTersisa()) ?? '';
@@ -70,7 +70,7 @@ class ManajemenFasilitasi extends Component
             return;
         }
 
-        $this->authorize('update', $this->selectedFasilitasi);
+        $this->authorize('perbaruiTahapan', $this->selectedFasilitasi);
 
         $tersisa = $this->tahapanTersisa();
         $this->validate(

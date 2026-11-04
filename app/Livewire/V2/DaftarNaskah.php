@@ -1,0 +1,121 @@
+<?php
+
+namespace App\Livewire\V2;
+
+use App\Enums\TahapNaskah as T;
+use App\Models\Naskah;
+use Illuminate\Support\Facades\Gate;
+use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
+use Livewire\Attributes\Url;
+use Livewire\Component;
+use Livewire\WithPagination;
+
+/**
+ * Satu halaman daftar untuk semua menu v2, mengikuti bentuk menu lama: kartu dengan tab
+ * menunggu/riwayat, atau tabel untuk menu Daftar. Detail dibuka lewat modal (DetailNaskah).
+ * Hak lihat tetap dari Naskah::terlihatOleh.
+ */
+#[Layout('layouts.app')]
+class DaftarNaskah extends Component
+{
+    use WithPagination;
+
+    private const AKHIR_FASILITASI = [T::Disetujui, T::PersetujuanFasilitasi, T::ValidasiFasilitasi, T::PerbaikanFasilitasi, T::CekPeneliti, T::Final, T::Penandatanganan, T::Arsip];
+
+    /** "tab" berisi [ikon, label] untuk tab menunggu dan riwayat; tanpa "tab" berarti tampilan tabel. */
+    public const KELOMPOK = [
+        'rancanganku' => ['judul' => 'Rancanganku', 'keterangan' => 'Pengajuan rancangan produk hukum perangkat daerah', 'ikon' => 'clipboard2', 'tahap' => T::RANCANGAN,
+            'tab' => [['send', 'Sedang Diajukan'], ['check2-circle', 'Pengajuan Diterima']]],
+        'rancangan' => ['judul' => 'Daftar Rancangan', 'keterangan' => 'Pengajuan rancangan produk hukum', 'ikon' => 'clipboard2-data', 'tahap' => T::RANCANGAN],
+        'persetujuan-berkas' => ['judul' => 'Persetujuan Berkas', 'keterangan' => 'Pengajuan baru yang menunggu pemeriksaan kelengkapan', 'ikon' => 'clipboard2-check', 'tahap' => [T::PersetujuanBerkas],
+            'tab' => [['hourglass-split', 'Menunggu Persetujuan'], ['clock-history', 'Riwayat Persetujuan']]],
+        'pilih-peneliti' => ['judul' => 'Pilih Peneliti', 'keterangan' => 'Rancangan yang menunggu penugasan peneliti', 'ikon' => 'person-check', 'tahap' => [T::PilihPeneliti],
+            'tab' => [['hourglass-split', 'Menunggu Peneliti'], ['clock-history', 'Riwayat Penugasan']]],
+        'penelitian' => ['judul' => 'Penelitian Rancangan', 'keterangan' => 'Rancangan produk hukum yang ditugaskan kepada Anda untuk diteliti', 'ikon' => 'pencil-square', 'tahap' => [T::Penelitian],
+            'tab' => [['hourglass-split', 'Menunggu Penelitian'], ['clock-history', 'Riwayat Penelitian']]],
+        'validasi-rancangan' => ['judul' => 'Validasi Rancangan', 'keterangan' => 'Hasil penelitian yang menunggu validasi', 'ikon' => 'patch-check', 'tahap' => [T::ValidasiRancangan],
+            'tab' => [['hourglass-split', 'Menunggu Validasi'], ['clock-history', 'Riwayat Validasi']]],
+        'fasilitasiku' => ['judul' => 'Fasilitasiku', 'keterangan' => 'Fasilitasi produk hukum perangkat daerah', 'ikon' => 'files', 'tahap' => self::AKHIR_FASILITASI,
+            'tab' => [['send', 'Fasilitasi Berlangsung'], ['check2-circle', 'Riwayat Fasilitasi']]],
+        'fasilitasi' => ['judul' => 'Daftar Fasilitasi', 'keterangan' => 'Semua naskah pada tahap fasilitasi dan sesudahnya', 'ikon' => 'collection', 'tahap' => T::SETELAH_RANCANGAN],
+        'persetujuan-fasilitasi' => ['judul' => 'Persetujuan Fasilitasi', 'keterangan' => 'Pengajuan fasilitasi yang menunggu persetujuan', 'ikon' => 'file-check', 'tahap' => [T::PersetujuanFasilitasi],
+            'tab' => [['hourglass-split', 'Menunggu Persetujuan'], ['clock-history', 'Riwayat Persetujuan']]],
+        'cek-peneliti' => ['judul' => 'Pengecekan Fasilitasi', 'keterangan' => 'Perbaikan dari Perangkat Daerah yang perlu Anda cek', 'ikon' => 'file-check', 'tahap' => [T::CekPeneliti],
+            'tab' => [['hourglass-split', 'Menunggu Pengecekan'], ['clock-history', 'Riwayat Pengecekan']]],
+        'validasi-fasilitasi' => ['judul' => 'Validasi Fasilitasi', 'keterangan' => 'Hasil fasilitasi yang menunggu validasi', 'ikon' => 'file-earmark-check', 'tahap' => [T::ValidasiFasilitasi],
+            'tab' => [['hourglass-split', 'Menunggu Validasi'], ['clock-history', 'Riwayat Validasi']]],
+        'nota-dinas' => ['judul' => 'Daftar Nota Dinas', 'keterangan' => 'Nota dinas fasilitasi rancangan produk hukum', 'ikon' => 'file-text', 'tahap' => [T::Final],
+            'tab' => [['hourglass-split', 'Menunggu Terbit'], ['check2-circle', 'Sudah Terbit']]],
+        'penandatanganan' => ['judul' => 'Penandatanganan', 'keterangan' => 'Pencatatan paraf dan tanda tangan basah', 'ikon' => 'file-earmark-break', 'tahap' => [T::Penandatanganan],
+            'tab' => [['hourglass-split', 'Sedang Berjalan'], ['check2-circle', 'Sudah Selesai']]],
+        'arsip' => ['judul' => 'Arsipkan Naskah', 'keterangan' => 'Naskah bertanda tangan yang menunggu masuk arsip dan JDIH', 'ikon' => 'archive', 'tahap' => [T::Arsip],
+            'tab' => [['hourglass-split', 'Menunggu Arsip'], ['check2-circle', 'Sudah Diarsipkan']]],
+    ];
+
+    #[Locked]
+    public string $kelompok;
+
+    #[Url(as: 'tab', except: 'menunggu')]
+    public string $tabAktif = 'menunggu';
+
+    #[Url(as: 'q', except: '')]
+    public string $search = '';
+
+    #[Url(except: '')]
+    public string $tahap = '';
+
+    public int $perPage = 10;
+
+    public function mount(string $kelompok): void
+    {
+        abort_unless(isset(self::KELOMPOK[$kelompok]), 404);
+        $this->kelompok = $kelompok;
+    }
+
+    public function pilihTab(string $tab): void
+    {
+        $this->tabAktif = $tab === 'riwayat' ? 'riwayat' : 'menunggu';
+        $this->resetPage();
+    }
+
+    public function updated(string $nama): void
+    {
+        if (in_array($nama, ['search', 'tahap', 'perPage'], true)) {
+            $this->resetPage();
+        }
+    }
+
+    private function dasar()
+    {
+        return Naskah::terlihatOleh(auth()->user());
+    }
+
+    public function render()
+    {
+        $info = self::KELOMPOK[$this->kelompok];
+        $menunggu = $info['tahap'];
+        $riwayat = isset($info['tab']) ? end($menunggu)->sesudahnya() : [];
+        $riwayatAktif = isset($info['tab']) && $this->tabAktif === 'riwayat';
+
+        $halaman = $this->dasar()
+            ->with(['pemrakarsa.perangkatDaerah', 'peneliti'])
+            ->whereIn('tahap', $riwayatAktif ? $riwayat : $menunggu)
+            ->when($this->search !== '', fn ($q) => $q->where(fn ($s) => $s
+                ->where('tentang', 'like', "%{$this->search}%")
+                ->orWhere('nomor', 'like', "%{$this->search}%")))
+            ->when(T::tryFrom($this->tahap), fn ($q, T $tahap) => $q->where('tahap', $tahap))
+            ->latest('updated_at')
+            ->paginate(max(3, min(50, $this->perPage)));
+
+        return view('v2.daftar-naskah', [
+            'info' => $info,
+            'halaman' => $halaman,
+            'jumlah' => isset($info['tab']) ? [
+                'menunggu' => $this->dasar()->whereIn('tahap', $menunggu)->count(),
+                'riwayat' => $this->dasar()->whereIn('tahap', $riwayat)->count(),
+            ] : [],
+            'bisaBuat' => $this->kelompok === 'rancanganku' && Gate::allows('create', Naskah::class),
+        ])->title($info['judul']);
+    }
+}

@@ -39,9 +39,10 @@ class BarisKerja extends Component
         $this->dispatch('baris-selesai', id: $this->baris->id);
     }
 
-    public function simpanPerbaikan(?string $teks, ?string $keterangan, AlurNaskah $alur): void
+    /** @return bool berhasil atau tidak, supaya editor tetap terbuka saat isiannya ditolak */
+    public function simpanPerbaikan(?string $teks, ?string $keterangan, AlurNaskah $alur, ?string $label = null): bool
     {
-        $this->jalankan(fn () => $alur->perbaiki($this->baris, auth()->user(), $teks, $keterangan));
+        return $this->jalankan(fn () => $alur->perbaiki($this->baris, auth()->user(), $teks, $keterangan, $label));
     }
 
     public function hapus(?string $keterangan, AlurNaskah $alur): void
@@ -80,6 +81,21 @@ class BarisKerja extends Component
         $this->dispatch('struktur-berubah');
     }
 
+    public function buangSisipan(AlurNaskah $alur): void
+    {
+        Gate::authorize('view', $this->naskah);
+
+        try {
+            $alur->buangSisipan($this->baris, auth()->user());
+        } catch (ValidationException $e) {
+            $this->setErrorBag($e->validator->errors());
+
+            return;
+        }
+
+        $this->dispatch('struktur-berubah');
+    }
+
     public function geser(int $arah, AlurNaskah $alur): void
     {
         Gate::authorize('view', $this->naskah);
@@ -87,7 +103,7 @@ class BarisKerja extends Component
         $this->dispatch('struktur-berubah');
     }
 
-    private function jalankan(callable $aksi): void
+    private function jalankan(callable $aksi): bool
     {
         Gate::authorize('view', $this->naskah);
 
@@ -96,11 +112,13 @@ class BarisKerja extends Component
         } catch (ValidationException $e) {
             $this->setErrorBag($e->validator->errors());
 
-            return;
+            return false;
         }
 
         $this->resetErrorBag();
         $this->dispatch('baris-berubah');
+
+        return true;
     }
 
     public function render(AlurNaskah $alur)

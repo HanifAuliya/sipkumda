@@ -34,6 +34,12 @@ class NaskahBaris extends Model
         self::DISESUAIKAN => 'info',
     ];
 
+    /** Status yang berarti rumusannya berbeda dari usulan awal, atau diminta diperbaiki. */
+    public const BERUBAH = [self::DIUBAH, self::DIHAPUS, self::PERLU_PD, self::DISESUAIKAN];
+
+    /** Bagian yang barisnya bisa lebih dari satu. Judul, Penutup, dan Lampiran selalu satu baris. */
+    public const BAGIAN_BERULANG = ['menimbang', 'mengingat', 'diktum', 'batang_tubuh'];
+
     protected $table = 'naskah_baris';
 
     protected $fillable = [
@@ -61,6 +67,12 @@ class NaskahBaris extends Model
     public function pengubah()
     {
         return $this->belongsTo(User::class, 'diubah_oleh');
+    }
+
+    /** Baris tanpa rumusan awal: tambahan saat penelitian, jadi boleh dibuang tanpa menghilangkan usulan PD. */
+    public function sisipan(): bool
+    {
+        return blank($this->rumusan_awal) && in_array($this->bagian, self::BAGIAN_BERULANG, true);
     }
 
     /** Teks yang masuk ke naskah: kolom 4 kalau terisi, selain itu kolom 3; baris dihapus tidak dicetak. */

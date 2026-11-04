@@ -1,80 +1,98 @@
-<div class="mx-auto max-w-6xl px-4 py-8 lg:px-6">
-    <div class="flex flex-wrap items-end justify-between gap-4">
-        <div>
-            <h1 class="text-2xl font-extrabold tracking-tight text-navy-900 dark:text-white">Pekerjaan Anda</h1>
-            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Naskah yang sedang menunggu tindakan Anda ada di bagian atas.</p>
+@php
+    $user = auth()->user();
+    $pd = $user->hasRole('Perangkat Daerah');
+@endphp
+
+<div class="space-y-6">
+    {{-- Sambutan --}}
+    <section class="relative overflow-hidden rounded-2xl bg-linear-to-br from-navy-900 via-navy-800 to-primary-700 p-6 text-white shadow-card sm:p-8">
+        <div class="pointer-events-none absolute -top-16 -right-10 size-64 rounded-full bg-white/5"></div>
+        <div class="pointer-events-none absolute -right-24 -bottom-24 size-72 rounded-full bg-primary-400/10"></div>
+
+        <div class="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+            <div class="flex items-center gap-4">
+                <img src="{{ asset('assets/img/theme/profile.png') }}" alt="" class="size-16 rounded-full ring-4 ring-white/15">
+                <div class="min-w-0">
+                    <p class="text-sm text-white/70">Selamat datang kembali,</p>
+                    <h1 class="truncate text-xl font-bold text-white sm:text-2xl">{{ $user->nama_user }}</h1>
+                    <div class="mt-1.5 flex flex-wrap items-center gap-2 text-xs">
+                        <span class="rounded-full bg-white/15 px-2.5 py-0.5 font-semibold">{{ $user->getRoleNames()->first() ?? 'Tanpa Role' }}</span>
+                        <span class="text-white/70">NIP {{ $user->NIP }}</span>
+                        @if ($user->perangkatDaerah)
+                            <span class="text-white/70">· {{ $user->perangkatDaerah->nama_perangkat_daerah }}</span>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
         </div>
-        @if ($bisaBuat)
-            <x-ui.button :href="route('v2.naskah.buat')" icon="plus-lg" wire:navigate>Buat naskah</x-ui.button>
-        @endif
+    </section>
+
+    {{-- Statistik --}}
+    <div class="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+        <x-ui.stat-card label="Rancangan" :value="$statistik['rancangan']" suffix="naskah" icon="clipboard2-data" color="rose"
+            :href="route('v2.daftar', $pd ? 'rancanganku' : 'rancangan')" />
+        <x-ui.stat-card label="Fasilitasi" :value="$statistik['fasilitasi']" suffix="naskah" icon="file-text" color="orange"
+            :href="route('v2.daftar', $pd ? 'fasilitasiku' : 'fasilitasi')" />
+        <x-ui.stat-card label="Penandatanganan" :value="$statistik['ttd']" suffix="naskah" icon="pen" color="emerald" />
+        <x-ui.stat-card label="Selesai" :value="$statistik['selesai']" suffix="naskah" icon="folder2-open" color="sky" />
     </div>
 
-    <section class="mt-6" aria-labelledby="judul-giliran">
-        <h2 id="judul-giliran" class="text-xs font-bold tracking-wider text-slate-500 uppercase">
-            Giliran Anda <span class="ml-1 rounded-full bg-brand-500/15 px-2 py-0.5 text-brand-600">{{ $giliranSaya->count() }}</span>
-        </h2>
+    {{-- Giliran --}}
+    <x-ui.card title="Giliran Anda" description="Naskah yang sedang menunggu tindakan Anda">
+        <x-slot:actions>
+            <x-ui.badge color="primary">{{ $giliranSaya->count() }} naskah</x-ui.badge>
+        </x-slot:actions>
 
         @if ($giliranSaya->isEmpty())
-            <p class="mt-3 rounded-xl border border-dashed border-slate-300 px-5 py-8 text-center text-sm text-slate-500 dark:border-navy-700">
-                Tidak ada naskah yang menunggu Anda.
-            </p>
+            <x-ui.empty-state icon="check2-circle" title="Tidak ada naskah yang menunggu Anda." />
         @else
-            <div class="mt-3 grid gap-3 md:grid-cols-2">
+            <div class="space-y-4">
                 @foreach ($giliranSaya as $naskah)
-                    <a href="{{ route('v2.naskah.kerja', $naskah) }}" wire:navigate wire:key="giliran-{{ $naskah->id }}"
-                        class="group rounded-xl border-l-4 border-brand-500 bg-white p-4 shadow-sm ring-1 ring-slate-200/70 transition hover:shadow-card dark:bg-navy-900 dark:ring-navy-800">
-                        <div class="flex items-center justify-between gap-3">
-                            <span class="text-xs font-semibold text-slate-500">{{ $naskah->nomor }}</span>
-                            <x-ui.badge :color="$naskah->tahap->warna()">{{ $naskah->tahap->label() }}</x-ui.badge>
-                        </div>
-                        <h3 class="mt-2 line-clamp-2 font-semibold leading-snug text-navy-900 group-hover:text-primary-700 dark:text-white dark:group-hover:text-primary-300">
-                            {{ $naskah->tentang }}
-                        </h3>
-                        <p class="mt-2 text-xs text-slate-500">
-                            {{ $naskah->jenis }} · {{ $naskah->baris_count }} baris · {{ $naskah->pemrakarsa->perangkatDaerah->nama_perangkat_daerah ?? $naskah->pemrakarsa->nama_user }}
-                        </p>
-                    </a>
+                    <x-naskah.item :naskah="$naskah" wire:key="giliran-{{ $naskah->id }}" />
                 @endforeach
             </div>
         @endif
-    </section>
+    </x-ui.card>
 
-    <section class="mt-10" aria-labelledby="judul-semua">
-        <div class="flex flex-wrap items-center justify-between gap-3">
-            <h2 id="judul-semua" class="text-xs font-bold tracking-wider text-slate-500 uppercase">Semua naskah</h2>
-            <div class="flex flex-wrap items-center gap-2">
-                <label>
-                    <span class="sr-only">Tahap</span>
-                    <select wire:model.live="tahap" class="rounded-lg border-0 bg-white py-2 pr-8 pl-3 text-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-primary-300 dark:bg-navy-900 dark:ring-navy-700">
-                        <option value="">Semua tahap</option>
-                        @foreach (App\Enums\TahapNaskah::cases() as $pilihan)
-                            <option value="{{ $pilihan->value }}">{{ $pilihan->label() }}</option>
-                        @endforeach
-                    </select>
-                </label>
-                <label class="relative">
-                    <span class="sr-only">Cari naskah</span>
-                    <i class="bi bi-search pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-slate-400"></i>
-                    <input type="search" wire:model.live.debounce.400ms="cari" placeholder="Cari nomor atau judul…"
-                        class="w-64 max-w-full rounded-lg border-0 bg-white py-2 pr-3 pl-9 text-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-primary-300 dark:bg-navy-900 dark:ring-navy-700">
-                </label>
-            </div>
+    {{-- Semua naskah --}}
+    <x-ui.card title="Semua Naskah" description="Seluruh naskah yang bisa Anda lihat">
+        <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <x-form.input wire:model.live.debounce.400ms="cari" icon="search" class="sm:flex-1" placeholder="Cari nomor atau tentang..." aria-label="Cari naskah" />
+            <x-form.select wire:model.live="tahap" icon="funnel" class="sm:w-56" aria-label="Tahap">
+                <option value="">Semua tahap</option>
+                @foreach (App\Enums\TahapNaskah::cases() as $pilihan)
+                    <option value="{{ $pilihan->value }}">{{ $pilihan->label() }}</option>
+                @endforeach
+            </x-form.select>
         </div>
 
-        <div class="mt-3 divide-y divide-slate-100 overflow-hidden rounded-xl bg-white ring-1 ring-slate-200/70 dark:divide-navy-800 dark:bg-navy-900 dark:ring-navy-800">
+        <x-ui.table>
+            <x-slot:head>
+                <th>Nomor</th>
+                <th>Tentang</th>
+                <th>Tahap</th>
+                <th>Diperbarui</th>
+                <th class="text-right">Aksi</th>
+            </x-slot:head>
+
             @forelse ($halaman as $naskah)
-                <a href="{{ route('v2.naskah.kerja', $naskah) }}" wire:navigate wire:key="naskah-{{ $naskah->id }}"
-                    class="flex items-center gap-4 px-4 py-3 transition hover:bg-slate-50 dark:hover:bg-navy-800/60">
-                    <span class="w-28 shrink-0 text-xs font-semibold text-slate-500">{{ $naskah->nomor }}</span>
-                    <span class="min-w-0 flex-1 truncate text-sm font-medium text-navy-900 dark:text-slate-100">{{ $naskah->tentang }}</span>
-                    <span class="hidden shrink-0 text-xs text-slate-400 lg:block">{{ $naskah->updated_at->diffForHumans() }}</span>
-                    <x-ui.badge :color="$naskah->tahap->warna()">{{ $naskah->tahap->label() }}</x-ui.badge>
-                </a>
+                <tr wire:key="naskah-{{ $naskah->id }}">
+                    <td class="font-semibold whitespace-nowrap">{{ $naskah->nomor }}</td>
+                    <td class="min-w-64 whitespace-normal">{{ $naskah->tentang }}</td>
+                    <td class="whitespace-nowrap"><x-ui.badge :color="$naskah->tahap->warna()">{{ $naskah->tahap->label() }}</x-ui.badge></td>
+                    <td class="whitespace-nowrap text-slate-500">{{ $naskah->updated_at->diffForHumans() }}</td>
+                    <td>
+                        <div class="flex justify-end">
+                            <x-naskah.detail-button :naskah="$naskah" />
+                        </div>
+                    </td>
+                </tr>
             @empty
-                <p class="px-5 py-10 text-center text-sm text-slate-500">Belum ada naskah.</p>
+                <x-ui.empty-row colspan="5" message="Belum ada naskah." />
             @endforelse
-        </div>
+        </x-ui.table>
 
-        <div class="mt-4">{{ $halaman->links() }}</div>
-    </section>
+        <div class="mt-5">{{ $halaman->links() }}</div>
+    </x-ui.card>
 </div>

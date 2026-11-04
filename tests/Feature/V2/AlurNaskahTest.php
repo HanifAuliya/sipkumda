@@ -4,12 +4,16 @@ use App\Enums\TahapNaskah as T;
 use App\Livewire\V2\BarisKerja;
 use App\Livewire\V2\BuatNaskah;
 use App\Livewire\V2\LayarKerja;
+use App\Livewire\V2\PratinjauNaskah;
 use App\Models\Naskah;
 use App\Models\NaskahBaris as B;
 use App\Models\User;
 use App\Services\AlurNaskah;
 use App\Services\PembacaNaskahWord;
+use App\Support\BandingNaskah;
+use App\Support\BlokNaskah;
 use App\Support\DiffKata;
+use App\Support\TataLetakNaskah;
 use App\Support\TemplateNaskah;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Http\UploadedFile;
@@ -18,6 +22,7 @@ use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
 use PhpOffice\PhpWord\IOFactory;
 use PhpOffice\PhpWord\PhpWord;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 beforeEach(function () {
     $this->seed(RoleSeeder::class);
@@ -91,7 +96,7 @@ describe('alur lengkap', function () {
         $n = $this->alur->jalankan($n, $this->peneliti, 'teruskan_ke_verifikator');
         $n = $this->alur->jalankan($n, $this->verifikator, 'setujui_rancangan');
         $n = $this->alur->jalankan($n, $this->pd, 'ajukan_fasilitasi');
-        $n = $this->alur->jalankan($n, $this->admin, 'setujui_fasilitasi');
+        $n = $this->alur->jalankan($n, $this->peneliti, 'setujui_fasilitasi');
 
         // Ditolak di fasilitasi: ke PD, lalu Peneliti mengecek, baru Verifikator.
         $n = $this->alur->jalankan($n, $this->verifikator, 'tolak_validasi', 'Perbaiki');
@@ -115,7 +120,7 @@ describe('alur lengkap', function () {
         $n = $this->alur->jalankan($n, $this->peneliti, 'teruskan_ke_verifikator');
         $n = $this->alur->jalankan($n, $this->verifikator, 'setujui_rancangan');
         $n = $this->alur->jalankan($n, $this->pd, 'ajukan_fasilitasi');
-        $n = $this->alur->jalankan($n, $this->admin, 'setujui_fasilitasi');
+        $n = $this->alur->jalankan($n, $this->peneliti, 'setujui_fasilitasi');
         $n = $this->alur->jalankan($n, $this->verifikator, 'finalkan');
 
         expect(fn () => $this->alur->jalankan($n, $this->verifikator, 'buka_kunci'))->toThrow(ValidationException::class);
@@ -215,6 +220,57 @@ describe('baris matriks', function () {
             ->and($baru->fresh()->teksAkhir())->toBe('Isi pasal baru');
     });
 
+    it('baris sisipan bisa diberi penanda Pasal dan tidak boleh disimpan kosong', function () {
+        $n = naskahPenelitian($this);
+        $pasal = $n->baris()->where('label', 'Pasal 1')->first();
+        $baru = $this->alur->tambahSetelah($pasal, $this->peneliti);
+
+        expect(fn () => $this->alur->perbaiki($baru, $this->peneliti, ''))->toThrow(ValidationException::class);
+
+        $this->alur->perbaiki($baru, $this->peneliti, 'Isi pasal baru', null, ' Pasal 2 ');
+        $this->alur->perbaiki($pasal, $this->peneliti, 'Rumusan baru', null, 'Pasal 99');
+
+        expect($baru->fresh()->label)->toBe('Pasal 2')
+            ->and($pasal->fresh()->label)->toBe('Pasal 1');
+    });
+
+    it('Peneliti bisa membuang baris sisipan, tetapi tidak baris usulan PD', function () {
+        $n = naskahPenelitian($this);
+        $usulan = $n->baris()->where('bagian', 'menimbang')->first();
+        $baru = $this->alur->tambahSetelah($usulan, $this->peneliti);
+
+        expect(fn () => $this->alur->buangSisipan($usulan, $this->peneliti))->toThrow(HttpException::class)
+            ->and(fn () => $this->alur->buangSisipan($baru, $this->pd))->toThrow(HttpException::class);
+
+        Livewire::actingAs($this->peneliti)
+            ->test(BarisKerja::class, ['baris' => $baru, 'naskah' => $n])
+            ->assertSee('Hapus Baris')
+            ->assertDontSee('Hapus Rumusan')
+            ->call('buangSisipan')
+            ->assertDispatched('struktur-berubah');
+
+        expect(B::find($baru->id))->toBeNull()
+            ->and($n->riwayat()->where('aksi', 'buang_baris')->exists())->toBeTrue();
+    });
+
+    it('baris terakhir pada suatu bagian tidak bisa dibuang', function () {
+        $n = naskahPenelitian($this);
+        $satuSatunya = $n->baris()->where('bagian', 'batang_tubuh')->first();
+        $satuSatunya->update(['rumusan_awal' => null]);
+
+        expect(fn () => $this->alur->buangSisipan($satuSatunya, $this->peneliti))->toThrow(ValidationException::class)
+            ->and($satuSatunya->fresh())->not->toBeNull();
+    });
+
+    it('Sisipkan Baris hanya ada pada bagian yang barisnya bisa lebih dari satu', function () {
+        $n = naskahPenelitian($this);
+        $tampil = fn (string $bagian) => Livewire::actingAs($this->peneliti)
+            ->test(BarisKerja::class, ['baris' => $n->baris()->where('bagian', $bagian)->first(), 'naskah' => $n]);
+
+        $tampil('judul')->assertDontSee('Sisipkan Baris');
+        $tampil('menimbang')->assertSee('Sisipkan Baris');
+    });
+
     it('mencatat riwayat dan menggabungkan simpan otomatis', function () {
         $n = naskahPenelitian($this);
         $b = $n->baris()->first();
@@ -237,6 +293,155 @@ describe('baris matriks', function () {
         $baris = $n->baris()->where('bagian', 'diktum')->get();
 
         expect(array_values(TemplateNaskah::penanda($n, $baris)))->toBe(['KESATU', 'KEDUA']);
+    });
+});
+
+describe('pratinjau dan perbandingan', function () {
+    it('pratinjau baru memuat naskah saat panelnya dibuka dan mengikuti perubahan', function () {
+        $n = naskahPenelitian($this);
+        $pasal = $n->baris()->where('label', 'Pasal 1')->first();
+
+        $panel = Livewire::actingAs($this->peneliti)
+            ->test(PratinjauNaskah::class, ['naskah' => $n])
+            ->assertDontSee('Pembayaran paling lambat 7 hari.')
+            ->call('aktifkan')
+            ->assertSee('Pembayaran paling lambat 7 hari.')
+            ->assertSeeHtml('data-baris="'.$pasal->id.'"');
+
+        $this->alur->perbaiki($pasal, $this->peneliti, 'Pembayaran paling lambat 14 hari.');
+
+        $panel->dispatch('baris-berubah')->assertSee('Pembayaran paling lambat 14 hari.');
+    });
+
+    it('pratinjau tidak bisa dibuka oleh pengguna yang tidak berhak', function () {
+        $n = naskahPenelitian($this);
+        $lain = tap(User::factory()->create())->assignRole('Perangkat Daerah');
+
+        Livewire::actingAs($lain)->test(PratinjauNaskah::class, ['naskah' => $n])->assertForbidden();
+    });
+
+    it('perbandingan berbentuk naskah dengan tanda hapus dan tambah, dan tombolnya mengarah ke barisnya', function () {
+        $n = naskahPenelitian($this);
+        $pasal = $n->baris()->where('label', 'Pasal 1')->first();
+        $this->alur->perbaiki($pasal, $this->peneliti, 'Pembayaran paling lambat 14 hari.');
+
+        $layar = Livewire::actingAs($this->peneliti)
+            ->test(LayarKerja::class, ['naskah' => $n])
+            ->set('tab', 'naskah')
+            ->assertDontSeeHtml('<del>7</del>')
+            ->set('tampilNaskah', 'banding')
+            ->assertSeeHtml('<del>7</del>')
+            ->assertSeeHtml('<ins>14</ins>')
+            ->assertSee(['1 baris berubah dari 4 baris', 'bahwa satu', 'Pasal 1'])
+            ->assertSeeHtml('wire:click="bukaBaris('.$pasal->id.')"');
+
+        $layar->call('bukaBaris', $pasal->id)
+            ->assertSet('tab', 'kerja')
+            ->assertSet('filter', 'semua')
+            ->assertDispatched('fokus-baris', id: $pasal->id);
+    });
+
+    it('perbandingan menandai baris dihapus dan baris sisipan, dan tidak mengubah hasil cetak', function () {
+        $n = naskahPenelitian($this);
+        $menimbang = $n->baris()->where('bagian', 'menimbang')->get();
+        $this->alur->hapus($menimbang->first(), $this->peneliti);
+        $sisipan = $this->alur->tambahSetelah($menimbang->last(), $this->peneliti);
+        $this->alur->perbaiki($sisipan, $this->peneliti, 'bahwa tiga');
+
+        $baris = $n->baris()->get();
+        $daftar = collect(BandingNaskah::susun($n, $baris))->firstWhere('label', 'Menimbang');
+        $tampil = fn (array $b) => [(string) $b['nomor'], (string) $b['isi']];
+
+        expect(array_map($tampil, $daftar['butir']))->toBe([
+            ['<del>a.</del>', '<del>bahwa satu</del>'],
+            ['a.', 'bahwa dua'],
+            ['<ins>b.</ins>', '<ins>bahwa tiga</ins>'],
+        ])->and($daftar['ids'])->toBe([$menimbang->first()->id, $menimbang->last()->id, $sisipan->id])
+            ->and($daftar['diubahButir'])->toBe([true, false, true]);
+
+        $cetak = collect(TataLetakNaskah::susun($n, $baris))->firstWhere('label', 'Menimbang');
+
+        expect($cetak['butir'])->toBe([
+            ['nomor' => 'a.', 'isi' => 'bahwa dua'],
+            ['nomor' => 'b.', 'isi' => 'bahwa tiga'],
+        ]);
+    });
+
+    it('perbandingan mempertahankan ayat dan butir, serta hanya menandai yang berubah', function () {
+        $n = naskahPenelitian($this);
+        $pasal = $n->baris()->where('label', 'Pasal 1')->first();
+        $pasal->update(['rumusan_awal' => "(1) Ayat satu:\na. huruf a;\nb. huruf b.\n(2) Ayat dua yang panjang sekali isinya."]);
+        $this->alur->perbaiki($pasal, $this->peneliti, "(1) Ayat satu:\na. huruf a;\nb. huruf baru;\nc. huruf c.\n(2) Ayat dua yang panjang sekali rumusannya.");
+
+        $isi = collect(BandingNaskah::susun($n, $n->baris()->get()))->where('id', $pasal->id)->firstWhere('tipe', 'teks')['baris'];
+        $tampil = array_map(fn (array $b) => [$b['tingkat'], (string) $b['nomor'], (string) $b['isi']], $isi);
+
+        expect($tampil[0])->toBe([0, '(1)', 'Ayat satu:'])
+            ->and($tampil[1])->toBe([1, 'a.', 'huruf a;'])
+            ->and($tampil)->toContain([1, '<ins>c.</ins>', '<ins>huruf c.</ins>'])
+            ->and($tampil[array_key_last($tampil)])->toBe([0, '(2)', 'Ayat dua yang panjang sekali <del>isinya.</del><ins>rumusannya.</ins>']);
+    });
+
+    it('perbandingan menandai baris tabel yang berubah dan menjaga keamanan teks', function () {
+        $n = naskahPenelitian($this);
+        $pasal = $n->baris()->where('label', 'Pasal 1')->first();
+        $pasal->update(['rumusan_awal' => "| Nama | Nilai |\n| Ketua | Rp1 |"]);
+        $this->alur->perbaiki($pasal, $this->peneliti, "| Nama | Nilai |\n| Ketua | Rp2 |\n| <b>Anggota</b> | Rp3 |");
+
+        $tabel = collect(BandingNaskah::susun($n, $n->baris()->get()))->where('id', $pasal->id)->firstWhere('tipe', 'teks')['baris'][0]['tabel'];
+        $isi = array_map(fn (array $sel) => array_map('strval', $sel), $tabel);
+
+        expect($isi)->toBe([
+            ['Nama', 'Nilai'],
+            ['Ketua', '<del>Rp1</del><ins>Rp2</ins>'],
+            ['<ins>&lt;b&gt;Anggota&lt;/b&gt;</ins>', '<ins>Rp3</ins>'],
+        ]);
+    });
+
+    it('pratinjau bisa beralih ke perbandingan dan kertas memuat lambang Garuda', function () {
+        $n = naskahPenelitian($this);
+        $this->alur->perbaiki($n->baris()->where('label', 'Pasal 1')->first(), $this->peneliti, 'Pembayaran paling lambat 14 hari.');
+
+        Livewire::actingAs($this->peneliti)
+            ->test(PratinjauNaskah::class, ['naskah' => $n])
+            ->call('aktifkan')
+            ->assertSeeHtml('garuda.png')
+            ->assertDontSeeHtml('<del>')
+            ->dispatch('pratinjau-banding', aktif: true)
+            ->assertSeeHtml('<del>7</del>')
+            ->assertSeeHtml('<ins>14</ins>')
+            ->assertDontSeeHtml('wire:click="bukaBaris')
+            ->dispatch('pratinjau-banding', aktif: false)
+            ->assertDontSeeHtml('<del>');
+    });
+
+    it('draf tidak punya perbandingan', function () {
+        $n = naskahDraf($this->pd);
+
+        Livewire::actingAs($this->pd)
+            ->test(LayarKerja::class, ['naskah' => $n])
+            ->set('tab', 'naskah')
+            ->assertDontSee('Perbandingan')
+            ->set('tampilNaskah', 'banding')
+            ->assertDontSeeHtml('wire:click="bukaBaris');
+    });
+
+    it('menolak membuka baris milik naskah lain dari perbandingan', function () {
+        $n = naskahPenelitian($this);
+        $lain = naskahPenelitian($this)->baris()->first();
+
+        Livewire::actingAs($this->peneliti)
+            ->test(LayarKerja::class, ['naskah' => $n])
+            ->call('bukaBaris', $lain->id)
+            ->assertNotFound();
+    });
+
+    it('rumusan bertabel dipisah dari teks biasa untuk tampilan layar', function () {
+        expect(TataLetakNaskah::potongan("Besaran:\n| Jabatan | Nilai |\n| --- | --- |\n| Ketua | Rp1 |\nSelesai."))->toBe([
+            ['teks' => 'Besaran:'],
+            ['tabel' => [['Jabatan', 'Nilai'], ['Ketua', 'Rp1']]],
+            ['teks' => 'Selesai.'],
+        ]);
     });
 });
 
@@ -266,9 +471,37 @@ describe('hak akses tampilan', function () {
         $this->actingAs($this->pd)->get(route('v2.naskah.berkas', [$n, $berkas]))->assertOk();
     });
 
-    it('halaman buat naskah hanya untuk PD', function () {
-        $this->actingAs($this->peneliti)->get(route('v2.naskah.buat'))->assertForbidden();
-        $this->actingAs($this->pd)->get(route('v2.naskah.buat'))->assertOk();
+    it('ajukan rancangan baru hanya untuk PD, lewat modal di Rancanganku', function () {
+        $this->actingAs($this->peneliti);
+        Livewire::test(BuatNaskah::class)->assertForbidden();
+
+        $this->actingAs($this->pd)->get(route('v2.daftar', 'rancanganku'))
+            ->assertOk()->assertSeeLivewire(BuatNaskah::class)->assertSee('Ajukan Rancangan Baru');
+        Livewire::test(BuatNaskah::class)->assertOk();
+
+        $this->actingAs($this->admin)->get(route('v2.daftar', 'rancangan'))->assertOk()->assertDontSeeLivewire(BuatNaskah::class);
+    });
+
+    it('modal ajukan bisa dikosongkan dan filenya bisa dibuang', function () {
+        $this->actingAs($this->pd);
+
+        Livewire::test(BuatNaskah::class)
+            ->set('tentang', 'Dana Desa')
+            ->set('notaDinas', UploadedFile::fake()->create('nota.pdf', 10, 'application/pdf'))
+            ->call('removeFile', 'notaDinas')->assertSet('notaDinas', null)
+            ->call('removeFile', 'tentang')->assertSet('tentang', 'Dana Desa')
+            ->call('resetForm')->assertSet('tentang', '');
+    });
+
+    it('jenis rancangan wajib dipilih', function () {
+        $this->actingAs($this->pd);
+
+        Livewire::test(BuatNaskah::class)
+            ->set('tentang', 'Dana Desa')->set('nomorNota', '180/2/2026')->set('tanggalNota', '2026-11-04')
+            ->set('notaDinas', UploadedFile::fake()->create('nota.pdf', 10, 'application/pdf'))
+            ->call('simpan')->assertHasErrors('jenis');
+
+        expect(Naskah::count())->toBe(0);
     });
 
     it('beranda hanya menampilkan naskah yang boleh dilihat', function () {
@@ -285,6 +518,7 @@ describe('komponen Livewire', function () {
         $this->actingAs($this->pd);
 
         Livewire::test(BuatNaskah::class)
+            ->set('jenis', 'Peraturan Bupati')
             ->set('tentang', 'Dana Desa')
             ->set('nomorNota', '180/1/2026')
             ->set('tanggalNota', '2026-11-04')
@@ -321,7 +555,7 @@ describe('komponen Livewire', function () {
         }
     });
 
-    it('baris dimuat bertahap dan lompat memunculkan baris yang dituju', function () {
+    it('naskah panjang dibuka per bagian dan lompat memunculkan baris yang dituju', function () {
         $n = naskahPenelitian($this);
         $this->alur->isiBaris($n, array_fill(0, 70, ['bagian' => 'batang_tubuh', 'label' => 'Pasal X', 'teks' => 'isi']));
         $n->baris()->orderBy('id')->get()->each(fn (B $b, int $i) => $b->update(['urutan' => $i + 1]));
@@ -329,15 +563,35 @@ describe('komponen Livewire', function () {
         $this->actingAs($this->peneliti);
 
         $layar = Livewire::test(LayarKerja::class, ['naskah' => $n])
-            ->assertViewHas('sisaBaris', 44)
-            ->assertViewHas('daftarBaris', fn ($d) => $d->count() === 30);
+            ->assertViewHas('daftarBaris', fn ($d) => $d->count() <= BlokNaskah::MAKS_BARIS)
+            ->assertViewHas('blokSebelumnya', null);
 
-        $layar->call('muatLagi')->assertViewHas('daftarBaris', fn ($d) => $d->count() === 60);
-
-        $layar->set('filter', 'perlu')->assertSet('batas', 30)
+        $layar->set('filter', 'perlu')->assertSet('blok', '')
             ->call('lompatKe', $terakhir->id)
             ->assertSet('filter', 'semua')
             ->assertViewHas('daftarBaris', fn ($d) => $d->contains('id', $terakhir->id));
+    });
+
+    it('berpindah bagian lewat tombol berikutnya dan sebelumnya', function () {
+        $n = naskahPenelitian($this);
+        $this->actingAs($this->peneliti);
+
+        $layar = Livewire::test(LayarKerja::class, ['naskah' => $n])->set('filter', 'semua')->call('pilihBlok', 'judul');
+        $layar->assertViewHas('blokSebelumnya', null)
+            ->assertViewHas('blokBerikutnya', fn ($b) => $b['kunci'] === 'menimbang')
+            ->assertDispatched('blok-berubah');
+
+        $layar->call('pilihBlok', 'menimbang')->assertViewHas('blokSebelumnya', fn ($b) => $b['kunci'] === 'judul');
+    });
+
+    it('bagian yang sedang dikerjakan tidak melompat saat barisnya selesai', function () {
+        $n = naskahPenelitian($this);
+        $this->actingAs($this->peneliti);
+
+        $layar = Livewire::test(LayarKerja::class, ['naskah' => $n])->call('pilihBlok', 'menimbang');
+        $n->baris()->where('bagian', 'menimbang')->get()->each(fn (B $b) => $this->alur->tetapkan($b, $this->peneliti, null));
+
+        $layar->dispatch('baris-selesai', id: 1)->assertSet('blok', 'menimbang');
     });
 
     it('layar menolak aksi yang bukan haknya', function () {
@@ -442,3 +696,44 @@ function wordDari(array $paragraf): string
 
     return $path;
 }
+
+describe('bagian wajib dan lembar kerja', function () {
+    it('Judul, Penutup, dan Lampiran tidak bisa dihapus Peneliti', function () {
+        $n = naskahPenelitian($this);
+        $judul = $n->baris()->where('bagian', 'judul')->first();
+        $penutup = B::create(['naskah_id' => $n->id, 'urutan' => 90, 'bagian' => 'penutup', 'rumusan_awal' => 'Ditetapkan di Barabai']);
+        $lampiran = B::create(['naskah_id' => $n->id, 'urutan' => 91, 'bagian' => 'lampiran', 'rumusan_awal' => 'Lampiran']);
+
+        foreach ([$judul, $penutup, $lampiran] as $baris) {
+            expect(fn () => $this->alur->hapus($baris, $this->peneliti))->toThrow(HttpException::class);
+
+            Livewire::actingAs($this->peneliti)
+                ->test(BarisKerja::class, ['baris' => $baris, 'naskah' => $n])
+                ->assertDontSee('Hapus Rumusan')
+                ->assertSee('Tetap');
+        }
+
+        Livewire::actingAs($this->peneliti)
+            ->test(BarisKerja::class, ['baris' => $n->baris()->where('bagian', 'menimbang')->first(), 'naskah' => $n])
+            ->assertSee('Hapus Rumusan');
+    });
+
+    it('lembar kerja memakai header jalur dengan badge jenis dokumen', function () {
+        $n = naskahPenelitian($this);
+
+        $this->actingAs($this->peneliti)->get(route('v2.naskah.kerja', $n))->assertOk()
+            ->assertDontSeeHtml('sticky top-0 z-30')
+            ->assertSeeInOrder([$n->nomor, 'Dana Desa', 'Peraturan Bupati', 'Penelitian'])
+            ->assertSee(['Ganti tema', 'Notifikasi', 'Pindah Aplikasi', 'Keluar', 'Buka daftar bagian'], false);
+
+        $this->actingAs($this->peneliti)->get(route('v2.beranda'))->assertOk()->assertSeeHtml('sticky top-0 z-30');
+    });
+
+    it('badge Surat Keputusan berbeda warna dari Peraturan Bupati', function () {
+        $sk = naskahDraf($this->pd, 'Surat Keputusan');
+
+        $this->actingAs($this->pd)->get(route('v2.naskah.kerja', $sk))->assertOk()
+            ->assertSee('Surat Keputusan')
+            ->assertSeeHtml('bg-accent-500');
+    });
+});

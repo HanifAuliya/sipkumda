@@ -78,9 +78,12 @@ Sebelum dipakai banyak orang, ikuti [docs/DEPLOY.md](docs/DEPLOY.md): `config:ca
 ## Aplikasi v2
 
 Alur baru di `/v2`, berjalan berdampingan dengan alur lama memakai login dan data pengguna yang sama.
+Setelah login, pengguna memilih aplikasi lama atau v2 di `/pilih-aplikasi`, dan bisa pindah lewat menu pengguna.
 Matriks menjadi sumber utama; naskah Word/PDF dan matriks PDF dicetak dari baris matriks, dan hasil
 akhirnya masuk ke tabel arsip yang sama dengan JDIH.
 
+- Menu: `app/Support/Navigation.php` (`sectionsV2`), memakai kerangka tampilan yang sama dengan aplikasi lama
+- Layar kerja naskah: `resources/views/layouts/kerja.blade.php`; pembagian per bagian di `app/Support/BlokNaskah.php`
 - Aturan alur: `app/Services/AlurNaskah.php` dan `app/Enums/TahapNaskah.php`
 - Pembacaan Word: `app/Services/PembacaNaskahWord.php`
 - Cetak: `app/Services/CetakNaskah.php` dan `app/Support/TataLetakNaskah.php`

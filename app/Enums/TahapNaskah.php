@@ -26,6 +26,14 @@ enum TahapNaskah: string
     /** Tahap ketika isi naskah sudah dikunci dan yang berjalan hanya proses di luar sistem. */
     public const TERKUNCI = [self::Final, self::Penandatanganan, self::Arsip, self::Selesai];
 
+    /** Pengelompokan untuk menu: dokumen masih rancangan, atau sudah melewatinya. */
+    public const RANCANGAN = [self::Draf, self::PersetujuanBerkas, self::PilihPeneliti, self::Penelitian, self::PerbaikanPd, self::ValidasiRancangan];
+
+    public const SETELAH_RANCANGAN = [self::Disetujui, self::PersetujuanFasilitasi, self::ValidasiFasilitasi, self::PerbaikanFasilitasi, self::CekPeneliti, ...self::TERKUNCI];
+
+    /** Tamu mencatat tahapan tanda tangan, jadi hanya melihat naskah sejak tahap itu. */
+    public const TERLIHAT_TAMU = [self::Penandatanganan, self::Arsip, self::Selesai];
+
     public function label(): string
     {
         return match ($this) {
@@ -47,23 +55,54 @@ enum TahapNaskah: string
         };
     }
 
+    /** Penjelasan posisi naskah untuk kartu daftar. */
+    public function keterangan(): string
+    {
+        return match ($this) {
+            self::Draf => 'Rancangan masih disusun Perangkat Daerah dan belum diajukan.',
+            self::PersetujuanBerkas => 'Menunggu persetujuan. Admin sedang memeriksa berkas yang diajukan.',
+            self::PilihPeneliti => 'Menunggu dipilihkan peneliti untuk rancangan ini.',
+            self::Penelitian => 'Rancangan sedang dalam proses penelitian.',
+            self::PerbaikanPd => 'Peneliti meminta Perangkat Daerah menyesuaikan rumusan.',
+            self::ValidasiRancangan => 'Hasil penelitian menunggu validasi Verifikator.',
+            self::Disetujui => 'Rancangan disetujui. Perangkat Daerah dapat mengajukan fasilitasi.',
+            self::PersetujuanFasilitasi => 'Pengajuan fasilitasi menunggu persetujuan Peneliti.',
+            self::ValidasiFasilitasi => 'Hasil fasilitasi menunggu validasi Verifikator.',
+            self::PerbaikanFasilitasi => 'Perangkat Daerah diminta memperbaiki hasil fasilitasi.',
+            self::CekPeneliti => 'Perbaikan fasilitasi menunggu pengecekan Peneliti.',
+            self::Final => 'Fasilitasi selesai. Nota dinas menunggu diterbitkan.',
+            self::Penandatanganan => 'Sedang dalam proses paraf dan tanda tangan basah.',
+            self::Arsip => 'Naskah bertanda tangan menunggu diarsipkan.',
+            self::Selesai => 'Naskah selesai dan sudah masuk arsip.',
+        };
+    }
+
+    /** Tahap yang berada setelah tahap ini, untuk tab riwayat. */
+    public function sesudahnya(): array
+    {
+        $semua = self::cases();
+
+        return array_slice($semua, array_search($this, $semua, true) + 1);
+    }
+
     /** Peran utama yang memegang giliran pada tahap ini. */
     public function peran(): string
     {
         return match ($this) {
             self::Draf, self::PerbaikanPd, self::Disetujui, self::PerbaikanFasilitasi => 'Perangkat Daerah',
-            self::PersetujuanBerkas, self::PersetujuanFasilitasi, self::Final,
+            self::PersetujuanBerkas, self::Final,
             self::Penandatanganan, self::Arsip, self::Selesai => 'Admin',
             self::PilihPeneliti, self::ValidasiRancangan, self::ValidasiFasilitasi => 'Verifikator',
-            self::Penelitian, self::CekPeneliti => 'Peneliti',
+            self::Penelitian, self::PersetujuanFasilitasi, self::CekPeneliti => 'Peneliti',
         };
     }
 
-    /** Semua peran yang boleh bertindak; nota dinas dan arsip bisa oleh Admin maupun Verifikator. */
+    /** Semua peran yang boleh bertindak; nota dinas dan arsip juga oleh Verifikator, tahapan tanda tangan juga oleh Tamu. */
     public function pemegang(): array
     {
         return match ($this) {
             self::Final, self::Arsip => ['Admin', 'Verifikator'],
+            self::Penandatanganan => ['Admin', 'Tamu'],
             self::Selesai => [],
             default => [$this->peran()],
         };

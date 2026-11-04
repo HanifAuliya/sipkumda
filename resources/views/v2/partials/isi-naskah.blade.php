@@ -1,48 +1,81 @@
-{{-- Bentuk naskah bila dicetak saat ini. Isinya dari TataLetakNaskah, sama dengan Word dan PDF. --}}
-@php $sel = 'align-top pb-1'; @endphp
+{{--
+    Bentuk naskah bila dicetak saat ini. Isinya dari TataLetakNaskah, sama dengan Word dan PDF,
+    atau dari BandingNaskah bila perubahannya ditandai ($tandaiUbahan).
+--}}
+@php
+    $ringkas ??= false;
+    $tandaiUbahan ??= false;
+    $tombolBaris ??= false;
+    $bisaUbah ??= false;
+    $sel = 'align-top pb-1';
+    // Pada panel sempit, rata kanan-kiri membuat jarak antarkata terlalu renggang.
+    $rata = $ringkas ? 'text-left' : 'text-justify';
 
-<div class="mx-auto max-w-3xl bg-white px-8 py-12 text-[0.95rem] leading-relaxed text-black shadow-card sm:px-16 font-['Bookman_Old_Style',Georgia,'Times_New_Roman',serif]">
+    // Satu baris naskah bisa menjadi beberapa blok (label dan isi), tetapi tombolnya cukup satu.
+    $sudahBertombol = [];
+    $perluTombol = function (?int $id) use (&$sudahBertombol, $tombolBaris): bool {
+        if (! $tombolBaris || $id === null || in_array($id, $sudahBertombol, true)) {
+            return false;
+        }
+        $sudahBertombol[] = $id;
+
+        return true;
+    };
+@endphp
+
+<div @class([
+    "bg-white text-black shadow-card font-['Bookman_Old_Style',Georgia,'Times_New_Roman',serif]",
+    'v2-diff v2-kertas' => $tandaiUbahan,
+    'kertas-pratinjau rounded-lg px-5 py-6 text-sm leading-relaxed' => $ringkas,
+    'mx-auto max-w-3xl px-8 py-12 text-[0.95rem] leading-relaxed sm:px-16' => ! $ringkas,
+])>
+    <img src="{{ asset('assets/img/garuda.png') }}" alt="Lambang Garuda Pancasila" @class(['mx-auto mb-2', 'w-14' => $ringkas, 'w-[70px]' => ! $ringkas])>
     <p class="text-center font-bold">{{ App\Support\TataLetakNaskah::KOP }}</p>
 
     @foreach ($blok as $b)
         @if ($b['tipe'] === 'tengah')
-            <div class="mt-5 mb-2 text-center">
+            <div class="group relative mt-5 mb-2 text-center" data-baris="{{ $b['id'] ?? '' }}">
                 @foreach ($b['baris'] as $baris)
                     <p>{{ $baris }}</p>
                 @endforeach
+                @if ($perluTombol($b['id'] ?? null))
+                    @include('v2.partials.tombol-baris', ['id' => $b['id'], 'diubah' => $b['diubah'] ?? false])
+                @endif
             </div>
         @elseif ($b['tipe'] === 'daftar')
             <table class="mb-3 w-full border-collapse">
                 @foreach ($b['butir'] as $i => $butir)
-                    <tr>
-                        <td class="{{ $sel }} w-28">{{ $i === 0 ? $b['label'] : '' }}</td>
+                    @php $idButir = $b['ids'][$i] ?? $b['id'] ?? null; @endphp
+                    <tr class="group relative" data-baris="{{ $idButir }}">
+                        <td class="{{ $sel }} {{ $ringkas ? 'w-24' : 'w-28' }}">{{ $i === 0 ? $b['label'] : '' }}</td>
                         <td class="{{ $sel }} w-4">{{ $i === 0 ? ':' : '' }}</td>
                         @if ($butir['nomor'])
                             <td class="{{ $sel }} w-7">{{ $butir['nomor'] }}</td>
                         @endif
-                        <td class="{{ $sel }} text-justify whitespace-pre-line">{{ $butir['isi'] }}</td>
+                        <td class="{{ $sel }} {{ $rata }} whitespace-pre-line">{{ $butir['isi'] }}@if ($perluTombol($idButir))@include('v2.partials.tombol-baris', ['id' => $idButir, 'diubah' => $b['diubahButir'][$i] ?? false])@endif</td>
                     </tr>
                 @endforeach
             </table>
         @elseif ($b['tipe'] === 'diktum')
             <table class="mb-3 w-full border-collapse">
-                @foreach ($b['butir'] as $butir)
-                    <tr>
-                        <td class="{{ $sel }} w-28">{{ $butir['nomor'] }}</td>
+                @foreach ($b['butir'] as $i => $butir)
+                    @php $idButir = $b['ids'][$i] ?? null; @endphp
+                    <tr class="group relative" data-baris="{{ $idButir }}">
+                        <td class="{{ $sel }} {{ $ringkas ? 'w-24' : 'w-28' }}">{{ $butir['nomor'] }}</td>
                         <td class="{{ $sel }} w-4">:</td>
-                        <td class="{{ $sel }} text-justify whitespace-pre-line">{{ $butir['isi'] }}</td>
+                        <td class="{{ $sel }} {{ $rata }} whitespace-pre-line">{{ $butir['isi'] }}@if ($perluTombol($idButir))@include('v2.partials.tombol-baris', ['id' => $idButir, 'diubah' => $b['diubahButir'][$i] ?? false])@endif</td>
                     </tr>
                 @endforeach
             </table>
         @elseif ($b['tipe'] === 'penutup')
-            <div class="mt-8">
-                <div class="ml-auto w-72">
+            <div class="group relative mt-8" data-baris="{{ $b['id'] ?? '' }}">
+                <div @class(['ml-auto', 'w-56' => $ringkas, 'w-72' => ! $ringkas])>
                     @foreach ($b['ditetapkan'] as $baris)
                         <p class="min-h-6">{{ $baris }}</p>
                     @endforeach
                 </div>
                 @if ($b['diundangkan'])
-                    <div class="mt-6 w-80">
+                    <div @class(['mt-6', 'w-64' => $ringkas, 'w-80' => ! $ringkas])>
                         @foreach ($b['diundangkan'] as $baris)
                             <p class="min-h-6">{{ $baris }}</p>
                         @endforeach
@@ -51,28 +84,39 @@
                 @if ($b['berita'])
                     <p class="mt-6">{{ $b['berita'] }}</p>
                 @endif
+                @if ($perluTombol($b['id'] ?? null))
+                    @include('v2.partials.tombol-baris', ['id' => $b['id'], 'diubah' => $b['diubah'] ?? false])
+                @endif
             </div>
         @else
-            @foreach ($b['baris'] as $baris)
-                @if (isset($baris['tabel']))
-                    <table class="my-2 w-full border-collapse text-sm">
-                        @foreach ($baris['tabel'] as $sel)
-                            <tr>
-                                @foreach ($sel as $isi)
-                                    <td class="border border-black px-2 py-1 align-top">{{ $isi }}</td>
+            <div class="group relative" data-baris="{{ $b['id'] ?? '' }}">
+                @foreach ($b['baris'] as $baris)
+                    @if (isset($baris['tabel']))
+                        <div class="overflow-x-auto">
+                            <table class="my-2 w-full border-collapse text-sm">
+                                @foreach ($baris['tabel'] as $kolom)
+                                    <tr>
+                                        @foreach ($kolom as $isi)
+                                            <td class="border border-black px-2 py-1 align-top">{{ $isi }}</td>
+                                        @endforeach
+                                    </tr>
                                 @endforeach
-                            </tr>
-                        @endforeach
-                    </table>
-                    @continue
-                @endif
-                <div class="mb-1 flex gap-3 text-justify" style="margin-left: {{ $baris['tingkat'] * 1.75 }}rem">
-                    @if ($baris['nomor'] !== null)
-                        <span class="w-8 shrink-0">{{ $baris['nomor'] }}</span>
+                            </table>
+                        </div>
+                        @continue
                     @endif
-                    <span class="min-w-0">{{ $baris['isi'] }}</span>
-                </div>
-            @endforeach
+                    {{-- Tiap tingkat bergeser selebar kolom nomor (2rem) + jarak (0,75rem), supaya butir sejajar dengan teks di atasnya. --}}
+                    <div class="mb-1 flex gap-3 {{ $rata }}" style="margin-left: {{ $baris['tingkat'] * 2.75 }}rem">
+                        @if ($baris['nomor'] !== null)
+                            <span class="w-8 shrink-0">{{ $baris['nomor'] }}</span>
+                        @endif
+                        <span class="min-w-0 flex-1">{{ $baris['isi'] }}</span>
+                    </div>
+                @endforeach
+                @if ($perluTombol($b['id'] ?? null))
+                    @include('v2.partials.tombol-baris', ['id' => $b['id'], 'diubah' => $b['diubah'] ?? false])
+                @endif
+            </div>
         @endif
     @endforeach
 </div>

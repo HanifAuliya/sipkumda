@@ -3,7 +3,7 @@
 
 <head>
     @include('layouts.partials.head')
-    <title>@yield('title', 'Dashboard') | SIFKUMDA Hulu Sungai Tengah</title>
+    <title>@isset($title){{ $title }}@else @yield('title', 'Dashboard')@endisset | SIFKUMDA Hulu Sungai Tengah</title>
 </head>
 
 <body class="min-h-full"
@@ -27,8 +27,14 @@
     </div>
 
     {{-- Modal detail bersama: Livewire.dispatch('openModalDetailRancangan', { slug }) / ('openDetailFasilitasi', { id }) --}}
-    <livewire:notification-modal.detail-rancangan />
-    <livewire:fasilitasi.detail-fasilitasi />
+    @if (\App\Support\Navigation::modeV2())
+        <livewire:v2.detail-naskah />
+    @endif
+
+    @unless (request()->routeIs('v2.*'))
+        <livewire:notification-modal.detail-rancangan />
+        <livewire:fasilitasi.detail-fasilitasi />
+    @endunless
 
     @livewireScriptConfig
     @stack('scripts')

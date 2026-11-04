@@ -3,7 +3,8 @@
 use App\Http\Controllers\V2\BerkasNaskahController;
 use App\Http\Controllers\V2\CetakNaskahController;
 use App\Livewire\V2\Beranda;
-use App\Livewire\V2\BuatNaskah;
+use App\Http\Middleware\TandaiAplikasiV2;
+use App\Livewire\V2\DaftarNaskah;
 use App\Livewire\V2\LayarKerja;
 use App\Livewire\V2\PengaturanNaskah;
 use Illuminate\Support\Facades\Route;
@@ -14,12 +15,10 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 | Berjalan berdampingan dengan alur lama, memakai login dan data pengguna yang sama.
 */
-Route::middleware(['auth', 'verified'])->prefix('v2')->name('v2.')->group(function () {
+Route::middleware(['auth', 'verified', TandaiAplikasiV2::class])->prefix('v2')->name('v2.')->group(function () {
     Route::livewire('/', Beranda::class)->name('beranda');
 
-    Route::livewire('/naskah/buat', BuatNaskah::class)
-        ->middleware('role:Perangkat Daerah')
-        ->name('naskah.buat');
+    Route::livewire('/daftar/{kelompok}', DaftarNaskah::class)->name('daftar');
 
     Route::livewire('/naskah/{naskah}', LayarKerja::class)->name('naskah.kerja');
 

@@ -39,6 +39,7 @@ class TataLetakNaskah
 
             $baru = $item->bagian !== $sebelumnya;
             $sebelumnya = $item->bagian;
+            $jumlahAwal = count($blok);
 
             match ($item->bagian) {
                 'judul' => self::judul($blok, $teks, $sk),
@@ -51,9 +52,26 @@ class TataLetakNaskah
                 'penutup' => $blok[] = self::penutup($teks),
                 default => $blok[] = ['tipe' => 'teks', 'baris' => self::barisTeks($teks)],
             };
+
+            self::tandaiAsal($blok, $jumlahAwal, $item->id);
         }
 
         return $blok;
+    }
+
+    /** Mencatat baris asal tiap blok, supaya pratinjau bisa menyorot baris yang sedang dikerjakan. */
+    public static function tandaiAsal(array &$blok, int $jumlahAwal, int $id): void
+    {
+        foreach (array_slice(array_keys($blok), $jumlahAwal) as $i) {
+            $blok[$i]['id'] = $id;
+        }
+
+        $terakhir = array_key_last($blok);
+
+        // Menimbang, Mengingat, dan diktum SK menampung banyak baris dalam satu blok.
+        if ($terakhir !== null && isset($blok[$terakhir]['butir']) && in_array($blok[$terakhir]['tipe'], ['daftar', 'diktum'], true)) {
+            $blok[$terakhir]['ids'][array_key_last($blok[$terakhir]['butir'])] = $id;
+        }
     }
 
     private static function judul(array &$blok, ?string $teks, bool $sk): void
@@ -115,7 +133,7 @@ class TataLetakNaskah
         $blok[] = ['tipe' => 'teks', 'baris' => self::barisTeks($teks)];
     }
 
-    private static function penutup(?string $teks): array
+    public static function penutup(?string $teks): array
     {
         $ditetapkan = $diundangkan = [];
         $berita = null;
@@ -159,7 +177,7 @@ class TataLetakNaskah
     }
 
     /** @return array<int, string> baris berisi saja */
-    private static function barisIsi(?string $teks): array
+    public static function barisIsi(?string $teks): array
     {
         return array_values(array_filter(array_map('trim', preg_split('/\R/u', (string) $teks)), 'strlen'));
     }
@@ -215,8 +233,41 @@ class TataLetakNaskah
         return $hasil;
     }
 
+    /**
+     * Memisahkan teks biasa dan tabel untuk tampilan layar.
+     *
+     * @return list<array{teks?: string, tabel?: list<list<string>>}>
+     */
+    public static function potongan(?string $teks): array
+    {
+        $hasil = [];
+
+        foreach (preg_split('/\R/u', (string) $teks) as $baris) {
+            $terakhir = array_key_last($hasil);
+
+            if (str_starts_with(ltrim($baris), '|')) {
+                $sel = self::selTabel($baris);
+
+                if ($sel === null) {
+                    continue;
+                }
+                if ($terakhir !== null && isset($hasil[$terakhir]['tabel'])) {
+                    $hasil[$terakhir]['tabel'][] = $sel;
+                } else {
+                    $hasil[] = ['tabel' => [$sel]];
+                }
+            } elseif ($terakhir !== null && isset($hasil[$terakhir]['teks'])) {
+                $hasil[$terakhir]['teks'] .= "\n{$baris}";
+            } else {
+                $hasil[] = ['teks' => $baris];
+            }
+        }
+
+        return $hasil;
+    }
+
     /** @return array<int, string>|null isi sel, atau null untuk baris pemisah "| --- |" */
-    private static function selTabel(string $baris): ?array
+    public static function selTabel(string $baris): ?array
     {
         $isi = preg_replace('/^\||\|$/', '', trim($baris));
         $sel = array_map('trim', explode('|', $isi));

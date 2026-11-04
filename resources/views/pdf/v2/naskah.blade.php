@@ -104,7 +104,8 @@
                     <table>
                         <tr>
                             @if ($baris['tingkat'])
-                                <td style="width: {{ $baris['tingkat'] * 0.8 }}cm"></td>
+                                {{-- Selebar kolom nomor, supaya butir sejajar dengan teks ayat di atasnya. --}}
+                                <td style="width: {{ $baris['tingkat'] * 1 }}cm"></td>
                             @endif
                             <td class="nomor" style="width: 1cm">{{ $baris['nomor'] }}</td>
                             <td>{{ $baris['isi'] }}</td>

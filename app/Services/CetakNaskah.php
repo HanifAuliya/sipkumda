@@ -25,7 +25,7 @@ class CetakNaskah
     private const TEPI_KIRI = 1701;
     private const TEPI_KANAN = 1134;
     private const LEBAR_ISI = self::F4_LEBAR - self::TEPI_KIRI - self::TEPI_KANAN;
-    private const INDEN = 454;
+    private const INDEN = 567;
 
     /** Kertas F4 dalam satuan point untuk DomPDF. */
     private const F4_POINT = [0, 0, 612, 936];
@@ -162,36 +162,59 @@ class CetakNaskah
         }
     }
 
-    /** Ayat dan butir digambar sebagai tabel tanpa garis supaya teks lanjutannya rata dengan nomor. */
     private function wordTeks(Section $halaman, array $blok): void
     {
-        $tabel = null;
+        $butir = [];
 
         foreach ($blok['baris'] as $baris) {
+            if ($baris['nomor'] !== null && ! isset($baris['tabel'])) {
+                $butir[] = $baris;
+
+                continue;
+            }
+
+            $this->wordButir($halaman, $butir);
+            $butir = [];
+
             if (isset($baris['tabel'])) {
-                $tabel = null;
                 $this->wordTabel($halaman, $baris['tabel']);
-
-                continue;
-            }
-
-            if ($baris['nomor'] === null) {
-                $tabel = null;
+            } else {
                 $halaman->addText($baris['isi'], null, ['alignment' => Jc::BOTH, 'spaceAfter' => 60]);
-
-                continue;
             }
+        }
 
-            $tabel ??= $halaman->addTable(['layout' => 'fixed', 'cellMargin' => 0]);
-            $inden = $baris['tingkat'] * self::INDEN;
-            $lebarNomor = 567;
+        $this->wordButir($halaman, $butir);
+    }
 
+    /**
+     * Ayat dan butir digambar sebagai tabel tanpa garis supaya teks lanjutannya rata dengan nomor.
+     * Satu kolom per tingkat, selebar kolom nomor. Baris yang tingkatnya lebih dangkal harus
+     * menggabungkan kolom sisanya: tanpa itu Word memakai lebar sel terakhirnya untuk seluruh
+     * kolom, sehingga isi butir di bawahnya terdorong keluar halaman.
+     *
+     * @param  list<array{tingkat: int, nomor: string, isi: string}>  $butir
+     */
+    private function wordButir(Section $halaman, array $butir): void
+    {
+        if ($butir === []) {
+            return;
+        }
+
+        $terdalam = max(array_column($butir, 'tingkat'));
+        $tabel = $halaman->addTable(['layout' => 'fixed', 'cellMargin' => 0]);
+
+        foreach ($butir as $baris) {
+            $tingkat = $baris['tingkat'];
+            $sisaKolom = $terdalam - $tingkat + 1;
             $tr = $tabel->addRow();
-            if ($inden) {
-                $tr->addCell($inden);
+
+            for ($i = 0; $i < $tingkat; $i++) {
+                $tr->addCell(self::INDEN);
             }
-            $tr->addCell($lebarNomor)->addText($baris['nomor']);
-            $tr->addCell(self::LEBAR_ISI - $inden - $lebarNomor)->addText($baris['isi'], null, ['alignment' => Jc::BOTH, 'spaceAfter' => 60]);
+
+            $tr->addCell(self::INDEN)->addText($baris['nomor']);
+            $tr->addCell(self::LEBAR_ISI - ($tingkat + 1) * self::INDEN, $sisaKolom > 1 ? ['gridSpan' => $sisaKolom] : [])
+                ->addText($baris['isi'], null, ['alignment' => Jc::BOTH, 'spaceAfter' => 60]);
         }
     }
 
@@ -259,9 +282,15 @@ class CetakNaskah
         };
 
         foreach (preg_split('/\R/u', $teks) as $paragraf) {
-            // Satu paragraf yang melebihi batas pun dipenggal di antara kata.
-            foreach (explode("\n", wordwrap($paragraf, $hurufPerBaris * self::MATRIKS_MAKS_BARIS, "\n")) as $bagian) {
-                $tinggi = max(1, (int) ceil(mb_strlen($bagian) / $hurufPerBaris));
+            // Satu paragraf yang melebihi batas pun dipenggal di antara kata; baris tabel dipenggal per sel.
+            $penggalan = str_starts_with(ltrim($paragraf), '|')
+                ? self::penggalBarisTabel($paragraf, $hurufPerBaris)
+                : explode("\n", wordwrap($paragraf, $hurufPerBaris * self::MATRIKS_MAKS_BARIS, "\n"));
+
+            foreach ($penggalan as $bagian) {
+                $tinggi = str_starts_with(ltrim($bagian), '|')
+                    ? self::tinggiBarisTabel($bagian, $hurufPerBaris)
+                    : max(1, (int) ceil(mb_strlen($bagian) / $hurufPerBaris));
 
                 if ($terisi + $tinggi > self::MATRIKS_MAKS_BARIS) {
                     $tutup();
@@ -272,6 +301,44 @@ class CetakNaskah
             }
         }
         $tutup();
+
+        return $hasil;
+    }
+
+    private static function hurufPerSel(int $hurufPerBaris, int $jumlahKolom): int
+    {
+        return max(4, (int) floor($hurufPerBaris / max(1, $jumlahKolom)));
+    }
+
+    /** Tinggi baris tabel mengikuti selnya yang paling panjang pada lebar kolom yang sempit. */
+    private static function tinggiBarisTabel(string $baris, int $hurufPerBaris): int
+    {
+        $sel = TataLetakNaskah::selTabel($baris) ?? [];
+        $lebar = self::hurufPerSel($hurufPerBaris, count($sel));
+
+        return max(1, ...array_map(fn (string $isi) => (int) ceil(mb_strlen($isi) / $lebar), $sel ?: ['']));
+    }
+
+    /**
+     * Baris tabel yang lebih tinggi dari batas dipecah menjadi beberapa baris tabel,
+     * dengan alasan yang sama seperti potong(): isinya hilang bila dibiarkan melebihi halaman.
+     *
+     * @return list<string>
+     */
+    private static function penggalBarisTabel(string $baris, int $hurufPerBaris): array
+    {
+        if (self::tinggiBarisTabel($baris, $hurufPerBaris) <= self::MATRIKS_MAKS_BARIS) {
+            return [$baris];
+        }
+
+        $sel = TataLetakNaskah::selTabel($baris);
+        $batas = self::hurufPerSel($hurufPerBaris, count($sel)) * self::MATRIKS_MAKS_BARIS;
+        $penggal = array_map(fn (string $isi) => explode("\n", wordwrap($isi, $batas, "\n", true)), $sel);
+        $hasil = [];
+
+        for ($i = 0; $i < max(array_map('count', $penggal)); $i++) {
+            $hasil[] = '| ' . implode(' | ', array_map(fn (array $isi) => $isi[$i] ?? '', $penggal)) . ' |';
+        }
 
         return $hasil;
     }

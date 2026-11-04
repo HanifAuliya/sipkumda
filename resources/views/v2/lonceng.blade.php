@@ -1,7 +1,7 @@
 <div wire:poll.60s>
     <x-ui.dropdown width="w-[22rem] max-w-[calc(100vw-2rem)]">
         <x-slot:trigger>
-            <button type="button" class="relative rounded-lg p-2 text-white/70 transition hover:bg-white/10 hover:text-white" aria-label="Notifikasi, {{ $belumDibaca }} belum dibaca">
+            <button type="button" class="relative rounded-lg p-2 text-current/70 transition hover:bg-current/10 hover:text-current" aria-label="Notifikasi, {{ $belumDibaca }} belum dibaca">
                 <i class="bi bi-bell text-lg leading-none"></i>
                 @if ($belumDibaca)
                     <span class="absolute top-0.5 right-0.5 grid min-w-4 place-items-center rounded-full bg-rose-500 px-1 text-[0.65rem] font-bold text-white">{{ $belumDibaca > 99 ? '99+' : $belumDibaca }}</span>

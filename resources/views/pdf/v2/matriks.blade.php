@@ -24,6 +24,8 @@
         .kolom-sempurna { width: 28%; }
         .kolom-ket { width: 16%; }
         .teks { white-space: pre-line; text-align: left; }
+        .tabel-sel { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 2pt 0; font-size: 9pt; }
+        .matriks .tabel-sel td { padding: 1pt 2pt; word-wrap: break-word; }
         .penanda { font-weight: bold; }
         .ttd { margin-top: 18pt; margin-left: 65%; text-align: center; page-break-inside: avoid; }
         .ttd p { margin: 0; }
@@ -74,9 +76,9 @@
                         @if ($baris['penanda'] && ! $baris['sebaris'])
                             <span class="penanda">{{ $baris['penanda'] }}</span><br>
                         @endif
-                        <div class="teks">@if ($baris['penanda'] && $baris['sebaris'])<span class="penanda">{{ $baris['penanda'] }}</span> @endif{{ $baris['rumusan'] }}</div>
+                        @include('pdf.v2.partials.teks-matriks', ['teks' => $baris['rumusan'], 'penanda' => $baris['sebaris'] ? $baris['penanda'] : null])
                     </td>
-                    <td class="kolom-sempurna"><div class="teks">{{ $baris['penyempurnaan'] }}</div></td>
+                    <td class="kolom-sempurna">@include('pdf.v2.partials.teks-matriks', ['teks' => $baris['penyempurnaan'], 'penanda' => null])</td>
                     <td class="kolom-ket"><div class="teks">{{ $baris['keterangan'] }}</div></td>
                 </tr>
             @endforeach

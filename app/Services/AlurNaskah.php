@@ -12,6 +12,7 @@ use App\Models\NotaDinas;
 use App\Models\TandaTangan;
 use App\Models\User;
 use App\Notifications\NaskahNotification;
+use App\Support\TemplateNaskah;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -426,9 +427,19 @@ class AlurNaskah
     }
 
     /** Peneliti/Verifikator menulis rumusan. Teks yang sama persis dengan kolom 3 berarti Tetap. */
-    public function perbaiki(B $baris, User $user, ?string $teks, ?string $keterangan = null): B
+    public function perbaiki(B $baris, User $user, ?string $teks, ?string $keterangan = null, ?string $label = null): B
     {
-        return $this->ubahBaris($baris, $user, [self::MODE_TELITI, self::MODE_KOREKSI], function (B $b) use ($teks, $keterangan) {
+        return $this->ubahBaris($baris, $user, [self::MODE_TELITI, self::MODE_KOREKSI], function (B $b) use ($teks, $keterangan, $label) {
+            if ($b->sisipan()) {
+                // Baris sisipan belum punya penanda; BAB atau Pasal-nya ditentukan di sini.
+                if ($b->bagian === 'batang_tubuh' && filled($label)) {
+                    $b->label = trim($label);
+                }
+                if (blank($teks) && blank($b->label)) {
+                    $this->gagal('rumusan', 'Isi rumusannya, atau hapus baris ini bila tidak jadi dipakai.');
+                }
+            }
+
             $sama = $this->normal($teks) === $this->normal($b->rumusan_awal);
 
             $b->rumusan_penyempurnaan = $sama ? null : $teks;
@@ -440,6 +451,11 @@ class AlurNaskah
     public function hapus(B $baris, User $user, ?string $keterangan = null): B
     {
         return $this->ubahBaris($baris, $user, [self::MODE_TELITI, self::MODE_KOREKSI], function (B $b) use ($keterangan) {
+            // Judul, Penutup, dan Lampiran adalah bagian wajib naskah; isinya hanya bisa diubah.
+            if (! in_array($b->bagian, B::BAGIAN_BERULANG, true)) {
+                abort(403, 'Bagian ini wajib ada dan tidak bisa dihapus.');
+            }
+
             $b->rumusan_penyempurnaan = null;
             $b->keterangan = $keterangan;
             $b->status = B::DIHAPUS;
@@ -509,6 +525,31 @@ class AlurNaskah
                 abort(403, 'Baris hanya bisa dibuang saat penyusunan.');
             }
 
+            $baris->delete();
+        });
+    }
+
+    /** Peneliti membuang baris sisipan sungguhan. Baris usulan PD tetap lewat hapus() supaya jejaknya ada di matriks. */
+    public function buangSisipan(B $baris, User $user): void
+    {
+        DB::transaction(function () use ($baris, $user) {
+            $naskah = Naskah::whereKey($baris->naskah_id)->lockForUpdate()->firstOrFail();
+
+            if ($this->modeBaris($naskah, $user) !== self::MODE_TELITI) {
+                abort(403, 'Bukan giliran Anda untuk membuang baris.');
+            }
+
+            $baris->refresh();
+
+            if (! $baris->sisipan()) {
+                abort(403, 'Baris usulan Perangkat Daerah tidak bisa dibuang.');
+            }
+
+            if (B::where('naskah_id', $naskah->id)->where('bagian', $baris->bagian)->count() <= 1) {
+                $this->gagal('rumusan', 'Ini baris terakhir pada bagian ini, jadi tidak bisa dihapus.');
+            }
+
+            $this->catat($naskah, $user, 'buang_baris', null, $this->ringkasBaris($baris), $baris->label ?: TemplateNaskah::BAGIAN[$baris->bagian]);
             $baris->delete();
         });
     }
@@ -624,7 +665,8 @@ class AlurNaskah
         $penerima = match ($tahap->peran()) {
             'Perangkat Daerah' => User::whereKey($naskah->pemrakarsa_id)->get(),
             'Peneliti' => User::whereKey($naskah->peneliti_id)->get(),
-            default => User::role($tahap->peran())->get(),
+            // Penandatanganan juga dicatat oleh Tamu, jadi Tamu ikut diberi tahu.
+            default => User::role($tahap === T::Penandatanganan ? $tahap->pemegang() : $tahap->peran())->get(),
         };
 
         // Pemrakarsa selalu tahu posisi naskahnya, termasuk koreksi oleh Verifikator.

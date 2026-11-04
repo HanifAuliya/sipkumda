@@ -23,6 +23,17 @@ class TemplateNaskah
         'lampiran' => 'Lampiran',
     ];
 
+    /** Tuntunan singkat untuk Perangkat Daerah saat menyusun tiap bagian. */
+    public const PETUNJUK = [
+        'judul' => 'Sesuaikan judul bila perlu. Nomor dan tahun dikosongkan, karena diisi saat penetapan.',
+        'menimbang' => 'Satu baris untuk satu pertimbangan, diawali "bahwa". Huruf a, b, c dibuat otomatis.',
+        'mengingat' => 'Satu baris untuk satu peraturan, dari yang tertinggi. Nomor urut dibuat otomatis.',
+        'diktum' => 'Isi bagian yang ditetapkan. Pada Surat Keputusan, KESATU, KEDUA, dan seterusnya dibuat otomatis.',
+        'batang_tubuh' => 'Satu baris untuk satu BAB atau Pasal. Ayat dan butir ditulis di dalam isi pasalnya.',
+        'penutup' => 'Nama pejabat diambil dari Pengaturan. Tanggal dan nomor dikosongkan untuk tanda tangan basah.',
+        'lampiran' => 'Keterangan lampiran, bila ada. Filenya diunggah di tab Berkas.',
+    ];
+
     private const DIKTUM = [
         'KESATU', 'KEDUA', 'KETIGA', 'KEEMPAT', 'KELIMA', 'KEENAM', 'KETUJUH', 'KEDELAPAN', 'KESEMBILAN', 'KESEPULUH',
         'KESEBELAS', 'KEDUA BELAS', 'KETIGA BELAS', 'KEEMPAT BELAS', 'KELIMA BELAS',

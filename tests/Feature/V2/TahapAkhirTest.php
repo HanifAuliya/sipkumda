@@ -2,6 +2,7 @@
 
 use App\Enums\TahapNaskah as T;
 use App\Livewire\V2\BarisKerja;
+use App\Livewire\V2\DetailNaskah;
 use App\Livewire\V2\LayarKerja;
 use App\Livewire\V2\Lonceng;
 use App\Livewire\Verifikator\TandaTangan\PengelolaTtd;
@@ -62,7 +63,7 @@ function naskahFinal(object $uji, string $jenis = 'Peraturan Bupati', string $te
     $alur->jalankan($n, $uji->peneliti, 'teruskan_ke_verifikator');
     $alur->jalankan($n, $uji->verifikator, 'setujui_rancangan');
     $alur->jalankan($n, $uji->pd, 'ajukan_fasilitasi');
-    $alur->jalankan($n, $uji->admin, 'setujui_fasilitasi');
+    $alur->jalankan($n, $uji->peneliti, 'setujui_fasilitasi');
 
     return $alur->jalankan($n, $uji->verifikator, 'finalkan');
 }
@@ -155,6 +156,44 @@ describe('nota dinas', function () {
     });
 });
 
+describe('persetujuan fasilitasi', function () {
+    beforeEach(function () {
+        $alur = $this->alur;
+        $this->n = Naskah::create(['jenis' => 'Peraturan Bupati', 'tentang' => 'Dana Desa', 'pemrakarsa_id' => $this->pd->id, 'nomor_nota' => 'ND-'.uniqid(), 'tanggal_nota' => now()]);
+        $alur->isiBaris($this->n, [['bagian' => 'judul', 'label' => null, 'teks' => 'JUDUL']]);
+        $this->n->berkas()->create(['jenis' => 'nota_dinas_pd', 'path' => 'x.pdf', 'nama_asli' => 'x.pdf', 'diunggah_oleh' => $this->pd->id]);
+        $alur->jalankan($this->n, $this->pd, 'ajukan');
+        $alur->jalankan($this->n, $this->admin, 'setujui_berkas');
+        $alur->jalankan($this->n, $this->verifikator, 'tugaskan_peneliti', null, $this->peneliti->id);
+        $this->n->baris()->get()->each(fn (B $b) => $alur->tetapkan($b, $this->peneliti));
+        $alur->jalankan($this->n, $this->peneliti, 'teruskan_ke_verifikator');
+        $alur->jalankan($this->n, $this->verifikator, 'setujui_rancangan');
+        $this->n = $alur->jalankan($this->n, $this->pd, 'ajukan_fasilitasi');
+    });
+
+    it('dipegang Peneliti yang ditugaskan, bukan Admin', function () {
+        $penelitiLain = tap(User::factory()->create())->assignRole('Peneliti');
+
+        expect($this->n->tahap)->toBe(T::PersetujuanFasilitasi)
+            ->and($this->alur->aksiTersedia($this->n, $this->peneliti))->toHaveKeys(['setujui_fasilitasi', 'tolak_fasilitasi'])
+            ->and($this->alur->aksiTersedia($this->n, $this->admin))->toBe([])
+            ->and($this->alur->aksiTersedia($this->n, $penelitiLain))->toBe([])
+            ->and($this->alur->modeBaris($this->n, $this->peneliti))->toBeNull()
+            ->and($this->peneliti->notifications()->where('data->slug', $this->n->slug)->where('data->title', 'like', '%Persetujuan Fasilitasi')->exists())->toBeTrue();
+
+        expect(fn () => $this->alur->jalankan($this->n, $this->admin, 'setujui_fasilitasi'))->toThrow(HttpException::class);
+
+        $this->actingAs($this->peneliti)->get(route('v2.daftar', 'persetujuan-fasilitasi'))->assertOk()->assertSee('Dana Desa');
+
+        expect($this->alur->jalankan($this->n, $this->peneliti, 'setujui_fasilitasi')->tahap)->toBe(T::ValidasiFasilitasi);
+    });
+
+    it('Peneliti bisa mengembalikan ke PD dengan alasan', function () {
+        expect(fn () => $this->alur->jalankan($this->n, $this->peneliti, 'tolak_fasilitasi'))->toThrow(ValidationException::class);
+        expect($this->alur->jalankan($this->n, $this->peneliti, 'tolak_fasilitasi', 'Berkas kurang')->tahap)->toBe(T::Disetujui);
+    });
+});
+
 describe('penandatanganan', function () {
     beforeEach(function () {
         $this->n = $this->alur->terbitkanNota(naskahFinal($this), $this->admin, '12', 'Sekda', $this->ttd->id);
@@ -179,6 +218,88 @@ describe('penandatanganan', function () {
     it('menolak tanggal masa depan dan pengguna tanpa hak', function () {
         expect(fn () => $this->alur->tandaiTahapan($this->n, $this->admin, now()->addDay()->toDateString()))->toThrow(ValidationException::class);
         expect(fn () => $this->alur->tandaiTahapan($this->n, $this->pd))->toThrow(HttpException::class);
+    });
+
+    it('Tamu bisa mencatat tahapan seperti Admin dan diberi tahu', function () {
+        $tamu = tap(User::factory()->create())->assignRole('Tamu');
+        $baru = $this->alur->terbitkanNota(naskahFinal($this, tentang: 'Hibah'), $this->admin, '13', 'Sekda', $this->ttd->id);
+
+        expect($this->alur->aksiTersedia($this->n, $tamu))->toHaveKey('tandai_tahapan')
+            ->not->toHaveKey('buka_kunci_ttd')
+            ->and($tamu->notifications()->where('data->slug', $baru->slug)->exists())->toBeTrue();
+
+        $n = $this->alur->tandaiTahapan($this->n, $tamu);
+
+        expect($n->tahapan_ttd)->toHaveKey('paraf_koordinasi');
+
+        Livewire::actingAs($tamu)->test(LayarKerja::class, ['naskah' => $n])
+            ->assertSee('Tandai Asisten selesai')
+            ->call('pilihAksi', 'tandai_tahapan')
+            ->call('jalankanAksi')
+            ->assertHasNoErrors();
+
+        expect($n->fresh()->tahapan_ttd)->toHaveKey('asisten');
+    });
+
+    it('Tamu hanya melihat naskah sejak penandatanganan dan tidak bisa menjalankan tahap lain', function () {
+        $tamu = tap(User::factory()->create())->assignRole('Tamu');
+        $draf = Naskah::create(['jenis' => 'Peraturan Bupati', 'tentang' => 'Masih Draf', 'pemrakarsa_id' => $this->pd->id]);
+        $final = naskahFinal($this, tentang: 'Belum Ada Nota');
+
+        expect($tamu->can('view', $this->n))->toBeTrue()
+            ->and($tamu->can('view', $draf))->toBeFalse()
+            ->and($tamu->can('view', $final))->toBeFalse()
+            ->and($tamu->can('create', Naskah::class))->toBeFalse()
+            ->and(Naskah::terlihatOleh($tamu)->pluck('id')->all())->toBe([$this->n->id])
+            ->and(Naskah::menunggu($tamu)->pluck('id')->all())->toBe([$this->n->id])
+            ->and($this->alur->modeBaris($this->n, $tamu))->toBeNull()
+            ->and($this->alur->aksiTersedia($final, $tamu))->toBe([]);
+
+        expect(fn () => $this->alur->terbitkanNota($final, $tamu, '77', 'Sekda', $this->ttd->id))->toThrow(HttpException::class);
+
+        $this->actingAs($tamu)->get(route('v2.naskah.kerja', $draf))->assertForbidden();
+        $this->actingAs($tamu)->get(route('v2.daftar', 'penandatanganan'))->assertOk()->assertSee($this->n->tentang)->assertDontSee('Belum Ada Nota');
+
+        foreach (['paraf_koordinasi', 'asisten', 'sekda', 'bupati'] as $_) {
+            $this->n = $this->alur->tandaiTahapan($this->n, $tamu);
+        }
+
+        expect($this->n->tahap)->toBe(T::Arsip)
+            ->and($tamu->can('view', $this->n))->toBeTrue()
+            ->and($this->alur->aksiTersedia($this->n, $tamu))->toBe([]);
+    });
+
+    it('Tamu hanya melihat: tidak bisa mengunduh berkas dan hasil cetak, juga tidak ada tombolnya', function () {
+        $tamu = tap(User::factory()->create())->assignRole('Tamu');
+        $berkas = $this->n->berkas()->first();
+        Storage::disk('local')->put($berkas->path, 'isi');
+
+        foreach (['naskah-word', 'naskah-pdf', 'matriks-pdf', 'nota-dinas'] as $jenis) {
+            $this->actingAs($tamu)->get(route('v2.naskah.cetak', [$this->n, $jenis]))->assertForbidden();
+        }
+        $this->actingAs($tamu)->get(route('v2.naskah.berkas', [$this->n, $berkas]))->assertForbidden();
+        $this->actingAs($this->admin)->get(route('v2.naskah.berkas', [$this->n, $berkas]))->assertOk();
+
+        $this->actingAs($tamu);
+        $cetak = route('v2.naskah.cetak', [$this->n, 'naskah-pdf']);
+
+        Livewire::test(LayarKerja::class, ['naskah' => $this->n])
+            ->set('tab', 'naskah')
+            ->assertSee('Dana Desa')
+            ->assertDontSeeHtml($cetak)
+            ->assertDontSeeHtml('Naskah Word')
+            ->set('tab', 'berkas')
+            ->assertSet('tab', 'kerja');
+
+        Livewire::test(DetailNaskah::class)
+            ->call('buka', $this->n->slug)
+            ->assertSee($this->n->notaDinas->nomor_nota)
+            ->assertDontSeeHtml($cetak)
+            ->assertDontSeeHtml('/cetak/');
+
+        Livewire::actingAs($this->admin)->test(LayarKerja::class, ['naskah' => $this->n])
+            ->set('tab', 'naskah')
+            ->assertSeeHtml($cetak);
     });
 
     it('buka kunci mengulang tanda tangan tanpa menerbitkan nota dinas baru', function () {
@@ -278,12 +399,14 @@ it('layar menerbitkan nota dinas dan mencatat tahapan', function () {
 });
 
 describe('kelengkapan layar', function () {
-    it('lonceng menampilkan notifikasi sendiri dan menuju naskahnya', function () {
+    it('lonceng menampilkan notifikasi sendiri dan membuka detail naskahnya', function () {
         $n = naskahFinal($this);
         $this->actingAs($this->pd);
         $notif = $this->pd->notifications()->latest()->first();
 
-        Livewire::test(Lonceng::class)->assertSee($n->nomor)->call('buka', $notif->id)->assertRedirect(route('v2.naskah.kerja', $n));
+        Livewire::test(Lonceng::class)->assertSee($n->nomor)->call('buka', $notif->id)
+            ->assertNoRedirect()
+            ->assertDispatched('bukaDetailNaskah', slug: $n->slug);
         expect($notif->fresh()->read_at)->not->toBeNull();
 
         $this->actingAs(tap(User::factory()->create())->assignRole('Perangkat Daerah'));
@@ -370,6 +493,80 @@ describe('penomoran dan tabel', function () {
         unlink($path);
 
         expect($xml)->toContain('Ketua &amp; Wakil')->toContain('w:tblBorders');
+    });
+
+    it('butir bertingkat di Word memakai kolom gabungan, lebarnya pas dan sesuai jumlah kolom', function () {
+        $n = Naskah::create(['jenis' => 'Peraturan Bupati', 'tentang' => 'x', 'pemrakarsa_id' => $this->pd->id]);
+        $this->alur->isiBaris($n, [
+            ['bagian' => 'batang_tubuh', 'label' => 'Pasal 1', 'teks' => "(1) Ayat satu:
+a. huruf a:
+1. angka satu;
+2. angka dua;
+b. huruf b.
+(2) Ayat dua."],
+            ['bagian' => 'batang_tubuh', 'label' => 'Pasal 2', 'teks' => "(1) Ayat:
+a. huruf.
+(2) Akhir."],
+            ['bagian' => 'batang_tubuh', 'label' => 'Pasal 3', 'teks' => "(1) Hanya ayat.
+(2) Tanpa butir."],
+        ]);
+
+        $path = app(CetakNaskah::class)->wordNaskah($n);
+        $zip = new ZipArchive();
+        $zip->open($path);
+        $xml = $zip->getFromName('word/document.xml');
+        $zip->close();
+        unlink($path);
+
+        $dom = new DOMDocument();
+        $dom->loadXML($xml);
+        $x = new DOMXPath($dom);
+        $x->registerNamespace('w', 'http://schemas.openxmlformats.org/wordprocessingml/2006/main');
+        $jumlahKolom = [];
+
+        foreach ($x->query('//w:tbl') as $tabel) {
+            $grid = $x->query('w:tblGrid/w:gridCol', $tabel)->length;
+            $lebarGrid = 0;
+            foreach ($x->query('w:tblGrid/w:gridCol/@w:w', $tabel) as $w) {
+                $lebarGrid += (int) $w->value;
+            }
+            $jumlahKolom[] = $grid;
+
+            foreach ($x->query('w:tr', $tabel) as $tr) {
+                $kolom = $lebar = 0;
+                foreach ($x->query('w:tc', $tr) as $tc) {
+                    $span = $x->query('w:tcPr/w:gridSpan/@w:val', $tc)->item(0)?->value;
+                    $kolom += (int) ($span ?? 1);
+                    $lebar += (int) $x->query('w:tcPr/w:tcW/@w:w', $tc)->item(0)->value;
+                }
+
+                expect($kolom)->toBe($grid)->and($lebar)->toBe($lebarGrid);
+            }
+        }
+
+        expect($jumlahKolom)->toBe([4, 3, 2]);
+    });
+
+    it('tabel tercetak sebagai tabel di matriks, tanpa tanda garis', function () {
+        $n = Naskah::create(['jenis' => 'Peraturan Bupati', 'tentang' => 'x', 'pemrakarsa_id' => $this->pd->id]);
+        $this->alur->isiBaris($n, [['bagian' => 'batang_tubuh', 'label' => 'Pasal 1', 'teks' => "Besaran:\n| Jabatan | Nilai |\n| Ketua & Wakil | Rp1 |\nSelesai."]]);
+
+        $teks = teksPdfAkhir(app(CetakNaskah::class)->pdfMatriks($n));
+
+        expect($teks)->toContain('Besaran:')->toContain('Ketua&Wakil')->toContain('Selesai.')->not->toContain('|');
+    });
+
+    it('tabel panjang dan sel yang sangat panjang di matriks tidak ada yang hilang', function () {
+        $n = Naskah::create(['jenis' => 'Peraturan Bupati', 'tentang' => 'x', 'pemrakarsa_id' => $this->pd->id]);
+        $sel = collect(range(1, 400))->map(fn (int $i) => "kata{$i}")->implode(' ');
+        $baris = collect(range(1, 60))->map(fn (int $i) => "| baris{$i} | nilai{$i} | keterangan{$i} |")->implode("\n");
+        $this->alur->isiBaris($n, [['bagian' => 'batang_tubuh', 'label' => 'Pasal 1', 'teks' => "{$baris}\n| satu | {$sel} | tiga |\n| baris akhir | x | y |"]]);
+
+        $teks = teksPdfAkhir(app(CetakNaskah::class)->pdfMatriks($n));
+
+        foreach (['baris1', 'nilai30', 'keterangan60', 'kata1', 'kata200', 'kata400', 'barisakhir'] as $cari) {
+            expect($teks)->toContain($cari);
+        }
     });
 
     it('pembaca Word mempertahankan tabel data tetapi tidak tabel tata letak', function () {

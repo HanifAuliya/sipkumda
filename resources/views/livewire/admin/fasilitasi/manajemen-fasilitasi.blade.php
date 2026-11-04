@@ -32,7 +32,7 @@
                         @if ($jumlahSelesai === count($tahapan))
                             <x-ui.badge color="success" icon="check-circle" size="lg">Selesai</x-ui.badge>
                         @else
-                            @can('update', $fasilitasi)
+                            @can('perbaruiTahapan', $fasilitasi)
                                 <x-ui.button variant="navy" size="sm" icon="list-check" wire:click="openUpdateStatus({{ $fasilitasi->id }})"
                                     loading="openUpdateStatus({{ $fasilitasi->id }})">Perbarui Tahap</x-ui.button>
                             @else

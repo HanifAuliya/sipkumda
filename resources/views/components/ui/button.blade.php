@@ -4,7 +4,7 @@
     <x-ui.button href="{{ route('dashboard') }}" variant="outline">Kembali</x-ui.button>
 
     - variant : primary | navy | success | danger | warning | info | outline | outline-primary | outline-danger | soft-primary | soft-danger | ghost
-    - size    : xs | sm | md | lg
+    - size    : xs | sm | rapat | md | lg (rapat: teks sama dengan md, dipakai pada baris kerja)
     - icon    : nama Bootstrap Icon tanpa awalan "bi-"
     - loading : target wire:loading (nama method/properti) untuk spinner & disable otomatis
     - square  : tombol ikon persegi tanpa teks
@@ -35,8 +35,8 @@
     ];
 
     $sizes = $square
-        ? ['xs' => 'size-7 text-xs', 'sm' => 'size-8 text-sm', 'md' => 'size-10 text-base', 'lg' => 'size-12 text-lg']
-        : ['xs' => 'px-2.5 py-1 text-xs', 'sm' => 'px-3 py-1.5 text-xs', 'md' => 'px-4 py-2.5 text-sm', 'lg' => 'px-5 py-3 text-base'];
+        ? ['xs' => 'size-7 text-xs', 'sm' => 'size-8 text-sm', 'rapat' => 'size-9 text-sm', 'md' => 'size-10 text-base', 'lg' => 'size-12 text-lg']
+        : ['xs' => 'px-2.5 py-1 text-xs', 'sm' => 'px-3 py-1.5 text-xs', 'rapat' => 'px-3.5 py-2 text-sm', 'md' => 'px-4 py-2.5 text-sm', 'lg' => 'px-5 py-3 text-base'];
 
     $classes = implode(' ', [
         'inline-flex shrink-0 items-center justify-center gap-2 rounded-lg font-semibold whitespace-nowrap transition',

@@ -3,10 +3,12 @@ import Swal from 'sweetalert2';
 
 import './theme';
 import chart from './alpine/chart';
+import tabelDariClipboard from './tempel-tabel';
 
 Alpine.data('chart', chart);
 
 window.Swal = Swal;
+window.tabelDariClipboard = tabelDariClipboard;
 
 /** Chart.js hanya dimuat di halaman yang membutuhkannya: const Chart = await loadChart(); */
 window.loadChart = () => import('chart.js/auto').then((module) => module.default);

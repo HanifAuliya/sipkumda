@@ -7,22 +7,20 @@ use App\Models\NaskahBerkas;
 use App\Services\AlurNaskah;
 use App\Services\PembacaNaskahWord;
 use App\Support\TemplateNaskah;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
-use Livewire\Attributes\Layout;
-use Livewire\Attributes\Title;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use RuntimeException;
 
-#[Layout('layouts.v2')]
-#[Title('Buat naskah')]
+/** Tombol dan modal "Ajukan Rancangan Baru", sama seperti aplikasi lama. */
 class BuatNaskah extends Component
 {
     use WithFileUploads;
 
-    public string $jenis = 'Peraturan Bupati';
+    public string $jenis = '';
 
     // Mengikuti panjang kolom "tentang" di arsip JDIH.
     #[Validate('required|string|max:255')]
@@ -41,8 +39,29 @@ class BuatNaskah extends Component
     #[Validate('nullable|file|mimes:docx|max:20480')]
     public $word;
 
+    public function mount(): void
+    {
+        Gate::authorize('create', Naskah::class);
+    }
+
+    public function removeFile(string $model): void
+    {
+        if (in_array($model, ['notaDinas', 'word'], true)) {
+            $this->reset($model);
+            $this->resetValidation($model);
+        }
+    }
+
+    public function resetForm(): void
+    {
+        $this->reset();
+        $this->resetValidation();
+    }
+
     public function simpan(AlurNaskah $alur, PembacaNaskahWord $pembaca)
     {
+        Gate::authorize('create', Naskah::class);
+
         $this->validate();
         $this->validate(['jenis' => ['required', Rule::in(Naskah::JENIS)]]);
 
@@ -77,7 +96,7 @@ class BuatNaskah extends Component
             $this->simpanBerkas($naskah, NaskahBerkas::WORD_ASLI, $this->word);
         }
 
-        return $this->redirectRoute('v2.naskah.kerja', $naskah, navigate: true);
+        return $this->redirectRoute('v2.naskah.kerja', $naskah);
     }
 
     private function simpanBerkas(Naskah $naskah, string $jenis, $file): void

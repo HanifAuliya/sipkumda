@@ -84,6 +84,17 @@
     color: #6ee7b7;
 }
 
+/* Kertas naskah selalu putih, juga pada mode gelap. */
+.v2-kertas del,
+.dark .v2-kertas del {
+    color: #be123c;
+}
+
+.v2-kertas ins,
+.dark .v2-kertas ins {
+    color: #047857;
+}
+
 @layer base {
     html {
         -webkit-tap-highlight-color: transparent;
@@ -99,6 +110,18 @@
 
     [x-cloak] {
         display: none !important;
+    }
+
+    /* Tailwind 4 tidak lagi memberi kursor tangan pada tombol. */
+    button:not(:disabled),
+    [role="button"]:not([aria-disabled="true"]),
+    select:not(:disabled),
+    summary,
+    input[type="checkbox"]:not(:disabled),
+    input[type="radio"]:not(:disabled),
+    label:has(input[type="checkbox"]:not(:disabled), input[type="radio"]:not(:disabled)),
+    input[type="file"]:not(:disabled)::file-selector-button {
+        cursor: pointer;
     }
 }
 

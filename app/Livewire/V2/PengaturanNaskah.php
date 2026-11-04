@@ -8,7 +8,7 @@ use Livewire\Attributes\Title;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
-#[Layout('layouts.v2')]
+#[Layout('layouts.app')]
 #[Title('Pengaturan')]
 class PengaturanNaskah extends Component
 {

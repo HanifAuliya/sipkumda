@@ -1,7 +1,6 @@
 {{-- Sidebar: laci di mobile, bisa diciutkan menjadi ikon di desktop. Menu diatur di App\Support\Navigation. --}}
 @php
     $sections = \App\Support\Navigation::for(auth()->user());
-    $current = request()->route()?->getName();
 @endphp
 
 {{-- Latar gelap saat laci terbuka (mobile) --}}
@@ -16,7 +15,7 @@
     {{-- Logo --}}
     <div class="flex h-16 shrink-0 items-center gap-3 border-b border-slate-100 px-5 dark:border-navy-800"
         x-bind:class="sidebarCollapsed && 'lg:justify-center lg:px-0'">
-        <a href="{{ route('dashboard') }}" class="flex min-w-0 items-center gap-3">
+        <a href="{{ \App\Support\Navigation::beranda() }}" class="flex min-w-0 items-center gap-3">
             <img src="{{ asset('assets/img/brand/loading_screen.png') }}" alt="Logo SIFKUMDA" class="size-9 shrink-0">
             <span class="truncate text-lg font-extrabold tracking-tight text-navy-900 dark:text-white"
                 x-bind:class="sidebarCollapsed && 'lg:hidden'">
@@ -44,9 +43,9 @@
 
                 <ul class="space-y-1">
                     @foreach ($section['items'] as $item)
-                        @php $active = $current === $item['route']; @endphp
+                        @php $active = \App\Support\Navigation::aktif($item); @endphp
                         <li>
-                            <a href="{{ route($item['route']) }}" title="{{ $item['label'] }}"
+                            <a href="{{ route($item['route'], $item['params'] ?? []) }}" title="{{ $item['label'] }}"
                                 @class([
                                     'group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition',
                                     'bg-accent-500 text-white shadow-soft' => $active,
