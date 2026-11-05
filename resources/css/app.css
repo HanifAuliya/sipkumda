@@ -205,12 +205,33 @@
         @apply bg-transparent shadow-none hover:bg-white/10 dark:hover:bg-white/10;
     }
 
-    /* Efek ketikan pada layar masuk aplikasi. */
+    /*
+     * Efek ketikan pada layar masuk aplikasi. Teksnya diam dan penutupnya yang bergeser: animasi
+     * transform dan opacity dijalankan GPU, jadi tetap mulus walau browser sedang sibuk memuat aplikasi.
+     */
     .ketik-masuk {
+        position: relative;
         overflow: hidden;
-        border-right: 0.15em solid orange;
+        padding-right: 4px;
         white-space: nowrap;
-        animation: ketik-masuk 2s steps(37, end) both, kursor-masuk 0.75s step-end infinite;
+    }
+
+    .ketik-tutup {
+        position: absolute;
+        inset: 0;
+        will-change: transform;
+        animation: ketik-masuk 1.7s cubic-bezier(0.3, 0.1, 0.4, 1) both;
+    }
+
+    .ketik-kursor {
+        position: absolute;
+        top: 0.1em;
+        bottom: 0.1em;
+        left: 0;
+        width: 2px;
+        border-radius: 1px;
+        background: orange;
+        animation: kursor-masuk 0.8s ease-in-out infinite alternate;
     }
 
     /* Blok abu-abu pada kerangka halaman. */
@@ -281,13 +302,13 @@
 }
 
 @keyframes ketik-masuk {
-    from { width: 0; }
-    to { width: 100%; }
+    from { transform: translateX(0); }
+    to { transform: translateX(calc(100% - 4px)); }
 }
 
 @keyframes kursor-masuk {
-    from, to { border-color: transparent; }
-    50% { border-color: orange; }
+    from { opacity: 1; }
+    to { opacity: 0.15; }
 }
 
 /* Menu diciutkan. Di luar layer supaya menang atas lebar bawaan pada elemennya. */

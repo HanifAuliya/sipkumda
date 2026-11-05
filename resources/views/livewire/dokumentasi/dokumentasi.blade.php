@@ -5,21 +5,21 @@
         description="Arsip produk hukum daerah yang telah ditetapkan · {{ number_format($totalDokumentasi, 0, ',', '.') }} dokumen">
         <x-slot:actions>
             @can('viewAny', App\Models\DokumentasiProdukHukum::class)
-                <x-ui.button variant="outline" icon="file-earmark-spreadsheet" class="text-emerald-600 dark:text-emerald-400"
-                    x-on:click="showLoading('Menyiapkan Excel...'); $wire.exportExcel()">Excel</x-ui.button>
-                <x-ui.button variant="outline-danger" icon="file-earmark-pdf"
-                    x-on:click="showLoading('Menyiapkan PDF...'); $wire.exportPDF()">PDF</x-ui.button>
+                <x-ui.button variant="outline" icon="file-earmark-spreadsheet" title="Unduh daftar sesuai pencarian dan filter yang sedang dipakai"
+                    x-on:click="showLoading('Menyiapkan Excel...'); $wire.exportExcel()"><span class="max-sm:hidden">Unduh</span> Excel</x-ui.button>
+                <x-ui.button variant="outline" icon="file-earmark-pdf" title="Unduh daftar sesuai pencarian dan filter yang sedang dipakai"
+                    x-on:click="showLoading('Menyiapkan PDF...'); $wire.exportPDF()"><span class="max-sm:hidden">Unduh</span> PDF</x-ui.button>
             @endcan
             @can('create', App\Models\DokumentasiProdukHukum::class)
-                <x-ui.dropdown width="w-64">
+                <x-ui.dropdown width="w-80 max-w-[calc(100vw-2rem)]">
                     <x-slot:trigger>
                         <x-ui.button icon="folder-plus">Tambah Arsip <i class="bi bi-chevron-down text-xs"></i></x-ui.button>
                     </x-slot:trigger>
-                    <x-ui.dropdown-item icon="file-earmark-check" x-on:click="Livewire.dispatch('tambahDokumentasi', { mode: 'rancangan' })">
-                        Dari rancangan terfasilitasi
+                    <x-ui.dropdown-item icon="file-earmark-check" description="Rancangan yang fasilitasinya sudah diterima." x-on:click="Livewire.dispatch('tambahDokumentasi', { mode: 'rancangan' })">
+                        Dari rancangan di sistem
                     </x-ui.dropdown-item>
-                    <x-ui.dropdown-item icon="archive" x-on:click="Livewire.dispatch('tambahDokumentasi', { mode: 'manual' })">
-                        Arsip sebelum ada sistem
+                    <x-ui.dropdown-item icon="archive" description="Produk hukum yang ditetapkan sebelum ada sistem ini." x-on:click="Livewire.dispatch('tambahDokumentasi', { mode: 'manual' })">
+                        Dokumen lama
                     </x-ui.dropdown-item>
                 </x-ui.dropdown>
             @endcan
@@ -91,19 +91,22 @@
                     <td class="whitespace-nowrap">{{ $dokumentasi->nomor_tahun_berita ?: '-' }}</td>
                     <td class="whitespace-nowrap">{{ tanggal($dokumentasi->tanggal_penetapan) }}</td>
                     <td class="whitespace-nowrap">{{ tanggal($dokumentasi->tanggal_pengarsipan) }}</td>
-                    <td class="text-right whitespace-nowrap">
-                        @if ($file)
-                            <x-ui.button variant="outline-primary" size="sm" icon="file-earmark-pdf" :href="$file" target="_blank" aria-label="Lihat dokumen" title="Lihat dokumen"><span class="max-sm:hidden">Lihat</span></x-ui.button>
-                        @endif
-                        @can('update', $dokumentasi)
-                            <x-ui.button variant="outline" size="sm" square icon="pencil" title="Edit"
-                                wire:click="edit({{ $dokumentasi->id }})" loading="edit({{ $dokumentasi->id }})" />
-                        @endcan
-                        @can('delete', $dokumentasi)
-                            <x-ui.button variant="soft-danger" size="sm" square icon="trash" title="Hapus" data-nomor="{{ $dokumentasi->nomor_formatted }}"
-                                x-on:click="$confirm({ title: 'Hapus dokumentasi?', text: `${$el.dataset.nomor} beserta filenya akan dihapus permanen.`, confirmText: 'Ya, hapus' })
-                                    .then((ok) => ok && $wire.delete({{ $dokumentasi->id }}))" />
-                        @endcan
+                    <td>
+                        {{-- Desktop: tombol berlabel supaya jelas fungsinya. HP: ikon sebaris supaya tabel tetap terbaca. --}}
+                        <div class="flex justify-end gap-1.5 sm:ml-auto sm:grid sm:w-44 sm:grid-cols-2">
+                            @if ($file)
+                                <x-ui.button variant="outline-primary" size="sm" icon="file-earmark-pdf" :href="$file" target="_blank" class="max-sm:size-10 max-sm:px-0 sm:col-span-2" title="Buka file produk hukum di tab baru" aria-label="Lihat file"><span class="max-sm:hidden">Lihat File</span></x-ui.button>
+                            @endif
+                            @can('update', $dokumentasi)
+                                <x-ui.button variant="outline" size="sm" icon="pencil" class="max-sm:size-10 max-sm:px-0" title="Ubah nomor, tanggal, atau file" aria-label="Ubah"
+                                    wire:click="edit({{ $dokumentasi->id }})" loading="edit({{ $dokumentasi->id }})"><span class="max-sm:hidden">Ubah</span></x-ui.button>
+                            @endcan
+                            @can('delete', $dokumentasi)
+                                <x-ui.button variant="soft-danger" size="sm" icon="trash" class="max-sm:size-10 max-sm:px-0" title="Hapus dokumentasi ini" aria-label="Hapus" data-nomor="{{ $dokumentasi->nomor_formatted }}"
+                                    x-on:click="$confirm({ title: 'Hapus dokumentasi?', text: `${$el.dataset.nomor} beserta filenya akan dihapus permanen.`, confirmText: 'Ya, hapus' })
+                                        .then((ok) => ok && $wire.delete({{ $dokumentasi->id }}))"><span class="max-sm:hidden">Hapus</span></x-ui.button>
+                            @endcan
+                        </div>
                     </td>
                 </tr>
             @empty
@@ -119,7 +122,7 @@
     <livewire:dokumentasi.ajukan-dokumentasi-produk-hukum />
 
     {{-- Edit dokumentasi --}}
-    <x-ui.modal id="modalEditDokumentasi" title="Edit Dokumentasi" description="Perbarui nomor, berita daerah, atau file produk hukum."
+    <x-ui.modal id="modalEditDokumentasi" title="Ubah Dokumentasi" description="Perbarui nomor, berita daerah, atau file produk hukum."
         size="2xl" static on-close="resetForm">
         <form id="editDokumentasiForm" wire:submit="update" class="space-y-5">
             @include('livewire.dokumentasi.partials.nomor-fields', ['tahunTetap' => $editTahun])

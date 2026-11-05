@@ -8,7 +8,7 @@
     <img src="{{ asset('assets/img/brand/loading_screen.png') }}" alt="" class="w-full max-w-[200px] py-5">
     <p class="text-[2rem] leading-tight font-bold text-[#ff9900]">SIFKUMDA HST</p>
     <div class="mt-2.5 w-fit max-w-full">
-        <p class="ketik-masuk text-[clamp(0.875rem,4.4vw,1.5rem)] text-slate-700 dark:text-slate-200">Sistem Fasilitasi Produk Hukum Daerah</p>
+        <p class="ketik-masuk text-[clamp(0.875rem,4.4vw,1.5rem)] text-slate-700 dark:text-slate-200">Sistem Fasilitasi Produk Hukum Daerah<span class="ketik-tutup bg-white dark:bg-navy-950" aria-hidden="true"><span class="ketik-kursor"></span></span></p>
     </div>
 </div>
 

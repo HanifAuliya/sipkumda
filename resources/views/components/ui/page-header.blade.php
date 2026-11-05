@@ -34,7 +34,7 @@
         @endif
     </div>
 
-    <div @class(['flex flex-wrap items-center gap-2', 'max-sm:hidden' => ! isset($actions)])>
+    <div @class(['flex flex-wrap items-center gap-2 xl:shrink-0', 'max-sm:hidden' => ! isset($actions)])>
         {{ $actions ?? '' }}
         @if ($back)
             <x-ui.button :href="$back" variant="outline-primary" icon="arrow-left" class="max-sm:hidden" :attributes="$tautanKembali">Kembali</x-ui.button>
