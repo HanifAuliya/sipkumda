@@ -33,7 +33,6 @@ Sistem ini menggantikan proses manual berbasis berkas fisik menjadi alur digital
 - **Tabel data:** Rappasoft Laravel Livewire Tables
 - **Otorisasi:** Spatie Laravel Permission
 - **Dokumen:** DomPDF, Laravel Excel, PHPWord, PDF Parser
-- **Real-time:** Pusher + Laravel Echo
 - **Testing:** Pest
 
 ## Instalasi
@@ -51,7 +50,7 @@ cp .env.example .env
 php artisan key:generate
 ```
 
-Atur koneksi database (dan kredensial Pusher jika ingin notifikasi real-time) di `.env`, lalu:
+Atur koneksi database di `.env`, lalu:
 
 ```bash
 php artisan migrate --seed

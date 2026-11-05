@@ -79,7 +79,7 @@
                     <td class="min-w-72">{{ $rancangan->tentang ?? '-' }}</td>
                     <td class="min-w-48">
                         {{ $rancangan->user->perangkatDaerah->nama_perangkat_daerah ?? '-' }}
-                        <p class="text-xs text-slate-500">{{ $rancangan->user->nama_user ?? '' }}</p>
+                        <p class="text-sm text-slate-500 dark:text-slate-400">{{ $rancangan->user->nama_user ?? '' }}</p>
                     </td>
                 </tr>
             @empty

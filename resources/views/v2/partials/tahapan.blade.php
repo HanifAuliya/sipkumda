@@ -1,7 +1,7 @@
 {{-- Posisi naskah dalam alur. Butuh $tahap (App\Enums\TahapNaskah). --}}
 @php $selesai = $tahap === App\Enums\TahapNaskah::Selesai; @endphp
 
-<ol class="flex flex-wrap items-center gap-x-1 gap-y-1 text-xs" aria-label="Tahapan naskah">
+<ol class="flex flex-wrap items-center gap-x-1 gap-y-1 text-sm" aria-label="Tahapan naskah">
     @foreach (App\Enums\TahapNaskah::LANGKAH as $i => $langkah)
         <li @class([
             'flex items-center gap-1.5 rounded-full px-2.5 py-1 font-semibold',
@@ -13,7 +13,7 @@
             {{ $langkah }}
         </li>
         @unless ($loop->last)
-            <li aria-hidden="true" class="text-slate-300 dark:text-navy-600"><i class="bi bi-chevron-right text-[0.6rem]"></i></li>
+            <li aria-hidden="true" class="text-slate-300 dark:text-navy-600"><i class="bi bi-chevron-right text-xs"></i></li>
         @endunless
     @endforeach
 </ol>

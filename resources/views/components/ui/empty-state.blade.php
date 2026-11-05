@@ -9,5 +9,7 @@
     @if ($description)
         <p class="max-w-sm text-sm text-slate-500 dark:text-slate-400">{{ $description }}</p>
     @endif
-    {{ $slot }}
+    @if ($slot->isNotEmpty())
+        <div class="mt-2 flex flex-wrap justify-center gap-2">{{ $slot }}</div>
+    @endif
 </div>

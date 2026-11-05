@@ -32,6 +32,15 @@ export const setTheme = (theme) => {
 
 window.toggleTheme = () => setTheme(isDark() ? 'light' : 'dark');
 
+// Pasang ulang tema saat berpindah halaman tanpa muat ulang, sebelum halaman baru tampil.
+const terapkanTema = () => {
+    const tema = readTheme();
+    document.documentElement.classList.toggle('dark', tema ? tema === 'dark' : prefersDark());
+};
+
+document.addEventListener('livewire:navigating', ({ detail }) => detail.onSwap?.(terapkanTema));
+document.addEventListener('livewire:navigated', terapkanTema);
+
 // Ikuti preferensi sistem selama pengguna belum memilih sendiri.
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
     if (!readTheme()) {

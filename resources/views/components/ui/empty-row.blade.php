@@ -3,6 +3,6 @@
 
 <tr class="hover:bg-transparent!">
     <td colspan="{{ $colspan }}" class="py-12! text-center">
-        <x-ui.empty-state :icon="$icon" :title="$message" />
+        <x-ui.empty-state :icon="$icon" :title="$message">{{ $slot }}</x-ui.empty-state>
     </td>
 </tr>

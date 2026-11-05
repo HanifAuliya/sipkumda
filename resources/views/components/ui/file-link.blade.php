@@ -19,10 +19,10 @@
 
 @if ($url)
     <a href="{{ $url }}" target="_blank" rel="noopener"
-        {{ $attributes->class('group inline-flex items-center gap-2 font-medium text-primary-600 hover:text-primary-700 dark:text-primary-300') }}>
+        {{ $attributes->class('group inline-flex min-h-8 items-center gap-2 font-medium text-primary-600 hover:text-primary-700 dark:text-primary-300') }}>
         <i class="bi bi-{{ $icon }} {{ $color }} text-base" aria-hidden="true"></i>
         <span class="underline-offset-2 group-hover:underline">{{ $label }}</span>
-        <i class="bi bi-box-arrow-up-right text-[0.65rem] opacity-0 transition group-hover:opacity-70" aria-hidden="true"></i>
+        <i class="bi bi-box-arrow-up-right text-xs opacity-0 transition group-hover:opacity-70" aria-hidden="true"></i>
     </a>
 @else
     <span {{ $attributes->class('text-sm text-slate-400 italic dark:text-slate-500') }}>{{ $empty }}</span>

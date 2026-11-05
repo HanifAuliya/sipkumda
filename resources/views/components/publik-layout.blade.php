@@ -85,7 +85,7 @@
             <div class="flex items-center gap-2">
                 <button type="button" class="rounded-lg p-2 text-white/80 hover:bg-white/10 hover:text-white" aria-label="Ganti tema"
                     x-on:click="const d = document.documentElement.classList.toggle('dark'); try { localStorage.setItem('theme', d ? 'dark' : 'light') } catch (e) {}">
-                    <i class="bi bi-moon-stars dark:hidden"></i><i class="bi bi-sun hidden dark:inline"></i>
+                    <i class="bi bi-moon-stars dark:hidden"></i><i class="bi bi-sun hidden dark:inline-block"></i>
                 </button>
                 <a href="{{ route('login') }}" class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-brand-500/20 transition hover:bg-brand-600">
                     <i class="bi bi-box-arrow-in-right"></i> Masuk

@@ -21,11 +21,16 @@
             <div class="mt-5">
                 <x-ui.list-toolbar placeholder="Cari nomor atau tentang..." :options="[5, 10, 20, 50]" />
 
-                <div class="space-y-4">
+                <div class="space-y-4 transition-opacity duration-150" wire:loading.class="opacity-60">
                     @forelse ($halaman as $naskah)
                         <x-naskah.item :naskah="$naskah" wire:key="naskah-{{ $naskah->id }}" />
                     @empty
-                        <x-ui.empty-state :icon="$info['ikon']" title="Tidak ada naskah pada daftar ini." class="py-12" />
+                        <x-ui.empty-state :icon="$info['ikon']" :title="$search !== '' ? 'Tidak ada naskah yang cocok dengan pencarian.' : 'Tidak ada naskah pada daftar ini.'" class="py-12">
+                            <x-ui.reset-filter :aktif="$search !== ''" :nilai="['search' => '']" />
+                            @if ($bisaBuat && $search === '' && $tabAktif === 'menunggu')
+                                <x-ui.button icon="send-plus" size="rapat" x-on:click="openModal('ajukanNaskahModal')">Ajukan Rancangan Baru</x-ui.button>
+                            @endif
+                        </x-ui.empty-state>
                     @endforelse
                 </div>
             </div>
@@ -50,7 +55,9 @@
                 </x-slot:head>
 
                 @forelse ($halaman as $naskah)
-                    <tr wire:key="naskah-{{ $naskah->id }}">
+                    {{-- Seluruh baris bisa diklik untuk membuka detail. --}}
+                    <tr wire:key="naskah-{{ $naskah->id }}" class="cursor-pointer"
+                        x-on:click="$event.target.closest('a, button') || Livewire.dispatch('bukaDetailNaskah', { slug: {{ \Illuminate\Support\Js::from($naskah->slug) }} })">
                         <td class="font-semibold whitespace-nowrap text-navy-900 dark:text-white">{{ $naskah->nomor }}</td>
                         <td class="min-w-56">{{ $naskah->tentang }}</td>
                         <td><x-ui.status-badge :value="$naskah->jenis" /></td>
@@ -63,7 +70,9 @@
                         </td>
                     </tr>
                 @empty
-                    <x-ui.empty-row colspan="6" message="Tidak ada naskah pada daftar ini." />
+                    <x-ui.empty-row colspan="6" :message="$search !== '' || $tahap !== '' ? 'Tidak ada naskah yang cocok dengan pencarian atau filter.' : 'Tidak ada naskah pada daftar ini.'">
+                        <x-ui.reset-filter :aktif="$search !== '' || $tahap !== ''" :nilai="['search' => '', 'tahap' => '']" />
+                    </x-ui.empty-row>
                 @endforelse
             </x-ui.table>
         @endisset

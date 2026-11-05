@@ -35,10 +35,10 @@
             <x-slot:head>
                 @foreach ($sortable as $field => $label)
                     <th>
-                        <button type="button" wire:click="sortBy('{{ $field }}')" class="inline-flex items-center gap-1 uppercase hover:text-primary-600">
+                        <button type="button" wire:click="sortBy('{{ $field }}')" class="-my-2 inline-flex items-center gap-1 py-2 hover:text-primary-600">
                             {{ $label }}
                             <i @class([
-                                'bi text-[0.65rem]',
+                                'bi text-xs',
                                 'bi-chevron-expand opacity-40' => $sortField !== $field,
                                 'bi-chevron-up text-primary-500' => $sortField === $field && $sortDirection === 'asc',
                                 'bi-chevron-down text-primary-500' => $sortField === $field && $sortDirection === 'desc',
@@ -49,15 +49,17 @@
                 <th>Email</th>
                 <th>Perangkat Daerah</th>
                 <th>Role</th>
-                <th class="text-right">Aksi</th>
+                @if ($isAdmin)
+                    <th class="text-right">Aksi</th>
+                @endif
             </x-slot:head>
 
             @forelse ($users as $index => $user)
                 <tr wire:key="user-{{ $user->id }}">
                     <td class="text-slate-400">{{ $users->firstItem() + $index }}</td>
                     <td class="font-semibold text-navy-900 dark:text-white">{{ $user->nama_user }}</td>
-                    <td class="font-mono text-xs">{{ $user->NIP }}</td>
-                    <td class="break-all">{{ $user->email }}</td>
+                    <td class="font-mono text-sm">{{ $user->NIP }}</td>
+                    <td class="min-w-52 break-all">{{ $user->email }}</td>
                     <td class="min-w-48">{{ $user->perangkatDaerah->nama_perangkat_daerah ?? '-' }}</td>
                     <td>
                         <div class="flex flex-wrap gap-1">
@@ -66,22 +68,22 @@
                             @endforeach
                         </div>
                     </td>
+                    @if ($isAdmin)
                     <td>
                         <div class="flex justify-end gap-1.5">
-                            @if ($isAdmin)
                                 <x-ui.button variant="soft-primary" size="sm" square icon="pencil" title="Ubah"
                                     wire:click="edit({{ $user->id }})" loading="edit({{ $user->id }})" />
                                 <x-ui.button variant="soft-danger" size="sm" square icon="trash" title="Hapus"
                                     x-on:click="$confirm({ text: {{ \Illuminate\Support\Js::from('Pengguna ' . $user->nama_user . ' akan dihapus permanen.') }}, confirmText: 'Ya, hapus' })
                                         .then(ok => ok && $wire.delete({{ $user->id }}))" />
-                            @else
-                                <x-ui.badge color="slate" icon="lock">Butuh akses</x-ui.badge>
-                            @endif
                         </div>
                     </td>
+                    @endif
                 </tr>
             @empty
-                <x-ui.empty-row colspan="7" icon="people" message="Tidak ada pengguna yang cocok." />
+                <x-ui.empty-row :colspan="$isAdmin ? 7 : 6" icon="people" message="Tidak ada pengguna yang cocok.">
+                    <x-ui.reset-filter :aktif="filled($search) || filled($roleFilter)" :nilai="['search' => '', 'roleFilter' => '']" />
+                </x-ui.empty-row>
             @endforelse
         </x-ui.table>
 

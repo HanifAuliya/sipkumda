@@ -5,7 +5,7 @@
         <tr> <td>...</td> </tr>
     </x-ui.table>
 --}}
-<div {{ $attributes->class('-mx-5 overflow-x-auto sm:-mx-6') }}>
+<div wire:loading.class="opacity-60" {{ $attributes->class('-mx-5 overflow-x-auto transition-opacity duration-150 sm:-mx-6') }}>
     <table class="table-base min-w-full">
         <thead>
             <tr>{{ $head }}</tr>

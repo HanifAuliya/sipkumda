@@ -6,9 +6,9 @@
     dan Navigation::modeV2() tidak bisa mengenali v2 dari rute permintaan itu.
 --}}
 <button type="button" x-on:click="toggleTheme()"
-    class="rounded-lg p-2 text-current/80 transition hover:bg-current/10 hover:text-current" aria-label="Ganti tema">
-    <i class="bi bi-moon-stars text-lg leading-none dark:hidden"></i>
-    <i class="bi bi-brightness-high hidden text-lg leading-none dark:inline"></i>
+    class="grid size-10 shrink-0 place-items-center rounded-lg text-current/80 transition hover:bg-current/10 hover:text-current" aria-label="Ganti tema">
+    <i class="bi bi-moon-stars text-xl dark:hidden" aria-hidden="true"></i>
+    <i class="bi bi-brightness-high hidden text-xl dark:inline-block" aria-hidden="true"></i>
 </button>
 
 @if ($modeV2)
@@ -19,16 +19,16 @@
 
 <x-ui.dropdown width="w-60">
     <x-slot:trigger>
-        <button type="button" class="flex items-center gap-2.5 rounded-full py-1 pr-2 pl-1 transition hover:bg-current/10">
+        <button type="button" class="flex min-h-10 items-center gap-2.5 rounded-full py-1 pr-1 pl-1 transition hover:bg-current/10 lg:pr-2.5" aria-label="Menu pengguna">
             <img src="{{ asset('assets/img/theme/profile.png') }}" alt="" class="size-8 rounded-full ring-2 ring-current/20">
             <span class="hidden max-w-40 truncate text-sm font-semibold lg:block">{{ auth()->user()->nama_user }}</span>
-            <i class="bi bi-chevron-down hidden text-xs text-current/60 lg:block"></i>
+            <i class="bi bi-chevron-down hidden text-sm text-current/60 transition-transform duration-150 lg:block" x-bind:class="open && 'rotate-180'" aria-hidden="true"></i>
         </button>
     </x-slot:trigger>
 
     <div class="border-b border-slate-100 px-3 pt-1.5 pb-2.5 dark:border-navy-700">
         <p class="truncate text-sm font-semibold text-navy-900 dark:text-white">{{ auth()->user()->nama_user }}</p>
-        <p class="truncate text-xs text-slate-500 dark:text-slate-400">{{ auth()->user()->getRoleNames()->join(', ') }}</p>
+        <p class="truncate text-sm text-slate-500 dark:text-slate-400">{{ auth()->user()->getRoleNames()->join(', ') }}</p>
     </div>
     <div class="pt-1.5">
         <x-ui.dropdown-item :href="route('profile.edit')" icon="person">Profil Saya</x-ui.dropdown-item>

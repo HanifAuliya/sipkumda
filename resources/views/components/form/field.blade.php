@@ -19,12 +19,12 @@
     {{ $slot }}
 
     @if ($hint)
-        <p class="text-xs text-slate-500 dark:text-slate-400">{{ $hint }}</p>
+        <p class="text-sm text-slate-500 dark:text-slate-400">{{ $hint }}</p>
     @endif
 
     @foreach ((array) $error as $name)
         @error($name)
-            <p class="flex items-center gap-1 text-xs font-medium text-rose-600 dark:text-rose-400">
+            <p class="flex items-center gap-1.5 text-sm font-medium text-rose-600 dark:text-rose-400">
                 <i class="bi bi-exclamation-circle"></i> {{ $message }}
             </p>
         @enderror

@@ -115,11 +115,11 @@ class Navigation
                 'items' => [
                     $daftar('Fasilitasiku', 'fasilitasiku', 'files', ['Perangkat Daerah']),
                     $daftar('Persetujuan Fasilitasi', 'persetujuan-fasilitasi', 'file-check', ['Peneliti']),
-                    $daftar('Pengecekan Fasilitasi', 'cek-peneliti', 'file-check', ['Peneliti']),
+                    $daftar('Pengecekan Fasilitasi', 'cek-peneliti', 'ui-checks', ['Peneliti']),
                     $daftar('Validasi Fasilitasi', 'validasi-fasilitasi', 'file-earmark-check', ['Verifikator']),
                     ['label' => 'Kelola TTD', 'route' => 'kelola-ttd.main', 'icon' => 'pen', 'roles' => ['Verifikator']],
                     $daftar('Daftar Nota Dinas', 'nota-dinas', 'file-text', ['Admin', 'Verifikator', 'Perangkat Daerah']),
-                    $daftar('Penandatanganan', 'penandatanganan', 'file-earmark-break', ['Admin', 'Tamu']),
+                    $daftar('Penandatanganan', 'penandatanganan', 'vector-pen', ['Admin', 'Tamu']),
                     $daftar('Daftar Fasilitasi', 'fasilitasi', 'collection', ['Admin', 'Verifikator', 'Peneliti', 'Super Admin']),
                 ],
             ],
@@ -157,6 +157,12 @@ class Navigation
         }
 
         return collect(self::sectionsV2())->pluck('items')->flatten(1)->contains('route', $rute);
+    }
+
+    /** Aplikasi pilihan pengguna, juga terbaca pada permintaan pembaruan Livewire. */
+    public static function dipilihV2(): bool
+    {
+        return session(self::SESI_APLIKASI) === self::V2;
     }
 
     public static function beranda(): string

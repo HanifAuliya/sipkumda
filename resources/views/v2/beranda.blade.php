@@ -15,7 +15,7 @@
                 <div class="min-w-0">
                     <p class="text-sm text-white/70">Selamat datang kembali,</p>
                     <h1 class="truncate text-xl font-bold text-white sm:text-2xl">{{ $user->nama_user }}</h1>
-                    <div class="mt-1.5 flex flex-wrap items-center gap-2 text-xs">
+                    <div class="mt-1.5 flex flex-wrap items-center gap-2 text-sm">
                         <span class="rounded-full bg-white/15 px-2.5 py-0.5 font-semibold">{{ $user->getRoleNames()->first() ?? 'Tanpa Role' }}</span>
                         <span class="text-white/70">NIP {{ $user->NIP }}</span>
                         @if ($user->perangkatDaerah)
@@ -29,13 +29,17 @@
     </section>
 
     {{-- Statistik --}}
-    <div class="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-        <x-ui.stat-card label="Rancangan" :value="$statistik['rancangan']" suffix="naskah" icon="clipboard2-data" color="rose"
-            :href="route('v2.daftar', $pd ? 'rancanganku' : 'rancangan')" />
-        <x-ui.stat-card label="Fasilitasi" :value="$statistik['fasilitasi']" suffix="naskah" icon="file-text" color="orange"
-            :href="route('v2.daftar', $pd ? 'fasilitasiku' : 'fasilitasi')" />
-        <x-ui.stat-card label="Penandatanganan" :value="$statistik['ttd']" suffix="naskah" icon="pen" color="emerald" />
-        <x-ui.stat-card label="Selesai" :value="$statistik['selesai']" suffix="naskah" icon="folder2-open" color="sky" />
+    <div class="grid grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-4">
+        <x-ui.stat-card class="max-sm:flex-col-reverse max-sm:gap-3 max-sm:p-4" label="Rancangan" :value="$statistik['rancangan']" suffix="naskah" icon="clipboard2-data" color="rose"
+            :href="route('v2.daftar', $pd ? 'rancanganku' : 'rancangan')" wire:navigate />
+        <x-ui.stat-card class="max-sm:flex-col-reverse max-sm:gap-3 max-sm:p-4" label="Fasilitasi" :value="$statistik['fasilitasi']" suffix="naskah" icon="file-text" color="orange"
+            :href="route('v2.daftar', $pd ? 'fasilitasiku' : 'fasilitasi')" wire:navigate />
+        @if ($user->hasAnyRole(['Admin', 'Tamu']))
+            <x-ui.stat-card class="max-sm:flex-col-reverse max-sm:gap-3 max-sm:p-4" label="Penandatanganan" :value="$statistik['ttd']" suffix="naskah" icon="pen" color="emerald" :href="route('v2.daftar', 'penandatanganan')" wire:navigate />
+        @else
+            <x-ui.stat-card class="max-sm:flex-col-reverse max-sm:gap-3 max-sm:p-4" label="Penandatanganan" :value="$statistik['ttd']" suffix="naskah" icon="pen" color="emerald" />
+        @endif
+        <x-ui.stat-card class="max-sm:flex-col-reverse max-sm:gap-3 max-sm:p-4" label="Selesai" :value="$statistik['selesai']" suffix="naskah" icon="folder2-open" color="sky" />
     </div>
 
     {{-- Giliran --}}
@@ -77,7 +81,8 @@
             </x-slot:head>
 
             @forelse ($halaman as $naskah)
-                <tr wire:key="naskah-{{ $naskah->id }}">
+                <tr wire:key="naskah-{{ $naskah->id }}" class="cursor-pointer"
+                    x-on:click="$event.target.closest('a, button') || Livewire.dispatch('bukaDetailNaskah', { slug: {{ \Illuminate\Support\Js::from($naskah->slug) }} })">
                     <td class="font-semibold whitespace-nowrap">{{ $naskah->nomor }}</td>
                     <td class="min-w-64 whitespace-normal">{{ $naskah->tentang }}</td>
                     <td class="whitespace-nowrap"><x-ui.badge :color="$naskah->tahap->warna()">{{ $naskah->tahap->label() }}</x-ui.badge></td>
@@ -89,7 +94,9 @@
                     </td>
                 </tr>
             @empty
-                <x-ui.empty-row colspan="5" message="Belum ada naskah." />
+                <x-ui.empty-row colspan="5" :message="$cari !== '' || $tahap !== '' ? 'Tidak ada naskah yang cocok dengan pencarian atau filter.' : 'Belum ada naskah.'">
+                    <x-ui.reset-filter :aktif="$cari !== '' || $tahap !== ''" :nilai="['cari' => '', 'tahap' => '']" />
+                </x-ui.empty-row>
             @endforelse
         </x-ui.table>
 

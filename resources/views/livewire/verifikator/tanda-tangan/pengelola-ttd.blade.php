@@ -25,7 +25,7 @@
                 <tr wire:key="ttd-{{ $ttd->id }}">
                     <td class="min-w-48">
                         <p class="font-semibold text-navy-900 dark:text-white">{{ $ttd->nama_ttd }}</p>
-                        <p class="text-xs text-slate-500">NIP {{ $ttd->nip_ttd ?: '-' }}</p>
+                        <p class="text-sm text-slate-500 dark:text-slate-400">NIP {{ $ttd->nip_ttd ?: '-' }}</p>
                     </td>
                     <td class="min-w-40">{{ $ttd->jabatan ?: '-' }}</td>
                     <td>
@@ -97,7 +97,7 @@
                             <img src="{{ $pratinjau }}" alt="" class="max-h-full max-w-full object-contain"
                                 x-data x-on:error="$el.replaceWith(Object.assign(document.createElement('i'), { className: 'bi bi-image text-2xl text-slate-300', title: 'Gambar tidak ditemukan' }))">
                         </div>
-                        <figcaption class="mt-1 text-xs text-slate-500">{{ $file_ttd ? 'Pratinjau baru' : 'Saat ini' }}</figcaption>
+                        <figcaption class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ $file_ttd ? 'Pratinjau baru' : 'Saat ini' }}</figcaption>
                     </figure>
                 @endif
             </div>

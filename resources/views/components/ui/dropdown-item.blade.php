@@ -1,7 +1,7 @@
 @props(['icon' => null, 'href' => null, 'danger' => false])
 
 @php
-    $classes = 'flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm transition '
+    $classes = 'flex min-h-10 w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm transition '
         . ($danger
             ? 'text-rose-600 hover:bg-rose-50 dark:text-rose-300 dark:hover:bg-rose-500/10'
             : 'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-navy-700');

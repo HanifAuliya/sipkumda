@@ -51,19 +51,19 @@
         <x-ui.table>
             <x-slot:head>
                 <th>
-                    <button type="button" wire:click="sortBy('nomor')" class="inline-flex items-center gap-1.5 uppercase">
+                    <button type="button" wire:click="sortBy('nomor')" class="-my-2 inline-flex items-center gap-1.5 py-2 hover:text-primary-600">
                         Produk Hukum <i class="bi {{ $sortHeader('nomor') }}"></i>
                     </button>
                 </th>
                 <th>Perangkat Daerah</th>
                 <th>Berita Daerah</th>
                 <th>
-                    <button type="button" wire:click="sortBy('tanggal_penetapan')" class="inline-flex items-center gap-1.5 uppercase">
+                    <button type="button" wire:click="sortBy('tanggal_penetapan')" class="-my-2 inline-flex items-center gap-1.5 py-2 hover:text-primary-600">
                         Ditetapkan <i class="bi {{ $sortHeader('tanggal_penetapan') }}"></i>
                     </button>
                 </th>
                 <th>
-                    <button type="button" wire:click="sortBy('tanggal_pengarsipan')" class="inline-flex items-center gap-1.5 uppercase">
+                    <button type="button" wire:click="sortBy('tanggal_pengarsipan')" class="-my-2 inline-flex items-center gap-1.5 py-2 hover:text-primary-600">
                         Diarsipkan <i class="bi {{ $sortHeader('tanggal_pengarsipan') }}"></i>
                     </button>
                 </th>
@@ -79,7 +79,7 @@
                             <x-ui.status-badge :value="$dokumentasi->jenis_dokumentasi" />
                         </div>
                         <p class="mt-0.5 text-slate-600 dark:text-slate-300">{{ $dokumentasi->tentang_dokumentasi }}</p>
-                        <p class="mt-0.5 text-xs text-slate-500">
+                        <p class="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
                             @if ($dokumentasi->rancangan)
                                 <i class="bi bi-link-45deg"></i> Rancangan {{ $dokumentasi->rancangan->no_rancangan }}
                             @else
@@ -93,7 +93,7 @@
                     <td class="whitespace-nowrap">{{ tanggal($dokumentasi->tanggal_pengarsipan) }}</td>
                     <td class="text-right whitespace-nowrap">
                         @if ($file)
-                            <x-ui.button variant="outline-primary" size="sm" icon="file-earmark-pdf" :href="$file" target="_blank">Lihat</x-ui.button>
+                            <x-ui.button variant="outline-primary" size="sm" icon="file-earmark-pdf" :href="$file" target="_blank" aria-label="Lihat dokumen" title="Lihat dokumen"><span class="max-sm:hidden">Lihat</span></x-ui.button>
                         @endif
                         @can('update', $dokumentasi)
                             <x-ui.button variant="outline" size="sm" square icon="pencil" title="Edit"
@@ -107,7 +107,9 @@
                     </td>
                 </tr>
             @empty
-                <x-ui.empty-row colspan="6" icon="folder2-open" message="Tidak ada dokumentasi." />
+                <x-ui.empty-row colspan="6" icon="folder2-open" message="Tidak ada dokumentasi yang cocok.">
+                    <x-ui.reset-filter :aktif="filled($search) || filled($tahun) || filled($jenisRancangan)" :nilai="['search' => '', 'tahun' => '', 'jenisRancangan' => '']" />
+                </x-ui.empty-row>
             @endforelse
         </x-ui.table>
 

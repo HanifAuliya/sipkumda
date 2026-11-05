@@ -13,6 +13,9 @@
         try { theme = localStorage.getItem('theme'); } catch (e) {}
         const dark = theme ? theme === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
         document.documentElement.classList.toggle('dark', dark);
+
+        // Menu yang diciutkan dipasang sebelum tampil, supaya lebarnya tidak melompat.
+        try { document.documentElement.toggleAttribute('data-menu-ciut', localStorage.getItem('sidebar-collapsed') === 'true'); } catch (e) {}
     })();
 </script>
 

@@ -49,7 +49,12 @@
         <div class="flex shrink-0 flex-col items-start gap-2.5 lg:min-w-52 lg:items-end lg:text-right">
             <x-ui.badge :color="$tahap->warna()" size="lg" :icon="$ikon">{{ $tahap->label() }}</x-ui.badge>
             <p class="text-sm text-slate-500 dark:text-slate-400">Dibuat tahun {{ $naskah->created_at->year }}</p>
-            <x-naskah.detail-button :naskah="$naskah" label="Detail" />
+            <div class="flex w-full flex-wrap gap-2 lg:justify-end">
+                <x-naskah.detail-button :naskah="$naskah" label="Detail" class="max-lg:flex-1" />
+                @if ($naskah->giliranMilik(auth()->user()))
+                    <x-ui.button size="rapat" icon="pencil-square" :href="route('v2.naskah.kerja', $naskah)" class="max-lg:flex-1" data-muat-halaman>Kerjakan</x-ui.button>
+                @endif
+            </div>
         </div>
     </div>
 </article>

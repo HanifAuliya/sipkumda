@@ -34,12 +34,17 @@
         'ghost' => 'text-slate-600 hover:bg-slate-100 focus-visible:ring-slate-200 dark:text-slate-300 dark:hover:bg-navy-800',
     ];
 
+    // Di layar sempit area kliknya dibesarkan, supaya nyaman ditekan dengan jari.
     $sizes = $square
-        ? ['xs' => 'size-7 text-xs', 'sm' => 'size-8 text-sm', 'rapat' => 'size-9 text-sm', 'md' => 'size-10 text-base', 'lg' => 'size-12 text-lg']
-        : ['xs' => 'px-2.5 py-1 text-xs', 'sm' => 'px-3 py-1.5 text-xs', 'rapat' => 'px-3.5 py-2 text-sm', 'md' => 'px-4 py-2.5 text-sm', 'lg' => 'px-5 py-3 text-base'];
+        ? ['xs' => 'size-8 max-sm:size-10', 'sm' => 'size-9 max-sm:size-10', 'rapat' => 'size-9 max-sm:size-10', 'md' => 'size-10 max-sm:size-11', 'lg' => 'size-12']
+        : ['xs' => 'min-h-8 px-2.5 py-1 text-sm max-sm:min-h-10', 'sm' => 'min-h-9 px-3 py-1.5 text-sm max-sm:min-h-10', 'rapat' => 'min-h-9 px-3.5 py-2 text-sm max-sm:min-h-10', 'md' => 'min-h-10 px-4 py-2 text-sm max-sm:min-h-11', 'lg' => 'min-h-12 px-5 py-3 text-base'];
+
+    // Ukuran ikon mengikuti ukuran tombol, jadi seragam di semua halaman.
+    $ukuranIkon = ['xs' => 'text-sm', 'sm' => 'text-sm', 'rapat' => 'text-base', 'md' => 'text-base', 'lg' => $square ? 'text-xl' : 'text-lg'][$size] ?? 'text-base';
 
     $classes = implode(' ', [
-        'inline-flex shrink-0 items-center justify-center gap-2 rounded-lg font-semibold whitespace-nowrap transition',
+        'inline-flex shrink-0 items-center justify-center gap-2 rounded-lg font-semibold whitespace-nowrap transition duration-150',
+        'hover:-translate-y-px active:translate-y-0 active:scale-[0.97] disabled:translate-y-0 disabled:active:scale-100',
         'focus-visible:outline-none focus-visible:ring-3 disabled:cursor-not-allowed disabled:opacity-60',
         $variants[$variant] ?? $variants['primary'],
         $sizes[$size] ?? $sizes['md'],
@@ -49,7 +54,7 @@
 @if ($href)
     <a href="{{ $href }}" {{ $attributes->class($classes) }}>
         @if ($icon)
-            <i class="bi bi-{{ $icon }}" aria-hidden="true"></i>
+            <i class="bi bi-{{ $icon }} {{ $ukuranIkon }}" aria-hidden="true"></i>
         @endif
         {{ $slot }}
     </a>
@@ -61,7 +66,7 @@
             <x-ui.spinner class="size-4" wire:loading wire:target="{{ $loading }}" />
         @endif
         @if ($icon)
-            <i class="bi bi-{{ $icon }}" aria-hidden="true"
+            <i class="bi bi-{{ $icon }} {{ $ukuranIkon }}" aria-hidden="true"
                 @if ($loading) wire:loading.remove wire:target="{{ $loading }}" @endif></i>
         @endif
         {{ $slot }}

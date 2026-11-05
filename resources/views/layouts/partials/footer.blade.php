@@ -5,7 +5,7 @@
             <span class="font-semibold text-navy-900 dark:text-slate-200">Sekretariat Daerah Kabupaten Hulu Sungai Tengah</span>.
             Semua Hak Dilindungi.
         </p>
-        <a href="https://github.com/HanifAuliya" target="_blank" rel="noopener" class="transition hover:text-primary-600">
+        <a href="https://github.com/HanifAuliya" target="_blank" rel="noopener" class="inline-block py-2 transition hover:text-primary-600">
             Developed by Han
         </a>
     </div>

@@ -27,7 +27,7 @@
         {{ $slot }}
     </div>
     @if ($dismissible)
-        <button type="button" x-on:click="show = false" class="-m-1 rounded p-1 opacity-60 transition hover:opacity-100" aria-label="Tutup">
+        <button type="button" x-on:click="show = false" class="-my-1.5 -mr-1.5 grid size-9 shrink-0 place-items-center rounded-lg opacity-60 transition hover:bg-current/10 hover:opacity-100 max-sm:size-10" aria-label="Tutup">
             <i class="bi bi-x-lg"></i>
         </button>
     @endif

@@ -80,12 +80,12 @@
     x-on:fokus-baris.window="bukaBaris($event.detail.id)">
     {{-- Header: posisi naskah seperti jalur, dengan badge jenis dokumen. Bagian yang kurang penting disembunyikan saat layar sempit. --}}
     <header class="relative z-30 flex h-14 shrink-0 items-center gap-2.5 border-b border-slate-200 bg-white px-4 text-slate-600 sm:px-5 dark:border-navy-800 dark:bg-navy-900 dark:text-slate-300">
-        <button type="button" class="-ml-1 shrink-0 rounded-lg p-1.5 text-current/80 transition hover:bg-current/10 hover:text-current lg:hidden"
+        <button type="button" class="-ml-1 grid size-10 shrink-0 place-items-center rounded-lg text-current/80 transition hover:bg-current/10 hover:text-current lg:hidden"
             x-on:click="sidebarOpen = true" aria-label="Buka daftar bagian">
-            <i class="bi bi-list text-2xl leading-none" aria-hidden="true"></i>
+            <i class="bi bi-list text-2xl" aria-hidden="true"></i>
         </button>
 
-        <a href="{{ route('v2.beranda') }}" class="hidden shrink-0 sm:block" aria-label="Dashboard" title="Dashboard">
+        <a href="{{ route('v2.beranda') }}" class="hidden size-9 shrink-0 place-items-center rounded-lg transition hover:bg-slate-100 sm:grid dark:hover:bg-navy-800" aria-label="Dashboard" title="Dashboard">
             <img src="{{ asset('assets/img/brand/loading_screen.png') }}" alt="" class="size-7">
         </a>
 
@@ -120,7 +120,7 @@
     <aside class="fixed inset-y-0 left-0 z-50 flex w-80 max-w-[85vw] shrink-0 -translate-x-full flex-col bg-white shadow-xl transition-transform duration-200 lg:static lg:z-auto lg:w-72 lg:translate-x-0 lg:shadow-card dark:bg-navy-900 dark:shadow-none dark:ring-1 dark:ring-white/5"
         x-bind:class="sidebarOpen && 'translate-x-0'" aria-label="Bagian naskah">
         <div class="space-y-3 border-b border-slate-100 p-4 dark:border-navy-800">
-            <x-ui.button :href="$kembali" variant="outline" size="rapat" icon="arrow-left" class="w-full">Kembali ke Daftar</x-ui.button>
+            <x-ui.button :href="$kembali" variant="outline" size="rapat" icon="arrow-left" class="w-full" data-muat-halaman>Kembali ke Daftar</x-ui.button>
 
             {{-- Di layar lebar keterangan ini ada di header. --}}
             <div class="lg:hidden">
@@ -192,7 +192,7 @@
                         @foreach ($b['ids'] as $id)
                             @continue(str_starts_with((string) $perId[$id]->label, 'BAB'))
                             <li wire:key="anak-{{ $id }}">
-                                <a href="#baris-{{ $id }}" class="flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-sm text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-navy-800">
+                                <a href="#baris-{{ $id }}" class="flex min-h-9 items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-sm text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-navy-800">
                                     <span class="size-2 shrink-0 rounded-full {{ $titik[$perId[$id]->status] }}" title="{{ B::LABEL_STATUS[$perId[$id]->status] }}"></span>
                                     <span class="truncate">{{ $penanda[$id] ?: 'Baris' }}</span>
                                 </a>
@@ -221,7 +221,7 @@
     <div class="flex min-w-0 flex-1 flex-col">
         <div class="@container flex shrink-0 flex-wrap items-center gap-x-2 gap-y-2 bg-white px-4 py-2.5 lg:gap-x-4 shadow-card sm:px-6 dark:bg-navy-900 dark:shadow-none dark:ring-1 dark:ring-white/5">
             {{-- Ikon tab disembunyikan saat lajurnya sempit. Bila tab dan tombol aksi tidak muat sebaris, tombol aksi turun ke baris berikutnya. --}}
-            <x-ui.tabs class="max-w-full max-lg:grow max-sm:[&_[role=tab]]:px-2.5 [&_i]:hidden @3xl:[&_i]:inline">
+            <x-ui.tabs class="max-w-full max-lg:grow max-sm:[&_[role=tab]]:px-2.5 [&_i]:hidden @3xl:[&_i]:inline-block">
                 @foreach ($tabs as $kunci => [$ikon, $nama])
                     <x-ui.tab :active="$tab === $kunci" :icon="$ikon" wire:click="$set('tab', '{{ $kunci }}')" wire:key="tab-{{ $kunci }}">{{ $nama }}</x-ui.tab>
                 @endforeach
@@ -245,7 +245,7 @@
         </div>
 
         <div x-data x-on:blok-berubah.window="$nextTick(() => $el.scrollTop = 0)" class="flex-1 overflow-y-auto">
-            <main class="mx-auto w-full max-w-[1600px] space-y-5 px-4 py-6 sm:px-6">
+            <main class="mx-auto w-full max-w-[1600px] space-y-5 px-4 py-6 transition-opacity duration-150 sm:px-6" wire:loading.class="opacity-60" wire:target="tab, pilihBlok">
                 @if ($tab === 'kerja')
                     @foreach ($aksi as $tombol)
                         @if ($tombol['hambatan'])
@@ -298,7 +298,7 @@
                 @if ($peringatan)
                     <x-ui.alert type="warning" icon="exclamation-triangle-fill">
                         <details>
-                            <summary class="font-semibold">{{ count($peringatan) }} hal pada penomoran perlu diperiksa</summary>
+                            <summary class="-my-2 py-2 font-semibold">{{ count($peringatan) }} hal pada penomoran perlu diperiksa</summary>
                             <ul class="mt-2 list-disc space-y-1 pl-5">
                                 @foreach ($peringatan as $p)
                                     <li wire:key="peringatan-{{ $loop->index }}">{{ $p['pesan'] }}</li>
@@ -402,13 +402,13 @@
                 @if ($bolehUnggah)
                     <form wire:submit="unggahBerkas" class="flex flex-wrap items-end gap-3 rounded-2xl bg-white p-4 shadow-card dark:bg-navy-900 dark:shadow-none dark:ring-1 dark:ring-white/5">
                         <x-form.field label="Jenis" for="jenisBerkas" error="jenisBerkas">
-                            <select id="jenisBerkas" wire:model="jenisBerkas" class="rounded-lg border-0 py-2 pl-3 text-sm ring-1 ring-slate-200 dark:bg-navy-800 dark:ring-navy-700">
+                            <select id="jenisBerkas" wire:model="jenisBerkas" class="min-h-10 rounded-lg border-0 py-2 pl-3 text-sm ring-1 ring-slate-200 dark:bg-navy-800 dark:ring-navy-700">
                                 <option value="{{ NaskahBerkas::LAMPIRAN }}">{{ NaskahBerkas::LABEL[NaskahBerkas::LAMPIRAN] }}</option>
                                 <option value="{{ NaskahBerkas::BAHAN_PENDUKUNG }}">{{ NaskahBerkas::LABEL[NaskahBerkas::BAHAN_PENDUKUNG] }}</option>
                             </select>
                         </x-form.field>
                         <x-form.field label="File" for="berkasBaru" error="berkasBaru" class="min-w-56 flex-1">
-                            <input id="berkasBaru" type="file" wire:model="berkasBaru" class="block w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-sm file:font-semibold dark:file:bg-navy-800 dark:file:text-slate-200">
+                            <input id="berkasBaru" type="file" wire:model="berkasBaru" class="block min-h-10 w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-sm file:font-semibold dark:file:bg-navy-800 dark:file:text-slate-200">
                         </x-form.field>
                         <x-ui.button type="submit" icon="upload" loading="unggahBerkas">Unggah</x-ui.button>
                     </form>
@@ -451,7 +451,7 @@
                                 @endphp
                                 @if ($teksLama !== $teksBaru)
                                     <details class="mt-1">
-                                        <summary class="cursor-pointer text-sm font-semibold text-primary-600 dark:text-primary-300">Lihat perubahan</summary>
+                                        <summary class="-my-2 cursor-pointer py-2 text-sm font-semibold text-primary-600 dark:text-primary-300">Lihat perubahan</summary>
                                         <p class="v2-diff mt-1 whitespace-pre-line text-slate-600 dark:text-slate-300">{!! App\Support\DiffKata::html($teksLama, $teksBaru) !!}</p>
                                     </details>
                                 @endif
@@ -592,7 +592,7 @@
                     </x-form.field>
                 </div>
                 <x-form.field label="PDF bertanda tangan basah" for="fileArsip" error="fileArsip" required hint="Dokumen ini langsung tampil untuk umum di JDIH.">
-                    <input id="fileArsip" type="file" accept="application/pdf" wire:model="fileArsip" class="block w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-sm file:font-semibold dark:file:bg-navy-800 dark:file:text-slate-200">
+                    <input id="fileArsip" type="file" accept="application/pdf" wire:model="fileArsip" class="block min-h-10 w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-sm file:font-semibold dark:file:bg-navy-800 dark:file:text-slate-200">
                 </x-form.field>
             </div>
         @else
@@ -611,7 +611,7 @@
     <x-ui.modal id="modalVersi" :title="$isiVersi ? 'Versi '.$isiVersi->versi : 'Versi'" :description="$isiVersi ? TahapNaskah::from($isiVersi->tahap)->label().' · '.$isiVersi->created_at->translatedFormat('d M Y H:i') : null" size="5xl">
         @if ($isiVersi)
             <table class="w-full table-fixed border-collapse text-sm">
-                <thead class="text-left text-xs text-slate-500">
+                <thead class="text-left text-sm text-slate-500">
                     <tr>
                         <th class="w-28 pb-2 font-semibold">Baris</th>
                         <th class="pb-2 font-semibold">Rumusan awal</th>

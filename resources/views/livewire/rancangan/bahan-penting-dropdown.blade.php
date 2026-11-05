@@ -6,7 +6,7 @@
             </x-ui.button>
         </x-slot:trigger>
 
-        <p class="px-3 pt-1.5 pb-2 text-xs font-semibold tracking-wide text-slate-400 uppercase">Unduh template</p>
+        <p class="px-3 pt-1.5 pb-2 text-sm font-semibold text-slate-500 dark:text-slate-400">Unduh template</p>
         @forelse ($materials as $material)
             <x-ui.dropdown-item wire:click="download({{ $material->id }})" wire:key="material-{{ $material->id }}">
                 <i class="{{ $this->getFileIcon($material->file_path) }} text-base"></i>

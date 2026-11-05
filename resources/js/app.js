@@ -2,6 +2,7 @@ import { Livewire, Alpine } from '../../vendor/livewire/livewire/dist/livewire.e
 import Swal from 'sweetalert2';
 
 import './theme';
+import './navigasi';
 import chart from './alpine/chart';
 import tabelDariClipboard from './tempel-tabel';
 

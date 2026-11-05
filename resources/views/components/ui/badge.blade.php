@@ -19,7 +19,7 @@
     ];
 @endphp
 
-<span {{ $attributes->class(['inline-flex items-center gap-1 rounded-full font-semibold ring-1 ring-inset whitespace-nowrap', $size === 'lg' ? 'px-3 py-1 text-sm' : 'px-2.5 py-0.5 text-xs', $colors[$color] ?? $colors['slate']]) }}>
+<span {{ $attributes->class(['inline-flex items-center gap-1 rounded-full font-semibold ring-1 ring-inset whitespace-nowrap', $size === 'lg' ? 'px-3 py-1 text-sm' : 'px-2.5 py-0.5 text-sm', $colors[$color] ?? $colors['slate']]) }}>
     @if ($icon)
         <i class="bi bi-{{ $icon }}" aria-hidden="true"></i>
     @endif

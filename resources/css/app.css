@@ -112,6 +112,33 @@
         display: none !important;
     }
 
+    /* Ikon mengikuti ukuran teks dan kotaknya pas selebar 1em, sehingga selalu sejajar di tengah tombol. */
+    .bi {
+        display: inline-block;
+        flex-shrink: 0;
+        line-height: 1;
+        vertical-align: -0.125em;
+    }
+
+    /* Semua yang bisa diklik berubah dengan halus dan langsung merespons sentuhan. */
+    a,
+    button,
+    summary,
+    [role="tab"],
+    [role="button"] {
+        transition-property: color, background-color, border-color, box-shadow, opacity, transform;
+        transition-duration: 150ms;
+        touch-action: manipulation;
+    }
+
+    a:focus-visible,
+    button:focus-visible,
+    summary:focus-visible,
+    [role="tab"]:focus-visible {
+        outline: 2px solid var(--color-primary-400);
+        outline-offset: 2px;
+    }
+
     /* Tailwind 4 tidak lagi memberi kursor tangan pada tombol. */
     button:not(:disabled),
     [role="button"]:not([aria-disabled="true"]),
@@ -129,6 +156,7 @@
     /* Kontrol form dasar; dipakai komponen <x-form.*>. */
     .form-control {
         @apply block w-full rounded-lg border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-700 shadow-xs
+            max-sm:text-base
             placeholder:text-slate-400
             focus:border-primary-400 focus:ring-3 focus:ring-primary-100
             disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400
@@ -140,13 +168,98 @@
         @apply border-rose-300 focus:border-rose-400 focus:ring-rose-100 dark:border-rose-500/60;
     }
 
+    /* Item menu samping. Warnanya mengikuti aria-current, jadi bisa berpindah seketika saat diklik. */
+    .menu-item {
+        @apply relative z-[1] flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600
+            transition duration-150 ease-out hover:bg-slate-100 hover:text-navy-900 active:scale-[0.98]
+            dark:text-slate-300 dark:hover:bg-navy-800 dark:hover:text-white;
+
+        & > i {
+            @apply text-lg text-primary-500 transition-transform duration-150 ease-out dark:text-primary-300;
+        }
+
+        &:hover > i {
+            @apply scale-110;
+        }
+
+        &[aria-current="page"] {
+            @apply bg-accent-500 text-white shadow-soft hover:bg-accent-600 hover:text-white
+                dark:hover:bg-accent-600 dark:hover:text-white;
+
+            & > i {
+                @apply text-white;
+            }
+        }
+
+        /* Spinner pada menu yang sedang dibuka. */
+        &[data-memuat]::after {
+            content: "";
+            @apply absolute top-1/2 right-2.5 -mt-2 size-4 rounded-full border-2 border-white/40 border-t-white opacity-0;
+            animation: menu-putar 0.7s linear infinite, menu-muncul 0.1s ease-out 0.05s forwards;
+        }
+    }
+
+    /* Latar oranye yang meluncur ke menu yang diklik (lihat resources/js/navigasi.js). */
+    .penanda-menu {
+        @apply pointer-events-none absolute top-0 right-3 left-3 rounded-lg bg-accent-500 opacity-0 shadow-soft;
+        transition:
+            transform 240ms cubic-bezier(0.4, 0, 0.2, 1),
+            height 240ms cubic-bezier(0.4, 0, 0.2, 1),
+            opacity 120ms ease-out;
+    }
+
+    [data-penanda-siap] .menu-item[aria-current="page"] {
+        @apply bg-transparent shadow-none hover:bg-white/10 dark:hover:bg-white/10;
+    }
+
+    /* Garis kemajuan di atas layar; oranye supaya terlihat di atas topbar navy. */
+    .garis-muat {
+        @apply pointer-events-none fixed top-0 left-0 z-[120] h-[3px] w-full origin-left bg-linear-to-r from-accent-500 to-amber-400 opacity-0;
+        box-shadow: 0 0 8px rgb(251 99 64 / 0.7);
+        transform: scaleX(0);
+
+        &[data-berjalan] {
+            opacity: 1;
+            transform: scaleX(0.85);
+            transition: transform 1.6s cubic-bezier(0.08, 0.8, 0.2, 1);
+        }
+
+        &[data-selesai] {
+            opacity: 0;
+            transform: scaleX(1);
+            transition: transform 150ms ease-out, opacity 250ms ease-out 150ms;
+        }
+    }
+
+    /* Pemberitahuan memuat di tengah area konten, tidak menutupi menu. */
+    .pemuat-halaman {
+        @apply pointer-events-none fixed inset-x-0 top-16 bottom-0 z-20 grid place-items-center;
+        animation: pemuat-muncul 120ms ease-out both;
+    }
+
+    .pemuat-isi {
+        @apply flex items-center gap-3 rounded-full bg-white px-5 py-3 text-sm font-semibold text-navy-900 shadow-lg ring-1 ring-slate-900/5
+            dark:bg-navy-800 dark:text-white dark:ring-white/10;
+    }
+
+    .pemuat-putar {
+        @apply size-5 rounded-full border-[3px] border-primary-100 border-t-primary-500 dark:border-white/15 dark:border-t-primary-300;
+        animation: menu-putar 0.7s linear infinite;
+    }
+
+    /* Isi halaman lama meredup sampai halaman baru datang. */
+    .sedang-pindah {
+        @apply pointer-events-none opacity-50;
+        transition: opacity 150ms ease-out;
+    }
+
     /* Tabel data standar. */
     .table-base {
-        @apply w-full text-left text-sm;
+        @apply w-full border-separate border-spacing-0 text-left text-sm;
 
         & thead th {
-            @apply border-b border-slate-100 bg-slate-50/70 px-3 py-3 text-[0.68rem] font-semibold tracking-wider
-                text-slate-500 uppercase dark:border-navy-800 dark:bg-navy-900/60 dark:text-slate-400;
+            @apply border-b border-slate-100 bg-slate-50/70 px-3 py-3 text-sm font-semibold
+                text-slate-500 dark:border-navy-800 dark:bg-navy-900/60 dark:text-slate-400;
         }
 
         & tbody td {
@@ -165,11 +278,104 @@
         & tbody tr {
             @apply transition-colors hover:bg-slate-50/70 dark:hover:bg-navy-800/40;
         }
+
+        /* Kolom Aksi (kolom terakhir rata kanan) tetap terlihat saat tabel digeser di layar sempit. */
+        &:has(thead th.text-right:last-child) :is(thead th, tbody td:not([colspan])):last-child {
+            @apply max-xl:sticky max-xl:right-0 max-xl:z-[1] max-xl:bg-white max-xl:pl-3
+                max-xl:shadow-[-10px_0_10px_-10px_rgb(23_43_77/0.25)] dark:max-xl:bg-navy-900;
+        }
+
+        &:has(thead th.text-right:last-child) thead th:last-child {
+            @apply max-xl:bg-slate-50 dark:max-xl:bg-navy-900;
+        }
+
+        &:has(thead th.text-right:last-child) tbody tr:hover td:not([colspan]):last-child {
+            @apply max-xl:bg-slate-50 dark:max-xl:bg-navy-800;
+        }
     }
 
     /* Teks konten panjang (catatan, deskripsi). */
     .prose-note {
         @apply text-sm leading-relaxed whitespace-pre-line text-slate-600 dark:text-slate-300;
+    }
+}
+
+@keyframes menu-putar {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes menu-muncul {
+    to { opacity: 1; }
+}
+
+@keyframes pemuat-muncul {
+    from { opacity: 0; transform: scale(0.96); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+/* Menu diciutkan. Di luar layer supaya menang atas lebar bawaan pada elemennya. */
+@media (min-width: 64rem) {
+    /* Animasi lebar hanya saat tombol ciut ditekan, tidak saat berpindah halaman. */
+    html[data-menu-gerak] [data-menu-utama] {
+        transition: width 200ms ease-out;
+    }
+
+    html[data-menu-gerak] [data-konten-utama] {
+        transition: padding-left 200ms ease-out;
+    }
+
+    html[data-menu-ciut] [data-menu-utama] {
+        width: 5rem;
+    }
+
+    html[data-menu-ciut] [data-konten-utama] {
+        padding-left: 5rem;
+    }
+
+    /* Pemberitahuan memuat berada di tengah area konten, bukan tengah layar. */
+    .pemuat-halaman {
+        left: 18rem;
+    }
+
+    html[data-menu-ciut] .pemuat-halaman {
+        left: 5rem;
+    }
+
+    html[data-menu-ciut] [data-ciut-tengah] {
+        justify-content: center;
+        padding-inline: 0;
+    }
+
+    html[data-menu-ciut] [data-ciut-sembunyi] {
+        display: none;
+    }
+
+    html[data-menu-ciut] [data-ciut-tampil] {
+        display: block;
+    }
+
+    html[data-menu-ciut] .menu-item[data-memuat]::after {
+        right: 0.125rem;
+        width: 0.875rem;
+        height: 0.875rem;
+        margin-top: -0.4375rem;
+    }
+}
+
+/* Di luar layer supaya menang atas aturan bawaan Bootstrap Icons. */
+.bi::before {
+    display: block;
+    vertical-align: 0;
+}
+
+/* Hormati pengguna yang mematikan animasi di perangkatnya. */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
     }
 }
 

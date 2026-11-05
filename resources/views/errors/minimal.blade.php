@@ -21,7 +21,7 @@
                 class="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-soft ring-1 ring-slate-200 transition hover:bg-slate-50 dark:bg-navy-900 dark:text-slate-200 dark:ring-navy-700">
                 <i class="bi bi-arrow-left"></i> Kembali
             </button>
-            <a href="{{ auth()->check() ? route('dashboard') : url('/') }}"
+            <a href="{{ auth()->check() ? route(\App\Support\Navigation::dipilihV2() ? 'v2.beranda' : 'dashboard') : url('/') }}"
                 class="inline-flex items-center gap-2 rounded-lg bg-primary-500 px-4 py-2.5 text-sm font-semibold text-white shadow-soft transition hover:bg-primary-600">
                 <i class="bi bi-house"></i> {{ auth()->check() ? 'Ke Dashboard' : 'Ke Beranda' }}
             </a>

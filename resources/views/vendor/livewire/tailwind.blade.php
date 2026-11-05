@@ -5,7 +5,7 @@
         ? "(\$el.closest('{$scrollTo}') || document.querySelector('{$scrollTo}')).scrollIntoView({ behavior: 'smooth' })"
         : '';
     $pageName = $paginator->getPageName();
-    $btn = 'grid size-9 place-items-center rounded-lg text-sm font-semibold transition';
+    $btn = 'grid size-9 place-items-center rounded-lg text-sm font-semibold transition max-sm:size-10';
     $idle = 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-navy-800';
     $disabled = 'cursor-not-allowed text-slate-300 dark:text-navy-700';
 @endphp

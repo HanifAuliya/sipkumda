@@ -18,9 +18,9 @@
 @endphp
 
 <{{ $tag }} @if ($href) href="{{ $href }}" @endif
-    {{ $attributes->class('group flex items-start justify-between gap-4 rounded-2xl bg-white p-5 shadow-card transition dark:bg-navy-900 dark:shadow-none dark:ring-1 dark:ring-white/5' . ($href ? ' hover:-translate-y-0.5 hover:shadow-lg' : '')) }}>
+    {{ $attributes->class('group flex items-start justify-between gap-4 rounded-2xl bg-white p-5 shadow-card transition dark:bg-navy-900 dark:shadow-none dark:ring-1 dark:ring-white/5' . ($href ? ' hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0' : '')) }}>
     <div class="min-w-0">
-        <p class="text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">{{ $label }}</p>
+        <p class="text-sm font-semibold text-slate-500 dark:text-slate-400">{{ $label }}</p>
         <p class="mt-2 text-2xl font-bold text-navy-900 dark:text-white">
             @if (is_numeric($value))
                 {{-- Angka dihitung naik saat kartu pertama kali terlihat --}}
