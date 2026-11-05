@@ -1,20 +1,36 @@
-{{-- Layar pembuka: hanya sekali per sesi browser, tidak di setiap pindah halaman. --}}
-<div x-data="{
-        show: (() => { try { return !sessionStorage.getItem('splash-shown'); } catch (e) { return false; } })(),
-        init() {
-            if (!this.show) return;
-            try { sessionStorage.setItem('splash-shown', '1'); } catch (e) {}
-            setTimeout(() => this.show = false, 1100);
-        },
-    }"
-    x-show="show" x-cloak
-    x-transition:leave="transition duration-500 ease-in"
-    x-transition:leave-start="opacity-100"
-    x-transition:leave-end="opacity-0"
-    class="fixed inset-0 z-[100] grid place-items-center bg-white dark:bg-navy-950">
-    <div class="flex flex-col items-center gap-3 text-center">
-        <img src="{{ asset('assets/img/brand/loading_screen.png') }}" alt="" class="size-28 animate-pulse">
-        <h1 class="text-3xl font-extrabold tracking-tight text-amber-500">SIFKUMDA HST</h1>
-        <p class="text-sm text-slate-500 dark:text-slate-400">Sistem Fasilitasi Produk Hukum Daerah</p>
+{{--
+    Layar saat masuk aplikasi, dengan efek ketikan seperti tampilan sebelum migrasi.
+    Tampil sekali setelah login; berpindah menu tidak memunculkannya lagi.
+    Skrip di bawahnya berjalan sebelum halaman tergambar, jadi layar ini tidak sempat berkedip.
+--}}
+<div id="layar-masuk" role="status" aria-label="Memuat aplikasi"
+    class="fixed inset-0 z-[100] flex flex-col items-center bg-white px-4 pt-[100px] transition-opacity duration-500 ease-out dark:bg-navy-950">
+    <img src="{{ asset('assets/img/brand/loading_screen.png') }}" alt="" class="w-full max-w-[200px] py-5">
+    <p class="text-[2rem] leading-tight font-bold text-[#ff9900]">SIFKUMDA HST</p>
+    <div class="mt-2.5 w-fit max-w-full">
+        <p class="ketik-masuk text-[clamp(0.875rem,4.4vw,1.5rem)] text-slate-700 dark:text-slate-200">Sistem Fasilitasi Produk Hukum Daerah</p>
     </div>
 </div>
+
+<script>
+    (() => {
+        const layar = document.getElementById('layar-masuk');
+        let sudahTampil = true;
+
+        try {
+            sudahTampil = sessionStorage.getItem('splash-shown') !== null;
+            sessionStorage.setItem('splash-shown', '1');
+        } catch (e) {}
+
+        if (sudahTampil) {
+            layar.remove();
+            return;
+        }
+
+        // Selesai mengetik (2 detik), lalu memudar.
+        setTimeout(() => {
+            layar.classList.add('opacity-0', 'pointer-events-none');
+            setTimeout(() => layar.remove(), 500);
+        }, 2000);
+    })();
+</script>

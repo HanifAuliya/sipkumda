@@ -190,13 +190,6 @@
                 @apply text-white;
             }
         }
-
-        /* Spinner pada menu yang sedang dibuka. */
-        &[data-memuat]::after {
-            content: "";
-            @apply absolute top-1/2 right-2.5 -mt-2 size-4 rounded-full border-2 border-white/40 border-t-white opacity-0;
-            animation: menu-putar 0.7s linear infinite, menu-muncul 0.1s ease-out 0.05s forwards;
-        }
     }
 
     /* Latar oranye yang meluncur ke menu yang diklik (lihat resources/js/navigasi.js). */
@@ -212,39 +205,26 @@
         @apply bg-transparent shadow-none hover:bg-white/10 dark:hover:bg-white/10;
     }
 
-    /* Garis kemajuan di atas layar; oranye supaya terlihat di atas topbar navy. */
-    .garis-muat {
-        @apply pointer-events-none fixed top-0 left-0 z-[120] h-[3px] w-full origin-left bg-linear-to-r from-accent-500 to-amber-400 opacity-0;
-        box-shadow: 0 0 8px rgb(251 99 64 / 0.7);
-        transform: scaleX(0);
+    /* Efek ketikan pada layar masuk aplikasi. */
+    .ketik-masuk {
+        overflow: hidden;
+        border-right: 0.15em solid orange;
+        white-space: nowrap;
+        animation: ketik-masuk 2s steps(37, end) both, kursor-masuk 0.75s step-end infinite;
+    }
 
-        &[data-berjalan] {
-            opacity: 1;
-            transform: scaleX(0.85);
-            transition: transform 1.6s cubic-bezier(0.08, 0.8, 0.2, 1);
+    /* Blok abu-abu pada kerangka halaman. */
+    .kerangka-blok {
+        @apply rounded-md bg-slate-200 dark:bg-navy-800;
+    }
+
+    /* Panel samping tetap bisa digulir, hanya batang gulirnya yang disembunyikan. */
+    .tanpa-scrollbar {
+        scrollbar-width: none;
+
+        &::-webkit-scrollbar {
+            display: none;
         }
-
-        &[data-selesai] {
-            opacity: 0;
-            transform: scaleX(1);
-            transition: transform 150ms ease-out, opacity 250ms ease-out 150ms;
-        }
-    }
-
-    /* Pemberitahuan memuat di tengah area konten, tidak menutupi menu. */
-    .pemuat-halaman {
-        @apply pointer-events-none fixed inset-x-0 top-16 bottom-0 z-20 grid place-items-center;
-        animation: pemuat-muncul 120ms ease-out both;
-    }
-
-    .pemuat-isi {
-        @apply flex items-center gap-3 rounded-full bg-white px-5 py-3 text-sm font-semibold text-navy-900 shadow-lg ring-1 ring-slate-900/5
-            dark:bg-navy-800 dark:text-white dark:ring-white/10;
-    }
-
-    .pemuat-putar {
-        @apply size-5 rounded-full border-[3px] border-primary-100 border-t-primary-500 dark:border-white/15 dark:border-t-primary-300;
-        animation: menu-putar 0.7s linear infinite;
     }
 
     /* Isi halaman lama meredup sampai halaman baru datang. */
@@ -300,17 +280,14 @@
     }
 }
 
-@keyframes menu-putar {
-    to { transform: rotate(360deg); }
+@keyframes ketik-masuk {
+    from { width: 0; }
+    to { width: 100%; }
 }
 
-@keyframes menu-muncul {
-    to { opacity: 1; }
-}
-
-@keyframes pemuat-muncul {
-    from { opacity: 0; transform: scale(0.96); }
-    to { opacity: 1; transform: scale(1); }
+@keyframes kursor-masuk {
+    from, to { border-color: transparent; }
+    50% { border-color: orange; }
 }
 
 /* Menu diciutkan. Di luar layer supaya menang atas lebar bawaan pada elemennya. */
@@ -332,15 +309,6 @@
         padding-left: 5rem;
     }
 
-    /* Pemberitahuan memuat berada di tengah area konten, bukan tengah layar. */
-    .pemuat-halaman {
-        left: 18rem;
-    }
-
-    html[data-menu-ciut] .pemuat-halaman {
-        left: 5rem;
-    }
-
     html[data-menu-ciut] [data-ciut-tengah] {
         justify-content: center;
         padding-inline: 0;
@@ -352,13 +320,6 @@
 
     html[data-menu-ciut] [data-ciut-tampil] {
         display: block;
-    }
-
-    html[data-menu-ciut] .menu-item[data-memuat]::after {
-        right: 0.125rem;
-        width: 0.875rem;
-        height: 0.875rem;
-        margin-top: -0.4375rem;
     }
 }
 

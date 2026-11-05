@@ -193,7 +193,7 @@ return [
     */
 
     'navigate' => [
-        'show_progress_bar' => false, // Diganti garis kemajuan sendiri (resources/js/navigasi.js).
+        'show_progress_bar' => false, // Server lambat ditandai kerangka halaman (resources/js/navigasi.js).
         'progress_bar_color' => '#5e72e4',
     ],
 

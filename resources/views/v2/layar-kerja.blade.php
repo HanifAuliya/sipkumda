@@ -120,7 +120,7 @@
     <aside class="fixed inset-y-0 left-0 z-50 flex w-80 max-w-[85vw] shrink-0 -translate-x-full flex-col bg-white shadow-xl transition-transform duration-200 lg:static lg:z-auto lg:w-72 lg:translate-x-0 lg:shadow-card dark:bg-navy-900 dark:shadow-none dark:ring-1 dark:ring-white/5"
         x-bind:class="sidebarOpen && 'translate-x-0'" aria-label="Bagian naskah">
         <div class="space-y-3 border-b border-slate-100 p-4 dark:border-navy-800">
-            <x-ui.button :href="$kembali" variant="outline" size="rapat" icon="arrow-left" class="w-full" data-muat-halaman>Kembali ke Daftar</x-ui.button>
+            <x-ui.button :href="$kembali" variant="outline" size="rapat" icon="arrow-left" class="w-full">Kembali ke Daftar</x-ui.button>
 
             {{-- Di layar lebar keterangan ini ada di header. --}}
             <div class="lg:hidden">
@@ -149,7 +149,7 @@
             @endif
         </div>
 
-        <nav class="flex-1 space-y-1 overflow-y-auto p-3" aria-label="Daftar bagian"
+        <nav class="tanpa-scrollbar flex-1 space-y-1 overflow-y-auto p-3" aria-label="Daftar bagian"
             x-on:click="
                 const tautan = $event.target.closest('a[href^=\'#baris-\']');
                 if (tautan && ! document.querySelector(tautan.getAttribute('href'))) {

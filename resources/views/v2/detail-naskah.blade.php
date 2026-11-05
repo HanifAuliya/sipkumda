@@ -105,9 +105,9 @@
             <x-ui.button variant="outline" x-on:click="close()">Tutup</x-ui.button>
             @if ($naskah)
                 @if ($giliranSaya)
-                    <x-ui.button icon="pencil-square" :href="route('v2.naskah.kerja', $naskah)" data-muat-halaman>Kerjakan Naskah</x-ui.button>
+                    <x-ui.button icon="pencil-square" :href="route('v2.naskah.kerja', $naskah)">Kerjakan Naskah</x-ui.button>
                 @else
-                    <x-ui.button variant="outline-primary" icon="table" :href="route('v2.naskah.kerja', $naskah)" data-muat-halaman>Lihat Matriks</x-ui.button>
+                    <x-ui.button variant="outline-primary" icon="table" :href="route('v2.naskah.kerja', $naskah)">Lihat Matriks</x-ui.button>
                 @endif
             @endif
         </x-slot:footer>

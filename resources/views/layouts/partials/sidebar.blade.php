@@ -32,7 +32,7 @@
     </div>
 
     {{-- Menu. Posisi gulir dan penanda aktifnya diatur resources/js/navigasi.js. --}}
-    <nav class="relative flex-1 space-y-6 overflow-y-auto px-3 py-5" data-menu-samping
+    <nav class="tanpa-scrollbar relative flex-1 space-y-6 overflow-y-auto px-3 py-5" data-menu-samping
         x-init="$el.querySelector('[aria-current=page]')?.scrollIntoView({ block: 'nearest' })"
         x-on:click="$event.target.closest('a') && (sidebarOpen = false)">
         @if ($tanpaMuatUlang)

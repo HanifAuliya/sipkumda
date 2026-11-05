@@ -26,6 +26,24 @@ it('menu v2 berpindah tanpa muat ulang, sedangkan aplikasi lama tetap seperti se
         ->assertDontSee('data-penanda-menu', false);
 });
 
+it('kerangka saat server lambat hanya ada di v2, layar masuk ada di kedua aplikasi', function () {
+    $this->actingAs($this->admin)->get(route('v2.beranda'))
+        ->assertSee('id="kerangka-halaman"', false)
+        ->assertSee('id="layar-masuk"', false)
+        ->assertSee('Sistem Fasilitasi Produk Hukum Daerah');
+
+    $this->actingAs($this->admin)->withSession([Navigation::SESI_APLIKASI => Navigation::LAMA])
+        ->get(route('dashboard'))
+        ->assertDontSee('id="kerangka-halaman"', false)
+        ->assertSee('id="layar-masuk"', false);
+});
+
+it('layar masuk tampil lagi setelah login berikutnya', function () {
+    auth()->logout();
+
+    $this->get(route('login'))->assertOk()->assertSee("sessionStorage.removeItem('splash-shown')", false);
+});
+
 it('tombol Kembali mengikuti aplikasi yang sedang dipakai', function () {
     // Halaman lama yang dibuka dari menu v2 tidak boleh melempar pengguna ke aplikasi lama.
     $this->actingAs($this->admin)->withSession([Navigation::SESI_APLIKASI => Navigation::V2])

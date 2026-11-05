@@ -11,6 +11,11 @@
 </head>
 
 <body class="min-h-full">
+    {{-- Layar masuk aplikasi tampil lagi pada login berikutnya. --}}
+    @if (request()->routeIs('login'))
+        <script>try { sessionStorage.removeItem('splash-shown'); } catch (e) {}</script>
+    @endif
+
     <div class="grid min-h-screen lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
         {{-- Panel identitas --}}
         <aside class="relative hidden flex-col items-center justify-center overflow-hidden px-12 py-16 text-center lg:flex">

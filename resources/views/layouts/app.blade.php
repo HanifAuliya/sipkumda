@@ -36,6 +36,11 @@
         <livewire:fasilitasi.detail-fasilitasi />
     @endunless
 
+    {{-- Dipakai resources/js/navigasi.js bila server lambat saat berpindah menu. --}}
+    @if (\App\Support\Navigation::modeV2())
+        <template id="kerangka-halaman">@include('layouts.partials.kerangka')</template>
+    @endif
+
     @livewireScriptConfig
     @stack('scripts')
 </body>
