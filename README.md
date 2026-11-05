@@ -88,7 +88,8 @@ akhirnya masuk ke tabel arsip yang sama dengan JDIH.
 - Pembacaan Word: `app/Services/PembacaNaskahWord.php`
 - Cetak: `app/Services/CetakNaskah.php` dan `app/Support/TataLetakNaskah.php`
 - Layar: `app/Livewire/V2/` dan `resources/views/v2/`
-- Data contoh (lokal): `php artisan db:seed --class=DemoSeeder` lalu `--class=V2DemoSeeder`
+- Data contoh (lokal): `php artisan db:seed --class=V2RancanganPdSeeder` (rancangan milik akun `perangkatdaerah`)
+- Font PDF naskah: salin Bookman Old Style ke `resources/fonts/` (lihat `docs/DEPLOY.md`)
 - Lambang Garuda pada kop: simpan di `public/assets/img/garuda.png`
 
 Di Laragon, permintaan bersamaan bisa gagal 404 selama konfigurasi belum di-cache (lihat docs/DEPLOY.md).

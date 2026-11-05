@@ -7,6 +7,9 @@ use App\Models\NaskahBaris;
 use App\Support\TataLetakNaskah;
 use App\Support\TemplateNaskah;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Dompdf\Dompdf;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 use PhpOffice\PhpWord\Element\Cell;
 use PhpOffice\PhpWord\Element\Section;
 use PhpOffice\PhpWord\IOFactory;
@@ -32,6 +35,15 @@ class CetakNaskah
     private const TEPI_ATAS = 1134;
     private const TEPI_BAWAH = 1417;
     private const LEBAR_ISI = self::F4_LEBAR - self::TEPI_KIRI - self::TEPI_KANAN;
+
+    /** File font di resources/fonts => tebal dan gaya huruf. */
+    private const BOOKMAN = [
+        'BOOKOS.TTF' => ['normal', 'normal'],
+        'BOOKOSB.TTF' => ['bold', 'normal'],
+        'BOOKOSI.TTF' => ['normal', 'italic'],
+        'BOOKOSBI.TTF' => ['bold', 'italic'],
+    ];
+
     private const INDEN = 567;
 
     /** Lebar blok tanda tangan: baris jabatan terpanjang pada Bookman Old Style 12, supaya nama rata tengah terhadapnya. */
@@ -437,11 +449,38 @@ class CetakNaskah
 
     public function pdfNaskah(Naskah $naskah): string
     {
-        return Pdf::loadView('pdf.v2.naskah', [
+        $pdf = Pdf::loadView('pdf.v2.naskah', [
             'naskah' => $naskah,
             'blok' => TataLetakNaskah::susun($naskah, $naskah->baris()->get()),
             'lambang' => self::lambang(),
-        ])->setPaper(self::F4_POINT, 'portrait')->output();
+        ])->setPaper(self::F4_POINT, 'portrait');
+
+        $this->pasangBookman($pdf->getDomPDF());
+
+        return $pdf->output();
+    }
+
+    /**
+     * Produk hukum daerah wajib berhuruf Bookman Old Style (Permendagri 80/2015 Pasal 167,
+     * Permendagri 1/2023 Pasal 32). Filenya berlisensi dan tidak ikut di repo: salin ke
+     * resources/fonts (lihat docs/DEPLOY.md). Hanya huruf yang terpakai yang ditanam ke PDF.
+     */
+    private function pasangBookman(Dompdf $dompdf): void
+    {
+        $dompdf->getOptions()->setIsFontSubsettingEnabled(true);
+        File::ensureDirectoryExists($dompdf->getOptions()->getFontDir());
+
+        foreach (self::BOOKMAN as $berkas => [$tebal, $gaya]) {
+            $path = resource_path("fonts/{$berkas}");
+
+            if (! is_file($path)) {
+                Log::error("Font {$berkas} tidak ada di resources/fonts: PDF naskah tidak memakai Bookman Old Style.");
+
+                continue;
+            }
+
+            $dompdf->getFontMetrics()->registerFont(['family' => 'Bookman Old Style', 'weight' => $tebal, 'style' => $gaya], $path);
+        }
     }
 
     /**

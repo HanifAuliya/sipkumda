@@ -285,6 +285,13 @@ describe('berkas hasil cetak', function () {
         expect($cetak->pdfNaskah($n))->toStartWith('%PDF')
             ->and($cetak->pdfMatriks($n))->toStartWith('%PDF');
     });
+
+    it('PDF naskah memakai Bookman Old Style sesuai ketentuan', function () {
+        $pdf = app(CetakNaskah::class)->pdfNaskah(naskahCetak($this->pd));
+
+        expect($pdf)->toContain('BookmanOldStyle')
+            ->and($pdf)->not->toContain('Times-Roman');
+    })->skip(fn () => ! is_file(resource_path('fonts/BOOKOS.TTF')), 'File font belum disalin ke resources/fonts.');
 });
 
 describe('isi lengkap di PDF', function () {
@@ -300,7 +307,8 @@ describe('isi lengkap di PDF', function () {
     }
 
     it('pasal yang lebih panjang dari satu halaman tidak terpotong', function () {
-        $butir = collect(range(1, 90))->map(fn ($i) => "{$i}. Definisi nomor penanda{$i}x yang cukup panjang untuk mengisi lebih dari satu baris pada kolom rumusan di matriks.")->implode("\n");
+        // Penanda di akhir kalimat: Smalot tidak bisa membaca baris rata kanan-kiri pada font tertanam, sedangkan baris terakhir paragraf rata kiri.
+        $butir = collect(range(1, 90))->map(fn ($i) => "{$i}. Definisi yang cukup panjang untuk mengisi lebih dari satu baris pada kolom rumusan di matriks penanda{$i}x.")->implode("\n");
 
         $n = naskahCetak($this->pd, 'Peraturan Bupati', [
             ['bagian' => 'batang_tubuh', 'label' => 'Pasal 1', 'teks' => "Yang dimaksud:\n{$butir}"],

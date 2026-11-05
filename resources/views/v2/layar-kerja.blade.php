@@ -220,8 +220,8 @@
     {{-- Kolom kerja --}}
     <div class="flex min-w-0 flex-1 flex-col">
         <div class="@container flex shrink-0 flex-wrap items-center gap-x-2 gap-y-2 bg-white px-4 py-2.5 lg:gap-x-4 shadow-card sm:px-6 dark:bg-navy-900 dark:shadow-none dark:ring-1 dark:ring-white/5">
-            {{-- Ikon tab disembunyikan saat lajurnya sempit, supaya tab dan tombol aksi muat sebaris. --}}
-            <x-ui.tabs class="max-w-full max-lg:min-w-0 max-lg:flex-1 max-lg:basis-0 max-sm:[&_[role=tab]]:px-2.5 [&_i]:hidden @3xl:[&_i]:inline">
+            {{-- Ikon tab disembunyikan saat lajurnya sempit. Bila tab dan tombol aksi tidak muat sebaris, tombol aksi turun ke baris berikutnya. --}}
+            <x-ui.tabs class="max-w-full max-lg:grow max-sm:[&_[role=tab]]:px-2.5 [&_i]:hidden @3xl:[&_i]:inline">
                 @foreach ($tabs as $kunci => [$ikon, $nama])
                     <x-ui.tab :active="$tab === $kunci" :icon="$ikon" wire:click="$set('tab', '{{ $kunci }}')" wire:key="tab-{{ $kunci }}">{{ $nama }}</x-ui.tab>
                 @endforeach

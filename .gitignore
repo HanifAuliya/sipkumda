@@ -21,3 +21,7 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+
+# Bookman Old Style berlisensi: salin manual, jangan masuk repo publik (lihat docs/DEPLOY.md)
+/resources/fonts/*.[tT][tT][fF]
+/storage/fonts/

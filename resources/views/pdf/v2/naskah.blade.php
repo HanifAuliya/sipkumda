@@ -6,7 +6,7 @@
     <title>{{ $naskah->nomor }}</title>
     <style>
         @page { margin: 2cm 2cm 2.5cm 3cm; }
-        body { font-family: 'Times New Roman', Times, serif; font-size: 12pt; line-height: 1.35; color: #000; }
+        body { font-family: 'Bookman Old Style', 'Times New Roman', Times, serif; font-size: 12pt; line-height: 1.35; color: #000; }
         .kop { text-align: center; font-weight: bold; font-size: 14pt; margin-bottom: 14pt; }
         .lambang { margin-bottom: 6pt; }
         .lambang img { width: 70px; }
@@ -25,8 +25,8 @@
         .penutup { margin-top: 16pt; page-break-inside: avoid; }
         .penutup p { margin: 0; min-height: 14pt; }
         /* Selebar baris jabatan terpanjang, supaya jabatan dan nama rata tengah sesamanya. */
-        .ditetapkan { margin-left: 8cm; width: 6.6cm; }
-        .diundangkan { margin-top: 14pt; width: 7.6cm; }
+        .ditetapkan { margin-left: 8cm; width: 7cm; }
+        .diundangkan { margin-top: 14pt; width: 8.1cm; }
         .penutup .jabatan { text-align: center; }
         .penutup .berita { margin-top: 14pt; }
         .tembusan { margin-top: 14pt; }

@@ -21,6 +21,15 @@ php artisan event:cache
 > gagal dengan error database acak. Load test membuktikan ini (1–5% request gagal tanpa
 > `config:cache`, 0% dengan `config:cache`). Jalankan ulang setiap kali `.env` diubah.
 
+### Font Bookman Old Style (sekali saat pemasangan server)
+
+Produk hukum daerah wajib berhuruf Bookman Old Style 12 (Permendagri 80/2015 Pasal 167,
+Permendagri 1/2023 Pasal 32). File font berlisensi dan tidak ikut di repo, jadi salin manual
+`BOOKOS.TTF`, `BOOKOSB.TTF`, `BOOKOSI.TTF`, dan `BOOKOSBI.TTF` dari `C:\Windows\Fonts` komputer
+ber-Office ke `resources/fonts/` dengan nama huruf besar seperti itu. Pastikan `storage/fonts`
+bisa ditulis oleh web server. Tanpa file ini PDF naskah jatuh ke Times New Roman dan
+`storage/logs/laravel.log` mencatat "tidak memakai Bookman Old Style".
+
 ## 2. `.env` production
 
 | Variabel | Nilai | Catatan |
