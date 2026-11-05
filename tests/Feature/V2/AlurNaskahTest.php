@@ -200,8 +200,9 @@ describe('baris matriks', function () {
         $baris = $n->baris()->get();
         $penanda = TemplateNaskah::penanda($n, $baris);
 
+        // Tersisa satu pertimbangan, jadi tanpa huruf; bila yang dihapus ikut terhitung, hasilnya "b.".
         expect($pertama->fresh()->teksAkhir())->toBeNull()
-            ->and($penanda[$baris->where('bagian', 'menimbang')->last()->id])->toBe('a.');
+            ->and($penanda[$baris->where('bagian', 'menimbang')->last()->id])->toBeNull();
     });
 
     it('meminta PD perbaiki wajib menulis arahan', function () {
@@ -286,7 +287,7 @@ describe('baris matriks', function () {
     });
 
     it('penomoran diktum SK otomatis', function () {
-        $n = naskahDraf($this->pd, 'Surat Keputusan');
+        $n = naskahDraf($this->pd, 'Keputusan Bupati');
         $this->alur->isiBaris($n, [
             ['bagian' => 'diktum', 'label' => null, 'teks' => 'satu'],
             ['bagian' => 'diktum', 'label' => null, 'teks' => 'dua'],
@@ -643,13 +644,13 @@ describe('pembaca Word', function () {
             ->and($hasil['ringkasan']['pasal'])->toBe(2);
     });
 
-    it('memecah Surat Keputusan menjadi diktum', function () {
+    it('memecah Keputusan Bupati menjadi diktum', function () {
         $hasil = (new PembacaNaskahWord())->baca(wordDari([
             'KEPUTUSAN BUPATI HULU SUNGAI TENGAH', 'NOMOR 400/ /911/TAHUN 2025', 'TENTANG', 'PENETAPAN HIBAH',
             'BUPATI HULU SUNGAI TENGAH,', 'Menimbang : a. bahwa satu;', 'b. bahwa dua;', 'Mengingat : 1. Undang-Undang satu;',
             'M E M U T U S K A N:', 'Menetapkan:', 'KESATU : Menetapkan penerima.', 'KE DUA : Besaran hibah.', 'Lanjutan kedua.',
             'Ditetapkan di Barabai', 'LAMPIRAN', 'Daftar penerima',
-        ]), 'Surat Keputusan');
+        ]), 'Keputusan Bupati');
         $baris = collect($hasil['baris']);
 
         expect($baris->where('bagian', 'diktum')->pluck('teks')->all())->toBe(['Menetapkan penerima.', "Besaran hibah.\nLanjutan kedua."])
@@ -742,11 +743,11 @@ describe('bagian wajib dan lembar kerja', function () {
             ->assertDontSeeLivewire(NotificationDropdown::class);
     });
 
-    it('badge Surat Keputusan berbeda warna dari Peraturan Bupati', function () {
-        $sk = naskahDraf($this->pd, 'Surat Keputusan');
+    it('badge Keputusan Bupati berbeda warna dari Peraturan Bupati', function () {
+        $sk = naskahDraf($this->pd, 'Keputusan Bupati');
 
         $this->actingAs($this->pd)->get(route('v2.naskah.kerja', $sk))->assertOk()
-            ->assertSee('Surat Keputusan')
+            ->assertSee('Keputusan Bupati')
             ->assertSeeHtml('bg-accent-500');
     });
 });

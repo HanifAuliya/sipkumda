@@ -183,13 +183,16 @@ class AlurNaskah
 
     private function nomorNotaDipakai(int $nomor, string $jenis, int $tahun): bool
     {
+        // Alur lama masih menyimpan Keputusan Bupati dengan nama "Surat Keputusan".
+        $jenisLama = $jenis === 'Keputusan Bupati' ? 'Surat Keputusan' : $jenis;
+
         return NaskahNotaDinas::whereRaw('CAST(nomor_inputan AS UNSIGNED) = ?', [$nomor])
             ->whereYear('tanggal_nota', $tahun)
             ->whereHas('naskah', fn ($q) => $q->where('jenis', $jenis))
             ->exists()
             || NotaDinas::whereRaw('CAST(nomor_inputan AS UNSIGNED) = ?', [$nomor])
                 ->whereYear('tanggal_nota', $tahun)
-                ->whereHas('fasilitasi.rancangan', fn ($q) => $q->where('jenis_rancangan', $jenis))
+                ->whereHas('fasilitasi.rancangan', fn ($q) => $q->where('jenis_rancangan', $jenisLama))
                 ->exists();
     }
 

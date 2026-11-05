@@ -63,7 +63,7 @@ class V2DemoSeeder extends Seeder
         $peneliti = User::role('Peneliti')->firstOrFail();
 
         // Masih disusun PD.
-        $this->buat($alur, $pd, 'Surat Keputusan', 'Penetapan Penerima Hibah', self::SK);
+        $this->buat($alur, $pd, 'Keputusan Bupati', 'Penetapan Penerima Hibah', self::SK);
 
         // Sedang diteliti, sebagian baris sudah diperiksa.
         $diteliti = $this->buat($alur, $pd, 'Peraturan Bupati', 'Tata Cara Pembagian dan Penetapan Rincian Alokasi Dana Desa', self::PERBUP);
@@ -94,7 +94,7 @@ class V2DemoSeeder extends Seeder
             $alur->jalankan($ttdNaskah, $peneliti, 'teruskan_ke_verifikator');
             $alur->jalankan($ttdNaskah, $verifikator, 'setujui_rancangan');
             $alur->jalankan($ttdNaskah, $pd, 'ajukan_fasilitasi');
-            $alur->jalankan($ttdNaskah, $admin, 'setujui_fasilitasi');
+            $alur->jalankan($ttdNaskah, $peneliti, 'setujui_fasilitasi');
             $alur->jalankan($ttdNaskah, $verifikator, 'finalkan');
             $alur->terbitkanNota($ttdNaskah, $admin, (string) random_int(500, 999), 'Sekretaris Daerah', $ttd->id);
             $alur->tandaiTahapan($ttdNaskah, $admin);

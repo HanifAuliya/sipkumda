@@ -334,12 +334,12 @@ class PembacaNaskahWord
             $this->pindahBagian('penutup');
         } elseif (preg_match('/^M\s*E\s*M\s*U\s*T\s*U\s*S\s*K\s*A\s*N\s*:?$/u', $teks)) {
             $this->pindahBagian('diktum');
-            if ($this->jenis === 'Surat Keputusan') {
+            if ($this->jenis === 'Keputusan Bupati') {
                 return;
             }
         } elseif (preg_match('/^menetapkan\s*:?\s*(.*)$/isu', $teks, $m) && in_array($this->bagian, ['judul', 'menimbang', 'mengingat', 'diktum'], true)) {
             $this->pindahBagian('diktum');
-            if ($this->jenis === 'Surat Keputusan') {
+            if ($this->jenis === 'Keputusan Bupati') {
                 if (trim($m[1]) === '') {
                     return;
                 }
@@ -348,7 +348,7 @@ class PembacaNaskahWord
         }
 
         // Naskah tanpa baris "Menetapkan": kepala BAB atau Pasal tetap menandai awal Batang Tubuh.
-        if ($this->jenis !== 'Surat Keputusan' && in_array($this->bagian, ['menimbang', 'mengingat'], true) && $this->labelStruktur($teks)) {
+        if ($this->jenis !== 'Keputusan Bupati' && in_array($this->bagian, ['menimbang', 'mengingat'], true) && $this->labelStruktur($teks)) {
             $this->bagian = 'batang_tubuh';
         }
 
@@ -364,7 +364,7 @@ class PembacaNaskahWord
     private function prosesJudul(string $teks): void
     {
         // Kop dan kalimat pembuka dicetak dari template, bukan bagian judul.
-        if (preg_match('/^BUPATI HULU SUNGAI TENGAH,?$|^DENGAN RAHMAT TUHAN YANG MAHA ESA,?$/iu', $teks)) {
+        if (preg_match('/^BUPATI HULU SUNGAI TENGAH,?$|^PROVINSI KALIMANTAN SELATAN,?$|^DENGAN RAHMAT TUHAN YANG MAHA ESA,?$/iu', $teks)) {
             return;
         }
 
@@ -373,7 +373,7 @@ class PembacaNaskahWord
 
     private function prosesDiktum(string $teks): void
     {
-        if ($this->jenis === 'Surat Keputusan') {
+        if ($this->jenis === 'Keputusan Bupati') {
             if (preg_match('/^KE\s*(?:' . self::DIKTUM . ')\s*:?\s*(.*)$/su', $teks, $m)) {
                 $this->baruBaris('diktum', null, trim($m[1]));
 
@@ -453,7 +453,7 @@ class PembacaNaskahWord
         $this->bagian = $bagian;
 
         // Bagian yang berisi satu blok teks memulai barisnya saat pertama dimasuki.
-        if (in_array($bagian, ['judul', 'diktum', 'penutup'], true) && ! ($bagian === 'diktum' && $this->jenis === 'Surat Keputusan')) {
+        if (in_array($bagian, ['judul', 'diktum', 'penutup'], true) && ! ($bagian === 'diktum' && $this->jenis === 'Keputusan Bupati')) {
             $terakhir = end($this->baris);
             if (! $terakhir || $terakhir['bagian'] !== $bagian) {
                 $this->baruBaris($bagian, null, '');

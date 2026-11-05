@@ -20,7 +20,7 @@ class BandingNaskah
     /** @param Collection<int, NaskahBaris> $baris urut menurut kolom urutan */
     public static function susun(Naskah $naskah, Collection $baris): array
     {
-        $sk = $naskah->jenis === 'Surat Keputusan';
+        $sk = $naskah->jenis === 'Keputusan Bupati';
         $penanda = TemplateNaskah::penanda($naskah, $baris);
         $penandaAwal = self::penandaAwal($naskah, $baris);
         $blok = [];
@@ -94,7 +94,8 @@ class BandingNaskah
 
     private static function judul(array &$blok, string $lama, string $baru, bool $sk): void
     {
-        $blok[] = ['tipe' => 'tengah', 'baris' => self::barisTeksBiasa($lama, $baru)];
+        $isi = self::barisTeksBiasa($lama, $baru);
+        $blok[] = ['tipe' => 'tengah', 'baris' => $sk ? $isi : [TataLetakNaskah::PROVINSI, ...$isi]];
 
         if (! $sk) {
             $blok[] = ['tipe' => 'tengah', 'baris' => ['DENGAN RAHMAT TUHAN YANG MAHA ESA']];
@@ -116,11 +117,10 @@ class BandingNaskah
     {
         if ($awalBagian) {
             $blok[] = ['tipe' => 'tengah', 'baris' => ['MEMUTUSKAN :']];
-            $blok[] = ['tipe' => 'teks', 'baris' => [['tingkat' => 0, 'nomor' => null, 'isi' => 'Menetapkan :']]];
-            $blok[] = ['tipe' => 'diktum', 'butir' => []];
+            $blok[] = ['tipe' => 'diktum', 'pembuka' => 'Menetapkan', 'butir' => []];
         }
 
-        $blok[array_key_last($blok)]['butir'][] = ['nomor' => $nomor, 'isi' => self::gabungBaris($lama, $baru)];
+        $blok[array_key_last($blok)]['butir'][] = ['nomor' => $nomor, 'baris' => self::teks($lama, $baru)];
     }
 
     private static function diktumPeraturan(array &$blok, string $lama, string $baru): void
@@ -172,6 +172,7 @@ class BandingNaskah
             'ditetapkan' => self::gabungDaftar($a['ditetapkan'], $b['ditetapkan']),
             'diundangkan' => self::gabungDaftar($a['diundangkan'], $b['diundangkan']),
             'berita' => $a['berita'] === null && $b['berita'] === null ? null : self::beda($a['berita'], $b['berita']),
+            'tembusan' => self::gabungDaftar($a['tembusan'], $b['tembusan']),
         ];
     }
 

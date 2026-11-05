@@ -89,8 +89,8 @@ describe('nota dinas', function () {
             ->and($n->notaDinas->nomor_nota)->toBe('180/12/NDPB/KUM/' . now()->year);
     });
 
-    it('nomor Surat Keputusan memakai kode NDSK', function () {
-        $n = $this->alur->terbitkanNota(naskahFinal($this, 'Surat Keputusan'), $this->verifikator, '3', 'Sekda', $this->ttd->id);
+    it('nomor Keputusan Bupati memakai kode NDSK', function () {
+        $n = $this->alur->terbitkanNota(naskahFinal($this, 'Keputusan Bupati'), $this->verifikator, '3', 'Sekda', $this->ttd->id);
 
         expect($n->notaDinas->nomor_nota)->toBe('180/3/NDSK/KUM/' . now()->year);
     });
@@ -102,7 +102,7 @@ describe('nota dinas', function () {
         expect(fn () => $this->alur->terbitkanNota($kedua, $this->admin, '012', 'Sekda', $this->ttd->id))->toThrow(ValidationException::class);
 
         // Jenis berbeda boleh memakai nomor yang sama.
-        $sk = $this->alur->terbitkanNota(naskahFinal($this, 'Surat Keputusan'), $this->admin, '12', 'Sekda', $this->ttd->id);
+        $sk = $this->alur->terbitkanNota(naskahFinal($this, 'Keputusan Bupati'), $this->admin, '12', 'Sekda', $this->ttd->id);
         expect($sk->tahap)->toBe(T::Penandatanganan);
     });
 
@@ -112,6 +112,14 @@ describe('nota dinas', function () {
         NotaDinas::create(['fasilitasi_id' => $fasilitasi->id, 'nomor_inputan' => '20', 'nomor_nota' => 'x', 'tanggal_nota' => now(), 'tanda_tangan_id' => $this->ttd->id, 'kepada' => 'Sekda']);
 
         expect(fn () => $this->alur->terbitkanNota(naskahFinal($this), $this->admin, '20', 'Sekda', $this->ttd->id))->toThrow(ValidationException::class);
+    });
+
+    it('nomor Keputusan Bupati tetap bentrok dengan "Surat Keputusan" pada nota dinas alur lama', function () {
+        $rancangan = RancanganProdukHukum::factory()->create(['id_user' => $this->pd->id, 'jenis_rancangan' => 'Surat Keputusan']);
+        $fasilitasi = FasilitasiProdukHukum::create(['rancangan_id' => $rancangan->id_rancangan, 'tanggal_fasilitasi' => now(), 'file_rancangan' => 'x.pdf', 'status_berkas_fasilitasi' => 'Disetujui', 'status_validasi_fasilitasi' => 'Diterima']);
+        NotaDinas::create(['fasilitasi_id' => $fasilitasi->id, 'nomor_inputan' => '21', 'nomor_nota' => 'x', 'tanggal_nota' => now(), 'tanda_tangan_id' => $this->ttd->id, 'kepada' => 'Sekda']);
+
+        expect(fn () => $this->alur->terbitkanNota(naskahFinal($this, 'Keputusan Bupati'), $this->admin, '21', 'Sekda', $this->ttd->id))->toThrow(ValidationException::class);
     });
 
     it('isian wajib dan hak akses diperiksa', function () {
@@ -441,10 +449,10 @@ describe('kelengkapan layar', function () {
 
     it('template Word bisa diunduh dan terbaca kembali', function () {
         $this->actingAs($this->pd)->get(route('v2.template', 'peraturan-bupati'))->assertOk()->assertDownload('Template Peraturan Bupati.docx');
-        $this->actingAs($this->pd)->get(route('v2.template', 'surat-keputusan'))->assertOk();
+        $this->actingAs($this->pd)->get(route('v2.template', 'keputusan-bupati'))->assertOk();
         $this->actingAs($this->pd)->get('/v2/template/lain')->assertNotFound();
 
-        foreach (['Peraturan Bupati', 'Surat Keputusan'] as $jenis) {
+        foreach (['Peraturan Bupati', 'Keputusan Bupati'] as $jenis) {
             $path = app(CetakNaskah::class)->wordTemplate($jenis);
             rename($path, $salinan = $path . '.docx');
             $hasil = (new PembacaNaskahWord())->baca($salinan, $jenis);

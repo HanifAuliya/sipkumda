@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\AlurNaskah;
 use App\Services\CetakNaskah;
 use App\Services\PembacaNaskahWord;
+use App\Support\BandingNaskah;
 use App\Support\TataLetakNaskah;
 use App\Support\TemplateNaskah;
 use Database\Seeders\RoleSeeder;
@@ -61,19 +62,149 @@ describe('tata letak', function () {
         ]);
     });
 
-    it('Surat Keputusan memakai KESATU dan tanpa kalimat pembuka', function () {
-        $n = naskahCetak($this->pd, 'Surat Keputusan', [
+    it('Keputusan Bupati memakai KESATU dan tanpa kalimat pembuka', function () {
+        $n = naskahCetak($this->pd, 'Keputusan Bupati', [
             ['bagian' => 'judul', 'label' => null, 'teks' => "KEPUTUSAN BUPATI\nTENTANG\nHIBAH"],
             ['bagian' => 'diktum', 'label' => null, 'teks' => 'Menetapkan penerima.'],
             ['bagian' => 'diktum', 'label' => null, 'teks' => 'Berlaku sejak ditetapkan.'],
-            ['bagian' => 'penutup', 'label' => null, 'teks' => TemplateNaskah::penutup('Surat Keputusan')],
+            ['bagian' => 'penutup', 'label' => null, 'teks' => TemplateNaskah::penutup('Keputusan Bupati')],
         ]);
         $blok = collect(TataLetakNaskah::susun($n, $n->baris()->get()));
 
         expect($blok->where('tipe', 'tengah')->pluck('baris')->flatten())->toContain('MEMUTUSKAN :')->not->toContain('DENGAN RAHMAT TUHAN YANG MAHA ESA')
-            ->and($blok->where('tipe', 'teks')->first()['baris'][0]['isi'])->toBe('Menetapkan :')
-            ->and($blok->firstWhere('tipe', 'diktum')['butir'][1])->toBe(['nomor' => 'KEDUA', 'isi' => 'Berlaku sejak ditetapkan.'])
+            ->and($blok->firstWhere('tipe', 'diktum')['pembuka'])->toBe('Menetapkan')
+            ->and($blok->firstWhere('tipe', 'diktum')['butir'][1]['nomor'])->toBe('KEDUA')
+            ->and($blok->firstWhere('tipe', 'diktum')['butir'][1]['baris'][0]['isi'])->toBe('Berlaku sejak ditetapkan.')
             ->and($blok->firstWhere('tipe', 'penutup')['diundangkan'])->toBe([]);
+    });
+
+    it('kop mengikuti produk hukum yang terbit: provinsi hanya pada Peraturan Bupati', function () {
+        $perbup = naskahCetak($this->pd);
+        $sk = naskahCetak($this->pd, 'Keputusan Bupati', [
+            ['bagian' => 'judul', 'label' => null, 'teks' => "KEPUTUSAN BUPATI\nTENTANG\nHIBAH"],
+            ['bagian' => 'diktum', 'label' => null, 'teks' => 'Menetapkan penerima.'],
+        ]);
+
+        expect(TataLetakNaskah::susun($perbup, $perbup->baris()->get())[0]['baris'][0])->toBe(TataLetakNaskah::PROVINSI)
+            ->and(TataLetakNaskah::susun($sk, $sk->baris()->get())[0]['baris'])->not->toContain(TataLetakNaskah::PROVINSI);
+    });
+
+    it('rincian di dalam diktum menjadi butir dengan nomornya sendiri', function () {
+        $n = naskahCetak($this->pd, 'Keputusan Bupati', [
+            ['bagian' => 'diktum', 'label' => null, 'teks' => "Tugas Tim adalah:\na. menilai;\nb. melapor."],
+        ]);
+        $diktum = collect(TataLetakNaskah::susun($n, $n->baris()->get()))->firstWhere('tipe', 'diktum');
+
+        expect($diktum['butir'][0]['baris'])->toBe([
+            ['tingkat' => 0, 'nomor' => null, 'isi' => 'Tugas Tim adalah:'],
+            ['tingkat' => 0, 'nomor' => 'a.', 'isi' => 'menilai;'],
+            ['tingkat' => 0, 'nomor' => 'b.', 'isi' => 'melapor.'],
+        ]);
+    });
+
+    it('pertimbangan tunggal ditulis tanpa huruf', function () {
+        $n = naskahCetak($this->pd, 'Peraturan Bupati', [
+            ['bagian' => 'menimbang', 'label' => null, 'teks' => 'bahwa satu;'],
+        ]);
+        $baris = $n->baris()->get();
+
+        expect(TemplateNaskah::penanda($n, $baris)[$baris->first()->id])->toBeNull();
+
+        $n->baris()->create(['bagian' => 'menimbang', 'urutan' => 2, 'rumusan_awal' => 'bahwa dua;', 'status' => 'belum']);
+        $baris = $n->baris()->get();
+
+        expect(array_values(TemplateNaskah::penanda($n, $baris)))->toBe(['a.', 'b.']);
+
+        // Yang dihapus tidak ikut dihitung: sisanya tetap berurutan dari a.
+        $n->baris()->create(['bagian' => 'menimbang', 'urutan' => 3, 'rumusan_awal' => 'bahwa tiga;', 'status' => 'belum']);
+        $n->baris()->where('rumusan_awal', 'bahwa satu;')->update(['status' => 'dihapus']);
+
+        expect(array_values(TemplateNaskah::penanda($n, $n->baris()->get())))->toBe([null, 'a.', 'b.']);
+    });
+
+    it('perubahan butir diktum tampil di perbandingan tanpa merusak tampilan', function () {
+        $n = naskahCetak($this->pd, 'Keputusan Bupati', [
+            ['bagian' => 'judul', 'label' => null, 'teks' => "KEPUTUSAN BUPATI\nTENTANG\nHIBAH"],
+            ['bagian' => 'diktum', 'label' => null, 'teks' => "Tugas Tim adalah:\na. menilai;\nb. melapor."],
+            ['bagian' => 'penutup', 'label' => null, 'teks' => TemplateNaskah::penutup('Keputusan Bupati')."\n\nTembusan :\n1. Camat"],
+        ]);
+        $n->baris()->where('bagian', 'diktum')->update([
+            'rumusan_penyempurnaan' => "Tugas Tim adalah:\na. menilai;\nb. melapor kepada Bupati.",
+            'status' => 'diubah',
+        ]);
+
+        $html = view('v2.partials.isi-naskah', [
+            'blok' => BandingNaskah::susun($n, $n->baris()->get()),
+            'tandaiUbahan' => true,
+        ])->render();
+
+        expect($html)->toContain('Menetapkan', 'KESATU', '<ins>', 'Tembusan :')
+            ->and($html)->not->toContain('&lt;ins&gt;');
+    });
+
+    it('Word dan PDF memuat butir diktum, tabel diktum, dan tembusan', function () {
+        $n = naskahCetak($this->pd, 'Keputusan Bupati', [
+            ['bagian' => 'judul', 'label' => null, 'teks' => "KEPUTUSAN BUPATI\nNOMOR .../.../.../TAHUN ...\nTENTANG\nHIBAH"],
+            ['bagian' => 'menimbang', 'label' => null, 'teks' => 'bahwa satu;'],
+            ['bagian' => 'diktum', 'label' => null, 'teks' => "Tugas Tim adalah:\na. menilai;\n1. tahap satu;\nb. melapor."],
+            ['bagian' => 'diktum', 'label' => null, 'teks' => "Biaya:\n| No | Uraian |\n| 1 | Rapat |"],
+            ['bagian' => 'penutup', 'label' => null, 'teks' => TemplateNaskah::penutup('Keputusan Bupati')."\n\nTembusan :\n1. Camat"],
+        ]);
+        $cetak = app(CetakNaskah::class);
+
+        $path = $cetak->wordNaskah($n);
+        $zip = new ZipArchive();
+        $zip->open($path);
+        $xml = $zip->getFromName('word/document.xml');
+        $berkas = collect(range(0, $zip->numFiles - 1))->map(fn ($i) => $zip->getNameIndex($i));
+        $zip->close();
+        unlink($path);
+
+        expect($xml)->toContain('Menetapkan', 'tahap satu;', 'Rapat', 'Tembusan :')
+            // Produk hukum yang terbit tidak bernomor halaman.
+            ->and($berkas->filter(fn ($b) => str_contains($b, 'footer')))->toBeEmpty()
+            ->and($cetak->pdfNaskah($n))->toStartWith('%PDF');
+    });
+
+    it('tembusan dipisahkan dari blok tanda tangan', function () {
+        $penutup = TataLetakNaskah::penutup("Ditetapkan di Barabai\npada tanggal ...\nBUPATI HULU SUNGAI TENGAH,\n\nNAMA\n\nTembusan :\n1. Camat\n2. Yang Bersangkutan");
+
+        expect($penutup['ditetapkan'])->toBe(['Ditetapkan di Barabai', 'pada tanggal ...', 'BUPATI HULU SUNGAI TENGAH,', '', 'NAMA'])
+            ->and($penutup['tembusan'])->toBe(['Tembusan :', '1. Camat', '2. Yang Bersangkutan']);
+    });
+
+    it('tempat dan tanggal rata kiri, jabatan dan nama rata tengah', function () {
+        expect(TataLetakNaskah::barisTempatTanggal('Ditetapkan di Barabai'))->toBeTrue()
+            ->and(TataLetakNaskah::barisTempatTanggal('pada tanggal ...'))->toBeTrue()
+            ->and(TataLetakNaskah::barisTempatTanggal(new Illuminate\Support\HtmlString('<ins>Diundangkan di Barabai</ins>')))->toBeTrue()
+            ->and(TataLetakNaskah::barisTempatTanggal('BUPATI HULU SUNGAI TENGAH,'))->toBeFalse();
+    });
+
+    it('kerangka memuat nomor bergaris miring pada Keputusan dan kalimat wajib pada keduanya', function () {
+        $sk = collect(TemplateNaskah::kerangka('Keputusan Bupati', 'Hibah'));
+        $perbup = collect(TemplateNaskah::kerangka('Peraturan Bupati', 'Dana Desa'));
+
+        expect($sk->firstWhere('bagian', 'judul')['teks'])->toContain('NOMOR .../.../.../TAHUN ...')
+            ->and($sk->where('bagian', 'diktum')->last()['teks'])->toBe('Keputusan Bupati ini mulai berlaku pada tanggal ditetapkan.')
+            ->and($perbup->firstWhere('bagian', 'judul')['teks'])->toContain('NOMOR ... TAHUN ...')
+            ->and($perbup->firstWhere('bagian', 'diktum')['teks'])->toStartWith("MEMUTUSKAN:\nMenetapkan:")
+            ->and($perbup->firstWhere('label', 'BAB II')['teks'])->toBe('KETENTUAN PENUTUP')
+            ->and($perbup->firstWhere('label', 'Pasal 2')['teks'])->toContain('Agar setiap orang mengetahuinya');
+    });
+
+    it('baris provinsi pada file unggahan tidak masuk judul', function () {
+        $word = new PhpOffice\PhpWord\PhpWord();
+        $bagian = $word->addSection();
+        foreach (['BUPATI HULU SUNGAI TENGAH', 'PROVINSI KALIMANTAN SELATAN', 'PERATURAN BUPATI HULU SUNGAI TENGAH', 'TENTANG', 'DANA DESA', 'Menimbang: bahwa satu;'] as $teks) {
+            $bagian->addText($teks);
+        }
+        $path = tempnam(sys_get_temp_dir(), 'unggah');
+        PhpOffice\PhpWord\IOFactory::createWriter($word, 'Word2007')->save($path);
+
+        $judul = collect(app(PembacaNaskahWord::class)->baca($path, 'Peraturan Bupati')['baris'])->firstWhere('bagian', 'judul')['teks'];
+        unlink($path);
+
+        expect($judul)->not->toContain('PROVINSI')->toContain('PERATURAN BUPATI HULU SUNGAI TENGAH');
     });
 
     it('rumusan penyempurnaan dipakai dan baris dihapus hilang dari naskah', function () {
@@ -96,7 +227,7 @@ describe('tata letak', function () {
         $n = naskahCetak($this->pd);
         $penutup = collect(TataLetakNaskah::susun($n, $n->baris()->get()))->firstWhere('tipe', 'penutup');
 
-        expect($penutup['ditetapkan'])->toBe(['Ditetapkan di Barabai', 'pada tanggal ...', 'BUPATI HULU SUNGAI TENGAH,', '', '', '', 'NAMA BUPATI UJI'])
+        expect($penutup['ditetapkan'])->toBe(['Ditetapkan di Barabai', 'pada tanggal ...', '', 'BUPATI HULU SUNGAI TENGAH,', '', '', '', 'NAMA BUPATI UJI'])
             ->and($penutup['diundangkan'])->toContain('NAMA SEKDA UJI')
             ->and($penutup['berita'])->toStartWith('BERITA DAERAH');
     });
@@ -108,7 +239,7 @@ describe('tata letak', function () {
             ['bagian' => 'judul', 'label' => null, 'teks' => 'x'],
             ['bagian' => 'penutup', 'label' => null, 'teks' => 'BUPATI LAMA'],
             ['bagian' => 'lampiran', 'label' => null, 'teks' => ''],
-        ], 'Surat Keputusan');
+        ], 'Keputusan Bupati');
 
         expect(array_column($hasil, 'bagian'))->toBe(['judul', 'penutup', 'lampiran'])
             ->and($hasil[1]['teks'])->toContain('BUPATI BARU')->not->toContain('BUPATI LAMA');

@@ -14,17 +14,22 @@ use Illuminate\Support\Collection;
  * - tengah  : baris rata tengah
  * - daftar  : Menimbang/Mengingat/Menetapkan dengan label dan butir bernomor
  * - teks    : isi pasal, tiap baris punya tingkat dan nomor
- * - diktum  : KESATU, KEDUA pada Surat Keputusan
- * - penutup : blok Ditetapkan, Diundangkan, dan Berita Daerah
+ * - diktum  : KESATU, KEDUA pada Keputusan Bupati, tiap diktum bisa memuat butir
+ * - penutup : blok Ditetapkan, Diundangkan, Berita Daerah, dan Tembusan
+ *
+ * Susunannya mengikuti produk hukum yang terbit di JDIH Kabupaten Hulu Sungai Tengah.
  */
 class TataLetakNaskah
 {
     public const KOP = 'BUPATI HULU SUNGAI TENGAH';
 
+    /** Dicetak di bawah kop Peraturan Bupati; Keputusan Bupati tidak memakainya. */
+    public const PROVINSI = 'PROVINSI KALIMANTAN SELATAN';
+
     /** @param Collection<int, NaskahBaris> $baris urut menurut kolom urutan */
     public static function susun(Naskah $naskah, Collection $baris): array
     {
-        $sk = $naskah->jenis === 'Surat Keputusan';
+        $sk = $naskah->jenis === 'Keputusan Bupati';
         $penanda = TemplateNaskah::penanda($naskah, $baris);
         $blok = [];
         $sebelumnya = null;
@@ -76,7 +81,7 @@ class TataLetakNaskah
 
     private static function judul(array &$blok, ?string $teks, bool $sk): void
     {
-        $blok[] = ['tipe' => 'tengah', 'baris' => self::barisIsi($teks)];
+        $blok[] = ['tipe' => 'tengah', 'baris' => $sk ? self::barisIsi($teks) : [self::PROVINSI, ...self::barisIsi($teks)]];
 
         if (! $sk) {
             $blok[] = ['tipe' => 'tengah', 'baris' => ['DENGAN RAHMAT TUHAN YANG MAHA ESA']];
@@ -98,11 +103,10 @@ class TataLetakNaskah
     {
         if ($baru) {
             $blok[] = ['tipe' => 'tengah', 'baris' => ['MEMUTUSKAN :']];
-            $blok[] = ['tipe' => 'teks', 'baris' => [['tingkat' => 0, 'nomor' => null, 'isi' => 'Menetapkan :']]];
-            $blok[] = ['tipe' => 'diktum', 'butir' => []];
+            $blok[] = ['tipe' => 'diktum', 'pembuka' => 'Menetapkan', 'butir' => []];
         }
 
-        $blok[array_key_last($blok)]['butir'][] = ['nomor' => $nomor, 'isi' => (string) $teks];
+        $blok[array_key_last($blok)]['butir'][] = ['nomor' => $nomor, 'baris' => self::barisTeks($teks)];
     }
 
     /** "MEMUTUSKAN:" rata tengah, "Menetapkan: ..." menjadi baris berlabel. */
@@ -135,15 +139,26 @@ class TataLetakNaskah
 
     public static function penutup(?string $teks): array
     {
-        $ditetapkan = $diundangkan = [];
+        $ditetapkan = $diundangkan = $tembusan = [];
         $berita = null;
-        $sedangDiundangkan = false;
+        $sedangDiundangkan = $sedangTembusan = false;
 
         foreach (preg_split('/\R/u', (string) $teks) as $baris) {
             $baris = trim($baris);
 
             if (preg_match('/^BERITA DAERAH\b|^\(?LEMBARAN DAERAH\b/iu', $baris)) {
                 $berita = $baris;
+                continue;
+            }
+
+            if (preg_match('/^tembusan\b/iu', $baris)) {
+                $sedangTembusan = true;
+            }
+
+            if ($sedangTembusan) {
+                if ($baris !== '') {
+                    $tembusan[] = $baris;
+                }
                 continue;
             }
 
@@ -164,7 +179,14 @@ class TataLetakNaskah
             'ditetapkan' => self::rapikanTepi($ditetapkan),
             'diundangkan' => self::rapikanTepi($diundangkan),
             'berita' => $berita,
+            'tembusan' => $tembusan,
         ];
+    }
+
+    /** Tempat dan tanggal rata kiri; jabatan dan nama pejabat rata tengah sesamanya. */
+    public static function barisTempatTanggal(string|\Stringable $baris): bool
+    {
+        return preg_match('/^(?:(?:ditetapkan|diundangkan)\s+di\b|pada\s+tanggal\b)/iu', trim(strip_tags((string) $baris))) === 1;
     }
 
     private static function rapikanTepi(array $baris): array

@@ -57,32 +57,51 @@
                 @endforeach
             </table>
         @elseif ($b['tipe'] === 'diktum')
-            <table class="mb-3 w-full border-collapse">
+            {{-- Lebar kolom tetap: tabel di dalam diktum tidak boleh mendorong isi keluar kertas pada layar sempit. --}}
+            <table class="mb-3 w-full table-fixed border-collapse">
+                <tr>
+                    <td class="{{ $sel }} {{ $ringkas ? 'w-24' : 'w-28' }}">{{ $b['pembuka'] }}</td>
+                    <td class="{{ $sel }} w-4">:</td>
+                    <td class="{{ $sel }}"></td>
+                </tr>
                 @foreach ($b['butir'] as $i => $butir)
                     @php $idButir = $b['ids'][$i] ?? null; @endphp
                     <tr class="group relative" data-baris="{{ $idButir }}">
                         <td class="{{ $sel }} {{ $ringkas ? 'w-24' : 'w-28' }}">{{ $butir['nomor'] }}</td>
                         <td class="{{ $sel }} w-4">:</td>
-                        <td class="{{ $sel }} {{ $rata }} whitespace-pre-line">{{ $butir['isi'] }}@if ($perluTombol($idButir))@include('v2.partials.tombol-baris', ['id' => $idButir, 'diubah' => $b['diubahButir'][$i] ?? false])@endif</td>
+                        <td class="{{ $sel }}">
+                            @include('v2.partials.baris-teks', ['daftar' => $butir['baris'], 'rata' => $rata])
+                            @if ($perluTombol($idButir))
+                                @include('v2.partials.tombol-baris', ['id' => $idButir, 'diubah' => $b['diubahButir'][$i] ?? false])
+                            @endif
+                        </td>
                     </tr>
                 @endforeach
             </table>
         @elseif ($b['tipe'] === 'penutup')
             <div class="group relative mt-8" data-baris="{{ $b['id'] ?? '' }}">
-                <div @class(['ml-auto', 'w-56' => $ringkas, 'w-72' => ! $ringkas])>
+                {{-- Lebar blok mengikuti baris terpanjang, supaya jabatan dan nama rata tengah sesamanya. --}}
+                <div class="ml-auto w-fit max-w-full">
                     @foreach ($b['ditetapkan'] as $baris)
-                        <p class="min-h-6">{{ $baris }}</p>
+                        <p @class(['min-h-6', 'text-center' => ! App\Support\TataLetakNaskah::barisTempatTanggal($baris)])>{{ $baris }}</p>
                     @endforeach
                 </div>
                 @if ($b['diundangkan'])
-                    <div @class(['mt-6', 'w-64' => $ringkas, 'w-80' => ! $ringkas])>
+                    <div class="mt-6 w-fit max-w-full">
                         @foreach ($b['diundangkan'] as $baris)
-                            <p class="min-h-6">{{ $baris }}</p>
+                            <p @class(['min-h-6', 'text-center' => ! App\Support\TataLetakNaskah::barisTempatTanggal($baris)])>{{ $baris }}</p>
                         @endforeach
                     </div>
                 @endif
                 @if ($b['berita'])
                     <p class="mt-6">{{ $b['berita'] }}</p>
+                @endif
+                @if ($b['tembusan'])
+                    <div class="mt-6">
+                        @foreach ($b['tembusan'] as $baris)
+                            <p>{{ $baris }}</p>
+                        @endforeach
+                    </div>
                 @endif
                 @if ($perluTombol($b['id'] ?? null))
                     @include('v2.partials.tombol-baris', ['id' => $b['id'], 'diubah' => $b['diubah'] ?? false])
@@ -90,29 +109,7 @@
             </div>
         @else
             <div class="group relative" data-baris="{{ $b['id'] ?? '' }}">
-                @foreach ($b['baris'] as $baris)
-                    @if (isset($baris['tabel']))
-                        <div class="overflow-x-auto">
-                            <table class="my-2 w-full border-collapse text-sm">
-                                @foreach ($baris['tabel'] as $kolom)
-                                    <tr>
-                                        @foreach ($kolom as $isi)
-                                            <td class="border border-black px-2 py-1 align-top">{{ $isi }}</td>
-                                        @endforeach
-                                    </tr>
-                                @endforeach
-                            </table>
-                        </div>
-                        @continue
-                    @endif
-                    {{-- Tiap tingkat bergeser selebar kolom nomor (2rem) + jarak (0,75rem), supaya butir sejajar dengan teks di atasnya. --}}
-                    <div class="mb-1 flex gap-3 {{ $rata }}" style="margin-left: {{ $baris['tingkat'] * 2.75 }}rem">
-                        @if ($baris['nomor'] !== null)
-                            <span class="w-8 shrink-0">{{ $baris['nomor'] }}</span>
-                        @endif
-                        <span class="min-w-0 flex-1">{{ $baris['isi'] }}</span>
-                    </div>
-                @endforeach
+                @include('v2.partials.baris-teks', ['daftar' => $b['baris'], 'rata' => $rata])
                 @if ($perluTombol($b['id'] ?? null))
                     @include('v2.partials.tombol-baris', ['id' => $b['id'], 'diubah' => $b['diubah'] ?? false])
                 @endif

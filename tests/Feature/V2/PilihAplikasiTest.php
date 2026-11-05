@@ -216,7 +216,7 @@ describe('layar kerja', function () {
     it('draf dibuka dari bagian pertama yang belum terisi, lampiran kosong tidak dihitung', function () {
         $pd = ($this->peran)('Perangkat Daerah');
         $n = Naskah::denganNomorTerkunci(fn () => Naskah::create([
-            'jenis' => 'Surat Keputusan', 'tentang' => 'Uji', 'pemrakarsa_id' => $pd->id,
+            'jenis' => 'Keputusan Bupati', 'tentang' => 'Uji', 'pemrakarsa_id' => $pd->id,
             'nomor_nota' => uniqid(), 'tanggal_nota' => now(),
         ]));
         $alur = app(AlurNaskah::class);
@@ -235,7 +235,7 @@ describe('layar kerja', function () {
     it('tombol kembali menuju daftar asal, bukan alamat lain', function () {
         $pd = ($this->peran)('Perangkat Daerah');
         $n = Naskah::denganNomorTerkunci(fn () => Naskah::create([
-            'jenis' => 'Surat Keputusan', 'tentang' => 'Uji', 'pemrakarsa_id' => $pd->id,
+            'jenis' => 'Keputusan Bupati', 'tentang' => 'Uji', 'pemrakarsa_id' => $pd->id,
             'nomor_nota' => uniqid(), 'tanggal_nota' => now(),
         ]));
         $daftar = route('v2.daftar', 'rancanganku');
@@ -292,8 +292,8 @@ describe('pembagian bagian naskah', function () {
             ->and(collect($blok)->pluck('kunci')->unique())->toHaveCount(4);
     });
 
-    it('Surat Keputusan tidak punya batang tubuh', function () {
-        $n = new Naskah(['jenis' => 'Surat Keputusan']);
+    it('Keputusan Bupati tidak punya batang tubuh', function () {
+        $n = new Naskah(['jenis' => 'Keputusan Bupati']);
         $blok = BlokNaskah::susun($n, collect([barisContoh('diktum', null, 1), barisContoh('batang_tubuh', 'Pasal 1', 2)]));
 
         expect(collect($blok)->pluck('bagian')->all())->toBe(['diktum']);

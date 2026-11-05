@@ -7,6 +7,7 @@ use App\Models\NaskahBaris;
 use App\Support\TataLetakNaskah;
 use App\Support\TemplateNaskah;
 use Barryvdh\DomPDF\Facade\Pdf;
+use PhpOffice\PhpWord\Element\Cell;
 use PhpOffice\PhpWord\Element\Section;
 use PhpOffice\PhpWord\IOFactory;
 use PhpOffice\PhpWord\PhpWord;
@@ -19,13 +20,24 @@ use PhpOffice\PhpWord\SimpleType\Jc;
  */
 class CetakNaskah
 {
-    /** Kertas F4 dalam satuan twip (1 inci = 1440). */
+    /**
+     * Kertas F4 (Permendagri 80/2015 Pasal 167) dalam satuan twip (1 inci = 1440).
+     * Tepi 3/2/2/2,5 cm mengikuti batas paling sedikit pada Pasal 34 Perbup HST 12/2025. Pasal itu
+     * ditujukan bagi naskah korespondensi dan khusus; belum ada angka khusus untuk produk hukum.
+     */
     private const F4_LEBAR = 12240;
     private const F4_TINGGI = 18720;
     private const TEPI_KIRI = 1701;
     private const TEPI_KANAN = 1134;
+    private const TEPI_ATAS = 1134;
+    private const TEPI_BAWAH = 1417;
     private const LEBAR_ISI = self::F4_LEBAR - self::TEPI_KIRI - self::TEPI_KANAN;
     private const INDEN = 567;
+
+    /** Lebar blok tanda tangan: baris jabatan terpanjang pada Bookman Old Style 12, supaya nama rata tengah terhadapnya. */
+    private const KIRI_DITETAPKAN = 4536;
+    private const LEBAR_DITETAPKAN = 3971;
+    private const LEBAR_DIUNDANGKAN = 4576;
 
     /** Kertas F4 dalam satuan point untuk DomPDF. */
     private const F4_POINT = [0, 0, 612, 936];
@@ -81,10 +93,9 @@ class CetakNaskah
             'pageSizeH' => self::F4_TINGGI,
             'marginLeft' => self::TEPI_KIRI,
             'marginRight' => self::TEPI_KANAN,
-            'marginTop' => 1134,
-            'marginBottom' => 1134,
+            'marginTop' => self::TEPI_ATAS,
+            'marginBottom' => self::TEPI_BAWAH,
         ]);
-        $halaman->addFooter()->addPreserveText('{PAGE}', null, ['alignment' => Jc::CENTER]);
 
         if ($lambang = self::lambang()) {
             $halaman->addImage($lambang, ['width' => 70, 'alignment' => Jc::CENTER]);
@@ -140,16 +151,50 @@ class CetakNaskah
         $halaman->addTextBreak(1, null, ['spaceAfter' => 0]);
     }
 
+    /**
+     * Kolom label, titik dua, lalu kolom nomor butir per tingkat. Baris yang tidak memakai semua
+     * kolom menggabungkan sisanya, dengan alasan yang sama seperti wordButir().
+     */
     private function wordDiktum(Section $halaman, array $blok): void
     {
         [$lebarLabel, $lebarTitik] = [1531, 284];
+        $lebarSisa = self::LEBAR_ISI - $lebarLabel - $lebarTitik;
+
+        $bernomor = array_filter(array_merge(...array_column($blok['butir'], 'baris')), fn ($b) => $b['nomor'] !== null && ! isset($b['tabel']));
+        $kolomNomor = $bernomor ? max(array_column($bernomor, 'tingkat')) + 1 : 0;
+
         $tabel = $halaman->addTable(['layout' => 'fixed', 'cellMargin' => 0]);
 
+        $selPenuh = function ($baris) use ($lebarSisa, $kolomNomor) {
+            return $baris->addCell($lebarSisa, $kolomNomor ? ['gridSpan' => $kolomNomor + 1] : []);
+        };
+
+        $pembuka = $tabel->addRow();
+        $pembuka->addCell($lebarLabel)->addText($blok['pembuka']);
+        $pembuka->addCell($lebarTitik)->addText(':');
+        $selPenuh($pembuka)->addText('');
+
         foreach ($blok['butir'] as $butir) {
-            $baris = $tabel->addRow();
-            $baris->addCell($lebarLabel)->addText((string) $butir['nomor']);
-            $baris->addCell($lebarTitik)->addText(':');
-            $this->wordIsi($baris->addCell(self::LEBAR_ISI - $lebarLabel - $lebarTitik), $butir['isi']);
+            foreach ($butir['baris'] as $j => $isi) {
+                $tr = $tabel->addRow();
+                $tr->addCell($lebarLabel)->addText($j === 0 ? (string) $butir['nomor'] : '');
+                $tr->addCell($lebarTitik)->addText($j === 0 ? ':' : '');
+
+                if (isset($isi['tabel'])) {
+                    $this->wordTabel($selPenuh($tr), $isi['tabel'], $lebarSisa);
+                } elseif ($isi['nomor'] === null) {
+                    $selPenuh($tr)->addText($isi['isi'], null, ['alignment' => Jc::BOTH, 'spaceAfter' => 60]);
+                } else {
+                    for ($i = 0; $i < $isi['tingkat']; $i++) {
+                        $tr->addCell(self::INDEN);
+                    }
+
+                    $sisaKolom = $kolomNomor - $isi['tingkat'];
+                    $tr->addCell(self::INDEN)->addText($isi['nomor']);
+                    $tr->addCell($lebarSisa - ($isi['tingkat'] + 1) * self::INDEN, $sisaKolom > 1 ? ['gridSpan' => $sisaKolom] : [])
+                        ->addText($isi['isi'], null, ['alignment' => Jc::BOTH, 'spaceAfter' => 60]);
+                }
+            }
         }
 
         $halaman->addTextBreak(1, null, ['spaceAfter' => 0]);
@@ -218,41 +263,81 @@ class CetakNaskah
         }
     }
 
-    /** @param array<int, array<int, string>> $isi */
-    private function wordTabel(Section $halaman, array $isi): void
+    /**
+     * @param  Section|Cell  $wadah
+     * @param  array<int, array<int, string>>  $isi
+     */
+    private function wordTabel(Section|Cell $wadah, array $isi, int $lebarTersedia = self::LEBAR_ISI): void
     {
         $kolom = max(array_map('count', $isi));
-        $lebar = (int) (self::LEBAR_ISI / $kolom);
-        $tabel = $halaman->addTable(['layout' => 'fixed', 'borderSize' => 6, 'borderColor' => '000000', 'cellMargin' => 60]);
+        $lebar = $this->lebarKolomTabel($isi, $kolom, $lebarTersedia);
+        $tabel = $wadah->addTable(['layout' => 'fixed', 'borderSize' => 6, 'borderColor' => '000000', 'cellMargin' => 60]);
 
         foreach ($isi as $sel) {
-            $tr = $tabel->addRow();
+            // Satu baris tabel tidak boleh terbelah di pergantian halaman.
+            $tr = $tabel->addRow(null, ['cantSplit' => true]);
             for ($i = 0; $i < $kolom; $i++) {
-                $tr->addCell($lebar)->addText($sel[$i] ?? '', ['size' => 11]);
+                $tr->addCell($lebar[$i])->addText($sel[$i] ?? '', ['size' => 11], ['spaceAfter' => 0]);
             }
         }
 
-        $halaman->addTextBreak(1, null, ['spaceAfter' => 0]);
+        // Di dalam sel, PhpWord sudah menutup tabel dengan paragraf yang diwajibkan Word.
+        if ($wadah instanceof Section) {
+            $wadah->addTextBreak(1, null, ['spaceAfter' => 0]);
+        }
+    }
+
+    /**
+     * Lebar kolom sebanding dengan isi terpanjangnya, dibatasi supaya kolom "No" tidak
+     * terlalu sempit dan kolom berisi kalimat panjang tidak menghabiskan seluruh lebar.
+     *
+     * @return list<int>
+     */
+    private function lebarKolomTabel(array $isi, int $kolom, int $lebarTersedia): array
+    {
+        $bobot = [];
+
+        for ($i = 0; $i < $kolom; $i++) {
+            $terpanjang = max(array_map(fn (array $sel) => mb_strlen($sel[$i] ?? ''), $isi));
+            $bobot[] = max(4, min($terpanjang, 30));
+        }
+
+        return array_map(fn (int $b) => (int) ($lebarTersedia * $b / array_sum($bobot)), $bobot);
     }
 
     private function wordPenutup(Section $halaman, array $blok): void
     {
         $halaman->addTextBreak(1);
-
-        foreach ($blok['ditetapkan'] as $baris) {
-            $halaman->addText($baris, null, ['indentation' => ['left' => 4536], 'keepNext' => true, 'spaceAfter' => 0]);
-        }
+        $this->wordBlokJabatan($halaman, $blok['ditetapkan'], self::KIRI_DITETAPKAN, self::LEBAR_DITETAPKAN);
 
         if ($blok['diundangkan']) {
             $halaman->addTextBreak(1);
-            foreach ($blok['diundangkan'] as $baris) {
-                $halaman->addText($baris, null, ['keepNext' => true, 'spaceAfter' => 0]);
-            }
+            $this->wordBlokJabatan($halaman, $blok['diundangkan'], 0, self::LEBAR_DIUNDANGKAN);
         }
 
         if ($blok['berita']) {
             $halaman->addTextBreak(1);
             $halaman->addText($blok['berita'], null, ['spaceAfter' => 0]);
+        }
+
+        if ($blok['tembusan']) {
+            $halaman->addTextBreak(1);
+            foreach ($blok['tembusan'] as $baris) {
+                $halaman->addText($baris, null, ['keepNext' => true, 'spaceAfter' => 0]);
+            }
+        }
+    }
+
+    /** Tempat dan tanggal rata kiri blok; jabatan dan nama rata tengah terhadap baris jabatan terpanjang. */
+    private function wordBlokJabatan(Section $halaman, array $baris, int $kiri, int $lebar): void
+    {
+        foreach ($baris as $teks) {
+            $halaman->addText($teks, null, [
+                'indentation' => ['left' => $kiri, 'right' => self::LEBAR_ISI - $kiri - $lebar],
+                'alignment' => TataLetakNaskah::barisTempatTanggal($teks) ? Jc::START : Jc::CENTER,
+                'keepNext' => true,
+                'spaceAfter' => 0,
+            ]);
         }
     }
 
@@ -407,8 +492,8 @@ class CetakNaskah
             'naskah' => $naskah,
             'nota' => $nota,
             'isi' => $isi,
-            'singkatan' => $naskah->jenis === 'Surat Keputusan' ? 'Rancangan Keputusan' : 'Raperbup',
-            'judul' => $naskah->jenis === 'Surat Keputusan' ? 'KEPUTUSAN BUPATI' : 'PERATURAN BUPATI',
+            'singkatan' => $naskah->jenis === 'Keputusan Bupati' ? 'Rancangan Keputusan' : 'Raperbup',
+            'judul' => $naskah->jenis === 'Keputusan Bupati' ? 'KEPUTUSAN BUPATI' : 'PERATURAN BUPATI',
         ])->setPaper(self::F4_POINT, 'landscape')->output();
     }
 }

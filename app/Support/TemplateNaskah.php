@@ -9,7 +9,7 @@ use Illuminate\Support\Collection;
 
 /**
  * Susunan matriks per jenis produk hukum dan penomoran otomatisnya.
- * Peraturan Bupati memakai BAB/Pasal; Surat Keputusan memakai KESATU, KEDUA, dst.
+ * Peraturan Bupati memakai BAB/Pasal; Keputusan Bupati memakai KESATU, KEDUA, dst.
  */
 class TemplateNaskah
 {
@@ -28,7 +28,7 @@ class TemplateNaskah
         'judul' => 'Sesuaikan judul bila perlu. Nomor dan tahun dikosongkan, karena diisi saat penetapan.',
         'menimbang' => 'Satu baris untuk satu pertimbangan, diawali "bahwa". Huruf a, b, c dibuat otomatis.',
         'mengingat' => 'Satu baris untuk satu peraturan, dari yang tertinggi. Nomor urut dibuat otomatis.',
-        'diktum' => 'Isi bagian yang ditetapkan. Pada Surat Keputusan, KESATU, KEDUA, dan seterusnya dibuat otomatis.',
+        'diktum' => 'Isi bagian yang ditetapkan. Pada Keputusan Bupati, KESATU, KEDUA, dan seterusnya dibuat otomatis; rincian a., b. ditulis per baris di dalam diktumnya.',
         'batang_tubuh' => 'Satu baris untuk satu BAB atau Pasal. Ayat dan butir ditulis di dalam isi pasalnya.',
         'penutup' => 'Nama pejabat diambil dari Pengaturan. Tanggal dan nomor dikosongkan untuk tanda tangan basah.',
         'lampiran' => 'Keterangan lampiran, bila ada. Filenya diunggah di tab Berkas.',
@@ -42,7 +42,7 @@ class TemplateNaskah
     /** Bagian yang dipakai suatu jenis, berurutan. */
     public static function bagian(string $jenis): array
     {
-        return $jenis === 'Surat Keputusan'
+        return $jenis === 'Keputusan Bupati'
             ? array_diff_key(self::BAGIAN, ['batang_tubuh' => true])
             : self::BAGIAN;
     }
@@ -53,12 +53,14 @@ class TemplateNaskah
         $tentang = mb_strtoupper($tentang);
         $penutup = self::penutup($jenis);
 
-        if ($jenis === 'Surat Keputusan') {
+        if ($jenis === 'Keputusan Bupati') {
             return [
-                ['bagian' => 'judul', 'label' => null, 'teks' => "KEPUTUSAN BUPATI HULU SUNGAI TENGAH\nNOMOR ... TAHUN ...\nTENTANG\n{$tentang}"],
+                // Nomor Keputusan: kode klasifikasi/nomor urut/kode unit/TAHUN, misalnya 412/44/412.31/TAHUN 2025.
+                ['bagian' => 'judul', 'label' => null, 'teks' => "KEPUTUSAN BUPATI HULU SUNGAI TENGAH\nNOMOR .../.../.../TAHUN ...\nTENTANG\n{$tentang}"],
                 ['bagian' => 'menimbang', 'label' => null, 'teks' => 'bahwa ...'],
                 ['bagian' => 'mengingat', 'label' => null, 'teks' => ''],
                 ['bagian' => 'diktum', 'label' => null, 'teks' => ''],
+                ['bagian' => 'diktum', 'label' => null, 'teks' => 'Keputusan Bupati ini mulai berlaku pada tanggal ditetapkan.'],
                 ['bagian' => 'penutup', 'label' => null, 'teks' => $penutup],
                 ['bagian' => 'lampiran', 'label' => null, 'teks' => ''],
             ];
@@ -68,9 +70,11 @@ class TemplateNaskah
             ['bagian' => 'judul', 'label' => null, 'teks' => "PERATURAN BUPATI HULU SUNGAI TENGAH\nNOMOR ... TAHUN ...\nTENTANG\n{$tentang}"],
             ['bagian' => 'menimbang', 'label' => null, 'teks' => 'bahwa ...'],
             ['bagian' => 'mengingat', 'label' => null, 'teks' => ''],
-            ['bagian' => 'diktum', 'label' => null, 'teks' => "Menetapkan: PERATURAN BUPATI TENTANG {$tentang}."],
+            ['bagian' => 'diktum', 'label' => null, 'teks' => "MEMUTUSKAN:\nMenetapkan: PERATURAN BUPATI TENTANG {$tentang}."],
             ['bagian' => 'batang_tubuh', 'label' => 'BAB I', 'teks' => 'KETENTUAN UMUM'],
             ['bagian' => 'batang_tubuh', 'label' => 'Pasal 1', 'teks' => ''],
+            ['bagian' => 'batang_tubuh', 'label' => 'BAB II', 'teks' => 'KETENTUAN PENUTUP'],
+            ['bagian' => 'batang_tubuh', 'label' => 'Pasal 2', 'teks' => "Peraturan Bupati ini mulai berlaku pada tanggal diundangkan.\nAgar setiap orang mengetahuinya, memerintahkan pengundangan Peraturan Bupati ini dengan penempatannya dalam Berita Daerah Kabupaten Hulu Sungai Tengah."],
             ['bagian' => 'penutup', 'label' => null, 'teks' => $penutup],
             ['bagian' => 'lampiran', 'label' => null, 'teks' => ''],
         ];
@@ -85,15 +89,15 @@ class TemplateNaskah
         $titik = '.......................';
         $bupati = Pengaturan::ambil(Pengaturan::NAMA_BUPATI, $titik);
 
-        $ditetapkan = "Ditetapkan di Barabai\npada tanggal ...\nBUPATI HULU SUNGAI TENGAH,\n\n\n\n{$bupati}";
+        $ditetapkan = "Ditetapkan di Barabai\npada tanggal ...\n\nBUPATI HULU SUNGAI TENGAH,\n\n\n\n{$bupati}";
 
-        if ($jenis === 'Surat Keputusan') {
+        if ($jenis === 'Keputusan Bupati') {
             return $ditetapkan;
         }
 
         $sekda = Pengaturan::ambil(Pengaturan::NAMA_SEKDA, $titik);
 
-        return "{$ditetapkan}\n\nDiundangkan di Barabai\npada tanggal ...\nSEKRETARIS DAERAH\nKABUPATEN HULU SUNGAI TENGAH,\n\n\n\n{$sekda}"
+        return "{$ditetapkan}\n\nDiundangkan di Barabai\npada tanggal ...\n\nSEKRETARIS DAERAH\nKABUPATEN HULU SUNGAI TENGAH,\n\n\n\n{$sekda}"
             . "\n\nBERITA DAERAH KABUPATEN HULU SUNGAI TENGAH TAHUN ... NOMOR ...";
     }
 
@@ -117,6 +121,7 @@ class TemplateNaskah
     /**
      * Penanda tiap baris: a./b. pada Menimbang, 1./2. pada Mengingat, KESATU/KEDUA pada diktum SK,
      * sisanya label yang ditulis pengguna (BAB I, Pasal 5). Baris dihapus tidak ikut dihitung.
+     * Pertimbangan yang hanya satu ditulis tanpa huruf, seperti pada produk hukum yang terbit.
      *
      * @param  Collection<int, NaskahBaris>  $baris  urut menurut kolom urutan
      * @return array<int, string|null> id baris => penanda
@@ -125,15 +130,17 @@ class TemplateNaskah
     {
         $hitung = ['menimbang' => 0, 'mengingat' => 0, 'diktum' => 0];
         $hasil = [];
+        $satuPertimbangan = $baris->filter(fn (NaskahBaris $b) => $b->bagian === 'menimbang' && $b->status !== NaskahBaris::DIHAPUS)->count() === 1;
 
         foreach ($baris as $item) {
             $hidup = $item->status !== NaskahBaris::DIHAPUS;
 
             $hasil[$item->id] = match (true) {
                 ! $hidup => $item->label,
+                $item->bagian === 'menimbang' && $satuPertimbangan => null,
                 $item->bagian === 'menimbang' => self::huruf(++$hitung['menimbang']) . '.',
                 $item->bagian === 'mengingat' => ++$hitung['mengingat'] . '.',
-                $item->bagian === 'diktum' && $naskah->jenis === 'Surat Keputusan' => self::DIKTUM[$hitung['diktum']++] ?? null,
+                $item->bagian === 'diktum' && $naskah->jenis === 'Keputusan Bupati' => self::DIKTUM[$hitung['diktum']++] ?? null,
                 default => $item->label,
             };
         }

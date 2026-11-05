@@ -31,7 +31,7 @@ Route::middleware(['auth', 'verified', TandaiAplikasiV2::class])->prefix('v2')->
         ->name('naskah.cetak');
 
     Route::get('/template/{jenis}', [CetakNaskahController::class, 'template'])
-        ->whereIn('jenis', ['peraturan-bupati', 'surat-keputusan'])
+        ->whereIn('jenis', ['peraturan-bupati', 'keputusan-bupati'])
         ->middleware('throttle:30,1')
         ->name('template');
 

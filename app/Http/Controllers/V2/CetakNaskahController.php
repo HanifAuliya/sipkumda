@@ -27,7 +27,7 @@ class CetakNaskahController extends Controller
 
     public function template(string $jenis, CetakNaskah $cetak)
     {
-        $nama = $jenis === 'surat-keputusan' ? 'Surat Keputusan' : 'Peraturan Bupati';
+        $nama = $jenis === 'keputusan-bupati' ? 'Keputusan Bupati' : 'Peraturan Bupati';
 
         return response()->download(
             $cetak->wordTemplate($nama),

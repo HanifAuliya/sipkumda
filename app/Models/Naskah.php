@@ -11,7 +11,7 @@ use Illuminate\Support\Str;
 
 class Naskah extends Model
 {
-    public const JENIS = ['Peraturan Bupati', 'Surat Keputusan'];
+    public const JENIS = ['Peraturan Bupati', 'Keputusan Bupati'];
 
     protected $table = 'naskah';
 
@@ -57,7 +57,7 @@ class Naskah extends Model
     {
         // Nomor NPB-2026-001 / NSK-2026-001, berurutan per jenis per tahun. Awalan berbeda dari alur lama.
         static::creating(function (Naskah $naskah) {
-            $awalan = ['Peraturan Bupati' => 'NPB', 'Surat Keputusan' => 'NSK'][$naskah->jenis]
+            $awalan = ['Peraturan Bupati' => 'NPB', 'Keputusan Bupati' => 'NSK'][$naskah->jenis]
                 ?? throw new \InvalidArgumentException('Jenis naskah tidak valid.');
             $tahun = now()->year;
 

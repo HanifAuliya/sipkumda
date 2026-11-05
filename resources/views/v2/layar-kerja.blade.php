@@ -96,8 +96,8 @@
             <h1 class="hidden min-w-0 truncate font-semibold text-navy-900 sm:block dark:text-white" title="{{ $naskah->tentang }}">{{ $naskah->tentang }}</h1>
             <span @class([
                 'shrink-0 rounded-full px-3 py-1 text-sm font-semibold whitespace-nowrap text-white',
-                'bg-accent-500' => $naskah->jenis === 'Surat Keputusan',
-                'bg-primary-500' => $naskah->jenis !== 'Surat Keputusan',
+                'bg-accent-500' => $naskah->jenis === 'Keputusan Bupati',
+                'bg-primary-500' => $naskah->jenis !== 'Keputusan Bupati',
             ])>{{ $naskah->jenis }}</span>
             <span class="hidden text-slate-300 lg:inline dark:text-navy-600" aria-hidden="true">/</span>
             <span class="hidden shrink-0 font-medium lg:inline">{{ $tahap->label() }}</span>
