@@ -11,7 +11,7 @@
 @endphp
 
 <div>
-    @if ($paginator->hasPages())
+    @if ($paginator->total() > 0)
         <nav role="navigation" aria-label="Navigasi halaman" class="flex flex-col items-center justify-between gap-3 sm:flex-row">
             <p class="text-sm text-slate-500 dark:text-slate-400">
                 Menampilkan
@@ -19,6 +19,7 @@
                 dari <span class="font-semibold text-slate-700 dark:text-slate-200">{{ $paginator->total() }}</span> data
             </p>
 
+            @if ($paginator->hasPages())
             <div class="flex items-center gap-1">
                 @if ($paginator->onFirstPage())
                     <span class="{{ $btn }} {{ $disabled }}" aria-disabled="true"><i class="bi bi-chevron-left"></i></span>
@@ -38,7 +39,7 @@
                         @foreach ($element as $page => $url)
                             <span wire:key="paginator-{{ $pageName }}-page{{ $page }}">
                                 @if ($page == $paginator->currentPage())
-                                    <span class="{{ $btn }} bg-navy-900 text-white shadow-soft dark:bg-primary-500" aria-current="page">{{ $page }}</span>
+                                    <span class="{{ $btn }} bg-primary-500 text-white shadow-soft" aria-current="page">{{ $page }}</span>
                                 @else
                                     <button type="button" wire:click="gotoPage({{ $page }}, '{{ $pageName }}')" x-on:click="{{ $scroll }}"
                                         class="{{ $btn }} {{ $idle }}" aria-label="Halaman {{ $page }}">{{ $page }}</button>
@@ -57,6 +58,7 @@
                     <span class="{{ $btn }} {{ $disabled }}" aria-disabled="true"><i class="bi bi-chevron-right"></i></span>
                 @endif
             </div>
+            @endif
         </nav>
     @endif
 </div>

@@ -16,6 +16,14 @@ if (! function_exists('tanggal')) {
     }
 }
 
+if (! function_exists('tanggal_singkat')) {
+    /** Tanggal ringkas untuk kolom tabel, misalnya 09 Feb 2026. */
+    function tanggal_singkat(mixed $value, string $empty = '-'): string
+    {
+        return blank($value) ? $empty : Carbon::parse($value)->translatedFormat('d M Y');
+    }
+}
+
 if (! function_exists('private_file_url')) {
     /**
      * URL untuk membuka file privat lewat route /view-private/{folder}/{subfolder}/{filename}.

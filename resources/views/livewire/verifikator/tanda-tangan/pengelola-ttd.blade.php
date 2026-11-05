@@ -24,8 +24,8 @@
                 @php $gambar = private_file_url('tanda_tangan/ttd', $ttd->file_ttd); @endphp
                 <tr wire:key="ttd-{{ $ttd->id }}">
                     <td class="min-w-48">
-                        <p class="font-semibold text-navy-900 dark:text-white">{{ $ttd->nama_ttd }}</p>
-                        <p class="text-sm text-slate-500 dark:text-slate-400">NIP {{ $ttd->nip_ttd ?: '-' }}</p>
+                        <p class="sel-utama">{{ $ttd->nama_ttd }}</p>
+                        <p class="sel-kedua whitespace-nowrap">NIP {{ $ttd->nip_ttd ?: '-' }}</p>
                     </td>
                     <td class="min-w-40">{{ $ttd->jabatan ?: '-' }}</td>
                     <td>
@@ -40,13 +40,15 @@
                         @endif
                     </td>
                     <td><x-ui.badge :color="$ttd->status === 'Aktif' ? 'success' : 'danger'">{{ $ttd->status }}</x-ui.badge></td>
-                    <td class="whitespace-nowrap text-slate-500">{{ $ttd->nota_dinas_count }} dokumen</td>
-                    <td class="text-right whitespace-nowrap">
-                        <x-ui.button variant="outline" size="sm" square icon="pencil" title="Edit"
-                            wire:click="openModalEdit({{ $ttd->id }})" loading="openModalEdit({{ $ttd->id }})" />
-                        <x-ui.button variant="soft-danger" size="sm" square icon="trash" title="Hapus" data-nama="{{ $ttd->nama_ttd }}"
-                            x-on:click="$confirm({ title: 'Hapus TTD?', text: `TTD ${$el.dataset.nama} akan dihapus permanen.`, confirmText: 'Ya, hapus' })
-                                .then((ok) => ok && $wire.delete({{ $ttd->id }}))" />
+                    <td class="sel-kedua whitespace-nowrap">{{ $ttd->nota_dinas_count }} dokumen</td>
+                    <td>
+                        <div class="flex justify-end gap-1.5">
+                            <x-ui.button variant="soft-primary" size="sm" square icon="pencil" title="Ubah" aria-label="Ubah tanda tangan {{ $ttd->nama_ttd }}"
+                                wire:click="openModalEdit({{ $ttd->id }})" loading="openModalEdit({{ $ttd->id }})" />
+                            <x-ui.button variant="soft-danger" size="sm" square icon="trash" title="Hapus" aria-label="Hapus tanda tangan {{ $ttd->nama_ttd }}" data-nama="{{ $ttd->nama_ttd }}"
+                                x-on:click="$confirm({ title: 'Hapus TTD?', text: `TTD ${$el.dataset.nama} akan dihapus permanen.`, confirmText: 'Ya, hapus' })
+                                    .then((ok) => ok && $wire.delete({{ $ttd->id }}))" />
+                        </div>
                     </td>
                 </tr>
             @empty

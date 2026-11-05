@@ -46,7 +46,6 @@
                         </button>
                     </th>
                 @endforeach
-                <th>Email</th>
                 <th>Perangkat Daerah</th>
                 <th>Role</th>
                 @if ($isAdmin)
@@ -56,11 +55,13 @@
 
             @forelse ($users as $index => $user)
                 <tr wire:key="user-{{ $user->id }}">
-                    <td class="text-slate-400">{{ $users->firstItem() + $index }}</td>
-                    <td class="font-semibold text-navy-900 dark:text-white">{{ $user->nama_user }}</td>
-                    <td class="font-mono text-sm">{{ $user->NIP }}</td>
-                    <td class="min-w-52 break-all">{{ $user->email }}</td>
-                    <td class="min-w-48">{{ $user->perangkatDaerah->nama_perangkat_daerah ?? '-' }}</td>
+                    <td class="sel-kedua">{{ $users->firstItem() + $index }}</td>
+                    <td class="min-w-56">
+                        <p class="sel-utama">{{ $user->nama_user }}</p>
+                        <p class="sel-kedua whitespace-nowrap">{{ $user->email }}</p>
+                    </td>
+                    <td class="whitespace-nowrap">{{ $user->NIP }}</td>
+                    <td class="min-w-48"><p class="sel-judul">{{ $user->perangkatDaerah->nama_perangkat_daerah ?? '-' }}</p></td>
                     <td>
                         <div class="flex flex-wrap gap-1">
                             @foreach ($user->getRoleNames() as $roleName)
@@ -81,7 +82,7 @@
                     @endif
                 </tr>
             @empty
-                <x-ui.empty-row :colspan="$isAdmin ? 7 : 6" icon="people" message="Tidak ada pengguna yang cocok.">
+                <x-ui.empty-row :colspan="$isAdmin ? 6 : 5" icon="people" message="Tidak ada pengguna yang cocok.">
                     <x-ui.reset-filter :aktif="filled($search) || filled($roleFilter)" :nilai="['search' => '', 'roleFilter' => '']" />
                 </x-ui.empty-row>
             @endforelse

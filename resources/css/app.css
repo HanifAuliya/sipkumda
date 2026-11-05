@@ -256,15 +256,20 @@
 
     /* Tabel data standar. */
     .table-base {
-        @apply w-full border-separate border-spacing-0 text-left text-sm;
+        @apply w-full border-separate border-spacing-0 text-left text-sm tabular-nums;
 
         & thead th {
-            @apply border-b border-slate-100 bg-slate-50/70 px-3 py-3 text-sm font-semibold
-                text-slate-500 dark:border-navy-800 dark:bg-navy-900/60 dark:text-slate-400;
+            @apply border-y border-slate-100 bg-slate-50 px-3 py-3 text-sm font-semibold whitespace-nowrap
+                text-slate-600 dark:border-navy-800 dark:bg-navy-950/40 dark:text-slate-300;
         }
 
+        /* Isi sejajar di tengah baris, termasuk tombol aksi. */
         & tbody td {
-            @apply border-b border-slate-100 px-3 py-3.5 align-top text-slate-600 dark:border-navy-800 dark:text-slate-300;
+            @apply border-b border-slate-100 px-3 py-3.5 align-middle text-slate-700 dark:border-navy-800 dark:text-slate-300;
+        }
+
+        & tbody tr:last-child td {
+            @apply border-b-0;
         }
 
         /* Sejajarkan tepi tabel dengan padding kartu (tabel dibuat full-bleed oleh <x-ui.table>). */
@@ -277,7 +282,7 @@
         }
 
         & tbody tr {
-            @apply transition-colors hover:bg-slate-50/70 dark:hover:bg-navy-800/40;
+            @apply transition-colors duration-100 hover:bg-slate-50 dark:hover:bg-navy-800/50;
         }
 
         /* Kolom Aksi (kolom terakhir rata kanan) tetap terlihat saat tabel digeser di layar sempit. */
@@ -293,6 +298,19 @@
         &:has(thead th.text-right:last-child) tbody tr:hover td:not([colspan]):last-child {
             @apply max-xl:bg-slate-50 dark:max-xl:bg-navy-800;
         }
+    }
+
+    /* Isi sel: nilai utama tegas, keterangan lebih lembut. Judul panjang dibatasi dua baris. */
+    .sel-utama {
+        @apply font-semibold text-navy-900 dark:text-white;
+    }
+
+    .sel-kedua {
+        @apply text-sm text-slate-500 dark:text-slate-400;
+    }
+
+    .sel-judul {
+        @apply line-clamp-2;
     }
 
     /* Teks konten panjang (catatan, deskripsi). */

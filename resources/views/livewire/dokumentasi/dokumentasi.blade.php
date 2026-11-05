@@ -73,13 +73,13 @@
             @forelse ($dokumentasiList as $dokumentasi)
                 @php $file = private_file_url('dokumentasi/file_produk_hukum', $dokumentasi->file_produk_hukum); @endphp
                 <tr wire:key="dokumentasi-{{ $dokumentasi->id }}">
-                    <td class="min-w-80">
+                    <td class="min-w-76">
                         <div class="flex flex-wrap items-center gap-2">
-                            <span class="font-semibold text-navy-900 dark:text-white">{{ $dokumentasi->nomor_formatted }}</span>
+                            <span class="sel-utama">{{ $dokumentasi->nomor_formatted }}</span>
                             <x-ui.status-badge :value="$dokumentasi->jenis_dokumentasi" />
                         </div>
-                        <p class="mt-0.5 text-slate-600 dark:text-slate-300">{{ $dokumentasi->tentang_dokumentasi }}</p>
-                        <p class="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
+                        <p class="sel-judul mt-1" title="{{ $dokumentasi->tentang_dokumentasi }}">{{ $dokumentasi->tentang_dokumentasi }}</p>
+                        <p class="sel-kedua mt-1">
                             @if ($dokumentasi->rancangan)
                                 <i class="bi bi-link-45deg"></i> Rancangan {{ $dokumentasi->rancangan->no_rancangan }}
                             @else
@@ -87,10 +87,10 @@
                             @endif
                         </p>
                     </td>
-                    <td class="min-w-40">{{ $dokumentasi->perangkatDaerah->nama_perangkat_daerah ?? '-' }}</td>
+                    <td class="min-w-36"><p class="sel-judul">{{ $dokumentasi->perangkatDaerah->nama_perangkat_daerah ?? '-' }}</p></td>
                     <td class="whitespace-nowrap">{{ $dokumentasi->nomor_tahun_berita ?: '-' }}</td>
-                    <td class="whitespace-nowrap">{{ tanggal($dokumentasi->tanggal_penetapan) }}</td>
-                    <td class="whitespace-nowrap">{{ tanggal($dokumentasi->tanggal_pengarsipan) }}</td>
+                    <td class="whitespace-nowrap" title="{{ tanggal($dokumentasi->tanggal_penetapan) }}">{{ tanggal_singkat($dokumentasi->tanggal_penetapan) }}</td>
+                    <td class="whitespace-nowrap" title="{{ tanggal($dokumentasi->tanggal_pengarsipan) }}">{{ tanggal_singkat($dokumentasi->tanggal_pengarsipan) }}</td>
                     <td>
                         {{-- Desktop: tombol berlabel supaya jelas fungsinya. HP: ikon sebaris supaya tabel tetap terbaca. --}}
                         <div class="flex justify-end gap-1.5 sm:ml-auto sm:grid sm:w-44 sm:grid-cols-2">

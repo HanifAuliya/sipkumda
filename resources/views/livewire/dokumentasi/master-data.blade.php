@@ -71,15 +71,15 @@
             @forelse ($selectedData as $data)
                 @php $rancangan = $dataType === 'Rancangan' ? $data : $data->rancangan; @endphp
                 <tr wire:key="master-{{ $dataType }}-{{ $data->getKey() }}">
-                    <td class="text-slate-500">{{ $selectedData->firstItem() + $loop->index }}</td>
+                    <td class="sel-kedua">{{ $selectedData->firstItem() + $loop->index }}</td>
                     <td class="whitespace-nowrap">
-                        <span class="font-semibold text-navy-900 dark:text-white">{{ $rancangan->no_rancangan ?? '-' }}</span>
+                        <p class="sel-utama">{{ $rancangan->no_rancangan ?? '-' }}</p>
                         <div class="mt-1"><x-ui.status-badge :value="$rancangan?->jenis_rancangan" /></div>
                     </td>
-                    <td class="min-w-72">{{ $rancangan->tentang ?? '-' }}</td>
+                    <td class="min-w-72"><p class="sel-judul" title="{{ $rancangan->tentang ?? '' }}">{{ $rancangan->tentang ?? '-' }}</p></td>
                     <td class="min-w-48">
-                        {{ $rancangan->user->perangkatDaerah->nama_perangkat_daerah ?? '-' }}
-                        <p class="text-sm text-slate-500 dark:text-slate-400">{{ $rancangan->user->nama_user ?? '' }}</p>
+                        <p class="sel-judul">{{ $rancangan->user->perangkatDaerah->nama_perangkat_daerah ?? '-' }}</p>
+                        <p class="sel-kedua">{{ $rancangan->user->nama_user ?? '' }}</p>
                     </td>
                 </tr>
             @empty

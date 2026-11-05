@@ -83,10 +83,13 @@
             @forelse ($halaman as $naskah)
                 <tr wire:key="naskah-{{ $naskah->id }}" class="cursor-pointer"
                     x-on:click="$event.target.closest('a, button') || Livewire.dispatch('bukaDetailNaskah', { slug: {{ \Illuminate\Support\Js::from($naskah->slug) }} })">
-                    <td class="font-semibold whitespace-nowrap">{{ $naskah->nomor }}</td>
-                    <td class="min-w-64 whitespace-normal">{{ $naskah->tentang }}</td>
+                    <td class="whitespace-nowrap">
+                        <p class="sel-utama">{{ $naskah->nomor }}</p>
+                        <div class="mt-1"><x-ui.status-badge :value="$naskah->jenis" /></div>
+                    </td>
+                    <td class="min-w-64"><p class="sel-judul" title="{{ $naskah->tentang }}">{{ $naskah->tentang }}</p></td>
                     <td class="whitespace-nowrap"><x-ui.badge :color="$naskah->tahap->warna()">{{ $naskah->tahap->label() }}</x-ui.badge></td>
-                    <td class="whitespace-nowrap text-slate-500">{{ $naskah->updated_at->diffForHumans() }}</td>
+                    <td class="sel-kedua whitespace-nowrap">{{ $naskah->updated_at->diffForHumans() }}</td>
                     <td>
                         <div class="flex justify-end">
                             <x-naskah.detail-button :naskah="$naskah" />

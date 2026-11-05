@@ -15,9 +15,9 @@
 
                 @forelse ($materials as $material)
                     <tr wire:key="material-{{ $material->id }}">
-                        <td class="text-slate-400">{{ $loop->iteration }}</td>
+                        <td class="sel-kedua">{{ $loop->iteration }}</td>
                         <td>
-                            <span class="flex items-center gap-2.5 font-medium text-navy-900 dark:text-white">
+                            <span class="sel-utama flex items-center gap-2.5">
                                 <i class="{{ $this->getFileIcon($material->file_path) }} text-lg"></i>
                                 {{ $material->button_name }}
                             </span>
