@@ -10,6 +10,12 @@ namespace App\Support;
  */
 class Status
 {
+    /**
+     * Nama di database => nama resmi yang ditampilkan. Alur lama dan sebagian arsip
+     * masih menyimpan "Surat Keputusan"; nilainya dibiarkan karena dipakai penomoran.
+     */
+    private const NAMA_JENIS = ['Surat Keputusan' => 'Keputusan Bupati'];
+
     private const COLORS = [
         // Selesai / berhasil
         'Disetujui' => 'success',
@@ -36,12 +42,24 @@ class Status
 
         // Jenis produk hukum
         'Peraturan Bupati' => 'primary',
-        'Surat Keputusan' => 'amber',
         'Keputusan Bupati' => 'amber',
     ];
 
     public static function color(?string $value): string
     {
-        return self::COLORS[$value] ?? 'slate';
+        return self::COLORS[self::label($value)] ?? 'slate';
+    }
+
+    public static function label(?string $value): ?string
+    {
+        return self::NAMA_JENIS[$value ?? ''] ?? $value;
+    }
+
+    /** Semua nama di database untuk satu jenis, dipakai saat memfilter data. */
+    public static function varianJenis(string $jenis): array
+    {
+        $label = self::label($jenis);
+
+        return [$label, ...array_keys(self::NAMA_JENIS, $label, true)];
     }
 }

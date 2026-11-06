@@ -62,7 +62,7 @@ class JdihController extends Controller
         $path = $dokumentasi->file_produk_hukum;
         abort_unless($path && Storage::disk('local')->exists($path), 404, 'Dokumen tidak ditemukan.');
 
-        $nama = Str::slug("{$dokumentasi->jenis_dokumentasi} nomor {$dokumentasi->nomor} tahun {$dokumentasi->tahun}") . '.pdf';
+        $nama = Str::slug(Jdih::labelJenis($dokumentasi->jenis_dokumentasi) . " nomor {$dokumentasi->nomor} tahun {$dokumentasi->tahun}") . '.pdf';
 
         return Storage::disk('local')->response($path, $nama, [
             'Cache-Control' => 'public, max-age=86400',

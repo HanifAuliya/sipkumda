@@ -7,6 +7,7 @@ use App\Models\RancanganProdukHukum;
 use App\Models\Revisi;
 use App\Models\FasilitasiProdukHukum;
 use App\Models\DokumentasiProdukHukum;
+use App\Support\Status;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -76,7 +77,7 @@ class Dashboard extends Component
             'rancangan_bupati' => $rancanganBupatiData,
             'keputusan_bupati' => $keputusanBupatiData,
             'pie' => [
-                'labels' => array_keys($jenisRancanganCounts),
+                'labels' => array_map(Status::label(...), array_keys($jenisRancanganCounts)),
                 'data' => array_values($jenisRancanganCounts)
             ]
         ];

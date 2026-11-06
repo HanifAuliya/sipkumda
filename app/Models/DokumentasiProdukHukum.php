@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Support\Jdih;
+use App\Support\Status;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -50,7 +51,7 @@ class DokumentasiProdukHukum extends Model
                 ->where('tentang_dokumentasi', 'like', "%{$search}%")
                 ->orWhere('nomor', $search)
                 ->orWhereHas('rancangan', fn ($r) => $r->where('no_rancangan', 'like', "%{$search}%"))))
-            ->when($jenis, fn ($q) => $q->where('jenis_dokumentasi', $jenis))
+            ->when($jenis, fn ($q) => $q->whereIn('jenis_dokumentasi', Status::varianJenis($jenis)))
             ->when($tahun, fn ($q) => $q->where('tahun', $tahun));
     }
 

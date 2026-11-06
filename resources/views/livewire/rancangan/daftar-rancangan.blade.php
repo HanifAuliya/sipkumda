@@ -24,7 +24,7 @@
             <x-form.select wire:model.live="jenisRancangan" icon="tags" class="md:col-span-3" aria-label="Jenis rancangan">
                 <option value="">Semua Jenis Rancangan</option>
                 <option value="Peraturan Bupati">Peraturan Bupati</option>
-                <option value="Surat Keputusan">Surat Keputusan</option>
+                <option value="Surat Keputusan">Keputusan Bupati</option>
             </x-form.select>
 
             <x-form.select wire:model.live="perPage" icon="list-ol" class="md:col-span-2" aria-label="Data per halaman">

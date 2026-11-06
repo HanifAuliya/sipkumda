@@ -4,6 +4,7 @@ namespace App\Exports;
 
 use App\Exports\Concerns\MencegahFormulaInjection;
 use App\Models\RancanganProdukHukum;
+use App\Support\Status;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
@@ -48,7 +49,7 @@ class SingleJenisExport implements FromCollection, WithHeadings, WithTitle, With
                 if ($data->revisi->isEmpty()) {
                     return [[
                         'No Rancangan'       => $data->no_rancangan,
-                        'Jenis'              => $data->jenis_rancangan,
+                        'Jenis'              => Status::label($data->jenis_rancangan),
                         'Tentang'            => $data->tentang,
                         'tanggal_pengajuan' => $data->tanggal_pengajuan ? Carbon::parse($data->tanggal_pengajuan)->format('Y/m/d') : '-',
                         'Perangkat Daerah'   => optional($data->user->PerangkatDaerah)->nama_perangkat_daerah ?? 'Tidak Ada',
@@ -90,7 +91,7 @@ class SingleJenisExport implements FromCollection, WithHeadings, WithTitle, With
                 return $data->revisi->map(function ($revisi) use ($data) {
                     return [
                         'No Rancangan'       => $data->no_rancangan,
-                        'Jenis'              => $data->jenis_rancangan,
+                        'Jenis'              => Status::label($data->jenis_rancangan),
                         'Tentang'            => $data->tentang,
                         'tanggal_pengajuan' => $data->tanggal_pengajuan ? Carbon::parse($data->tanggal_pengajuan)->format('Y/m/d') : '-',
                         // 'Perangkat Daerah'   => optional($data->user)->nama_user ?? 'Tidak Ada',
@@ -178,7 +179,7 @@ class SingleJenisExport implements FromCollection, WithHeadings, WithTitle, With
     // 🔹 Judul Sheet
     public function title(): string
     {
-        return "Data " . $this->jenis;
+        return "Data " . Status::label($this->jenis);
     }
 
     // 🔹 Atur Lebar Kolom

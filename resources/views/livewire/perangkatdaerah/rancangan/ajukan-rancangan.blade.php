@@ -23,7 +23,7 @@
                     <x-form.select id="jenisRancangan" wire:model.live="jenisRancangan" icon="tags">
                         <option value="" hidden>Pilih jenis rancangan</option>
                         <option value="Peraturan Bupati">Peraturan Bupati</option>
-                        <option value="Surat Keputusan">Surat Keputusan</option>
+                        <option value="Surat Keputusan">Keputusan Bupati</option>
                     </x-form.select>
                 </x-form.field>
 

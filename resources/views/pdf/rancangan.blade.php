@@ -90,7 +90,7 @@
                     <td>{{ $index + 1 }}</td>
                     <td>{{ $rancangan->no_rancangan ?? 'N/A' }}</td>
                     <td class="text-center">
-                        <span>{{ $rancangan->jenis_rancangan ?? 'N/A' }}</span>
+                        <span>{{ \App\Support\Status::label($rancangan->jenis_rancangan) ?? 'N/A' }}</span>
                     </td>
                     <td class="wrap-text">{{ $rancangan->tentang ?? 'N/A' }}</td>
                     <td>{{ $rancangan->tanggal_pengajuan ? \Carbon\Carbon::parse($rancangan->tanggal_pengajuan)->translatedFormat('d F Y') : 'N/A' }}

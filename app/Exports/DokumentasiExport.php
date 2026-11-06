@@ -4,6 +4,7 @@ namespace App\Exports;
 
 use App\Exports\Concerns\MencegahFormulaInjection;
 use App\Models\DokumentasiProdukHukum;
+use App\Support\Status;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
@@ -42,7 +43,7 @@ class DokumentasiExport implements FromCollection, WithHeadings, WithTitle, With
                     'No' => $index + 1,
                     'Nomor Produk Hukum' => $dokumentasi->nomor_formatted,
                     'Nomor Fasilitasi Rancangan' => $dokumentasi->rancangan->no_rancangan ?? 'Dokumen sebelum ada sistem',
-                    'Jenis Produk Hukum' => $dokumentasi->jenis_dokumentasi,
+                    'Jenis Produk Hukum' => Status::label($dokumentasi->jenis_dokumentasi),
                     'Tentang' => $dokumentasi->tentang_dokumentasi,
                     'Perangkat Daerah' => $dokumentasi->perangkatDaerah->nama_perangkat_daerah ?? '-',
                     'File Rancangan' => $dokumentasi->file_produk_hukum ? '=HYPERLINK("' . private_file_url('dokumentasi/file_produk_hukum', $dokumentasi->file_produk_hukum) . '", "Lihat Produk Hukum")' : 'Tidak Ada',

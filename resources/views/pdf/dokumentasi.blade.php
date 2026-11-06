@@ -74,7 +74,7 @@
                     <td class="{{ empty($dokumentasi->rancangan->no_rancangan) ? 'text-danger' : '' }}">
                         {{ $dokumentasi->rancangan->no_rancangan ?? 'Dokumen sebelum ada sistem' }}
                     </td>
-                    <td>{{ $dokumentasi->jenis_dokumentasi }}</td>
+                    <td>{{ \App\Support\Status::label($dokumentasi->jenis_dokumentasi) }}</td>
                     <td class="wrap-text">{{ $dokumentasi->tentang_dokumentasi }}</td>
                     <td class="wrap-text">{{ optional($dokumentasi->perangkatDaerah)->nama_perangkat_daerah }}</td>
                     <td>{{ $dokumentasi->tanggal_penetapan }}</td>

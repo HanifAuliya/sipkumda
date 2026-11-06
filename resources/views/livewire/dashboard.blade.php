@@ -4,7 +4,7 @@
     $user = auth()->user();
 
     // Warna per jenis, konsisten di semua grafik.
-    $jenisColors = ['Peraturan Bupati' => '#5e72e4', 'Surat Keputusan' => '#fbb140'];
+    $jenisColors = ['Peraturan Bupati' => '#5e72e4', 'Keputusan Bupati' => '#fbb140'];
 
     $pieConfig = [
         'type' => 'doughnut',
@@ -30,7 +30,7 @@
             'labels' => $chartData['labels'],
             'datasets' => [
                 ['label' => 'Peraturan Bupati', 'data' => $chartData['rancangan_bupati'], 'backgroundColor' => $jenisColors['Peraturan Bupati'], 'borderRadius' => 4],
-                ['label' => 'Surat Keputusan', 'data' => $chartData['keputusan_bupati'], 'backgroundColor' => $jenisColors['Surat Keputusan'], 'borderRadius' => 4],
+                ['label' => 'Keputusan Bupati', 'data' => $chartData['keputusan_bupati'], 'backgroundColor' => $jenisColors['Keputusan Bupati'], 'borderRadius' => 4],
             ],
         ],
         'options' => [

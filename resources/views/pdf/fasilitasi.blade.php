@@ -67,7 +67,7 @@
                 <tr>
                     <td>{{ $index + 1 }}</td>
                     <td>{{ optional($fasilitasi->rancangan)->no_rancangan }}</td>
-                    <td>{{ optional($fasilitasi->rancangan)->jenis_rancangan }}</td>
+                    <td>{{ \App\Support\Status::label(optional($fasilitasi->rancangan)->jenis_rancangan) }}</td>
                     <td class="wrap-text">{{ optional($fasilitasi->rancangan)->tentang }}</td>
                     <td>{{ \Carbon\Carbon::parse($fasilitasi->tanggal_fasilitasi)->translatedFormat('d F Y') }}</td>
                     {{-- Jika statusnya "Selesai", tampilkan tanggalnya. Jika "Belum", tampilkan "-" --}}

@@ -7,6 +7,7 @@ use App\Models\FasilitasiProdukHukum;
 use App\Models\PerangkatDaerah;
 use App\Models\User;
 use App\Notifications\DokumentasiNotification;
+use App\Support\Status;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\On;
@@ -109,7 +110,7 @@ class AjukanDokumentasiProdukHukum extends Component
                 'rancangan_id' => $rancangan->id_rancangan,
                 'tahun' => now()->year,
                 'perangkat_daerah_id' => $rancangan->user?->perangkat_daerah_id,
-                'jenis_dokumentasi' => $rancangan->jenis_rancangan,
+                'jenis_dokumentasi' => Status::label($rancangan->jenis_rancangan),
                 'tentang_dokumentasi' => $rancangan->tentang,
             ];
         }

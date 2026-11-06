@@ -8,6 +8,7 @@ use App\Exports\DokumentasiExport;
 use App\Models\DokumentasiProdukHukum;
 use App\Models\User;
 use App\Notifications\DokumentasiNotification;
+use App\Support\Status;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
@@ -233,7 +234,8 @@ class Dokumentasi extends Component
         return view('livewire.dokumentasi.dokumentasi', [
             'dokumentasiList' => $dokumentasiList,
             'totalDokumentasi' => DokumentasiProdukHukum::count(),
-            'jenisOptions' => DokumentasiProdukHukum::query()->distinct()->orderBy('jenis_dokumentasi')->pluck('jenis_dokumentasi')->filter(),
+            'jenisOptions' => DokumentasiProdukHukum::query()->distinct()->pluck('jenis_dokumentasi')->filter()
+                ->map(fn ($jenis) => Status::label($jenis))->unique()->sort()->values(),
             'tahunOptions' => DokumentasiProdukHukum::query()->distinct()->orderByDesc('tahun')->pluck('tahun'),
         ])->layout('layouts.app');
     }

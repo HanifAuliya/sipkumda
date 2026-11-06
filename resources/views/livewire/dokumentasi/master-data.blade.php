@@ -23,7 +23,7 @@
         <x-form.select wire:model.live="jenis" icon="tags" class="sm:w-60" aria-label="Jenis rancangan">
             <option value="all">Semua jenis</option>
             <option value="Peraturan Bupati">Peraturan Bupati</option>
-            <option value="Surat Keputusan">Surat Keputusan</option>
+            <option value="Surat Keputusan">Keputusan Bupati</option>
         </x-form.select>
         <x-ui.loading target="tahun, jenis" class="self-center">Memuat data...</x-ui.loading>
     </div>

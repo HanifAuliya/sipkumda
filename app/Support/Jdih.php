@@ -22,12 +22,6 @@ class Jdih
     private const KATA_UMUM = ['dan', 'yang', 'untuk', 'dari', 'dengan', 'tentang', 'pada', 'atau', 'dalam', 'oleh',
         'atas', 'serta', 'nomor', 'tahun', 'peraturan', 'keputusan', 'bupati', 'kabupaten'];
 
-    /**
-     * Nama jenis di database => nama yang ditampilkan ke publik. Arsip dari rancangan
-     * memakai "Surat Keputusan", arsip manual memakai "Keputusan Bupati": keduanya sama.
-     */
-    private const JENIS_PUBLIK = ['Surat Keputusan' => 'Keputusan Bupati'];
-
     public const URUTAN = [
         'terbaru' => 'Terbaru ditetapkan',
         'terlama' => 'Terlama ditetapkan',
@@ -37,13 +31,13 @@ class Jdih
 
     public static function labelJenis(?string $jenis): ?string
     {
-        return self::JENIS_PUBLIK[$jenis] ?? $jenis;
+        return Status::label($jenis);
     }
 
     /** Semua nama di database untuk satu jenis publik. */
     private static function varianJenis(string $label): array
     {
-        return [$label, ...array_keys(self::JENIS_PUBLIK, $label, true)];
+        return Status::varianJenis($label);
     }
 
     public static function versi(): int

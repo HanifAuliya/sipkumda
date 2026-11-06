@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Log;
 use App\Models\User;
 
 use App\Services\KelengkapanBerkasChecker;
+use App\Support\Status;
 
 class SedangDiajukan extends Component
 {
@@ -143,7 +144,7 @@ class SedangDiajukan extends Component
         if ($rancangan->nota_dinas_pd) Storage::delete($rancangan->nota_dinas_pd);
 
         $mainFolder = 'rancangan';
-        $filePrefix = str_replace(' ', '_', strtolower($rancangan->jenis_rancangan))
+        $filePrefix = str_replace(' ', '_', strtolower(Status::label($rancangan->jenis_rancangan)))
             . '_' . str_replace('/', '-', $this->nomorNota);
 
         $rancanganPath = $this->fileRancangan

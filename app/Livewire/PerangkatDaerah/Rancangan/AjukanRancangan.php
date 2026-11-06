@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Log;
 
 // Cek kelengkapan berkas (ekstraksi teks Word/PDF)
 use App\Services\KelengkapanBerkasChecker;
+use App\Support\Status;
 
 
 class AjukanRancangan extends Component
@@ -107,7 +108,7 @@ class AjukanRancangan extends Component
         $this->validate();
 
         $mainFolder = 'rancangan';
-        $filePrefix = str_replace(' ', '_', strtolower($this->jenisRancangan))
+        $filePrefix = str_replace(' ', '_', strtolower(Status::label($this->jenisRancangan)))
             . '_' . str_replace('/', '-', $this->nomorNota);
 
         $rancanganPath      = $this->rancangan->storeAs("$mainFolder/rancangan",      "{$filePrefix}_rancangan."     . $this->rancangan->extension(), 'local');
