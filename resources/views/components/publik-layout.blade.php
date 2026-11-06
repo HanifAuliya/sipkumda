@@ -42,12 +42,13 @@
     <meta property="og:image" content="{{ $image ?? asset('assets/img/theme/sulangking.jpg') }}">
     {{ $head ?? '' }}
 
+    {{-- Tampilan awal selalu terang; tema gelap hanya lewat tombol di halaman. --}}
+    <meta name="color-scheme" content="only light">
     <script>
         (() => {
             let theme = null;
             try { theme = localStorage.getItem('theme'); } catch (e) {}
-            const dark = theme ? theme === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
-            document.documentElement.classList.toggle('dark', dark);
+            document.documentElement.classList.toggle('dark', theme === 'dark');
         })();
     </script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])

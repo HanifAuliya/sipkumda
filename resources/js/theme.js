@@ -2,13 +2,12 @@
 |--------------------------------------------------------------------------
 | Tema terang / gelap
 |--------------------------------------------------------------------------
-| Class "dark" sudah dipasang lebih awal oleh script inline di <head>
-| (lihat components/layouts/theme-script) supaya tidak berkedip. File ini
-| hanya menyediakan fungsi toggle untuk tombol di topbar.
+| Tampilan awal selalu terang, tidak mengikuti tema Windows atau HP. Tema gelap
+| hanya aktif bila pengguna memilihnya lewat tombol, dan pilihan itu disimpan.
+| Class "dark" dipasang lebih awal oleh script inline di <head> (lihat
+| layouts/partials/head dan components/publik-layout) supaya tidak berkedip.
 */
 const STORAGE_KEY = 'theme';
-
-const prefersDark = () => window.matchMedia('(prefers-color-scheme: dark)').matches;
 
 const readTheme = () => {
     try {
@@ -33,17 +32,7 @@ export const setTheme = (theme) => {
 window.toggleTheme = () => setTheme(isDark() ? 'light' : 'dark');
 
 // Pasang ulang tema saat berpindah halaman tanpa muat ulang, sebelum halaman baru tampil.
-const terapkanTema = () => {
-    const tema = readTheme();
-    document.documentElement.classList.toggle('dark', tema ? tema === 'dark' : prefersDark());
-};
+const terapkanTema = () => document.documentElement.classList.toggle('dark', readTheme() === 'dark');
 
 document.addEventListener('livewire:navigating', ({ detail }) => detail.onSwap?.(terapkanTema));
 document.addEventListener('livewire:navigated', terapkanTema);
-
-// Ikuti preferensi sistem selama pengguna belum memilih sendiri.
-window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-    if (!readTheme()) {
-        document.documentElement.classList.toggle('dark', prefersDark());
-    }
-});

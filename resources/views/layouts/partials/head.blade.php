@@ -4,15 +4,16 @@
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <meta name="description" content="SIFKUMDA — Sistem Fasilitasi Produk Hukum Daerah Kabupaten Hulu Sungai Tengah.">
 <meta name="theme-color" content="#172b4d">
+{{-- Tema gelap hanya lewat tombol di aplikasi: browser tidak boleh menggelapkan halaman sendiri. --}}
+<meta name="color-scheme" content="only light">
 <link rel="icon" href="{{ asset('assets/img/brand/favicon.ico') }}">
 
-{{-- Pasang tema sebelum halaman dirender supaya tidak berkedip. --}}
+{{-- Tampilan awal selalu terang, tidak mengikuti tema Windows atau HP. Dipasang sebelum halaman dirender supaya tidak berkedip. --}}
 <script>
     (() => {
         let theme = null;
         try { theme = localStorage.getItem('theme'); } catch (e) {}
-        const dark = theme ? theme === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
-        document.documentElement.classList.toggle('dark', dark);
+        document.documentElement.classList.toggle('dark', theme === 'dark');
 
         // Menu yang diciutkan dipasang sebelum tampil, supaya lebarnya tidak melompat.
         try { document.documentElement.toggleAttribute('data-menu-ciut', localStorage.getItem('sidebar-collapsed') === 'true'); } catch (e) {}

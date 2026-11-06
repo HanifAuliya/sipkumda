@@ -26,6 +26,22 @@ it('menu v2 berpindah tanpa muat ulang, sedangkan aplikasi lama tetap seperti se
         ->assertDontSee('data-penanda-menu', false);
 });
 
+it('tampilan awal selalu terang, tidak mengikuti tema Windows atau HP', function () {
+    $halaman = [
+        $this->get('/'),
+        $this->get(route('login')),
+        $this->get(route('jdih.index')),
+        $this->actingAs($this->admin)->get(route('v2.beranda')),
+    ];
+
+    foreach ($halaman as $respons) {
+        $respons->assertOk()
+            ->assertSee('<meta name="color-scheme" content="only light">', false)
+            ->assertSee("classList.toggle('dark', theme === 'dark')", false)
+            ->assertDontSee('prefers-color-scheme', false);
+    }
+});
+
 it('kerangka saat server lambat hanya ada di v2, layar masuk ada di kedua aplikasi', function () {
     $this->actingAs($this->admin)->get(route('v2.beranda'))
         ->assertSee('id="kerangka-halaman"', false)
