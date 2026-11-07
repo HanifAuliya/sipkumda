@@ -1,6 +1,6 @@
 @import 'tailwindcss';
 @import '@fontsource-variable/open-sans';
-@import 'bootstrap-icons/font/bootstrap-icons.css';
+@import './ikon.css';
 
 @plugin '@tailwindcss/forms';
 
@@ -463,9 +463,13 @@
     }
 }
 
-/* Di luar layer supaya menang atas aturan bawaan Bootstrap Icons. */
+/*
+ * Di luar layer supaya menang atas aturan dasar di ikon.css.
+ * Gambar Phosphor punya ruang kosong di tepinya; scale memperbesar gambarnya tanpa mengubah lebar kotak ikon.
+ */
 .bi::before {
     display: block;
+    transform: scale(1.12);
     vertical-align: 0;
 }
 

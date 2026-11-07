@@ -14,13 +14,11 @@ use App\Livewire\Rancangan\TambahBahanPenting;
 use App\Livewire\Admin\NotaDinas\KelolaNotaDinas;
 
 use App\Livewire\Admin\Rancangan\PersetujuanMain;
-use App\Http\Controllers\DokumentasiPdfController;
 use App\Http\Controllers\JdihController;
 use App\Http\Controllers\PrivateFileController;
 use App\Livewire\Peneliti\Rancangan\RevisiRancangan;
 
 use App\Livewire\Verifikator\Rancangan\ValidasiMain;
-use App\Http\Controllers\DokumentasiExportController;
 use App\Livewire\Verifikator\Rancangan\PilihPeneliti;
 use App\Livewire\Admin\Fasilitasi\ManajemenFasilitasi;
 use App\Livewire\Verifikator\TandaTangan\PengelolaTtd;
@@ -146,11 +144,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/export-master-data', [MasterData::class, 'export'])->name('export.masterdata');
     });
 
-    // Ekspor dokumentasi: sama dengan policy DokumentasiProdukHukum::viewAny
-    Route::middleware(['role:Admin|Verifikator'])->group(function () {
-        Route::get('/export-dokumentasi', [DokumentasiExportController::class, 'export'])->name('export.dokumentasi');
-        Route::get('/export-dokumentasi-pdf', [DokumentasiPdfController::class, 'export'])->name('export.dokumentasi.pdf');
-    });
 });
 
 

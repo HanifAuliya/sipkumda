@@ -1,0 +1,228 @@
+/*
+ * Ikon aplikasi memakai Phosphor Icons (MIT). Kelasnya tetap bi dan bi-*, karena nama ikon juga
+ * tersimpan sebagai data di banyak komponen, jadi seluruh tampilan ikon cukup diatur di file ini.
+ * Untuk menambah ikon, cari titik kodenya di node_modules/@phosphor-icons/web/src/regular/style.css.
+ */
+@font-face {
+    font-family: "Phosphor";
+    src: url("../../node_modules/@phosphor-icons/web/src/regular/Phosphor.woff2") format("woff2");
+    font-display: block;
+}
+
+@font-face {
+    font-family: "Phosphor-Fill";
+    src: url("../../node_modules/@phosphor-icons/web/src/fill/Phosphor-Fill.woff2") format("woff2");
+    font-display: block;
+}
+
+.bi::before,
+[class^="bi-"]::before,
+[class*=" bi-"]::before {
+    display: inline-block;
+    font-family: "Phosphor" !important;
+    font-style: normal;
+    font-variant: normal;
+    font-weight: normal !important;
+    line-height: 1;
+    text-transform: none;
+    vertical-align: -0.125em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.bi-activity::before { content: "\e000"; }
+.bi-align-top::before { content: "\e512"; }
+.bi-archive::before { content: "\e00c"; }
+.bi-arrow-clockwise::before { content: "\e036"; }
+.bi-arrow-counterclockwise::before { content: "\e038"; }
+.bi-arrow-down::before { content: "\e03e"; }
+.bi-arrow-down-up::before { content: "\e098"; }
+.bi-arrow-left::before { content: "\e058"; }
+.bi-arrow-left-right::before { content: "\e0a0"; }
+.bi-arrow-repeat::before { content: "\e094"; }
+.bi-arrow-return-left::before { content: "\e07e"; }
+.bi-arrow-right::before { content: "\e06c"; }
+.bi-arrow-up::before { content: "\e08e"; }
+.bi-arrow-up-right::before { content: "\e092"; }
+.bi-arrows-fullscreen::before { content: "\e0a2"; }
+.bi-bank::before { content: "\e0b4"; }
+.bi-bar-chart::before { content: "\e150"; }
+.bi-bell::before { content: "\e0ce"; }
+.bi-bell-slash::before { content: "\e0d4"; }
+.bi-book::before { content: "\e0e6"; }
+.bi-bookmark-dash::before { content: "\e0ea"; }
+.bi-bookmark-star::before { content: "\e5f0"; }
+.bi-box-arrow-in-right::before { content: "\e428"; }
+.bi-box-arrow-right::before { content: "\e42a"; }
+.bi-box-arrow-up-right::before { content: "\e5de"; }
+.bi-bug::before { content: "\e5f4"; }
+.bi-building::before { content: "\e102"; }
+.bi-calendar-check::before { content: "\e712"; }
+.bi-calendar-event::before { content: "\e7b4"; }
+.bi-calendar2-check::before { content: "\e712"; }
+.bi-calendar3::before { content: "\e10a"; }
+.bi-calendar4-week::before { content: "\e7b4"; }
+.bi-chat-left-text::before { content: "\e17a"; }
+.bi-check-circle::before { content: "\e184"; }
+.bi-check-circle-fill::before { font-family: "Phosphor-Fill" !important; content: "\e184"; }
+.bi-check-lg::before { content: "\e182"; }
+.bi-check2::before { content: "\e182"; }
+.bi-check2-all::before { content: "\e53a"; }
+.bi-check2-circle::before { content: "\e184"; }
+.bi-check2-square::before { content: "\e186"; }
+.bi-chevron-double-left::before { content: "\e128"; }
+.bi-chevron-double-right::before { content: "\e12a"; }
+.bi-chevron-down::before { content: "\e136"; }
+.bi-chevron-expand::before { content: "\e140"; }
+.bi-chevron-left::before { content: "\e138"; }
+.bi-chevron-right::before { content: "\e13a"; }
+.bi-chevron-up::before { content: "\e13c"; }
+.bi-circle::before { content: "\e18a"; }
+.bi-circle-fill::before { font-family: "Phosphor-Fill" !important; content: "\e18a"; }
+.bi-clipboard-x::before { content: "\e196"; }
+.bi-clipboard2::before { content: "\e196"; }
+.bi-clipboard2-check::before { content: "\e198"; }
+.bi-clipboard2-data::before { content: "\e198"; }
+.bi-clock-history::before { content: "\e1a0"; }
+.bi-cloud-arrow-up::before { content: "\e1ae"; }
+.bi-cloud-download::before { content: "\e1ac"; }
+.bi-code::before { content: "\e1bc"; }
+.bi-collection::before { content: "\e466"; }
+.bi-cpu::before { content: "\e610"; }
+.bi-database::before { content: "\e1de"; }
+.bi-display::before { content: "\e32e"; }
+.bi-download::before { content: "\e20c"; }
+.bi-envelope::before { content: "\e218"; }
+.bi-envelope-check::before { content: "\e21a"; }
+.bi-exclamation-circle::before { content: "\e4e2"; }
+.bi-exclamation-circle-fill::before { font-family: "Phosphor-Fill" !important; content: "\e4e2"; }
+.bi-exclamation-triangle::before { content: "\e4e0"; }
+.bi-exclamation-triangle-fill::before { font-family: "Phosphor-Fill" !important; content: "\e4e0"; }
+.bi-eye::before { content: "\e220"; }
+.bi-eye-fill::before { font-family: "Phosphor-Fill" !important; content: "\e220"; }
+.bi-eye-slash::before { content: "\e224"; }
+.bi-facebook::before { content: "\e226"; }
+.bi-file::before { content: "\e230"; }
+.bi-file-check::before { content: "\e23a"; }
+.bi-file-earmark::before { content: "\e230"; }
+.bi-file-earmark-arrow-up::before { content: "\e61e"; }
+.bi-file-earmark-break::before { content: "\e704"; }
+.bi-file-earmark-check::before { content: "\e23a"; }
+.bi-file-earmark-check-fill::before { font-family: "Phosphor-Fill" !important; content: "\e23a"; }
+.bi-file-earmark-excel-fill::before { font-family: "Phosphor-Fill" !important; content: "\eb22"; }
+.bi-file-earmark-fill::before { font-family: "Phosphor-Fill" !important; content: "\e230"; }
+.bi-file-earmark-image-fill::before { font-family: "Phosphor-Fill" !important; content: "\ea24"; }
+.bi-file-earmark-pdf::before { content: "\e702"; }
+.bi-file-earmark-pdf-fill::before { font-family: "Phosphor-Fill" !important; content: "\e702"; }
+.bi-file-earmark-plus::before { content: "\e236"; }
+.bi-file-earmark-ruled::before { content: "\e23a"; }
+.bi-file-earmark-spreadsheet::before { content: "\eb22"; }
+.bi-file-earmark-text::before { content: "\e23a"; }
+.bi-file-earmark-text-fill::before { font-family: "Phosphor-Fill" !important; content: "\e23a"; }
+.bi-file-earmark-word::before { content: "\eb1e"; }
+.bi-file-earmark-word-fill::before { font-family: "Phosphor-Fill" !important; content: "\eb1e"; }
+.bi-file-earmark-x::before { content: "\e23c"; }
+.bi-file-text::before { content: "\e23a"; }
+.bi-file-x::before { content: "\e23c"; }
+.bi-files::before { content: "\e710"; }
+.bi-filter::before { content: "\e268"; }
+.bi-floppy::before { content: "\e248"; }
+.bi-folder::before { content: "\e24a"; }
+.bi-folder-check::before { content: "\ec2e"; }
+.bi-folder-fill::before { font-family: "Phosphor-Fill" !important; content: "\e24a"; }
+.bi-folder-plus::before { content: "\e258"; }
+.bi-folder2-open::before { content: "\e256"; }
+.bi-fonts::before { content: "\e6ee"; }
+.bi-funnel::before { content: "\e266"; }
+.bi-gear::before { content: "\e270"; }
+.bi-geo-alt::before { content: "\e316"; }
+.bi-grid::before { content: "\e464"; }
+.bi-grid-1x2::before { content: "\e464"; }
+.bi-hand-index-thumb::before { content: "\e29a"; }
+.bi-hourglass::before { content: "\e2b2"; }
+.bi-hourglass-bottom::before { content: "\e2b6"; }
+.bi-hourglass-split::before { content: "\e2b8"; }
+.bi-house::before { content: "\e2c2"; }
+.bi-image::before { content: "\e2ca"; }
+.bi-inbox::before { content: "\e4aa"; }
+.bi-info::before { content: "\e2ce"; }
+.bi-info-circle::before { content: "\e2ce"; }
+.bi-info-circle-fill::before { font-family: "Phosphor-Fill" !important; content: "\e2ce"; }
+.bi-info-lg::before { content: "\e2ce"; }
+.bi-instagram::before { content: "\e2d0"; }
+.bi-intersect::before { content: "\e2d2"; }
+.bi-journal-bookmark::before { content: "\e0e4"; }
+.bi-journal-check::before { content: "\e34e"; }
+.bi-journal-text::before { content: "\e8f2"; }
+.bi-journal-x::before { content: "\e34e"; }
+.bi-journals::before { content: "\e758"; }
+.bi-key::before { content: "\e2d6"; }
+.bi-layout-sidebar-reverse::before { content: "\ec24"; }
+.bi-layout-split::before { content: "\e546"; }
+.bi-link-45deg::before { content: "\e2e6"; }
+.bi-list::before { content: "\e2f0"; }
+.bi-list-check::before { content: "\eadc"; }
+.bi-list-ol::before { content: "\e2f6"; }
+.bi-list-task::before { content: "\eadc"; }
+.bi-list-ul::before { content: "\e2f2"; }
+.bi-lock::before { content: "\e2fa"; }
+.bi-memory::before { content: "\e9c4"; }
+.bi-paperclip::before { content: "\e39a"; }
+.bi-patch-check::before { content: "\e606"; }
+.bi-patch-check-fill::before { font-family: "Phosphor-Fill" !important; content: "\e606"; }
+.bi-patch-question::before { content: "\e608"; }
+.bi-pen::before { content: "\e3aa"; }
+.bi-pencil::before { content: "\e3b4"; }
+.bi-pencil-square::before { content: "\e34c"; }
+.bi-people::before { content: "\e4d6"; }
+.bi-person::before { content: "\e4c2"; }
+.bi-person-add::before { content: "\e4d0"; }
+.bi-person-badge::before { content: "\e6f6"; }
+.bi-person-check::before { content: "\eafa"; }
+.bi-person-dash::before { content: "\e4ce"; }
+.bi-person-exclamation::before { content: "\e6fc"; }
+.bi-person-gear::before { content: "\e4cc"; }
+.bi-person-lock::before { content: "\e2fa"; }
+.bi-person-plus::before { content: "\e4d0"; }
+.bi-plus-lg::before { content: "\e3d4"; }
+.bi-question::before { content: "\e3e8"; }
+.bi-question-square::before { content: "\e608"; }
+.bi-record-circle-fill::before { font-family: "Phosphor-Fill" !important; content: "\e3ee"; }
+.bi-robot::before { content: "\e762"; }
+.bi-save::before { content: "\e248"; }
+.bi-search::before { content: "\e30c"; }
+.bi-send::before { content: "\e398"; }
+.bi-send-check::before { content: "\e396"; }
+.bi-send-plus::before { content: "\e398"; }
+.bi-shield-check::before { content: "\e40c"; }
+.bi-shield-lock::before { content: "\e2fe"; }
+.bi-signpost-split::before { content: "\e89c"; }
+.bi-sort-down::before { content: "\e446"; }
+.bi-sort-up::before { content: "\e444"; }
+.bi-speedometer::before { content: "\e628"; }
+.bi-square::before { content: "\e45e"; }
+.bi-stack::before { content: "\e466"; }
+.bi-stars::before { content: "\e6a2"; }
+.bi-stickies::before { content: "\e63e"; }
+.bi-table::before { content: "\e476"; }
+.bi-tags::before { content: "\e478"; }
+.bi-text-center::before { content: "\e480"; }
+.bi-text-indent-left::before { content: "\ea1c"; }
+.bi-text-indent-right::before { content: "\ea1e"; }
+.bi-text-left::before { content: "\e484"; }
+.bi-text-right::before { content: "\e486"; }
+.bi-textarea::before { content: "\eb0a"; }
+.bi-tools::before { content: "\e5d4"; }
+.bi-trash::before { content: "\e4a6"; }
+.bi-type::before { content: "\e48a"; }
+.bi-ui-checks::before { content: "\eadc"; }
+.bi-unlock::before { content: "\e306"; }
+.bi-upload::before { content: "\e4c0"; }
+.bi-vector-pen::before { content: "\e3ac"; }
+.bi-warning::before { content: "\e4e0"; }
+.bi-whatsapp::before { content: "\e5d0"; }
+.bi-wifi-off::before { content: "\e4f2"; }
+.bi-x::before { content: "\e4f6"; }
+.bi-x-circle::before { content: "\e4f8"; }
+.bi-x-circle-fill::before { font-family: "Phosphor-Fill" !important; content: "\e4f8"; }
+.bi-x-lg::before { content: "\e4f6"; }

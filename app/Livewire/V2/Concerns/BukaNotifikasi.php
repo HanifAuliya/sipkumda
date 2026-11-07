@@ -16,8 +16,13 @@ trait BukaNotifikasi
         $notifikasi->markAsRead();
         $this->dispatch('notifikasi-berubah');
 
+        // Pemberitahuan sistem, misalnya backup gagal, tidak terkait naskah mana pun.
         $slug = $notifikasi->data['slug'] ?? null;
-        $naskah = $slug ? Naskah::where('slug', $slug)->first() : null;
+        if (! $slug) {
+            return null;
+        }
+
+        $naskah = Naskah::where('slug', $slug)->first();
 
         if (! $naskah || Gate::denies('view', $naskah)) {
             $this->dispatch('swal:toast', ['type' => 'info', 'title' => 'Naskah tidak tersedia', 'message' => 'Naskah ini sudah dibuang atau tidak bisa Anda buka.']);

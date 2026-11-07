@@ -42,7 +42,8 @@ bisa ditulis oleh web server. Tanpa file ini PDF naskah jatuh ke Times New Roman
 |---|---|---|
 | `APP_ENV` | `production` | Mengaktifkan Content-Security-Policy |
 | `APP_DEBUG` | `false` | Jangan pernah `true` di server publik |
-| `APP_URL` | `https://domain-anda` | |
+| `APP_URL` | `https://domain-anda` | Dipakai juga oleh tautan aktivasi akun |
+| `APP_TIMEZONE` | `Asia/Makassar` | Jam jadwal backup dan tanggal di aplikasi mengikuti nilai ini |
 | `LOG_LEVEL` | `error` | |
 | `SESSION_SECURE_COOKIE` | `true` | Bila memakai HTTPS |
 | `CACHE_LIMITER` | `redis` (disarankan) | Kosong = database. Jangan `file` di Windows |
@@ -83,7 +84,36 @@ php artisan queue:work --tries=3     # dijalankan terus (Supervisor / NSSM di Wi
 php artisan schedule:run             # setiap menit (cron / Task Scheduler)
 ```
 
-## 6. Hasil load test
+Tanpa `schedule:run`, backup otomatis tidak pernah berjalan.
+
+## 6. Backup
+
+`php artisan backup:jalankan` berjalan otomatis setiap pukul 01.00. Database disimpan sebagai
+`database/<nama>-<tanggal>.sql.gz` dan disimpan 14 hari. Berkas unggahan disalin ke `berkas/`; hanya
+file baru atau berubah yang disalin, dan salinan tidak ikut terhapus saat file aslinya dihapus.
+Bila gagal, kesalahan dicatat di `storage/logs/laravel.log` dan Admin menerima notifikasi.
+
+| Variabel | Bawaan | Catatan |
+|---|---|---|
+| `BACKUP_DIR` | `storage/app/backup` | **Arahkan ke disk lain atau folder jaringan.** Di disk yang sama, cadangan ikut hilang bila disknya rusak |
+| `BACKUP_MYSQLDUMP` | `mysqldump` | Di Windows biasanya perlu alamat lengkap, misalnya `C:\mysql\bin\mysqldump.exe` |
+| `BACKUP_SIMPAN_HARI` | `14` | Tiga cadangan terbaru selalu disimpan walau sudah lebih lama |
+
+Sesudah pemasangan, jalankan `php artisan backup:jalankan` sekali dan pastikan file `.sql.gz` muncul.
+Cadangan berisi data pribadi, jadi batasi akses foldernya.
+
+**Memulihkan.** Uji dulu ke database baru supaya data yang masih ada tidak tertimpa:
+
+```bash
+mysql -u root -p -e "CREATE DATABASE sipkumda_pulih CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
+gunzip -c database/sipkumda-2026-01-31-010000.sql.gz | mysql -u root -p sipkumda_pulih
+```
+
+Sesudah isinya benar, arahkan `DB_DATABASE` ke database itu lalu jalankan `php artisan config:cache`.
+Salin isi `berkas/private` dan `berkas/public` ke `storage/app/private` dan `storage/app/public`.
+File dump tidak memuat nama database, jadi tidak akan menimpa database lain selama nama tujuannya benar.
+
+## 7. Hasil load test
 
 Lingkungan: Apache 2.4.62 + PHP 8.5 (mod_php, 64 thread), MySQL 8.0.40, 16 CPU logis,
 mode production dengan `config:cache`. Data: 10.009 produk hukum dan 3.024 rancangan.

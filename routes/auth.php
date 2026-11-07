@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\AktivasiAkunController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\ConfirmablePasswordController;
 use App\Http\Controllers\Auth\EmailVerificationNotificationController;
@@ -29,6 +30,13 @@ Route::middleware('guest')->group(function () {
     Route::post('reset-password', [NewPasswordController::class, 'store'])
         ->middleware('throttle:10,1')
         ->name('password.store');
+
+    Route::get('aktivasi-akun/{user}/{kunci}', [AktivasiAkunController::class, 'create'])
+        ->name('aktivasi.create');
+
+    Route::post('aktivasi-akun/{user}/{kunci}', [AktivasiAkunController::class, 'store'])
+        ->middleware('throttle:10,1')
+        ->name('aktivasi.store');
 });
 
 Route::middleware('auth')->group(function () {

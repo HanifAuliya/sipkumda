@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Mail\AktivasiAkun;
 use App\Models\User;
 use App\Models\PerangkatDaerah;
 use Illuminate\Support\Facades\Hash;
@@ -101,16 +102,12 @@ class UserManagement extends Component
                 'nama_user' => 'required|string|max:255',
                 'NIP' => 'required|string|size:18|unique:users,NIP',
                 'email' => 'required|email:rfc,dns|lowercase|max:100|unique:users,email',
-                'password' => 'nullable|string|min:8|confirmed',
                 'role' => 'required|exists:roles,name',
                 'perangkat_daerah_id' => 'required|exists:perangkat_daerah,id',
             ]);
 
-            // Buat password acak
-            $generatedPassword = Str::random(8);
-
-            // Tambahkan password yang sudah di-hash
-            $validated['password'] = Hash::make($generatedPassword);
+            // Password acak ini tidak diberikan kepada siapa pun; pengguna membuat sendiri lewat tautan aktivasi.
+            $validated['password'] = Hash::make(Str::random(64));
 
             // Hapus role sebelum membuat user
             $role = $validated['role'];
@@ -123,17 +120,21 @@ class UserManagement extends Component
             $user->assignRole($role);
 
             $this->resetInput();
-
-            // Kirim password ke email pengguna
-            Mail::to($validated['email'])->send(new \App\Mail\SendPasswordToUser($generatedPassword));
-
             $this->dispatch('closeModal', 'userModal');
-            // Dispatch success event
-            $this->dispatch('swal:modal', [
-                'type' => 'success',
-                'title' => 'Berhasil!',
-                'message' => 'Pengguna berhasil ditambahkan!',
-            ]);
+
+            if ($this->kirimAktivasi($user)) {
+                $this->dispatch('swal:modal', [
+                    'type' => 'success',
+                    'title' => 'Berhasil!',
+                    'message' => 'Pengguna ditambahkan. Tautan aktivasi sudah dikirim ke ' . $user->email . '.',
+                ]);
+            } else {
+                $this->dispatch('swal:modal', [
+                    'type' => 'warning',
+                    'title' => 'Email belum terkirim',
+                    'message' => 'Pengguna sudah ditambahkan, tetapi tautan aktivasi gagal dikirim. Coba lagi lewat tombol Kirim Ulang Aktivasi di baris pengguna tersebut.',
+                ]);
+            }
         } catch (\Illuminate\Validation\ValidationException $e) {
             // Dispatch event untuk SweetAlert error validasi
             $this->dispatch('swal:error', [
@@ -147,6 +148,37 @@ class UserManagement extends Component
     }
 
 
+
+    public function kirimUlangAktivasi($id)
+    {
+        if (!$this->isAdmin) {
+            abort(403, 'Anda tidak memiliki izin untuk mengirim aktivasi.');
+        }
+
+        $user = User::findOrFail($id);
+
+        // Akun yang sudah aktif memakai Lupa Password.
+        if ($user->email_verified_at) {
+            return;
+        }
+
+        $this->kirimAktivasi($user)
+            ? $this->dispatch('swal:toast', ['type' => 'success', 'message' => 'Tautan aktivasi dikirim ke ' . $user->email . '.'])
+            : $this->dispatch('swal:modal', ['type' => 'error', 'title' => 'Email gagal terkirim', 'message' => 'Periksa pengaturan email server, lalu coba lagi.']);
+    }
+
+    private function kirimAktivasi(User $user): bool
+    {
+        try {
+            Mail::to($user->email)->send(new AktivasiAkun($user));
+
+            return true;
+        } catch (\Throwable $e) {
+            report($e);
+
+            return false;
+        }
+    }
 
     public function edit($id)
     {

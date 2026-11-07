@@ -20,6 +20,7 @@
         'fasilitasi_diterima' => ['file-earmark-check', 'text-emerald-500 bg-emerald-50'],
         'fasilitasi_ditolak' => ['file-x', 'text-rose-500 bg-rose-50'],
         'fasilitasi_verifikasi' => ['question-square', 'text-orange-500 bg-orange-50'],
+        'backup_gagal' => ['exclamation-triangle', 'text-rose-500 bg-rose-50'],
     ];
     $fallback = ['bell', 'text-slate-500 bg-slate-100'];
 @endphp

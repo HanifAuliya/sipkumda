@@ -39,6 +39,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->booted(function () {
             $schedule = app(Schedule::class);
             $schedule->command('notifications:clear')->daily();
+            $schedule->command('backup:jalankan')->dailyAt('01:00')->withoutOverlapping(120);
         });
     }
 }

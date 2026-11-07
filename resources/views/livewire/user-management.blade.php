@@ -78,6 +78,10 @@
                     @if ($isAdmin)
                     <td>
                         <div class="flex justify-end gap-1.5">
+                                @unless ($user->email_verified_at)
+                                    <x-ui.button variant="soft-primary" size="sm" square icon="send" title="Kirim Ulang Aktivasi" aria-label="Kirim ulang aktivasi"
+                                        wire:click="kirimUlangAktivasi({{ $user->id }})" loading="kirimUlangAktivasi({{ $user->id }})" />
+                                @endunless
                                 <x-ui.button variant="soft-primary" size="sm" square icon="pencil" title="Ubah"
                                     wire:click="edit({{ $user->id }})" loading="edit({{ $user->id }})" />
                                 <x-ui.button variant="soft-danger" size="sm" square icon="trash" title="Hapus"
@@ -99,7 +103,7 @@
 
     {{-- Tambah / ubah pengguna --}}
     <x-ui.modal id="userModal" :title="$userIdToEdit ? 'Ubah Pengguna' : 'Tambah Pengguna'"
-        :description="$userIdToEdit ? null : 'Password acak akan dikirim ke email pengguna.'" size="2xl" static>
+        :description="$userIdToEdit ? null : 'Tautan untuk membuat password akan dikirim ke email pengguna.'" size="2xl" static>
         <form id="userForm" wire:submit="{{ $userIdToEdit ? 'update' : 'store' }}" class="grid gap-5 sm:grid-cols-2">
             <x-form.field label="Nama" for="nama_user" error="nama_user" required>
                 <x-form.input id="nama_user" wire:model="nama_user" icon="person" />
