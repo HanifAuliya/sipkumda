@@ -3,7 +3,7 @@
     $modeV2 = \App\Support\Navigation::modeV2();
 @endphp
 
-<header class="sticky top-0 z-30 bg-navy-900 text-white shadow-md dark:bg-navy-950 dark:ring-1 dark:ring-white/5">
+<header class="sticky top-0 z-30 bg-navy-900 text-white shadow-md dark:shadow-none dark:ring-1 dark:ring-white/5">
     <div class="flex h-16 items-center gap-3 px-4 sm:px-6 lg:px-8">
         {{-- Menu (mobile: buka laci, desktop: ciutkan) --}}
         <button type="button" class="grid size-10 shrink-0 place-items-center rounded-lg text-white/80 transition hover:bg-white/10 hover:text-white lg:hidden"

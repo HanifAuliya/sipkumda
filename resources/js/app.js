@@ -100,7 +100,7 @@ window.confirmAction = ({
         reverseButtons: true,
         confirmButtonText: confirmText,
         cancelButtonText: cancelText,
-        confirmButtonColor: danger ? '#f5365c' : '#5e72e4',
+        confirmButtonColor: danger ? '#e11d48' : undefined,
     }).then((result) => result.isConfirmed);
 
 Alpine.magic('confirm', () => window.confirmAction);

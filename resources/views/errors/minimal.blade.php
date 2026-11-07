@@ -28,7 +28,7 @@
         </div>
 
         <p class="mt-12 flex items-center justify-center gap-2 text-xs text-slate-400">
-            <img src="{{ asset('assets/img/brand/loading_screen.png') }}" alt="" class="size-5"> SIFKUMDA Hulu Sungai Tengah
+            <x-ui.logo class="size-5" /> SIFKUMDA Hulu Sungai Tengah
         </p>
     </main>
 

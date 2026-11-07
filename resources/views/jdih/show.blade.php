@@ -65,7 +65,7 @@
 
             <div class="mt-6 flex flex-wrap gap-2" x-data="{ disalin: false }">
                 @if ($adaFile)
-                    <a href="{{ $urlPdf }}?unduh=1" class="{{ $tombolTerang }} bg-brand-500 text-white shadow-lg shadow-brand-500/20 hover:bg-brand-600">
+                    <a href="{{ $urlPdf }}?unduh=1" class="{{ $tombolTerang }} bg-brand-500 text-white shadow-lg shadow-brand-500/20 dark:text-navy-950 hover:bg-brand-600">
                         <i class="bi bi-download"></i> Unduh PDF
                     </a>
                 @endif

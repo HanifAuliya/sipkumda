@@ -32,7 +32,7 @@
                 aria-label="Notifikasi ({{ $unreadCount }} belum dibaca)">
                 <i class="bi bi-bell text-xl" aria-hidden="true"></i>
                 @if ($unreadCount > 0)
-                    <span class="absolute -top-0.5 -right-0.5 grid min-w-5 place-items-center rounded-full bg-rose-500 px-1 text-xs leading-5 font-bold text-white ring-2 ring-navy-900">
+                    <span class="absolute -top-0.5 -right-0.5 grid min-w-5 place-items-center rounded-full bg-rose-500 px-1 dark:bg-rose-600 text-xs leading-5 font-bold text-white ring-2 ring-navy-900">
                         {{ $unreadCount > 99 ? '99+' : $unreadCount }}
                     </span>
                 @endif

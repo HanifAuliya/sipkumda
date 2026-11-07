@@ -15,39 +15,43 @@ const palette = () => {
     };
 };
 
-export default (config) => ({
-    chart: null,
+export default (config) => {
+    // Sengaja di luar data Alpine. Lewat proxy reaktif, destroy() tidak melepas grafik dari
+    // daftar animasi Chart.js, sehingga grafik yang sudah dihancurkan tetap digambar dan memunculkan error.
+    let grafik = null;
 
-    init() {
-        const observer = new IntersectionObserver(
-            (entries) => {
-                if (entries.some((entry) => entry.isIntersecting)) {
-                    observer.disconnect();
-                    this.render();
-                }
-            },
-            { threshold: 0.2 },
-        );
-        observer.observe(this.$el);
+    return {
+        init() {
+            const observer = new IntersectionObserver(
+                (entries) => {
+                    if (entries.some((entry) => entry.isIntersecting)) {
+                        observer.disconnect();
+                        this.render();
+                    }
+                },
+                { threshold: 0.2 },
+            );
+            observer.observe(this.$el);
 
-        this.onTheme = () => this.render();
-        window.addEventListener('theme-changed', this.onTheme);
-    },
+            this.onTheme = () => this.render();
+            window.addEventListener('theme-changed', this.onTheme);
+        },
 
-    async render() {
-        const Chart = await window.loadChart();
-        const { text, grid } = palette();
+        async render() {
+            const Chart = await window.loadChart();
+            const { text, grid } = palette();
 
-        Chart.defaults.font.family = "'Open Sans Variable', sans-serif";
-        Chart.defaults.color = text;
-        Chart.defaults.borderColor = grid;
+            Chart.defaults.font.family = "'Open Sans Variable', sans-serif";
+            Chart.defaults.color = text;
+            Chart.defaults.borderColor = grid;
 
-        this.chart?.destroy();
-        this.chart = new Chart(this.$refs.canvas, structuredClone(config));
-    },
+            grafik?.destroy();
+            grafik = new Chart(this.$refs.canvas, structuredClone(config));
+        },
 
-    destroy() {
-        window.removeEventListener('theme-changed', this.onTheme);
-        this.chart?.destroy();
-    },
-});
+        destroy() {
+            window.removeEventListener('theme-changed', this.onTheme);
+            grafik?.destroy();
+        },
+    };
+};

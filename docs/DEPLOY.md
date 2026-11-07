@@ -23,6 +23,9 @@ php artisan event:cache
 > dihitung dari `APP_KEY`. `bootstrap/app.php` kini mematikan `putenv()` lewat
 > `Env::disablePutenv()`. Pada uji 2.400 request bersamaan tanpa `config:cache`, tidak ada lagi
 > 404 (sebelumnya 4 dari 800).
+>
+> Akibatnya, konfigurasi diambil dari file `.env`. Variabel lingkungan sistem operasi tidak terbaca
+> lewat `getenv()`, kecuali yang masuk ke `$_ENV` atau `$_SERVER` (misalnya `SetEnv` di Apache).
 
 ### Font Bookman Old Style (sekali saat pemasangan server)
 

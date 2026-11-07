@@ -86,7 +86,7 @@
         </button>
 
         <a href="{{ route('v2.beranda') }}" class="hidden size-9 shrink-0 place-items-center rounded-lg transition hover:bg-slate-100 sm:grid dark:hover:bg-navy-800" aria-label="Dashboard" title="Dashboard">
-            <img src="{{ asset('assets/img/brand/loading_screen.png') }}" alt="" class="size-7">
+            <x-ui.logo class="size-7" />
         </a>
 
         <div class="flex min-w-0 flex-1 items-center gap-2.5 text-sm">
@@ -175,7 +175,7 @@
                     <span class="min-w-0 flex-1">
                         <span class="block text-sm font-semibold">{{ $b['nama'] }}</span>
                         @if ($b['sub'])
-                            <span @class(['mt-0.5 line-clamp-2 block text-sm', 'text-white/85' => $aktif, 'text-slate-500 dark:text-slate-400' => ! $aktif])>{{ $b['sub'] }}</span>
+                            <span @class(['mt-0.5 line-clamp-2 block text-sm', 'text-white/85 dark:text-white' => $aktif, 'text-slate-500 dark:text-slate-400' => ! $aktif])>{{ $b['sub'] }}</span>
                         @endif
                     </span>
                     @if ($b['keadaan'] === 'perlu')

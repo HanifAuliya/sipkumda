@@ -6,7 +6,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
-use RealRashid\SweetAlert\Facades\Alert;
 
 
 class UpdateProfileInformation extends Component

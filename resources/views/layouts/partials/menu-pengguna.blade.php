@@ -5,11 +5,7 @@
     $modeV2 wajib dikirim pemanggil: lembar kerja merender bagian ini lewat permintaan Livewire,
     dan Navigation::modeV2() tidak bisa mengenali v2 dari rute permintaan itu.
 --}}
-<button type="button" x-on:click="toggleTheme()"
-    class="grid size-10 shrink-0 place-items-center rounded-lg text-current/80 transition hover:bg-current/10 hover:text-current" aria-label="Ganti tema">
-    <i class="bi bi-moon-stars text-xl dark:hidden" aria-hidden="true"></i>
-    <i class="bi bi-brightness-high hidden text-xl dark:inline-block" aria-hidden="true"></i>
-</button>
+<x-ui.tombol-tema />
 
 @if ($modeV2)
     <livewire:v2.lonceng wire:key="lonceng-pengguna" />

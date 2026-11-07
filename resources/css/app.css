@@ -64,6 +64,102 @@
     }
 }
 
+/*
+ * Tema gelap: skala warna dipetakan ulang di sini, jadi semua kelas warna ikut berubah
+ * tanpa menyentuh tema terang. Tingkatannya: navy-950 halaman, navy-900 kartu dan bingkai aplikasi,
+ * navy-800 permukaan yang terangkat atau disorot, navy-700 garis tepi.
+ */
+.dark {
+    color-scheme: dark;
+    scrollbar-color: var(--color-navy-600) transparent;
+
+    --color-navy-50: #f1f4f8;
+    --color-navy-100: #e2e7ef;
+    --color-navy-200: #c8d0dd;
+    --color-navy-300: #a6b1c4;
+    --color-navy-400: #8592a9;
+    --color-navy-500: #5f6d88;
+    --color-navy-600: #46536d;
+    --color-navy-700: #323e56;
+    --color-navy-800: #252f44;
+    --color-navy-900: #1a2233;
+    --color-navy-950: #0e131d;
+
+    --color-surface: #0e131d;
+
+    /* Sedikit lebih tua dari tema terang, supaya teks putih di atasnya mudah dibaca. */
+    --color-primary-500: #5366dd;
+    --color-primary-600: #4656c8;
+    --color-accent-500: #cc451d;
+    --color-accent-600: #b23c19;
+
+    /* Dipakai sebagai warna teks, jadi lebih terang. Latar merah dan hijau bertulisan putih diatur langsung di komponennya. */
+    --color-slate-500: #8d9ab0;
+    --color-rose-500: #ff637e;
+    --color-brand-600: #26b97a;
+
+    --shadow-card: 0 1px 3px rgb(0 0 0 / 0.35);
+    --shadow-soft: 0 1px 2px rgb(0 0 0 / 0.4);
+}
+
+/* Kertas naskah selalu putih, jadi warna di dalamnya tetap warna tema terang. */
+.dark .v2-kertas,
+.dark .kertas-pratinjau {
+    color-scheme: light;
+    --color-slate-500: oklch(55.4% 0.046 257.417);
+    --color-rose-500: oklch(64.5% 0.246 16.439);
+}
+
+/* Perpindahan tema memudar halus (lihat resources/js/theme.js). */
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation-duration: 220ms;
+}
+
+/* Ikon tombol tema: bulan dan matahari saling berganti sambil berputar. */
+.ikon-tema {
+    width: 1.375rem;
+    height: 1.375rem;
+    overflow: visible;
+
+    & > * {
+        transform-box: view-box;
+        transform-origin: 12px 12px;
+        transition:
+            transform 380ms cubic-bezier(0.34, 1.45, 0.64, 1),
+            opacity 180ms ease-out,
+            rotate 300ms ease-out;
+    }
+}
+
+.ikon-matahari {
+    opacity: 0;
+    transform: rotate(-90deg) scale(0.4);
+}
+
+.tombol-tema:hover .ikon-bulan {
+    rotate: -14deg;
+}
+
+.tombol-tema:hover .ikon-matahari {
+    rotate: 30deg;
+}
+
+.tombol-tema:active .ikon-tema {
+    scale: 0.88;
+}
+
+.dark .ikon-bulan {
+    opacity: 0;
+    transform: rotate(90deg) scale(0.4);
+}
+
+.dark .ikon-matahari {
+    opacity: 1;
+    transform: none;
+    color: var(--color-amber-300);
+}
+
 /* Penanda perubahan pada rumusan penyempurnaan (v2). */
 .v2-diff del {
     background: rgb(244 63 94 / 0.15);
@@ -387,17 +483,29 @@
 /* SweetAlert2 menyesuaikan tema aplikasi. */
 .swal2-popup {
     @apply rounded-2xl! font-sans!;
-}
 
-.swal2-styled.swal2-confirm {
-    @apply bg-primary-500!;
+    /* Lewat variabel, supaya warna merah pada dialog hapus (window.confirmAction) tetap berlaku. */
+    --swal2-confirm-button-background-color: var(--color-primary-500);
 }
 
 .dark .swal2-popup {
     @apply bg-navy-900! text-slate-200!;
+
+    --swal2-cancel-button-background-color: var(--color-navy-700);
 }
 
 .dark .swal2-title,
-.dark .swal2-html-container {
+.dark .swal2-html-container,
+.dark .swal2-input-label {
     @apply text-slate-200!;
+}
+
+.dark .swal2-input,
+.dark .swal2-textarea,
+.dark .swal2-select {
+    @apply border-navy-700! bg-navy-800! text-slate-200!;
+}
+
+.dark .swal2-validation-message {
+    @apply bg-navy-800! text-rose-300!;
 }

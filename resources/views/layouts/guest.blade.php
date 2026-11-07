@@ -23,7 +23,7 @@
             <div class="pointer-events-none absolute -right-24 -bottom-32 size-96 rounded-full bg-emerald-100/60 blur-3xl dark:bg-emerald-500/10"></div>
 
             <div class="relative max-w-lg">
-                <img src="{{ asset('assets/img/brand/loading_screen.png') }}" alt="Logo SIFKUMDA" class="mx-auto size-44 drop-shadow-xl">
+                <x-ui.logo alt="Logo SIFKUMDA" class="mx-auto size-44 drop-shadow-xl" />
                 <h1 class="mt-6 text-5xl font-extrabold tracking-tight text-amber-500 dark:text-amber-400">SIFKUMDA</h1>
                 <p class="mt-2 text-lg font-semibold text-navy-900 dark:text-slate-200">Sistem Fasilitasi Produk Hukum Daerah</p>
                 <p class="mt-6 leading-relaxed text-slate-500 dark:text-slate-400">
@@ -44,7 +44,7 @@
             <div class="mx-auto w-full max-w-sm">
                 {{-- Logo ringkas di layar kecil --}}
                 <a href="{{ url('/') }}" class="mb-8 flex items-center justify-center gap-3 lg:hidden">
-                    <img src="{{ asset('assets/img/brand/loading_screen.png') }}" alt="" class="size-12">
+                    <x-ui.logo class="size-12" />
                     <span class="text-2xl font-extrabold text-amber-500">SIFKUMDA</span>
                 </a>
 

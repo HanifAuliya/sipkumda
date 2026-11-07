@@ -17,6 +17,6 @@ class RevisiRancangan extends Component
 
     public function render()
     {
-        return view('livewire.peneliti.rancangan.revisirancangan')->layout('layouts.app');
+        return view('livewire.peneliti.rancangan.revisiRancangan')->layout('layouts.app');
     }
 }

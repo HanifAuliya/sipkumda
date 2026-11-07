@@ -20,7 +20,7 @@
     {{-- Logo --}}
     <div class="flex h-16 shrink-0 items-center gap-3 border-b border-slate-100 px-5 dark:border-navy-800" data-ciut-tengah>
         <a href="{{ \App\Support\Navigation::beranda() }}" class="flex min-w-0 items-center gap-3" @if ($tanpaMuatUlang) wire:navigate @endif>
-            <img src="{{ asset('assets/img/brand/loading_screen.png') }}" alt="Logo SIFKUMDA" class="size-9 shrink-0">
+            <x-ui.logo alt="Logo SIFKUMDA" class="size-9 shrink-0" />
             <span class="truncate text-lg font-extrabold tracking-tight text-navy-900 dark:text-white" data-ciut-sembunyi>
                 SIFKUMDA <span class="text-amber-500">HST</span>
             </span>

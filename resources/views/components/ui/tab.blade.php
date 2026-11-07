@@ -14,6 +14,6 @@
     @if ($icon)<i class="bi bi-{{ $icon }} max-sm:hidden" aria-hidden="true"></i>@endif
     {{ $slot }}
     @if (! is_null($count))
-        <span class="rounded-full bg-slate-200 px-2 py-0.5 text-xs leading-none text-slate-600 group-aria-selected:bg-white/20 group-aria-selected:text-white dark:bg-navy-700 dark:text-slate-300">{{ $count }}</span>
+        <span class="rounded-full bg-slate-200 px-2 py-0.5 text-xs leading-none text-slate-600 group-aria-selected:bg-white/20 group-aria-selected:text-white dark:bg-navy-700 dark:text-slate-300 dark:group-aria-selected:bg-black/25 dark:group-aria-selected:text-white">{{ $count }}</span>
     @endif
 </button>

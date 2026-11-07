@@ -5,7 +5,7 @@
             <button type="button" class="relative grid size-10 shrink-0 place-items-center rounded-lg text-current/80 transition hover:bg-current/10 hover:text-current" aria-label="Notifikasi, {{ $belumDibaca }} belum dibaca">
                 <i class="bi bi-bell text-xl" aria-hidden="true"></i>
                 @if ($belumDibaca)
-                    <span class="absolute top-0.5 right-0.5 grid h-4.5 min-w-4.5 place-items-center rounded-full bg-rose-500 px-1 text-xs leading-none font-bold text-white">{{ $belumDibaca > 99 ? '99+' : $belumDibaca }}</span>
+                    <span class="absolute top-0.5 right-0.5 grid h-4.5 min-w-4.5 place-items-center rounded-full bg-rose-500 px-1 dark:bg-rose-600 text-xs leading-none font-bold text-white">{{ $belumDibaca > 99 ? '99+' : $belumDibaca }}</span>
                 @endif
             </button>
         </x-slot:trigger>

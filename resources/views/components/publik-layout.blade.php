@@ -64,7 +64,7 @@
         <div class="mx-auto flex h-18 max-w-7xl items-center justify-between gap-6 px-5 lg:px-8">
             <a href="{{ $beranda }}" class="flex items-center gap-3">
                 <img src="{{ asset('assets/img/brand/barabai.png') }}" alt="Logo Kabupaten Hulu Sungai Tengah" class="h-9">
-                <img src="{{ asset('assets/img/brand/loading_screen.png') }}" alt="" class="hidden size-9 sm:block">
+                <img src="{{ asset('assets/img/brand/loading_screen_terang.png') }}" alt="" class="hidden size-9 sm:block">
                 <span class="leading-tight">
                     <span class="block text-lg font-extrabold tracking-tight text-white">SIFKUMDA<span class="text-brand-500">.</span></span>
                     <span class="hidden text-[0.7rem] text-white/60 sm:block">Kabupaten Hulu Sungai Tengah</span>
@@ -77,18 +77,15 @@
                         @class(['inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition hover:bg-white/10 hover:text-white', 'bg-white/10 text-white' => $aktif, 'text-white/80' => ! $aktif])>
                         {{ $label }}
                         @if ($lencana)
-                            <span class="rounded bg-brand-500/20 px-1.5 py-px text-[0.6rem] font-bold tracking-wider text-brand-500">{{ $lencana }}</span>
+                            <span class="rounded bg-brand-500/20 px-1.5 py-px text-[0.6rem] font-bold tracking-wider text-brand-500 dark:text-emerald-300">{{ $lencana }}</span>
                         @endif
                     </a>
                 @endforeach
             </nav>
 
-            <div class="flex items-center gap-2">
-                <button type="button" class="rounded-lg p-2 text-white/80 hover:bg-white/10 hover:text-white" aria-label="Ganti tema"
-                    x-on:click="const d = document.documentElement.classList.toggle('dark'); try { localStorage.setItem('theme', d ? 'dark' : 'light') } catch (e) {}">
-                    <i class="bi bi-moon-stars dark:hidden"></i><i class="bi bi-sun hidden dark:inline-block"></i>
-                </button>
-                <a href="{{ route('login') }}" class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-brand-500/20 transition hover:bg-brand-600">
+            <div class="flex items-center gap-2 text-white">
+                <x-ui.tombol-tema />
+                <a href="{{ route('login') }}" class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-brand-500/20 transition hover:bg-brand-600 dark:text-navy-950">
                     <i class="bi bi-box-arrow-in-right"></i> Masuk
                 </a>
                 <button type="button" class="rounded-lg p-2 text-white lg:hidden" x-on:click="open = !open" aria-label="Menu" x-bind:aria-expanded="open">
@@ -117,7 +114,7 @@
         <div class="mx-auto grid max-w-7xl gap-10 px-5 py-14 sm:grid-cols-2 lg:grid-cols-4 lg:px-8">
             <div class="lg:col-span-2">
                 <div class="flex items-center gap-3">
-                    <img src="{{ asset('assets/img/brand/loading_screen.png') }}" alt="" class="size-10">
+                    <img src="{{ asset('assets/img/brand/loading_screen_terang.png') }}" alt="" class="size-10">
                     <p class="text-2xl font-extrabold text-white">SIFKUMDA<span class="text-brand-500">.</span></p>
                 </div>
                 <p class="mt-4 max-w-md text-sm leading-relaxed">

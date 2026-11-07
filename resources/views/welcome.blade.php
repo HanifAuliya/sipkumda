@@ -82,7 +82,7 @@
                 </p>
 
                 <div class="mt-9 flex flex-wrap items-center gap-3">
-                    <a href="{{ route('login') }}" class="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-6 py-3.5 text-sm font-semibold text-white shadow-xl shadow-brand-500/25 transition hover:-translate-y-0.5 hover:bg-brand-600">
+                    <a href="{{ route('login') }}" class="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-6 py-3.5 text-sm font-semibold text-white dark:text-navy-950 shadow-xl shadow-brand-500/25 transition hover:-translate-y-0.5 hover:bg-brand-600">
                         <i class="bi bi-box-arrow-in-right"></i> Masuk ke SIFKUMDA
                     </a>
                     <a href="{{ route('jdih.index') }}" class="inline-flex items-center gap-2 rounded-xl bg-white/10 px-6 py-3.5 text-sm font-semibold text-white ring-1 ring-white/20 backdrop-blur transition hover:-translate-y-0.5 hover:bg-white/15">
@@ -108,7 +108,7 @@
                             <p class="text-xs font-semibold tracking-wider text-slate-400 uppercase">Rancangan Peraturan Bupati</p>
                             <p class="mt-1 font-bold text-navy-900 dark:text-white">Pengelolaan Barang Milik Daerah</p>
                         </div>
-                        <span class="rounded-full bg-orange-50 px-2.5 py-1 text-xs font-semibold text-orange-600 ring-1 ring-orange-200 dark:bg-orange-500/10 dark:ring-orange-500/30">Penelitian</span>
+                        <span class="rounded-full bg-orange-50 px-2.5 py-1 text-xs font-semibold text-orange-600 ring-1 ring-orange-200 dark:bg-orange-500/10 dark:text-orange-300 dark:ring-orange-500/30">Penelitian</span>
                     </div>
 
                     <ol class="mt-6 space-y-4">
