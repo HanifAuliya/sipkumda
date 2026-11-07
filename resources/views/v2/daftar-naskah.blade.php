@@ -25,7 +25,7 @@
                     @forelse ($halaman as $naskah)
                         <x-naskah.item :naskah="$naskah" wire:key="naskah-{{ $naskah->id }}" />
                     @empty
-                        <x-ui.empty-state :icon="$info['ikon']" :title="$search !== '' ? 'Tidak ada naskah yang cocok dengan pencarian.' : 'Tidak ada naskah pada daftar ini.'" class="py-12">
+                        <x-ui.empty-state :icon="$info['ikon']" :title="$search !== '' ? 'Tidak ada naskah yang cocok dengan pencarian.' : 'Daftar “'.$info['tab'][$tabAktif === 'menunggu' ? 0 : 1][1].'” masih kosong.'" class="py-12">
                             <x-ui.reset-filter :aktif="$search !== ''" :nilai="['search' => '']" />
                             @if ($bisaBuat && $search === '' && $tabAktif === 'menunggu')
                                 <x-ui.button icon="send-plus" size="rapat" x-on:click="openModal('ajukanNaskahModal')">Ajukan Rancangan Baru</x-ui.button>
@@ -46,10 +46,10 @@
 
             <x-ui.table>
                 <x-slot:head>
-                    <th>Nomor</th>
-                    <th>Tentang</th>
-                    <th>Perangkat Daerah</th>
-                    <th>Tahap</th>
+                    <th><span class="sm:hidden">Naskah</span><span class="max-sm:hidden">Nomor</span></th>
+                    <th class="max-sm:hidden">Tentang</th>
+                    <th class="max-sm:hidden">Perangkat Daerah</th>
+                    <th class="max-sm:hidden">Tahap</th>
                     <th class="text-right">Aksi</th>
                 </x-slot:head>
 
@@ -57,13 +57,18 @@
                     {{-- Seluruh baris bisa diklik untuk membuka detail. --}}
                     <tr wire:key="naskah-{{ $naskah->id }}" class="cursor-pointer"
                         x-on:click="$event.target.closest('a, button') || Livewire.dispatch('bukaDetailNaskah', { slug: {{ \Illuminate\Support\Js::from($naskah->slug) }} })">
-                        <td class="whitespace-nowrap">
+                        <td class="sm:whitespace-nowrap">
                             <p class="sel-utama">{{ $naskah->nomor }}</p>
-                            <div class="mt-1"><x-ui.status-badge :value="$naskah->jenis" /></div>
+                            <div class="mt-1 flex flex-wrap gap-1.5">
+                                <x-ui.status-badge :value="$naskah->jenis" />
+                                <x-ui.badge :color="$naskah->tahap->warna()" class="sm:hidden">{{ $naskah->tahap->label() }}</x-ui.badge>
+                            </div>
+                            <p class="sel-judul mt-1.5 max-sm:line-clamp-3 sm:hidden">{{ $naskah->tentang }}</p>
+                            <p class="sel-kedua mt-1 sm:hidden">{{ $naskah->pemrakarsa->perangkatDaerah->nama_perangkat_daerah ?? $naskah->pemrakarsa->nama_user }}</p>
                         </td>
-                        <td class="min-w-64"><p class="sel-judul" title="{{ $naskah->tentang }}">{{ $naskah->tentang }}</p></td>
-                        <td class="min-w-44"><p class="sel-judul">{{ $naskah->pemrakarsa->perangkatDaerah->nama_perangkat_daerah ?? $naskah->pemrakarsa->nama_user }}</p></td>
-                        <td class="whitespace-nowrap"><x-ui.badge :color="$naskah->tahap->warna()">{{ $naskah->tahap->label() }}</x-ui.badge></td>
+                        <td class="min-w-64 max-sm:hidden"><p class="sel-judul" title="{{ $naskah->tentang }}">{{ $naskah->tentang }}</p></td>
+                        <td class="min-w-44 max-sm:hidden"><p class="sel-judul">{{ $naskah->pemrakarsa->perangkatDaerah->nama_perangkat_daerah ?? $naskah->pemrakarsa->nama_user }}</p></td>
+                        <td class="whitespace-nowrap max-sm:hidden"><x-ui.badge :color="$naskah->tahap->warna()">{{ $naskah->tahap->label() }}</x-ui.badge></td>
                         <td>
                             <div class="flex justify-end">
                                 <x-naskah.detail-button :naskah="$naskah" />

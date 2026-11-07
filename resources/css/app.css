@@ -170,7 +170,7 @@
 
     /* Item menu samping. Warnanya mengikuti aria-current, jadi bisa berpindah seketika saat diklik. */
     .menu-item {
-        @apply relative z-[1] flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600
+        @apply relative z-[1] flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 lg:py-2
             transition duration-150 ease-out hover:bg-slate-100 hover:text-navy-900 active:scale-[0.98]
             dark:text-slate-300 dark:hover:bg-navy-800 dark:hover:text-white;
 
@@ -246,6 +246,11 @@
         &::-webkit-scrollbar {
             display: none;
         }
+    }
+
+    /* Tepi bawah memudar: tanda bahwa menu masih bisa digeser walau tanpa scrollbar. */
+    .menu-pudar {
+        mask-image: linear-gradient(to bottom, black calc(100% - 1.5rem), transparent);
     }
 
     /* Isi halaman lama meredup sampai halaman baru datang. */

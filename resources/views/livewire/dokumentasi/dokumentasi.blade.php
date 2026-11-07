@@ -27,7 +27,7 @@
     </x-ui.page-header>
 
     <x-ui.card>
-        <x-ui.list-toolbar placeholder="Cari tentang, nomor, atau nomor rancangan..." :options="[5, 10, 20, 50]">
+        <x-ui.list-toolbar placeholder="Cari tentang atau nomor..." :options="[5, 10, 20, 50]">
             <x-form.select wire:model.live="tahun" icon="calendar3" class="sm:w-44" aria-label="Tahun">
                 <option value="">Semua tahun</option>
                 @foreach ($tahunOptions as $year)
@@ -55,14 +55,14 @@
                         Produk Hukum <i class="bi {{ $sortHeader('nomor') }}"></i>
                     </button>
                 </th>
-                <th>Perangkat Daerah</th>
-                <th>Berita Daerah</th>
-                <th>
+                <th class="max-sm:hidden">Perangkat Daerah</th>
+                <th class="max-sm:hidden">Berita Daerah</th>
+                <th class="max-sm:hidden">
                     <button type="button" wire:click="sortBy('tanggal_penetapan')" class="-my-2 inline-flex items-center gap-1.5 py-2 hover:text-primary-600">
                         Ditetapkan <i class="bi {{ $sortHeader('tanggal_penetapan') }}"></i>
                     </button>
                 </th>
-                <th>
+                <th class="max-sm:hidden">
                     <button type="button" wire:click="sortBy('tanggal_pengarsipan')" class="-my-2 inline-flex items-center gap-1.5 py-2 hover:text-primary-600">
                         Diarsipkan <i class="bi {{ $sortHeader('tanggal_pengarsipan') }}"></i>
                     </button>
@@ -73,27 +73,28 @@
             @forelse ($dokumentasiList as $dokumentasi)
                 @php $file = private_file_url('dokumentasi/file_produk_hukum', $dokumentasi->file_produk_hukum); @endphp
                 <tr wire:key="dokumentasi-{{ $dokumentasi->id }}">
-                    <td class="min-w-76">
+                    <td class="sm:min-w-76">
                         <div class="flex flex-wrap items-center gap-2">
                             <span class="sel-utama">{{ $dokumentasi->nomor_formatted }}</span>
                             <x-ui.status-badge :value="$dokumentasi->jenis_dokumentasi" />
                         </div>
-                        <p class="sel-judul mt-1" title="{{ $dokumentasi->tentang_dokumentasi }}">{{ $dokumentasi->tentang_dokumentasi }}</p>
-                        <p class="sel-kedua mt-1">
+                        <p class="sel-judul mt-1 max-sm:line-clamp-3" title="{{ $dokumentasi->tentang_dokumentasi }}">{{ $dokumentasi->tentang_dokumentasi }}</p>
+                        <p class="sel-kedua mt-1 max-sm:hidden">
                             @if ($dokumentasi->rancangan)
                                 <i class="bi bi-link-45deg"></i> Rancangan {{ $dokumentasi->rancangan->no_rancangan }}
                             @else
                                 <i class="bi bi-archive"></i> Dokumen terdahulu
                             @endif
                         </p>
+                        <p class="sel-kedua mt-1 sm:hidden">Ditetapkan {{ tanggal_singkat($dokumentasi->tanggal_penetapan) }}</p>
                     </td>
-                    <td class="min-w-36"><p class="sel-judul">{{ $dokumentasi->perangkatDaerah->nama_perangkat_daerah ?? '-' }}</p></td>
-                    <td class="whitespace-nowrap">{{ $dokumentasi->nomor_tahun_berita ?: '-' }}</td>
-                    <td class="whitespace-nowrap" title="{{ tanggal($dokumentasi->tanggal_penetapan) }}">{{ tanggal_singkat($dokumentasi->tanggal_penetapan) }}</td>
-                    <td class="whitespace-nowrap" title="{{ tanggal($dokumentasi->tanggal_pengarsipan) }}">{{ tanggal_singkat($dokumentasi->tanggal_pengarsipan) }}</td>
+                    <td class="min-w-36 max-sm:hidden"><p class="sel-judul">{{ $dokumentasi->perangkatDaerah->nama_perangkat_daerah ?? '-' }}</p></td>
+                    <td class="whitespace-nowrap max-sm:hidden">{{ $dokumentasi->nomor_tahun_berita ?: '-' }}</td>
+                    <td class="whitespace-nowrap max-sm:hidden" title="{{ tanggal($dokumentasi->tanggal_penetapan) }}">{{ tanggal_singkat($dokumentasi->tanggal_penetapan) }}</td>
+                    <td class="whitespace-nowrap max-sm:hidden" title="{{ tanggal($dokumentasi->tanggal_pengarsipan) }}">{{ tanggal_singkat($dokumentasi->tanggal_pengarsipan) }}</td>
                     <td>
                         {{-- Desktop: tombol berlabel supaya jelas fungsinya. HP: ikon sebaris supaya tabel tetap terbaca. --}}
-                        <div class="flex justify-end gap-1.5 sm:ml-auto sm:grid sm:w-44 sm:grid-cols-2">
+                        <div class="flex justify-end gap-1.5 max-[380px]:flex-col max-[380px]:items-end sm:ml-auto sm:grid sm:w-44 sm:grid-cols-2">
                             @if ($file)
                                 <x-ui.button variant="outline-primary" size="sm" icon="file-earmark-pdf" :href="$file" target="_blank" class="max-sm:size-10 max-sm:px-0 sm:col-span-2" title="Buka file produk hukum di tab baru" aria-label="Lihat file"><span class="max-sm:hidden">Lihat File</span></x-ui.button>
                             @endif

@@ -230,7 +230,7 @@
             <div class="ml-auto flex flex-wrap items-center justify-end gap-2">
                 <x-ui.button variant="outline" icon="layout-sidebar-reverse" x-cloak x-show="! pratinjau && $wire.tab === 'kerja'" x-on:click="pratinjau = true">Pratinjau Naskah</x-ui.button>
                 @if ($tahap === TahapNaskah::Draf && $naskah->pemrakarsa_id === auth()->id())
-                    <x-ui.button variant="outline-danger" icon="trash" wire:click="buangDraf"
+                    <x-ui.button variant="outline-danger" icon="trash" wire:click="buangDraf" loading="buangDraf"
                         wire:confirm="Buang draf ini beserta semua barisnya? Tindakan ini tidak bisa dibatalkan.">Buang Draf</x-ui.button>
                 @endif
                 @foreach ($aksi as $kunci => $tombol)

@@ -15,8 +15,8 @@
     </x-ui.page-header>
 
     <x-ui.card title="Pengguna SIFKUMDA">
-        <div class="grid gap-3 md:grid-cols-12">
-            <x-form.input wire:model.live.debounce.400ms="search" icon="search" class="md:col-span-6" placeholder="Cari nama, NIP, atau email..." aria-label="Cari" />
+        <div class="grid grid-cols-2 gap-3 md:grid-cols-12">
+            <x-form.input wire:model.live.debounce.400ms="search" icon="search" class="col-span-2 md:col-span-6" placeholder="Cari nama, NIP, atau email..." aria-label="Cari" />
             <x-form.select wire:model.live="roleFilter" icon="shield-check" class="md:col-span-3" aria-label="Filter role">
                 <option value="">Semua Role</option>
                 @foreach ($roles as $roleName)
@@ -34,7 +34,7 @@
         <x-ui.table class="mt-5">
             <x-slot:head>
                 @foreach ($sortable as $field => $label)
-                    <th>
+                    <th @class(['max-sm:hidden' => $field !== 'nama_user'])>
                         <button type="button" wire:click="sortBy('{{ $field }}')" class="-my-2 inline-flex items-center gap-1 py-2 hover:text-primary-600">
                             {{ $label }}
                             <i @class([
@@ -46,8 +46,8 @@
                         </button>
                     </th>
                 @endforeach
-                <th>Perangkat Daerah</th>
-                <th>Role</th>
+                <th class="max-sm:hidden">Perangkat Daerah</th>
+                <th class="max-sm:hidden">Role</th>
                 @if ($isAdmin)
                     <th class="text-right">Aksi</th>
                 @endif
@@ -55,14 +55,20 @@
 
             @forelse ($users as $index => $user)
                 <tr wire:key="user-{{ $user->id }}">
-                    <td class="sel-kedua">{{ $users->firstItem() + $index }}</td>
-                    <td class="min-w-56">
+                    <td class="sel-kedua max-sm:hidden">{{ $users->firstItem() + $index }}</td>
+                    <td class="sm:min-w-56">
                         <p class="sel-utama">{{ $user->nama_user }}</p>
-                        <p class="sel-kedua whitespace-nowrap">{{ $user->email }}</p>
+                        <p class="sel-kedua break-all sm:break-normal sm:whitespace-nowrap">{{ $user->email }}</p>
+                        <p class="sel-kedua sm:hidden">NIP {{ $user->NIP }}</p>
+                        <div class="mt-1.5 flex flex-wrap gap-1 sm:hidden">
+                            @foreach ($user->getRoleNames() as $roleName)
+                                <x-ui.badge color="primary">{{ $roleName }}</x-ui.badge>
+                            @endforeach
+                        </div>
                     </td>
-                    <td class="whitespace-nowrap">{{ $user->NIP }}</td>
-                    <td class="min-w-48"><p class="sel-judul">{{ $user->perangkatDaerah->nama_perangkat_daerah ?? '-' }}</p></td>
-                    <td>
+                    <td class="whitespace-nowrap max-sm:hidden">{{ $user->NIP }}</td>
+                    <td class="min-w-48 max-sm:hidden"><p class="sel-judul">{{ $user->perangkatDaerah->nama_perangkat_daerah ?? '-' }}</p></td>
+                    <td class="max-sm:hidden">
                         <div class="flex flex-wrap gap-1">
                             @foreach ($user->getRoleNames() as $roleName)
                                 <x-ui.badge color="primary">{{ $roleName }}</x-ui.badge>

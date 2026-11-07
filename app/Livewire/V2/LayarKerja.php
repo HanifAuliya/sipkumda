@@ -215,7 +215,11 @@ class LayarKerja extends Component
 
     public function buangDraf(AlurNaskah $alur)
     {
+        $nomor = $this->naskah->nomor;
+
         $alur->buangDraf($this->naskah, auth()->user());
+
+        session()->flash('pesan', "Draf {$nomor} sudah dibuang.");
 
         return $this->redirectRoute('v2.beranda');
     }

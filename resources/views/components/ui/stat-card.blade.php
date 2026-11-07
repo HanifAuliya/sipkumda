@@ -2,8 +2,9 @@
     Kartu statistik.
     <x-ui.stat-card label="Rancangan" :value="12" suffix="Data" icon="clipboard2-data" color="rose" />
     color: rose | orange | emerald | sky | primary | amber
+    rapat: di HP kartunya ringkas dan muat dua kolom
 --}}
-@props(['label', 'value' => 0, 'suffix' => null, 'icon' => 'bar-chart', 'color' => 'primary', 'href' => null])
+@props(['label', 'value' => 0, 'suffix' => null, 'icon' => 'bar-chart', 'color' => 'primary', 'href' => null, 'rapat' => false])
 
 @php
     $gradients = [
@@ -18,7 +19,7 @@
 @endphp
 
 <{{ $tag }} @if ($href) href="{{ $href }}" @endif
-    {{ $attributes->class('group flex items-start justify-between gap-4 rounded-2xl bg-white p-5 shadow-card transition dark:bg-navy-900 dark:shadow-none dark:ring-1 dark:ring-white/5' . ($href ? ' hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0' : '')) }}>
+    {{ $attributes->class('group flex items-start justify-between gap-4 rounded-2xl bg-white p-5 shadow-card transition dark:bg-navy-900 dark:shadow-none dark:ring-1 dark:ring-white/5' . ($href ? ' hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0' : '') . ($rapat ? ' max-sm:relative max-sm:p-4' : '')) }}>
     <div class="min-w-0">
         <p class="text-sm font-semibold text-slate-500 dark:text-slate-400">{{ $label }}</p>
         <p class="mt-2 text-2xl font-bold text-navy-900 dark:text-white">
@@ -34,7 +35,11 @@
         </p>
         {{ $slot }}
     </div>
-    <span class="grid size-12 shrink-0 place-items-center rounded-full bg-linear-to-br {{ $gradients[$color] ?? $gradients['primary'] }} text-xl text-white shadow-soft">
+    <span @class([
+        'grid size-12 shrink-0 place-items-center rounded-full bg-linear-to-br text-xl text-white shadow-soft',
+        $gradients[$color] ?? $gradients['primary'],
+        'max-sm:absolute max-sm:right-3 max-sm:bottom-3 max-sm:size-9 max-sm:text-base' => $rapat,
+    ])>
         <i class="bi bi-{{ $icon }}"></i>
     </span>
 </{{ $tag }}>

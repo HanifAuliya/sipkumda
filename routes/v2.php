@@ -20,7 +20,10 @@ Route::middleware(['auth', 'verified', TandaiAplikasiV2::class])->prefix('v2')->
 
     Route::livewire('/daftar/{kelompok}', DaftarNaskah::class)->name('daftar');
 
-    Route::livewire('/naskah/{naskah}', LayarKerja::class)->name('naskah.kerja');
+    // Naskah bisa saja sudah dibuang, misalnya saat pengguna menekan Back atau membuka tautan lama.
+    Route::livewire('/naskah/{naskah}', LayarKerja::class)
+        ->missing(fn () => redirect()->route('v2.beranda')->with('pesan', 'Naskah yang Anda buka sudah dibuang atau tidak ditemukan.'))
+        ->name('naskah.kerja');
 
     Route::get('/naskah/{naskah}/berkas/{berkas}', BerkasNaskahController::class)->name('naskah.berkas');
 

@@ -1,6 +1,7 @@
 <?php
 
 use App\Livewire\V2\DaftarNaskah;
+use App\Livewire\V2\LayarKerja;
 use App\Models\Naskah;
 use App\Models\User;
 use App\Support\Navigation;
@@ -107,11 +108,50 @@ it('tombol Kerjakan hanya tampil pada naskah yang menjadi giliran pengguna', fun
         ->assertDontSee($lembarKerja, false);
 });
 
+it('kartu naskah menonjolkan tombol Kerjakan dan petunjuknya tidak bisa ditutup', function () {
+    $pd = tap(User::factory()->create())->assignRole('Perangkat Daerah');
+    Naskah::create(['jenis' => 'Peraturan Bupati', 'tentang' => 'Uji', 'pemrakarsa_id' => $pd->id]);
+
+    $this->actingAs($pd);
+    $kartu = Blade::render('<x-naskah.item :naskah="$naskah" />', ['naskah' => Naskah::first()]);
+
+    expect($kartu)->toContain('Kerjakan')
+        ->toContain('border-l-primary-500')
+        ->not->toContain('Dibuat tahun')
+        ->not->toContain('aria-label="Tutup"');
+
+    $this->actingAs($this->admin);
+    $kartu = Blade::render('<x-naskah.item :naskah="$naskah" />', ['naskah' => Naskah::first()]);
+
+    expect($kartu)->not->toContain('Kerjakan')->not->toContain('border-l-primary-500');
+});
+
+it('naskah yang sudah dibuang mengarah ke Dashboard dengan pesan, bukan halaman 404', function () {
+    $pd = tap(User::factory()->create())->assignRole('Perangkat Daerah');
+    $naskah = Naskah::create(['jenis' => 'Peraturan Bupati', 'tentang' => 'Uji', 'pemrakarsa_id' => $pd->id]);
+    $alamat = route('v2.naskah.kerja', $naskah);
+
+    Livewire::actingAs($pd)->test(LayarKerja::class, ['naskah' => $naskah])
+        ->call('buangDraf')
+        ->assertRedirect(route('v2.beranda'));
+
+    expect(session('pesan'))->toBe("Draf {$naskah->nomor} sudah dibuang.")
+        ->and(Naskah::find($naskah->id))->toBeNull();
+
+    $this->actingAs($pd)->get($alamat)
+        ->assertRedirect(route('v2.beranda'))
+        ->assertSessionHas('pesan', 'Naskah yang Anda buka sudah dibuang atau tidak ditemukan.');
+
+    $this->actingAs($pd)->withSession(['pesan' => 'Draf NPB-1 sudah dibuang.'])->get(route('v2.beranda'))
+        ->assertOk()
+        ->assertSee('Draf NPB-1 sudah dibuang.');
+});
+
 it('daftar kosong menawarkan ajukan rancangan, dan pencarian kosong menawarkan hapus filter', function () {
     $pd = tap(User::factory()->create())->assignRole('Perangkat Daerah');
 
     Livewire::actingAs($pd)->test(DaftarNaskah::class, ['kelompok' => 'rancanganku'])
-        ->assertSee('Tidak ada naskah pada daftar ini.')
+        ->assertSee('Daftar “Sedang Diajukan” masih kosong.')
         ->assertSee('Ajukan Rancangan Baru')
         ->assertDontSee('Hapus pencarian dan filter')
         ->set('search', 'tidak-ada')

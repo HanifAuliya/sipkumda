@@ -13,7 +13,7 @@
         <a href="{{ route('dokumentasi.main') }}" class="font-semibold underline">Dokumentasi</a>.
     </x-ui.alert>
 
-    <div class="mb-6 flex flex-col gap-3 sm:flex-row">
+    <div class="mb-6 grid grid-cols-2 gap-3 sm:flex">
         <x-form.select wire:model.live="tahun" icon="calendar4-week" class="sm:w-52" aria-label="Tahun">
             <option value="">Semua tahun</option>
             @foreach ($tahunList as $year)
@@ -25,7 +25,7 @@
             <option value="Peraturan Bupati">Peraturan Bupati</option>
             <option value="Surat Keputusan">Keputusan Bupati</option>
         </x-form.select>
-        <x-ui.loading target="tahun, jenis" class="self-center">Memuat data...</x-ui.loading>
+        <x-ui.loading target="tahun, jenis" class="col-span-2 self-center">Memuat data...</x-ui.loading>
     </div>
 
     @php
@@ -37,16 +37,16 @@
         ];
     @endphp
 
-    <div class="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div class="mb-6 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         @foreach ($cards as $type => [$icon, $color])
             <button type="button" wire:click="loadData('{{ $type }}')" wire:key="card-{{ $type }}-{{ $counts[$type] }}"
                 @class([
                     'rounded-2xl text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
                     'ring-2 ring-primary-500 ring-offset-2 ring-offset-surface dark:ring-offset-navy-950' => $dataType === $type,
-                    'opacity-70 hover:opacity-100' => $dataType !== $type,
+                    'hover:-translate-y-0.5' => $dataType !== $type,
                 ])
                 aria-pressed="{{ $dataType === $type ? 'true' : 'false' }}">
-                <x-ui.stat-card :label="$type . ' Produk Hukum'" :value="$counts[$type]" suffix="Data" :icon="$icon" :color="$color" class="h-full" />
+                <x-ui.stat-card :label="$type . ' Produk Hukum'" :value="$counts[$type]" suffix="Data" :icon="$icon" :color="$color" class="h-full" rapat />
             </button>
         @endforeach
     </div>
@@ -57,27 +57,29 @@
                 Daftar {{ $dataType }} Produk Hukum
                 <x-ui.spinner class="ml-2 size-4" wire:loading wire:target="loadData" />
             </h2>
-            <x-form.input wire:model.live.debounce.400ms="search" icon="search" class="sm:w-80" placeholder="Cari tentang atau nomor rancangan..." aria-label="Cari" />
+            <x-form.input wire:model.live.debounce.400ms="search" icon="search" class="sm:w-80" placeholder="Cari tentang atau nomor..." aria-label="Cari" />
         </div>
 
         <x-ui.table>
             <x-slot:head>
-                <th class="w-12">No</th>
-                <th>No Rancangan</th>
-                <th>Tentang</th>
-                <th>Perangkat Daerah</th>
+                <th class="w-12 max-sm:hidden">No</th>
+                <th><span class="sm:hidden">Rancangan</span><span class="max-sm:hidden">No Rancangan</span></th>
+                <th class="max-sm:hidden">Tentang</th>
+                <th class="max-sm:hidden">Perangkat Daerah</th>
             </x-slot:head>
 
             @forelse ($selectedData as $data)
                 @php $rancangan = $dataType === 'Rancangan' ? $data : $data->rancangan; @endphp
                 <tr wire:key="master-{{ $dataType }}-{{ $data->getKey() }}">
-                    <td class="sel-kedua">{{ $selectedData->firstItem() + $loop->index }}</td>
-                    <td class="whitespace-nowrap">
+                    <td class="sel-kedua max-sm:hidden">{{ $selectedData->firstItem() + $loop->index }}</td>
+                    <td class="sm:whitespace-nowrap">
                         <p class="sel-utama">{{ $rancangan->no_rancangan ?? '-' }}</p>
                         <div class="mt-1"><x-ui.status-badge :value="$rancangan?->jenis_rancangan" /></div>
+                        <p class="sel-judul mt-1.5 max-sm:line-clamp-3 sm:hidden">{{ $rancangan->tentang ?? '-' }}</p>
+                        <p class="sel-kedua mt-1 sm:hidden">{{ $rancangan->user->perangkatDaerah->nama_perangkat_daerah ?? '-' }}</p>
                     </td>
-                    <td class="min-w-72"><p class="sel-judul" title="{{ $rancangan->tentang ?? '' }}">{{ $rancangan->tentang ?? '-' }}</p></td>
-                    <td class="min-w-48">
+                    <td class="min-w-72 max-sm:hidden"><p class="sel-judul" title="{{ $rancangan->tentang ?? '' }}">{{ $rancangan->tentang ?? '-' }}</p></td>
+                    <td class="min-w-48 max-sm:hidden">
                         <p class="sel-judul">{{ $rancangan->user->perangkatDaerah->nama_perangkat_daerah ?? '-' }}</p>
                         <p class="sel-kedua">{{ $rancangan->user->nama_user ?? '' }}</p>
                     </td>

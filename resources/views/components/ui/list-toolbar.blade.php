@@ -6,8 +6,9 @@
 @props(['placeholder' => 'Cari...', 'options' => [5, 10, 20, 50], 'search' => 'search', 'perPage' => 'perPage'])
 
 <div {{ $attributes->class('mb-5') }}>
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <x-form.input wire:model.live.debounce.400ms="{{ $search }}" icon="search" class="sm:flex-1" :placeholder="$placeholder" aria-label="Cari" />
+    {{-- Di HP pilihan filter berdampingan, supaya isi daftar lebih cepat terlihat. --}}
+    <div class="grid grid-cols-2 gap-3 sm:flex sm:items-center [&>:last-child:nth-child(even)]:max-sm:col-span-2">
+        <x-form.input wire:model.live.debounce.400ms="{{ $search }}" icon="search" class="col-span-2 sm:flex-1" :placeholder="$placeholder" aria-label="Cari" />
         {{ $slot }}
         <x-form.select wire:model.live="{{ $perPage }}" icon="list-ol" class="sm:w-48" aria-label="Data per halaman">
             @foreach ($options as $size)

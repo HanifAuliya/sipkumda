@@ -30,14 +30,14 @@
         </div>
         {{-- Di HP cukup ikon di samping judul, supaya isi halaman lebih cepat terlihat. --}}
         @if ($back)
-            <x-ui.button :href="$back" variant="outline-primary" size="sm" square icon="arrow-left" title="Kembali" aria-label="Kembali" class="sm:hidden" :attributes="$tautanKembali" />
+            <x-ui.button :href="$back" variant="ghost" size="sm" square icon="arrow-left" title="Kembali" aria-label="Kembali" class="sm:hidden" :attributes="$tautanKembali" />
         @endif
     </div>
 
     <div @class(['flex flex-wrap items-center gap-2 xl:shrink-0', 'max-sm:hidden' => ! isset($actions)])>
         {{ $actions ?? '' }}
         @if ($back)
-            <x-ui.button :href="$back" variant="outline-primary" icon="arrow-left" class="max-sm:hidden" :attributes="$tautanKembali">Kembali</x-ui.button>
+            <x-ui.button :href="$back" variant="ghost" icon="arrow-left" class="max-sm:hidden" :attributes="$tautanKembali">Kembali</x-ui.button>
         @endif
     </div>
 </div>

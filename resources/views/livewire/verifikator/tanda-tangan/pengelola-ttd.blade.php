@@ -13,22 +13,24 @@
         <x-ui.table>
             <x-slot:head>
                 <th>Penanda Tangan</th>
-                <th>Jabatan</th>
-                <th>Tanda Tangan</th>
-                <th>Status</th>
-                <th>Nota Dinas</th>
+                <th class="max-sm:hidden">Jabatan</th>
+                <th class="max-sm:hidden">Tanda Tangan</th>
+                <th class="max-sm:hidden">Status</th>
+                <th class="max-sm:hidden">Nota Dinas</th>
                 <th class="text-right">Aksi</th>
             </x-slot:head>
 
             @forelse ($ttdList as $ttd)
                 @php $gambar = private_file_url('tanda_tangan/ttd', $ttd->file_ttd); @endphp
                 <tr wire:key="ttd-{{ $ttd->id }}">
-                    <td class="min-w-48">
+                    <td class="sm:min-w-48">
                         <p class="sel-utama">{{ $ttd->nama_ttd }}</p>
                         <p class="sel-kedua whitespace-nowrap">NIP {{ $ttd->nip_ttd ?: '-' }}</p>
+                        <p class="sel-kedua sm:hidden">{{ $ttd->jabatan ?: '-' }}</p>
+                        <div class="mt-1.5 sm:hidden"><x-ui.badge :color="$ttd->status === 'Aktif' ? 'success' : 'danger'">{{ $ttd->status }}</x-ui.badge></div>
                     </td>
-                    <td class="min-w-40">{{ $ttd->jabatan ?: '-' }}</td>
-                    <td>
+                    <td class="min-w-40 max-sm:hidden">{{ $ttd->jabatan ?: '-' }}</td>
+                    <td class="max-sm:hidden">
                         @if ($gambar)
                             <a href="{{ $gambar }}" target="_blank" title="Buka gambar"
                                 class="inline-flex h-12 w-20 items-center justify-center rounded-lg bg-white p-1 ring-1 ring-slate-200 transition hover:ring-primary-400 dark:ring-navy-700">
@@ -39,8 +41,8 @@
                             <span class="text-slate-400">-</span>
                         @endif
                     </td>
-                    <td><x-ui.badge :color="$ttd->status === 'Aktif' ? 'success' : 'danger'">{{ $ttd->status }}</x-ui.badge></td>
-                    <td class="sel-kedua whitespace-nowrap">{{ $ttd->nota_dinas_count }} dokumen</td>
+                    <td class="max-sm:hidden"><x-ui.badge :color="$ttd->status === 'Aktif' ? 'success' : 'danger'">{{ $ttd->status }}</x-ui.badge></td>
+                    <td class="sel-kedua whitespace-nowrap max-sm:hidden">{{ $ttd->nota_dinas_count }} dokumen</td>
                     <td>
                         <div class="flex justify-end gap-1.5">
                             <x-ui.button variant="soft-primary" size="sm" square icon="pencil" title="Ubah" aria-label="Ubah tanda tangan {{ $ttd->nama_ttd }}"

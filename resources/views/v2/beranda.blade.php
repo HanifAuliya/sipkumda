@@ -4,22 +4,26 @@
 @endphp
 
 <div class="space-y-6">
+    @if (session('pesan'))
+        <x-ui.alert type="info" dismissible>{{ session('pesan') }}</x-ui.alert>
+    @endif
+
     {{-- Sambutan --}}
-    <section class="relative overflow-hidden rounded-2xl bg-linear-to-br from-navy-900 via-navy-800 to-primary-700 p-6 text-white shadow-card sm:p-8">
+    <section class="relative overflow-hidden rounded-2xl bg-linear-to-br from-navy-900 via-navy-800 to-primary-700 p-5 text-white shadow-card sm:p-6">
         <div class="pointer-events-none absolute -top-16 -right-10 size-64 rounded-full bg-white/5"></div>
         <div class="pointer-events-none absolute -right-24 -bottom-24 size-72 rounded-full bg-primary-400/10"></div>
 
         <div class="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div class="flex items-center gap-4">
-                <img src="{{ asset('assets/img/theme/profile.png') }}" alt="" class="size-16 rounded-full ring-4 ring-white/15">
+                <img src="{{ asset('assets/img/theme/profile.png') }}" alt="" class="size-12 rounded-full ring-4 ring-white/15 sm:size-14">
                 <div class="min-w-0">
                     <p class="text-sm text-white/70">Selamat datang kembali,</p>
                     <h1 class="truncate text-xl font-bold text-white sm:text-2xl">{{ $user->nama_user }}</h1>
                     <div class="mt-1.5 flex flex-wrap items-center gap-2 text-sm">
                         <span class="rounded-full bg-white/15 px-2.5 py-0.5 font-semibold">{{ $user->getRoleNames()->first() ?? 'Tanpa Role' }}</span>
-                        <span class="text-white/70">NIP {{ $user->NIP }}</span>
+                        <span class="text-white/70 max-sm:hidden">NIP {{ $user->NIP }}</span>
                         @if ($user->perangkatDaerah)
-                            <span class="text-white/70">· {{ $user->perangkatDaerah->nama_perangkat_daerah }}</span>
+                            <span class="text-white/70"><span class="max-sm:hidden">· </span>{{ $user->perangkatDaerah->nama_perangkat_daerah }}</span>
                         @endif
                     </div>
                 </div>
@@ -30,16 +34,16 @@
 
     {{-- Statistik --}}
     <div class="grid grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-4">
-        <x-ui.stat-card class="max-sm:flex-col-reverse max-sm:gap-3 max-sm:p-4" label="Rancangan" :value="$statistik['rancangan']" suffix="naskah" icon="clipboard2-data" color="rose"
+        <x-ui.stat-card rapat label="Rancangan" :value="$statistik['rancangan']" suffix="naskah" icon="clipboard2-data" color="rose"
             :href="route('v2.daftar', $pd ? 'rancanganku' : 'rancangan')" wire:navigate />
-        <x-ui.stat-card class="max-sm:flex-col-reverse max-sm:gap-3 max-sm:p-4" label="Fasilitasi" :value="$statistik['fasilitasi']" suffix="naskah" icon="file-text" color="orange"
+        <x-ui.stat-card rapat label="Fasilitasi" :value="$statistik['fasilitasi']" suffix="naskah" icon="file-text" color="orange"
             :href="route('v2.daftar', $pd ? 'fasilitasiku' : 'fasilitasi')" wire:navigate />
         @if ($user->hasAnyRole(['Admin', 'Tamu']))
-            <x-ui.stat-card class="max-sm:flex-col-reverse max-sm:gap-3 max-sm:p-4" label="Penandatanganan" :value="$statistik['ttd']" suffix="naskah" icon="pen" color="emerald" :href="route('v2.daftar', 'penandatanganan')" wire:navigate />
+            <x-ui.stat-card rapat label="Penandatanganan" :value="$statistik['ttd']" suffix="naskah" icon="pen" color="emerald" :href="route('v2.daftar', 'penandatanganan')" wire:navigate />
         @else
-            <x-ui.stat-card class="max-sm:flex-col-reverse max-sm:gap-3 max-sm:p-4" label="Penandatanganan" :value="$statistik['ttd']" suffix="naskah" icon="pen" color="emerald" />
+            <x-ui.stat-card rapat label="Penandatanganan" :value="$statistik['ttd']" suffix="naskah" icon="pen" color="emerald" />
         @endif
-        <x-ui.stat-card class="max-sm:flex-col-reverse max-sm:gap-3 max-sm:p-4" label="Selesai" :value="$statistik['selesai']" suffix="naskah" icon="folder2-open" color="sky" />
+        <x-ui.stat-card rapat label="Selesai" :value="$statistik['selesai']" suffix="naskah" icon="folder2-open" color="sky" />
     </div>
 
     {{-- Giliran --}}
@@ -73,23 +77,27 @@
 
         <x-ui.table>
             <x-slot:head>
-                <th>Nomor</th>
-                <th>Tentang</th>
-                <th>Tahap</th>
-                <th>Diperbarui</th>
+                <th><span class="sm:hidden">Naskah</span><span class="max-sm:hidden">Nomor</span></th>
+                <th class="max-sm:hidden">Tentang</th>
+                <th class="max-sm:hidden">Tahap</th>
+                <th class="max-sm:hidden">Diperbarui</th>
                 <th class="text-right">Aksi</th>
             </x-slot:head>
 
             @forelse ($halaman as $naskah)
                 <tr wire:key="naskah-{{ $naskah->id }}" class="cursor-pointer"
                     x-on:click="$event.target.closest('a, button') || Livewire.dispatch('bukaDetailNaskah', { slug: {{ \Illuminate\Support\Js::from($naskah->slug) }} })">
-                    <td class="whitespace-nowrap">
+                    <td class="sm:whitespace-nowrap">
                         <p class="sel-utama">{{ $naskah->nomor }}</p>
-                        <div class="mt-1"><x-ui.status-badge :value="$naskah->jenis" /></div>
+                        <div class="mt-1 flex flex-wrap gap-1.5">
+                            <x-ui.status-badge :value="$naskah->jenis" />
+                            <x-ui.badge :color="$naskah->tahap->warna()" class="sm:hidden">{{ $naskah->tahap->label() }}</x-ui.badge>
+                        </div>
+                        <p class="sel-judul mt-1.5 max-sm:line-clamp-3 sm:hidden">{{ $naskah->tentang }}</p>
                     </td>
-                    <td class="min-w-64"><p class="sel-judul" title="{{ $naskah->tentang }}">{{ $naskah->tentang }}</p></td>
-                    <td class="whitespace-nowrap"><x-ui.badge :color="$naskah->tahap->warna()">{{ $naskah->tahap->label() }}</x-ui.badge></td>
-                    <td class="sel-kedua whitespace-nowrap">{{ $naskah->updated_at->diffForHumans() }}</td>
+                    <td class="min-w-64 max-sm:hidden"><p class="sel-judul" title="{{ $naskah->tentang }}">{{ $naskah->tentang }}</p></td>
+                    <td class="whitespace-nowrap max-sm:hidden"><x-ui.badge :color="$naskah->tahap->warna()">{{ $naskah->tahap->label() }}</x-ui.badge></td>
+                    <td class="sel-kedua whitespace-nowrap max-sm:hidden">{{ $naskah->updated_at->diffForHumans() }}</td>
                     <td>
                         <div class="flex justify-end">
                             <x-naskah.detail-button :naskah="$naskah" />

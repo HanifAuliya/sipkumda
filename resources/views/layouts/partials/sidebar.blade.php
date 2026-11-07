@@ -32,7 +32,7 @@
     </div>
 
     {{-- Menu. Posisi gulir dan penanda aktifnya diatur resources/js/navigasi.js. --}}
-    <nav class="tanpa-scrollbar relative flex-1 space-y-6 overflow-y-auto px-3 py-5" data-menu-samping
+    <nav class="tanpa-scrollbar menu-pudar relative flex-1 space-y-4 overflow-y-auto px-3 pt-4 pb-6" data-menu-samping
         x-init="$el.querySelector('[aria-current=page]')?.scrollIntoView({ block: 'nearest' })"
         x-on:click="$event.target.closest('a') && (sidebarOpen = false)">
         @if ($tanpaMuatUlang)
@@ -42,13 +42,13 @@
         @foreach ($sections as $section)
             <div>
                 @if ($section['title'])
-                    <p class="mb-2 px-3 text-sm font-semibold text-slate-500 dark:text-slate-400" data-ciut-sembunyi>
+                    <p class="mb-1 px-3 text-sm font-semibold text-slate-500 dark:text-slate-400" data-ciut-sembunyi>
                         {{ $section['title'] }}
                     </p>
                     <hr class="mx-3 mb-2 hidden border-slate-100 dark:border-navy-800" data-ciut-tampil>
                 @endif
 
-                <ul class="space-y-1">
+                <ul class="space-y-0.5">
                     @foreach ($section['items'] as $item)
                         <li>
                             <a href="{{ route($item['route'], $item['params'] ?? []) }}" title="{{ $item['label'] }}" @if ($tanpaMuatUlang) wire:navigate @endif
