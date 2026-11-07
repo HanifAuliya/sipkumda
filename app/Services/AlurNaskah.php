@@ -12,6 +12,7 @@ use App\Models\NotaDinas;
 use App\Models\TandaTangan;
 use App\Models\User;
 use App\Notifications\NaskahNotification;
+use App\Support\PesanNotifikasi;
 use App\Support\TemplateNaskah;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
@@ -217,7 +218,7 @@ class AlurNaskah
 
             $naskah->save();
             $this->catat($naskah, $user, 'tahapan', null, null, self::TAHAPAN_TTD[$tahapan]);
-            $this->beriTahuPemrakarsa($naskah, $user, 'Tahap ' . self::TAHAPAN_TTD[$tahapan] . ' telah selesai.');
+            $this->beriTahuPemrakarsa($naskah, $user, self::TAHAPAN_TTD[$tahapan]);
 
             return $naskah;
         });
@@ -276,6 +277,8 @@ class AlurNaskah
             }
 
             $slug = $naskah->slug;
+            // Notifikasinya ikut dihapus, karena sudah tidak ada naskah yang bisa dibuka.
+            $naskah->notifikasi()->delete();
             $naskah->delete();
 
             return $slug;
@@ -297,7 +300,7 @@ class AlurNaskah
         $naskah->save();
 
         $this->catat($naskah, $user, 'tahap', $catatan, $dari->label(), $ke->label());
-        $this->beriTahu($naskah, $user, $catatan);
+        $this->beriTahu($naskah, $dari, $user, $catatan);
 
         return $naskah;
     }
@@ -650,40 +653,37 @@ class AlurNaskah
         ]);
     }
 
-    private function beriTahuPemrakarsa(Naskah $naskah, User $pelaku, string $pesan): void
+    private function beriTahuPemrakarsa(Naskah $naskah, User $pelaku, string $tahapan): void
     {
         if ($naskah->pemrakarsa_id !== $pelaku->id) {
-            User::find($naskah->pemrakarsa_id)?->notify(new NaskahNotification([
-                'title' => "{$naskah->nomor}: {$naskah->tahap->label()}",
-                'message' => "Naskah \"{$naskah->tentang}\": {$pesan}",
-                'slug' => $naskah->slug,
-            ]));
+            User::find($naskah->pemrakarsa_id)?->notify(new NaskahNotification(PesanNotifikasi::tahapanTtd($naskah, $pelaku, $tahapan)));
         }
     }
 
-    private function beriTahu(Naskah $naskah, User $pelaku, ?string $catatan): void
+    private function beriTahu(Naskah $naskah, T $dari, User $pelaku, ?string $catatan): void
     {
         $tahap = $naskah->tahap;
 
-        $penerima = match ($tahap->peran()) {
+        // Tugas tahap sebelumnya sudah lewat, termasuk bagi rekan seperan yang tidak mengerjakannya.
+        $naskah->notifikasi()->whereNull('read_at')
+            ->whereIn('data->kategori', [PesanNotifikasi::TUGAS, PesanNotifikasi::KEMBALI])
+            ->update(['read_at' => now()]);
+
+        // Semua peran yang boleh bertindak ikut diberi tahu; tahap Selesai diberitahukan ke Admin.
+        $pemegang = match ($tahap->peran()) {
             'Perangkat Daerah' => User::whereKey($naskah->pemrakarsa_id)->get(),
             'Peneliti' => User::whereKey($naskah->peneliti_id)->get(),
-            // Penandatanganan juga dicatat oleh Tamu, jadi Tamu ikut diberi tahu.
-            default => User::role($tahap === T::Penandatanganan ? $tahap->pemegang() : $tahap->peran())->get(),
+            default => User::role($tahap->pemegang() ?: $tahap->peran())->get(),
         };
 
+        $pemegang = $pemegang->reject(fn ($u) => $u->id === $pelaku->id);
+
+        Notification::send($pemegang, new NaskahNotification(PesanNotifikasi::untukPemegang($naskah, $dari, $pelaku, $catatan)));
+
         // Pemrakarsa selalu tahu posisi naskahnya, termasuk koreksi oleh Verifikator.
-        if ($tahap->peran() !== 'Perangkat Daerah') {
-            $penerima = $penerima->push(User::find($naskah->pemrakarsa_id));
+        if ($naskah->pemrakarsa_id !== $pelaku->id && ! $pemegang->contains('id', $naskah->pemrakarsa_id)) {
+            User::find($naskah->pemrakarsa_id)?->notify(new NaskahNotification(PesanNotifikasi::untukPemrakarsa($naskah, $pelaku, $catatan)));
         }
-
-        $penerima = $penerima->filter()->unique('id')->reject(fn ($u) => $u->id === $pelaku->id);
-
-        Notification::send($penerima, new NaskahNotification([
-            'title' => "{$naskah->nomor}: {$tahap->label()}",
-            'message' => trim("Naskah \"{$naskah->tentang}\" kini pada tahap {$tahap->label()}. {$catatan}"),
-            'slug' => $naskah->slug,
-        ]));
     }
 
     private function normal(?string $teks): string

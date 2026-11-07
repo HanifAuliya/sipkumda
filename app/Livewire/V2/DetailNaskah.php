@@ -21,6 +21,9 @@ class DetailNaskah extends Component
         $naskah = Naskah::where('slug', $slug)->firstOrFail();
         Gate::authorize('view', $naskah);
 
+        $naskah->tandaiNotifikasiDibaca(auth()->user());
+        $this->dispatch('notifikasi-berubah');
+
         $this->naskahId = $naskah->id;
         $this->dispatch('openModal', 'modalDetailNaskah');
     }

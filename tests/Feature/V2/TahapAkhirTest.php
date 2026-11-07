@@ -187,7 +187,7 @@ describe('persetujuan fasilitasi', function () {
             ->and($this->alur->aksiTersedia($this->n, $this->admin))->toBe([])
             ->and($this->alur->aksiTersedia($this->n, $penelitiLain))->toBe([])
             ->and($this->alur->modeBaris($this->n, $this->peneliti))->toBeNull()
-            ->and($this->peneliti->notifications()->where('data->slug', $this->n->slug)->where('data->title', 'like', '%Persetujuan Fasilitasi')->exists())->toBeTrue();
+            ->and($this->peneliti->notifications()->where('data->slug', $this->n->slug)->where('data->tahap', 'persetujuan_fasilitasi')->exists())->toBeTrue();
 
         expect(fn () => $this->alur->jalankan($this->n, $this->admin, 'setujui_fasilitasi'))->toThrow(HttpException::class);
 

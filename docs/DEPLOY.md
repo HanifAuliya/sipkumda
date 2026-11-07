@@ -15,11 +15,14 @@ php artisan view:cache
 php artisan event:cache
 ```
 
-> **`config:cache` wajib, terutama di Windows (Apache/Laragon/XAMPP).** Tanpa itu, `.env`
-> dibaca ulang di setiap request. Di PHP thread-safe (Apache Windows) pembacaan ini tidak aman
-> dijalankan bersamaan: saat ramai, sebagian request bisa membaca konfigurasi yang salah dan
-> gagal dengan error database acak. Load test membuktikan ini (1–5% request gagal tanpa
-> `config:cache`, 0% dengan `config:cache`). Jalankan ulang setiap kali `.env` diubah.
+> **`config:cache` tetap wajib di server.** Tanpa itu, `.env` dibaca ulang di setiap request,
+> sehingga aplikasi lebih lambat. Jalankan ulang setiap kali `.env` diubah.
+>
+> Di PHP thread-safe (Apache Windows), `putenv()` dulu membuat sebagian request gagal membaca
+> `.env` saat ramai: error database acak, atau 404 pada `/livewire-*/update` karena alamat itu
+> dihitung dari `APP_KEY`. `bootstrap/app.php` kini mematikan `putenv()` lewat
+> `Env::disablePutenv()`. Pada uji 2.400 request bersamaan tanpa `config:cache`, tidak ada lagi
+> 404 (sebelumnya 4 dari 800).
 
 ### Font Bookman Old Style (sekali saat pemasangan server)
 

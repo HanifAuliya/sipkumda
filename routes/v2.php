@@ -6,6 +6,7 @@ use App\Livewire\V2\Beranda;
 use App\Http\Middleware\TandaiAplikasiV2;
 use App\Livewire\V2\DaftarNaskah;
 use App\Livewire\V2\LayarKerja;
+use App\Livewire\V2\Notifikasi;
 use App\Livewire\V2\PengaturanNaskah;
 use Illuminate\Support\Facades\Route;
 
@@ -19,6 +20,8 @@ Route::middleware(['auth', 'verified', TandaiAplikasiV2::class])->prefix('v2')->
     Route::livewire('/', Beranda::class)->name('beranda');
 
     Route::livewire('/daftar/{kelompok}', DaftarNaskah::class)->name('daftar');
+
+    Route::livewire('/notifikasi', Notifikasi::class)->name('notifikasi');
 
     // Naskah bisa saja sudah dibuang, misalnya saat pengguna menekan Back atau membuka tautan lama.
     Route::livewire('/naskah/{naskah}', LayarKerja::class)

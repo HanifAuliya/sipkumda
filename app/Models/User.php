@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Notifications\NaskahNotification;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -37,6 +38,12 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
         'remember_token',
     ];
+
+    /** Notifikasi alur v2; notifikasi alur lama punya loncengnya sendiri. */
+    public function notifikasiNaskah()
+    {
+        return $this->notifications()->where('type', NaskahNotification::class);
+    }
 
     public function perangkatDaerah()
     {

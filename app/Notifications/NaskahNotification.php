@@ -5,6 +5,7 @@ namespace App\Notifications;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 
+/** Notifikasi alur naskah v2; isinya disusun oleh App\Support\PesanNotifikasi. */
 class NaskahNotification extends Notification
 {
     use Queueable;
@@ -20,11 +21,6 @@ class NaskahNotification extends Notification
 
     public function toDatabase(object $notifiable): array
     {
-        return [
-            'title' => $this->data['title'],
-            'message' => $this->data['message'],
-            'slug' => $this->data['slug'] ?? null,
-            'type' => 'naskah',
-        ];
+        return [...$this->data, 'type' => 'naskah'];
     }
 }

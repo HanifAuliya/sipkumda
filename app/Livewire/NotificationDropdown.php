@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Notifications\NaskahNotification;
 use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
 
@@ -16,7 +17,7 @@ class NotificationDropdown extends Component
 
     public function markAllAsRead()
     {
-        Auth::user()->unreadNotifications()->update(['read_at' => now()]);
+        Auth::user()->unreadNotifications()->where('type', '!=', NaskahNotification::class)->update(['read_at' => now()]);
     }
 
 
@@ -67,8 +68,9 @@ class NotificationDropdown extends Component
         $user = Auth::user();
 
         return view('livewire.notification-dropdown', [
-            'notifications' => $user->notifications()->latest()->limit(self::BATAS)->get(),
-            'unreadCount' => $user->unreadNotifications()->count(),
+            // Notifikasi naskah v2 punya lonceng sendiri dan tidak bisa dibuka dari aplikasi lama.
+            'notifications' => $user->notifications()->where('type', '!=', NaskahNotification::class)->latest()->limit(self::BATAS)->get(),
+            'unreadCount' => $user->unreadNotifications()->where('type', '!=', NaskahNotification::class)->count(),
         ]);
     }
 }

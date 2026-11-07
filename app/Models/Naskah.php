@@ -3,8 +3,10 @@
 namespace App\Models;
 
 use App\Enums\TahapNaskah;
+use App\Notifications\NaskahNotification;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -142,6 +144,20 @@ class Naskah extends Model
     }
 
     /** Apakah giliran kerja saat ini ada pada pengguna ini? */
+    /** Notifikasi tentang naskah ini, untuk semua penerima. */
+    public function notifikasi(): Builder
+    {
+        return DatabaseNotification::query()
+            ->where('type', NaskahNotification::class)
+            ->where('data->slug', $this->slug);
+    }
+
+    /** Pengguna sudah membuka naskahnya, jadi notifikasinya tidak perlu lagi menunggu dibaca. */
+    public function tandaiNotifikasiDibaca(User $user): void
+    {
+        $user->notifikasiNaskah()->whereNull('read_at')->where('data->slug', $this->slug)->update(['read_at' => now()]);
+    }
+
     public function giliranMilik(User $user): bool
     {
         return match ($this->tahap->peran()) {

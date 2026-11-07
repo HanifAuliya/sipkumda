@@ -81,6 +81,7 @@ class LayarKerja extends Component
     {
         Gate::authorize('view', $naskah);
         $this->naskah = $naskah;
+        $naskah->tandaiNotifikasiDibaca(auth()->user());
 
         $asal = url()->previous();
         $this->kembali = str_starts_with($asal, url('/v2')) && ! str_contains($asal, '/naskah/')

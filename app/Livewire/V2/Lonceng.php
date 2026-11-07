@@ -2,36 +2,71 @@
 
 namespace App\Livewire\V2;
 
+use App\Livewire\V2\Concerns\BukaNotifikasi;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Locked;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
-/** Lonceng notifikasi v2. Tanpa state publik supaya polling tetap ringan untuk banyak pengguna. */
+/** Lonceng notifikasi v2. State-nya hanya satu angka, supaya polling tetap ringan untuk banyak pengguna. */
 class Lonceng extends Component
 {
-    private const BATAS = 15;
+    use BukaNotifikasi;
 
-    public function buka(string $id)
+    private const BATAS = 10;
+
+    /** Jumlah belum dibaca yang terakhir diketahui, untuk mengenali notifikasi baru. */
+    #[Locked]
+    public int $dikenal = 0;
+
+    public function mount(): void
     {
-        $notifikasi = Auth::user()->notifications()->findOrFail($id);
-        $notifikasi->markAsRead();
+        $this->dikenal = $this->belumDibaca();
+    }
 
-        if (($notifikasi->data['type'] ?? null) === 'naskah' && filled($notifikasi->data['slug'] ?? null)) {
-            $this->dispatch('bukaDetailNaskah', slug: $notifikasi->data['slug']);
+    /** Dipanggil berkala dan saat tab kembali dibuka; notifikasi baru diberi tahu lewat toast. */
+    public function periksa(): void
+    {
+        $belumDibaca = $this->belumDibaca();
+
+        if ($belumDibaca > $this->dikenal) {
+            $terbaru = Auth::user()->notifikasiNaskah()->whereNull('read_at')->first();
+
+            $this->dispatch('swal:toast', [
+                'type' => 'info',
+                'title' => $terbaru->data['title'] ?? 'Ada notifikasi baru',
+                'message' => $terbaru->data['message'] ?? '',
+            ]);
         }
+
+        $this->dikenal = $belumDibaca;
+    }
+
+    #[On('notifikasi-berubah')]
+    public function segarkan(): void
+    {
+        $this->dikenal = $this->belumDibaca();
     }
 
     public function tandaiSemua(): void
     {
-        Auth::user()->unreadNotifications()->update(['read_at' => now()]);
+        Auth::user()->notifikasiNaskah()->whereNull('read_at')->update(['read_at' => now()]);
+        $this->dispatch('notifikasi-berubah');
+    }
+
+    private function belumDibaca(): int
+    {
+        return Auth::user()->notifikasiNaskah()->whereNull('read_at')->count();
     }
 
     public function render()
     {
-        $user = Auth::user();
+        $belumDibaca = $this->belumDibaca();
+        $this->dikenal = min($this->dikenal, $belumDibaca);
 
         return view('v2.lonceng', [
-            'daftar' => $user->notifications()->latest()->limit(self::BATAS)->get(),
-            'belumDibaca' => $user->unreadNotifications()->count(),
+            'daftar' => Auth::user()->notifikasiNaskah()->limit(self::BATAS)->get(),
+            'belumDibaca' => $belumDibaca,
         ]);
     }
 }
