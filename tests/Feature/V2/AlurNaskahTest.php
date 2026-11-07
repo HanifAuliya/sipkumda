@@ -496,6 +496,44 @@ describe('hak akses tampilan', function () {
             ->call('resetForm')->assertSet('tentang', '');
     });
 
+    it('judul ditempel dari Word tersimpan satu baris tanpa spasi berlebih', function () {
+        $this->actingAs($this->pd);
+
+        Livewire::test(BuatNaskah::class)
+            ->set('jenis', 'Peraturan Bupati')
+            ->set('tentang', "  Perubahan Atas Peraturan Bupati\r\n  Tentang   Dana Desa ")
+            ->set('nomorNota', '180/9/2026')->set('tanggalNota', '2026-11-04')
+            ->set('notaDinas', UploadedFile::fake()->create('nota.pdf', 10, 'application/pdf'))
+            ->call('simpan')->assertHasNoErrors();
+
+        expect(Naskah::latest('id')->first()->tentang)->toBe('Perubahan Atas Peraturan Bupati Tentang Dana Desa');
+    });
+
+    it('judul panjang diterima sampai batas kolom arsip dan yang melewatinya ditolak dengan pesan', function () {
+        $this->actingAs($this->pd);
+
+        $form = fn (string $tentang, string $nomor) => Livewire::test(BuatNaskah::class)
+            ->set('jenis', 'Peraturan Bupati')
+            ->set('tentang', $tentang)
+            ->set('nomorNota', $nomor)->set('tanggalNota', '2026-11-04')
+            ->set('notaDinas', UploadedFile::fake()->create('nota.pdf', 10, 'application/pdf'))
+            ->call('simpan');
+
+        $form(str_repeat('a', 1001), '180/10/2026')->assertHasErrors(['tentang' => 'max']);
+        expect(Naskah::count())->toBe(0);
+
+        $form(str_repeat('a', 1000), '180/11/2026')->assertHasNoErrors();
+        expect(mb_strlen(Naskah::first()->tentang))->toBe(1000);
+    });
+
+    it('modal ajukan memakai kolom judul lebar', function () {
+        $this->actingAs($this->pd);
+
+        Livewire::test(BuatNaskah::class)
+            ->assertSeeHtml('<textarea rows="3"')
+            ->assertSeeHtml('sm:max-w-4xl');
+    });
+
     it('jenis rancangan wajib dipilih', function () {
         $this->actingAs($this->pd);
 

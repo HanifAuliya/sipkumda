@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Notifications\NaskahNotification;
+use App\Support\FotoProfil;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -38,6 +39,19 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
         'remember_token',
     ];
+
+    protected static function booted(): void
+    {
+        static::deleted(fn (self $user) => FotoProfil::buang($user->foto_profil));
+    }
+
+    /** Nama filenya acak dan berganti setiap unggah, jadi browser tidak menampilkan foto lama. */
+    public function fotoUrl(): string
+    {
+        return $this->foto_profil
+            ? route('foto-profil', ['v' => substr(pathinfo($this->foto_profil, PATHINFO_FILENAME), 0, 12)])
+            : asset('assets/img/theme/profile.png');
+    }
 
     /** Notifikasi alur v2; notifikasi alur lama punya loncengnya sendiri. */
     public function notifikasiNaskah()

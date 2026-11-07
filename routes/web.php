@@ -14,6 +14,7 @@ use App\Livewire\Rancangan\TambahBahanPenting;
 use App\Livewire\Admin\NotaDinas\KelolaNotaDinas;
 
 use App\Livewire\Admin\Rancangan\PersetujuanMain;
+use App\Http\Controllers\FotoProfilController;
 use App\Http\Controllers\JdihController;
 use App\Http\Controllers\PrivateFileController;
 use App\Livewire\Peneliti\Rancangan\RevisiRancangan;
@@ -50,6 +51,7 @@ Route::withoutMiddleware([
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/pilih-aplikasi', [PilihAplikasiController::class, 'create'])->name('aplikasi.pilih');
     Route::post('/pilih-aplikasi', [PilihAplikasiController::class, 'store'])->name('aplikasi.simpan');
+    Route::get('/foto-profil', FotoProfilController::class)->name('foto-profil');
 });
 
 Route::middleware('auth')->group(function () {

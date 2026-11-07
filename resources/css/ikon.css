@@ -62,6 +62,7 @@
 .bi-calendar2-check::before { content: "\e712"; }
 .bi-calendar3::before { content: "\e10a"; }
 .bi-calendar4-week::before { content: "\e7b4"; }
+.bi-camera::before { content: "\e10e"; }
 .bi-chat-left-text::before { content: "\e17a"; }
 .bi-check-circle::before { content: "\e184"; }
 .bi-check-circle-fill::before { font-family: "Phosphor-Fill" !important; content: "\e184"; }

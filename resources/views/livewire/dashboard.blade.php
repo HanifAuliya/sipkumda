@@ -84,7 +84,7 @@
 
         <div class="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div class="flex items-center gap-4">
-                <img src="{{ asset('assets/img/theme/profile.png') }}" alt="" class="size-16 rounded-full ring-4 ring-white/15">
+                <img src="{{ $user->fotoUrl() }}" alt="" class="size-16 rounded-full object-cover ring-4 ring-white/15">
                 <div class="min-w-0">
                     <p class="text-sm text-white/70">Selamat datang kembali,</p>
                     <h1 class="truncate text-xl font-bold text-white sm:text-2xl">{{ $user->nama_user }}</h1>

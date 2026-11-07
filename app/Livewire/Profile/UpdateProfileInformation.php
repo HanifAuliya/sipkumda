@@ -22,6 +22,23 @@ class UpdateProfileInformation extends Component
     public $daftar_perangkat_daerah;
 
 
+    /** Data tampil sebagai bacaan dulu; form baru terbuka lewat tombol Ubah. */
+    public bool $mengubah = false;
+
+    public function mulaiUbah(): void
+    {
+        $this->mengubah = true;
+    }
+
+    public function batal(): void
+    {
+        $user = Auth::user();
+        $this->nama_user = $user->nama_user;
+        $this->email = $user->email;
+        $this->resetValidation();
+        $this->mengubah = false;
+    }
+
     public function mount()
     {
         // Inisialisasi data pengguna
@@ -69,6 +86,9 @@ class UpdateProfileInformation extends Component
 
             // Simpan ke database
             $user->save();
+
+            $this->mengubah = false;
+            $this->dispatch('profil-diperbarui');
 
             // Dispatch event untuk SweetAlert sukses
             $this->dispatch('swal:modal', [

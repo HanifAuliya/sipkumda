@@ -29,12 +29,13 @@
 <div wire:poll.60s>
     <x-ui.dropdown width="w-[22rem] max-w-[calc(100vw-2rem)]">
         <x-slot:trigger>
-            <button type="button" class="relative grid size-10 shrink-0 place-items-center rounded-lg text-white/80 transition hover:bg-white/10 hover:text-white"
-                aria-label="Notifikasi ({{ $unreadCount }} belum dibaca)">
-                <i class="bi bi-bell text-xl" aria-hidden="true"></i>
+            <button type="button" class="tombol-lonceng relative grid size-10 shrink-0 place-items-center rounded-lg text-white/80 transition hover:bg-white/10 hover:text-white active:scale-90"
+                x-bind:class="open && 'bg-white/10 text-white'" aria-label="Notifikasi ({{ $unreadCount }} belum dibaca)">
+                <i class="bi bi-bell ikon-lonceng text-xl" data-jumlah="{{ $unreadCount }}" x-init="pasangLonceng($el)" aria-hidden="true"></i>
                 @if ($unreadCount > 0)
                     <span class="absolute -top-0.5 -right-0.5 grid min-w-5 place-items-center rounded-full bg-rose-500 px-1 dark:bg-rose-600 text-xs leading-5 font-bold text-white ring-2 ring-navy-900">
-                        {{ $unreadCount > 99 ? '99+' : $unreadCount }}
+                        <span class="lencana-denyut absolute inset-0 rounded-full bg-rose-400" aria-hidden="true"></span>
+                        <span class="relative">{{ $unreadCount > 99 ? '99+' : $unreadCount }}</span>
                     </span>
                 @endif
             </button>

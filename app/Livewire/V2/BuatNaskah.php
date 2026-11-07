@@ -2,12 +2,14 @@
 
 namespace App\Livewire\V2;
 
+use App\Models\DokumentasiProdukHukum;
 use App\Models\Naskah;
 use App\Models\NaskahBerkas;
 use App\Services\AlurNaskah;
 use App\Services\PembacaNaskahWord;
 use App\Support\TemplateNaskah;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Validate;
@@ -22,8 +24,7 @@ class BuatNaskah extends Component
 
     public string $jenis = '';
 
-    // Mengikuti panjang kolom "tentang" di arsip JDIH.
-    #[Validate('required|string|max:255')]
+    #[Validate('required|string|max:' . DokumentasiProdukHukum::TENTANG_MAKS)]
     public string $tentang = '';
 
     #[Validate('required|string|max:50|unique:naskah,nomor_nota')]
@@ -61,6 +62,8 @@ class BuatNaskah extends Component
     public function simpan(AlurNaskah $alur, PembacaNaskahWord $pembaca)
     {
         Gate::authorize('create', Naskah::class);
+
+        $this->tentang = Str::squish($this->tentang);
 
         $this->validate();
         $this->validate(['jenis' => ['required', Rule::in(Naskah::JENIS)]]);

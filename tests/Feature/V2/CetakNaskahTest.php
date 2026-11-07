@@ -362,4 +362,33 @@ describe('akses', function () {
 
         expect(Pengaturan::ambil(Pengaturan::NAMA_BUPATI))->toBe('A');
     });
+
+    it('pengaturan tampil sebagai bacaan dan batal tidak menyimpan', function () {
+        $admin = tap(User::factory()->create())->assignRole('Admin');
+        Pengaturan::simpan(Pengaturan::NAMA_BUPATI, 'Bupati Lama');
+
+        Livewire::actingAs($admin)->test(PengaturanNaskah::class)
+            ->assertSee('Bupati Lama')
+            ->assertDontSeeHtml('wire:model="namaBupati"')
+            ->call('mulaiUbah')
+            ->assertSeeHtml('wire:model="namaBupati"')
+            ->set('namaBupati', 'Bupati Baru')
+            ->call('batal')
+            ->assertSet('mengubah', false)
+            ->assertSet('namaBupati', 'Bupati Lama');
+
+        expect(Pengaturan::ambil(Pengaturan::NAMA_BUPATI))->toBe('Bupati Lama');
+    });
+
+    it('pengaturan kembali ke bacaan sesudah tersimpan', function () {
+        $admin = tap(User::factory()->create())->assignRole('Admin');
+
+        Livewire::actingAs($admin)->test(PengaturanNaskah::class)
+            ->call('mulaiUbah')
+            ->set('namaBupati', 'A')->set('namaSekda', 'B')
+            ->call('simpan')
+            ->assertHasNoErrors()
+            ->assertSet('mengubah', false)
+            ->assertDispatched('swal:toast');
+    });
 });

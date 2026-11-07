@@ -1,41 +1,56 @@
-<form wire:submit="updateProfile" class="space-y-5">
-    <x-form.field label="Nama" for="nama_user" error="nama_user" required>
-        <x-form.input id="nama_user" wire:model="nama_user" icon="person" required autofocus />
-    </x-form.field>
+@php $akun = auth()->user(); @endphp
 
-    <x-form.field label="NIP" for="NIP">
-        <x-form.input id="NIP" :value="$NIP" icon="person-badge" readonly disabled />
-    </x-form.field>
+<x-ui.card title="Informasi Akun"
+    :description="$mengubah ? 'Perbarui nama dan alamat email akun Anda.' : 'Data akun Anda di SIFKUMDA.'">
+    @unless ($mengubah)
+        <x-slot:actions>
+            <x-ui.button variant="outline" size="sm" icon="pencil" wire:click="mulaiUbah" loading="mulaiUbah">Ubah</x-ui.button>
+        </x-slot:actions>
+    @endunless
 
-    <x-form.field label="Email" for="email" error="email" required>
-        <x-form.input type="email" id="email" wire:model="email" icon="envelope" required />
+    @if ($mengubah)
+        <form wire:submit="updateProfile" class="space-y-5">
+            <x-form.field label="Nama" for="nama_user" error="nama_user" required>
+                <x-form.input id="nama_user" wire:model="nama_user" icon="person" required x-init="$el.focus()" />
+            </x-form.field>
 
-        @if (auth()->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! auth()->user()->hasVerifiedEmail())
-            <x-ui.alert type="warning" class="mt-3">
+            <x-form.field label="Email" for="email" error="email" required>
+                <x-form.input type="email" id="email" wire:model="email" icon="envelope" required />
+            </x-form.field>
+
+            <p class="text-sm text-slate-500 dark:text-slate-400">NIP, perangkat daerah, dan role hanya bisa diubah oleh admin.</p>
+
+            <div class="flex justify-end gap-2">
+                <x-ui.button variant="outline" wire:click="batal">Batal</x-ui.button>
+                <x-ui.button type="submit" variant="navy" icon="floppy" loading="updateProfile">Simpan Perubahan</x-ui.button>
+            </div>
+        </form>
+    @else
+        <div class="divide-y divide-slate-100 dark:divide-navy-800">
+            <x-profil.baris icon="person" label="Nama">{{ $nama_user }}</x-profil.baris>
+            <x-profil.baris icon="person-badge" label="NIP">{{ $NIP }}</x-profil.baris>
+            <x-profil.baris icon="envelope" label="Email">
+                <span class="mr-1.5">{{ $email }}</span>
+                @if ($akun->hasVerifiedEmail())
+                    <x-ui.badge color="success" icon="check2">Terverifikasi</x-ui.badge>
+                @endif
+            </x-profil.baris>
+            <x-profil.baris icon="building" label="Perangkat Daerah">{{ $daftar_perangkat_daerah->firstWhere('id', $perangkat_daerah_id)?->nama_perangkat_daerah ?? '-' }}</x-profil.baris>
+            <x-profil.baris icon="shield-check" label="Role">{{ $akun->getRoleNames()->first() ?? 'Tidak ada role' }}</x-profil.baris>
+            <x-profil.baris icon="calendar-check" label="Terdaftar Sejak">{{ tanggal($akun->created_at) }}</x-profil.baris>
+        </div>
+
+        @unless ($akun->hasVerifiedEmail())
+            <x-ui.alert type="warning" class="mt-4">
                 Alamat email Anda belum diverifikasi.
                 <button type="button" wire:click="sendVerificationEmail" class="font-semibold underline underline-offset-2">
                     Kirim ulang email verifikasi.
                 </button>
             </x-ui.alert>
-        @endif
+        @endunless
 
         @if (session('status') === 'verification-link-sent')
-            <x-ui.alert type="success" class="mt-3">Tautan verifikasi baru telah dikirim ke email Anda.</x-ui.alert>
+            <x-ui.alert type="success" class="mt-4">Tautan verifikasi baru telah dikirim ke email Anda.</x-ui.alert>
         @endif
-    </x-form.field>
-
-    <div class="grid gap-5 sm:grid-cols-2">
-        <x-form.field label="Perangkat Daerah">
-            <x-form.input icon="building" disabled
-                :value="$daftar_perangkat_daerah->firstWhere('id', $perangkat_daerah_id)?->nama_perangkat_daerah ?? '-'" />
-        </x-form.field>
-
-        <x-form.field label="Role">
-            <x-form.input icon="shield-check" disabled :value="auth()->user()->getRoleNames()->first() ?? 'Tidak ada role'" />
-        </x-form.field>
-    </div>
-
-    <div class="flex justify-end">
-        <x-ui.button type="submit" variant="navy" icon="floppy" loading="updateProfile">Simpan Perubahan</x-ui.button>
-    </div>
-</form>
+    @endif
+</x-ui.card>

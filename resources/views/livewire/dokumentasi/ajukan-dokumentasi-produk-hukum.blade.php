@@ -34,8 +34,8 @@
                             </x-form.select>
                         </x-form.field>
                     </div>
-                    <x-form.field label="Tentang" for="tentang_dokumentasi" error="tentang_dokumentasi" required>
-                        <x-form.textarea id="tentang_dokumentasi" wire:model="tentang_dokumentasi" rows="2" placeholder="Contoh: Pengelolaan Sampah" />
+                    <x-form.field label="Tentang (Judul Produk Hukum)" for="tentang_dokumentasi" error="tentang_dokumentasi" required>
+                        <x-form.judul id="tentang_dokumentasi" wire:model="tentang_dokumentasi" placeholder="Contoh: Pengelolaan Sampah" />
                     </x-form.field>
                 @endif
 

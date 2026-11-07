@@ -473,6 +473,36 @@
     vertical-align: 0;
 }
 
+/* Lonceng berayun dari gantungannya, dan lencana berdenyut tiga kali lalu diam supaya tidak mengganggu. */
+@keyframes lonceng-ayun {
+    0%, 100% { transform: rotate(0); }
+    15% { transform: rotate(16deg); }
+    30% { transform: rotate(-14deg); }
+    45% { transform: rotate(10deg); }
+    60% { transform: rotate(-7deg); }
+    75% { transform: rotate(4deg); }
+    90% { transform: rotate(-2deg); }
+}
+
+@keyframes lencana-denyut {
+    0% { opacity: 0.7; transform: scale(1); }
+    80%, 100% { opacity: 0; transform: scale(2.2); }
+}
+
+.ikon-lonceng {
+    transform-origin: 50% 10%;
+}
+
+.tombol-lonceng:hover .ikon-lonceng,
+.tombol-lonceng:focus-visible .ikon-lonceng,
+.ikon-lonceng.berayun {
+    animation: lonceng-ayun 0.8s ease-in-out;
+}
+
+.lencana-denyut {
+    animation: lencana-denyut 1.4s ease-out 0.4s 3 both;
+}
+
 /* Hormati pengguna yang mematikan animasi di perangkatnya. */
 @media (prefers-reduced-motion: reduce) {
     *,

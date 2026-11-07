@@ -27,6 +27,11 @@ php artisan event:cache
 > Akibatnya, konfigurasi diambil dari file `.env`. Variabel lingkungan sistem operasi tidak terbaca
 > lewat `getenv()`, kecuali yang masuk ke `$_ENV` atau `$_SERVER` (misalnya `SetEnv` di Apache).
 
+### Ekstensi PHP untuk foto profil
+
+Aktifkan `gd` (dengan JPEG, PNG, dan WebP) dan `exif` di `php.ini`. Tanpa `gd`, unggah foto ditolak
+dengan pesan "Foto tidak bisa dibaca". Tanpa `exif`, foto HP bisa tersimpan miring.
+
 ### Font Bookman Old Style (sekali saat pemasangan server)
 
 Produk hukum daerah wajib berhuruf Bookman Old Style 12 (Permendagri 80/2015 Pasal 167,

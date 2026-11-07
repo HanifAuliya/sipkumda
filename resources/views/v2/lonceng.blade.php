@@ -2,10 +2,13 @@
 <div wire:poll.60s="periksa" x-data x-on:visibilitychange.document="document.visibilityState === 'visible' && $wire.periksa()">
     <x-ui.dropdown width="w-[26rem] max-w-[calc(100vw-1.5rem)]">
         <x-slot:trigger>
-            <button type="button" class="relative grid size-10 shrink-0 place-items-center rounded-lg text-current/80 transition hover:bg-current/10 hover:text-current" aria-label="Notifikasi, {{ $belumDibaca }} belum dibaca">
-                <i class="bi bi-bell text-xl" aria-hidden="true"></i>
+            <button type="button" class="tombol-lonceng relative grid size-10 shrink-0 place-items-center rounded-lg text-current/80 transition hover:bg-current/10 hover:text-current active:scale-90" x-bind:class="open && 'bg-current/10 text-current'" aria-label="Notifikasi, {{ $belumDibaca }} belum dibaca">
+                <i class="bi bi-bell ikon-lonceng text-xl" data-jumlah="{{ $belumDibaca }}" x-init="pasangLonceng($el)" aria-hidden="true"></i>
                 @if ($belumDibaca)
-                    <span class="absolute top-0.5 right-0.5 grid h-4.5 min-w-4.5 place-items-center rounded-full bg-rose-500 px-1 dark:bg-rose-600 text-xs leading-none font-bold text-white">{{ $belumDibaca > 99 ? '99+' : $belumDibaca }}</span>
+                    <span class="absolute top-0.5 right-0.5 grid h-4.5 min-w-4.5 place-items-center rounded-full bg-rose-500 px-1 dark:bg-rose-600 text-xs leading-none font-bold text-white">
+                        <span class="lencana-denyut absolute inset-0 rounded-full bg-rose-400" aria-hidden="true"></span>
+                        <span class="relative">{{ $belumDibaca > 99 ? '99+' : $belumDibaca }}</span>
+                    </span>
                 @endif
             </button>
         </x-slot:trigger>

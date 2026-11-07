@@ -4,6 +4,7 @@ namespace App\Livewire\PerangkatDaerah\Rancangan;
 
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use App\Models\DokumentasiProdukHukum;
 use App\Models\RancanganProdukHukum;
 use Illuminate\Support\Facades\Notification;
 use App\Notifications\RancanganBaruNotification;
@@ -11,6 +12,7 @@ use App\Models\User;
 use App\Models\Revisi;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 // Cek kelengkapan berkas (ekstraksi teks Word/PDF)
 use App\Services\KelengkapanBerkasChecker;
@@ -38,7 +40,7 @@ class AjukanRancangan extends Component
 
     protected $rules = [
         'jenisRancangan' => 'required',
-        'tentang' => 'required|string|max:255',
+        'tentang' => 'required|string|max:' . DokumentasiProdukHukum::TENTANG_MAKS,
         'rancangan' => 'required|mimes:doc,docx|max:20480', // Hanya format Word
         'matrik' => 'required|mimes:doc,docx|max:20480', // Hanya format Word
         'nota_dinas_pd' => 'required|mimes:pdf|max:20480', // PDF
@@ -105,6 +107,8 @@ class AjukanRancangan extends Component
     // =========================================================
     public function submit()
     {
+        $this->tentang = Str::squish((string) $this->tentang);
+
         $this->validate();
 
         $mainFolder = 'rancangan';

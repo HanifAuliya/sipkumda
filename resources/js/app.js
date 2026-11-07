@@ -11,6 +11,26 @@ Alpine.data('chart', chart);
 window.Swal = Swal;
 window.tabelDariClipboard = tabelDariClipboard;
 
+/** Lonceng berayun saat halaman dibuka bila ada notifikasi, dan setiap jumlahnya bertambah. */
+window.pasangLonceng = (ikon) => {
+    const ayun = () => {
+        ikon.classList.remove('berayun');
+        void ikon.offsetWidth; // Memaksa animasi mulai dari awal.
+        ikon.classList.add('berayun');
+    };
+
+    let jumlah = Number(ikon.dataset.jumlah);
+
+    ikon.addEventListener('animationend', () => ikon.classList.remove('berayun'));
+    new MutationObserver(() => {
+        const baru = Number(ikon.dataset.jumlah);
+        if (baru > jumlah) ayun();
+        jumlah = baru;
+    }).observe(ikon, { attributes: true, attributeFilter: ['data-jumlah'] });
+
+    if (jumlah > 0) setTimeout(ayun, 600);
+};
+
 /** Chart.js hanya dimuat di halaman yang membutuhkannya: const Chart = await loadChart(); */
 window.loadChart = () => import('chart.js/auto').then((module) => module.default);
 

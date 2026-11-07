@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Notifications\DokumentasiNotification;
 use App\Support\Status;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -77,6 +78,8 @@ class AjukanDokumentasiProdukHukum extends Component
 
         $manual = $this->mode === 'manual';
 
+        $this->tentang_dokumentasi = Str::squish((string) $this->tentang_dokumentasi);
+
         $this->validate([
             'rancanganId' => $manual ? 'nullable' : 'required|integer',
             'nomor' => 'required|numeric|digits_between:1,3',
@@ -87,7 +90,7 @@ class AjukanDokumentasiProdukHukum extends Component
             'file_produk_hukum' => 'required|mimes:pdf|max:20480',
             'perangkat_daerah_id' => $manual ? 'required|exists:perangkat_daerah,id' : 'nullable',
             'jenis_dokumentasi' => $manual ? 'required|in:Peraturan Bupati,Keputusan Bupati' : 'nullable',
-            'tentang_dokumentasi' => $manual ? 'required|string' : 'nullable',
+            'tentang_dokumentasi' => $manual ? 'required|string|max:' . DokumentasiProdukHukum::TENTANG_MAKS : 'nullable',
         ]);
 
         if ($manual) {

@@ -13,6 +13,19 @@ class UpdatePassword extends Component
     public $password;
     public $password_confirmation;
 
+    public bool $mengubah = false;
+
+    public function mulaiUbah(): void
+    {
+        $this->mengubah = true;
+    }
+
+    public function batal(): void
+    {
+        $this->reset(['current_password', 'password', 'password_confirmation', 'mengubah']);
+        $this->resetValidation();
+    }
+
     public function updatePassword()
     {
         try {
@@ -37,7 +50,7 @@ class UpdatePassword extends Component
             ]);
 
             // Reset input setelah berhasil
-            $this->reset(['current_password', 'password', 'password_confirmation']);
+            $this->reset(['current_password', 'password', 'password_confirmation', 'mengubah']);
 
             // Kirim event untuk notifikasi sukses
             $this->dispatch('swal:modal', [

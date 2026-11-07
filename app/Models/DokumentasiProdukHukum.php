@@ -13,6 +13,12 @@ class DokumentasiProdukHukum extends Model
 {
     use HasFactory;
 
+    /**
+     * Batas panjang judul, sama dengan kolom di database. Form tidak menampilkan batas ini karena
+     * judul sewajarnya jauh lebih pendek; validasi hanya mencegah error database.
+     */
+    public const TENTANG_MAKS = 1000;
+
     protected $table = 'dokumentasi_produk_hukum';
 
     protected $fillable = [
