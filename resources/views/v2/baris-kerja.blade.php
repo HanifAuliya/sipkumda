@@ -32,12 +32,18 @@
         semula: '',
         ket: @js((string) $baris->keterangan),
         tersimpan: true,
+        jedaSimpan: null,
         init() {
             this.semula = this.teks;
             @if ($baruDisisipkan) this.buka(); @endif
         },
         {{-- x-show baru menampilkan editor setelah microtask, jadi $nextTick kadang masih terlalu awal. --}}
-        buka() { this.ubah = true; setTimeout(() => this.$refs.editor.focus(), 30); },
+        buka() { this.ubah = true; setTimeout(() => this.fokusEditor(), 30); },
+        {{-- Rumusan pasal memakai editor bertabel; editor-nya pembungkus, bukan kotak teks. --}}
+        fokusEditor() {
+            const editor = this.$refs.editor;
+            (editor.matches('textarea') ? editor : editor.querySelector('textarea'))?.focus();
+        },
         batal() { this.ubah = false; this.teks = this.semula; },
         bukaMinta() { this.ketSemula = this.ket; this.minta = true; setTimeout(() => this.$refs.arahan.focus(), 30); },
         batalMinta() { this.minta = false; this.ket = this.ketSemula; this.$wire.$refresh(); },
@@ -47,18 +53,24 @@
         setel(nilai) { this.teks = nilai; this.$nextTick(() => this.$refs.editor.dispatchEvent(new Event('input'))); },
         rapikan() { this.$wire.rapikanNomor(this.teks).then((hasil) => this.setel(hasil)); },
         sisipTabel() {
-            const posisi = this.$refs.editor.selectionStart ?? this.teks.length;
-            const sebelum = this.teks.slice(0, posisi);
-            const contoh = (sebelum && ! sebelum.endsWith('\n') ? '\n' : '') + '| Kolom 1 | Kolom 2 | Kolom 3 |\n| isi | isi | isi |\n';
-            this.setel(sebelum + contoh + this.teks.slice(posisi));
+            this.$refs.editor.querySelector('[x-data]')?.dispatchEvent(new CustomEvent('sisip-tabel'));
         },
-        tempel(e) {
-            const tabel = window.tabelDariClipboard(e.clipboardData);
-            if (tabel === null) return;
-            e.preventDefault();
-            const sebelum = this.teks.slice(0, e.target.selectionStart);
-            const sesudah = this.teks.slice(e.target.selectionEnd);
-            this.setel(sebelum + (sebelum && ! sebelum.endsWith('\n') ? '\n' : '') + tabel + (sesudah && ! sesudah.startsWith('\n') ? '\n' : '') + sesudah);
+        {{--
+            Simpan otomatis saat menyusun: 0,8 detik setelah berhenti mengetik, atau langsung saat kursor keluar
+            dari isian. Yang kedua mencegah ketikan terakhir hilang bila pengguna langsung pindah bagian.
+            $wire diambil saat mengetik, karena saat waktunya tiba barisnya bisa sudah tidak tampil.
+        --}}
+        simpanNanti() {
+            const wire = this.$wire;
+            clearTimeout(this.jedaSimpan);
+            this.jedaSimpan = setTimeout(() => this.simpanSekarang(wire), 800);
+        },
+        simpanSekarang(wire = this.$wire) {
+            if (this.jedaSimpan === null) return;
+            clearTimeout(this.jedaSimpan);
+            this.jedaSimpan = null;
+            this.tersimpan = false;
+            wire.simpanSusun(this.label, this.teks).then(() => this.tersimpan = true);
         },
     }"
     x-on:click="$dispatch('pratinjau-fokus', { id: {{ $baris->id }} })"
@@ -74,7 +86,7 @@
                 @if ($pasal)
                     <label class="{{ $judulKolom }}" for="penanda-{{ $baris->id }}">BAB / Pasal</label>
                     <input id="penanda-{{ $baris->id }}" type="text" x-model="label" placeholder="Contoh: Pasal 5"
-                        x-on:input.debounce.800ms="tersimpan = false; $wire.simpanSusun(label, teks).then(() => tersimpan = true)"
+                        x-on:input="simpanNanti()" x-on:blur="simpanSekarang()"
                         class="{{ $bidang }} mt-1.5 font-semibold">
                 @else
                     <h3 class="text-base font-bold">{{ $judul }}</h3>
@@ -84,12 +96,16 @@
 
             <div class="min-w-0">
                 <p class="{{ $judulKolom }}">Rumusan</p>
-                <textarea x-ref="editor" rows="{{ min(14, max(3, substr_count($awal, "\n") + 2 + (int) (mb_strlen($awal) / 90))) }}" x-model="teks" aria-label="Rumusan {{ $judul }}"
-                    x-on:input.debounce.800ms="tersimpan = false; $wire.simpanSusun(label, teks).then(() => tersimpan = true)"
-                    @if ($pasal) x-on:paste="tempel($event)" @endif
-                    class="{{ $bidang }} {{ $serif }} mt-1.5"></textarea>
+                @php $barisAwal = min(14, max(3, substr_count($awal, "\n") + 2 + (int) (mb_strlen($awal) / 90))); @endphp
                 @if ($pasal)
+                    <div x-ref="editor" class="mt-1.5" x-on:input="simpanNanti()" x-on:focusout="$el.contains($event.relatedTarget) || simpanSekarang()">
+                        @include('v2.partials.editor-rumusan', ['barisMinimal' => $barisAwal, 'label' => "Rumusan {$judul}"])
+                    </div>
                     <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ $petunjukTabel }}</p>
+                @else
+                    <textarea x-ref="editor" rows="{{ $barisAwal }}" x-model="teks" aria-label="Rumusan {{ $judul }}"
+                        x-on:input="simpanNanti()" x-on:blur="simpanSekarang()"
+                        class="{{ $bidang }} {{ $serif }} mt-1.5"></textarea>
                 @endif
 
                 @if ($bisaDiatur)
@@ -153,11 +169,15 @@
                             <input id="penanda-{{ $baris->id }}" type="text" x-model="label" placeholder="Contoh: Pasal 5" class="{{ $bidang }} mt-1.5 font-semibold">
                         </div>
                     @endif
-                    <textarea x-ref="editor" rows="{{ min(16, max(5, substr_count($awal, "\n") + 3 + (int) (mb_strlen($awal) / 50))) }}" x-model="teks" aria-label="Rumusan penyempurnaan {{ $judul }}"
-                        @if ($pasal) x-on:paste="tempel($event)" @endif
-                        class="{{ $bidang }} {{ $serif }}"></textarea>
+                    @php $barisAwal = min(16, max(5, substr_count($awal, "\n") + 3 + (int) (mb_strlen($awal) / 50))); @endphp
                     @if ($pasal)
+                        <div x-ref="editor">
+                            @include('v2.partials.editor-rumusan', ['barisMinimal' => $barisAwal, 'label' => "Rumusan penyempurnaan {$judul}"])
+                        </div>
                         <p class="text-sm text-slate-500 dark:text-slate-400">{{ $petunjukTabel }}</p>
+                    @else
+                        <textarea x-ref="editor" rows="{{ $barisAwal }}" x-model="teks" aria-label="Rumusan penyempurnaan {{ $judul }}"
+                            class="{{ $bidang }} {{ $serif }}"></textarea>
                     @endif
                 </div>
                 @error('rumusan')

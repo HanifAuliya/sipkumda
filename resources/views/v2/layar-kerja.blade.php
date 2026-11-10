@@ -34,6 +34,8 @@
     x-data="{
         pratinjau: false,
         bandingPratinjau: false,
+        panelKiri: true,
+        siap: false,
         sorot: [],
         fokus: null,
         init() {
@@ -45,6 +47,13 @@
                 try { localStorage.setItem('v2-pratinjau', buka ? '1' : '0'); } catch (e) {}
                 if (buka) this.$nextTick(() => this.gulir());
             });
+
+            // Panel daftar bagian di layar lebar: pilihan buka/tutup diingat. Animasi baru aktif sesudah halaman tampil.
+            try { this.panelKiri = localStorage.getItem('v2-panel-kiri') !== '0'; } catch (e) {}
+            this.$watch('panelKiri', (buka) => {
+                try { localStorage.setItem('v2-panel-kiri', buka ? '1' : '0'); } catch (e) {}
+            });
+            requestAnimationFrame(() => requestAnimationFrame(() => this.siap = true));
         },
         get gaya() {
             const pilih = (ids) => ids.map((id) => `.kertas-pratinjau [data-baris='${id}']`).join(',');
@@ -117,18 +126,31 @@
         class="fixed inset-0 z-40 bg-navy-950/50 backdrop-blur-[2px] lg:hidden"></div>
 
     {{-- Panel kiri: bagian naskah --}}
-    <aside class="fixed inset-y-0 left-0 z-50 flex w-80 max-w-[85vw] shrink-0 -translate-x-full flex-col bg-white shadow-xl transition-transform duration-200 lg:static lg:z-auto lg:w-72 lg:translate-x-0 lg:shadow-card dark:bg-navy-900 dark:shadow-none dark:ring-1 dark:ring-white/5"
-        x-bind:class="sidebarOpen && 'translate-x-0'" aria-label="Bagian naskah">
+    {{--
+        Di layar lebar panel bisa ditutup menjadi lajur ringkas berisi nomor bagian, sehingga tetap bisa pindah bagian.
+        Isi panel tetap selebar 18rem saat menyusut agar tidak berantakan selama bergerak.
+    --}}
+    <aside id="panel-bagian" class="fixed inset-y-0 left-0 z-50 flex w-80 max-w-[85vw] shrink-0 -translate-x-full flex-col overflow-hidden bg-white shadow-xl transition-[translate,width] duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] lg:relative lg:z-auto lg:w-72 lg:translate-x-0 lg:shadow-card dark:bg-navy-900 dark:shadow-none dark:ring-1 dark:ring-white/5"
+        x-bind:class="{ 'translate-x-0': sidebarOpen, 'lg:w-16!': ! panelKiri, 'lg:transition-none': ! siap }" aria-label="Bagian naskah">
+        <div class="flex h-full w-full flex-col transition-opacity duration-150 lg:w-72"
+            x-bind:class="! panelKiri && 'lg:invisible lg:opacity-0'">
         <div class="space-y-3 border-b border-slate-100 p-4 dark:border-navy-800">
-            <x-ui.button :href="$kembali" variant="outline" size="rapat" icon="arrow-left" class="w-full">Kembali ke Daftar</x-ui.button>
+            <div class="-my-1 flex items-center justify-between gap-2">
+                <h2 class="truncate text-base font-bold tracking-wide text-navy-900 dark:text-white" title="Nomor rancangan">{{ $naskah->nomor }}</h2>
+                <button type="button" class="-mr-2 hidden size-9 shrink-0 place-items-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-navy-900 lg:grid dark:text-slate-400 dark:hover:bg-navy-800 dark:hover:text-white"
+                    x-on:click="panelKiri = false" aria-controls="panel-bagian" aria-expanded="true" aria-label="Tutup panel bagian" title="Tutup panel">
+                    <i class="bi bi-chevron-double-left text-base" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="-mr-2 grid size-9 shrink-0 place-items-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-navy-900 lg:hidden dark:text-slate-400 dark:hover:bg-navy-800 dark:hover:text-white"
+                    x-on:click="sidebarOpen = false" aria-label="Tutup daftar bagian">
+                    <i class="bi bi-x-lg text-base" aria-hidden="true"></i>
+                </button>
+            </div>
 
             {{-- Di layar lebar keterangan ini ada di header. --}}
             <div class="lg:hidden">
-                <p class="flex flex-wrap items-center gap-2 text-sm font-semibold text-slate-500 dark:text-slate-400">
-                    {{ $naskah->nomor }}
-                    <x-ui.badge :color="$tahap->warna()">{{ $tahap->label() }}</x-ui.badge>
-                </p>
-                <p class="mt-1 line-clamp-2 text-sm font-bold text-navy-900 dark:text-white">{{ $naskah->tentang }}</p>
+                <x-ui.badge :color="$tahap->warna()">{{ $tahap->label() }}</x-ui.badge>
+                <p class="mt-1.5 line-clamp-2 text-sm font-bold text-navy-900 dark:text-white">{{ $naskah->tentang }}</p>
             </div>
 
             @if ($mode === A::MODE_SESUAIKAN)
@@ -203,8 +225,8 @@
             @endforeach
         </nav>
 
-        @if ($tahap !== TahapNaskah::Draf)
-            <div class="border-t border-slate-100 p-4 dark:border-navy-800">
+        <div class="space-y-4 border-t border-slate-100 p-4 dark:border-navy-800">
+            @if ($tahap !== TahapNaskah::Draf)
                 <x-form.field label="Tampilkan" for="filterBaris">
                     <x-form.select id="filterBaris" wire:model.live="filter" icon="funnel">
                         <option value="">Sesuai pekerjaan Anda</option>
@@ -213,8 +235,50 @@
                         @endforeach
                     </x-form.select>
                 </x-form.field>
-            </div>
-        @endif
+            @endif
+            <x-ui.button :href="$kembali" variant="outline" size="rapat" icon="arrow-left" class="w-full">Kembali ke Daftar</x-ui.button>
+        </div>
+        </div>
+
+        {{-- Lajur ringkas saat panel ditutup (layar lebar): nomor bagian dengan titik status, nama lengkap di keterangan. --}}
+        <div class="absolute inset-y-0 left-0 hidden w-16 flex-col items-center py-3 transition-opacity duration-200 lg:flex"
+            x-bind:class="panelKiri ? 'invisible opacity-0' : 'opacity-100'" x-cloak>
+            <button type="button" class="grid size-10 shrink-0 place-items-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-navy-900 dark:text-slate-400 dark:hover:bg-navy-800 dark:hover:text-white"
+                x-on:click="panelKiri = true" aria-controls="panel-bagian" aria-expanded="false" aria-label="Buka panel bagian" title="Buka panel bagian">
+                <i class="bi bi-chevron-double-right text-base" aria-hidden="true"></i>
+            </button>
+            <div class="my-2 h-px w-8 shrink-0 bg-slate-100 dark:bg-navy-800" aria-hidden="true"></div>
+            <nav class="tanpa-scrollbar flex w-full flex-1 flex-col items-center gap-1.5 overflow-y-auto pb-1" aria-label="Pindah bagian">
+                @foreach ($daftarBlok as $b)
+                    @php
+                        $aktif = $blokAktif['kunci'] === $b['kunci'] && $tab === 'kerja';
+                        $nama = $b['nama'] . ($b['sub'] ? ' — ' . $b['sub'] : '')
+                            . match ($b['keadaan']) { 'perlu' => ' (perlu diperbaiki)', 'selesai' => ' (selesai)', default => '' };
+                    @endphp
+                    <button type="button" wire:click="pilihBlok('{{ $b['kunci'] }}')" wire:key="lajur-{{ $b['kunci'] }}"
+                        title="{{ $nama }}" aria-label="{{ $nama }}" @if ($aktif) aria-current="step" @endif
+                        @class([
+                            'relative grid size-10 shrink-0 place-items-center rounded-lg text-sm font-semibold tabular-nums transition',
+                            'bg-primary-500 text-white shadow-soft' => $aktif,
+                            'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-navy-800' => ! $aktif,
+                        ])>
+                        {{ $loop->iteration }}
+                        @if (in_array($b['keadaan'], ['perlu', 'selesai'], true))
+                            <span @class([
+                                'absolute top-1 right-1 size-2.5 rounded-full ring-2 ring-white dark:ring-navy-900',
+                                'bg-rose-500' => $b['keadaan'] === 'perlu',
+                                'bg-emerald-500' => $b['keadaan'] === 'selesai',
+                            ]) aria-hidden="true"></span>
+                        @endif
+                    </button>
+                @endforeach
+            </nav>
+            <div class="my-2 h-px w-8 shrink-0 bg-slate-100 dark:bg-navy-800" aria-hidden="true"></div>
+            <a href="{{ $kembali }}" class="grid size-10 shrink-0 place-items-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-navy-900 dark:text-slate-400 dark:hover:bg-navy-800 dark:hover:text-white"
+                aria-label="Kembali ke Daftar" title="Kembali ke Daftar">
+                <i class="bi bi-arrow-left text-lg" aria-hidden="true"></i>
+            </a>
+        </div>
     </aside>
 
     {{-- Kolom kerja --}}
@@ -274,19 +338,13 @@
                                     @endif
                                 </dd>
                             </div>
-                            @foreach (A::TAHAPAN_TTD as $kunci => $nama)
-                                <div wire:key="ttd-{{ $kunci }}">
-                                    <dt class="text-sm text-slate-500 dark:text-slate-400">{{ $nama }}</dt>
-                                    <dd class="mt-1 text-sm font-semibold">
-                                        @if (isset($naskah->tahapan_ttd[$kunci]))
-                                            <i class="bi bi-check-circle-fill text-emerald-500"></i> {{ tanggal($naskah->tahapan_ttd[$kunci]) }}
-                                        @else
-                                            <span class="font-normal text-slate-400">Belum</span>
-                                        @endif
-                                    </dd>
-                                </div>
-                            @endforeach
                         </dl>
+                        @if ($tahap !== TahapNaskah::Final)
+                            <div class="mt-5 border-t border-slate-100 pt-5 dark:border-navy-800">
+                                <h3 class="mb-3 text-sm font-bold text-navy-900 dark:text-white">Tahapan Tanda Tangan</h3>
+                                @include('v2.partials.tahapan-ttd', ['bolehKelola' => $bolehKelolaTtd])
+                            </div>
+                        @endif
                         @if ($naskah->dokumentasi_id)
                             <div class="mt-4 text-sm">
                                 <x-ui.file-link :href="route('jdih.show', $naskah->dokumentasi_id)" label="Lihat di JDIH" />
@@ -430,6 +488,12 @@
                                         memindahkan naskah: {{ $r->sebelum }} <i class="bi bi-arrow-right"></i> {{ $r->sesudah }}
                                     @elseif ($r->aksi === 'tahapan')
                                         mencatat tahap {{ $r->sesudah }} selesai
+                                    @elseif ($r->aksi === 'tahapan_tanggal')
+                                        mengubah tanggal {{ $r->catatan }}: {{ tanggal($r->sebelum) }} <i class="bi bi-arrow-right"></i> {{ tanggal($r->sesudah) }}
+                                    @elseif ($r->aksi === 'tahapan_batal')
+                                        membatalkan tanda {{ $r->sebelum }}
+                                    @elseif ($r->aksi === 'ganti_peneliti')
+                                        mengganti peneliti: {{ $r->sebelum ?? '-' }} <i class="bi bi-arrow-right"></i> {{ $r->sesudah }}
                                     @elseif ($r->aksi === 'tambah_baris')
                                         menambah baris {{ $sasaran ?? $r->sesudah }}
                                     @elseif ($r->aksi === 'buang_baris')
@@ -440,7 +504,7 @@
                                 </p>
                                 <time class="text-sm text-slate-400">{{ $r->created_at->translatedFormat('d M Y H:i') }}</time>
                             </div>
-                            @if ($r->catatan)
+                            @if ($r->catatan && $r->aksi !== 'tahapan_tanggal')
                                 <p class="mt-1 text-slate-500">{{ $r->catatan }}</p>
                             @endif
                             @if ($rincian)
@@ -538,8 +602,15 @@
             <x-ui.alert color="danger">{{ $message }}</x-ui.alert>
         @enderror
 
+        @if ($aksiTerpilih === 'ganti_peneliti')
+            <p class="mb-4 text-sm text-slate-600 dark:text-slate-300">
+                Peneliti sekarang: <strong class="text-navy-900 dark:text-white">{{ $naskah->peneliti->nama_user ?? '-' }}</strong>.
+                Tahap naskah tidak berubah. Peneliti baru langsung bisa membuka naskah ini, sedangkan peneliti lama tidak lagi.
+            </p>
+        @endif
+
         @if (! empty($aksiModal['peneliti']))
-            <x-form.field label="Peneliti" for="penelitiId" error="penelitiId" required>
+            <x-form.field :label="$aksiTerpilih === 'ganti_peneliti' ? 'Peneliti baru' : 'Peneliti'" for="penelitiId" error="penelitiId" required>
                 <select id="penelitiId" wire:model="penelitiId" class="w-full rounded-lg border-0 py-2 pl-3 text-sm ring-1 ring-slate-200 dark:bg-navy-800 dark:ring-navy-700">
                     <option value="">Pilih peneliti</option>
                     @foreach ($peneliti as $orang)

@@ -5,6 +5,9 @@ use App\Livewire\V2\BarisKerja;
 use App\Livewire\V2\DetailNaskah;
 use App\Livewire\V2\LayarKerja;
 use App\Livewire\V2\Lonceng;
+use App\Livewire\V2\PantauNaskah;
+use App\Livewire\Profile\TandaTanganSaya;
+use App\Support\TandaTanganPeneliti;
 use App\Livewire\Verifikator\TandaTangan\PengelolaTtd;
 use App\Models\DokumentasiProdukHukum;
 use App\Models\FasilitasiProdukHukum;
@@ -240,10 +243,15 @@ describe('penandatanganan', function () {
 
         expect($n->tahapan_ttd)->toHaveKey('paraf_koordinasi');
 
-        Livewire::actingAs($tamu)->test(LayarKerja::class, ['naskah' => $n])
-            ->assertSee('Tandai Asisten selesai')
-            ->call('pilihAksi', 'tandai_tahapan')
-            ->call('jalankanAksi')
+        // Tamu memantau dari halaman pantau, bukan layar kerja matriks.
+        $this->actingAs($tamu)->get(route('v2.naskah.kerja', $n))->assertRedirect(route('v2.naskah.pantau', $n));
+
+        Livewire::actingAs($tamu)->test(PantauNaskah::class, ['naskah' => $n])
+            ->assertSee('Pantau Tanda Tangan')
+            ->assertSee('Berikutnya')
+            ->call('bukaTahapan', 'asisten', 'tandai')
+            ->assertSet('tanggalTtd', now()->toDateString())
+            ->call('simpanTahapan')
             ->assertHasNoErrors();
 
         expect($n->fresh()->tahapan_ttd)->toHaveKey('asisten');
@@ -291,13 +299,12 @@ describe('penandatanganan', function () {
         $this->actingAs($tamu);
         $cetak = route('v2.naskah.cetak', [$this->n, 'naskah-pdf']);
 
-        Livewire::test(LayarKerja::class, ['naskah' => $this->n])
-            ->set('tab', 'naskah')
-            ->assertSee('Dana Desa')
+        Livewire::test(PantauNaskah::class, ['naskah' => $this->n])
+            ->set('lihatIsi', true)
+            ->assertSee('Isi pasal.')
             ->assertDontSeeHtml($cetak)
-            ->assertDontSeeHtml('Naskah Word')
-            ->set('tab', 'berkas')
-            ->assertSet('tab', 'kerja');
+            ->assertDontSeeHtml('/cetak/')
+            ->assertDontSeeHtml('Naskah Word');
 
         Livewire::test(DetailNaskah::class)
             ->call('buka', $this->n->slug)
@@ -642,5 +649,246 @@ a. huruf.
         expect(PemeriksaPenomoran::periksa(barisPeriksa([
             ['Pasal 1', 'Lihat Pasal 1A.'], ['Pasal 1A', 'Isi'], ['Pasal 2', 'Isi'],
         ])))->toBe([]);
+    });
+});
+
+describe('tahapan tanda tangan bisa dibetulkan', function () {
+    beforeEach(function () {
+        $this->n = $this->alur->terbitkanNota(naskahFinal($this), $this->admin, '12', 'Sekda', $this->ttd->id);
+        $this->tamu = tap(User::factory()->create())->assignRole('Tamu');
+    });
+
+    it('boleh tidak berurutan: dicatat di riwayat dan disimpan menurut urutan resmi', function () {
+        $n = $this->alur->tandaiTahapan($this->n, $this->tamu, now()->subDay()->toDateString(), 'sekda');
+
+        expect($n->tahapan_ttd)->toBe(['sekda' => now()->subDay()->toDateString()])
+            ->and($n->riwayat()->first()->catatan)->toBe('Tidak berurutan: Paraf Koordinasi belum ditandai.');
+
+        $n = $this->alur->tandaiTahapan($n, $this->tamu);
+
+        expect(array_keys($n->tahapan_ttd))->toBe(['paraf_koordinasi', 'sekda'])
+            ->and($n->riwayat()->first()->catatan)->toBeNull()
+            ->and($this->alur->aksiTersedia($n, $this->admin)['tandai_tahapan']['label'])->toBe('Tandai Asisten selesai');
+
+        expect(fn () => $this->alur->tandaiTahapan($n, $this->tamu, null, 'sekda'))->toThrow(ValidationException::class);
+        expect(fn () => $this->alur->tandaiTahapan($n, $this->tamu, null, 'camat'))->toThrow(HttpException::class);
+    });
+
+    it('tanggal bisa dibetulkan oleh Admin atau Tamu, tetapi tidak ke masa depan', function () {
+        $n = $this->alur->tandaiTahapan($this->n, $this->tamu, now()->subDay()->toDateString());
+        $n = $this->alur->ubahTanggalTahapan($n, $this->tamu, 'paraf_koordinasi', now()->subDays(3)->toDateString());
+
+        expect($n->tahapan_ttd['paraf_koordinasi'])->toBe(now()->subDays(3)->toDateString());
+
+        $riwayat = $n->riwayat()->first();
+        expect([$riwayat->aksi, $riwayat->catatan, $riwayat->sebelum, $riwayat->sesudah])
+            ->toBe(['tahapan_tanggal', 'Paraf Koordinasi', now()->subDay()->toDateString(), now()->subDays(3)->toDateString()]);
+
+        expect(fn () => $this->alur->ubahTanggalTahapan($n, $this->tamu, 'paraf_koordinasi', now()->addDay()->toDateString()))->toThrow(ValidationException::class);
+        expect(fn () => $this->alur->ubahTanggalTahapan($n, $this->tamu, 'asisten', now()->toDateString()))->toThrow(ValidationException::class);
+        expect(fn () => $this->alur->ubahTanggalTahapan($n, $this->pd, 'paraf_koordinasi', now()->toDateString()))->toThrow(HttpException::class);
+        expect(fn () => $this->alur->ubahTanggalTahapan($n, $this->verifikator, 'paraf_koordinasi', now()->toDateString()))->toThrow(HttpException::class);
+    });
+
+    it('tanda bisa dibatalkan; dari Menunggu Arsip naskah kembali ke Penandatanganan', function () {
+        $n = $this->n;
+        foreach (array_keys(AlurNaskah::TAHAPAN_TTD) as $_) {
+            $n = $this->alur->tandaiTahapan($n, $this->tamu);
+        }
+        expect($n->tahap)->toBe(T::Arsip);
+
+        // Selama menunggu arsip, tanggal masih bisa dibetulkan.
+        $n = $this->alur->ubahTanggalTahapan($n, $this->tamu, 'bupati', now()->subDay()->toDateString());
+        expect($n->tahap)->toBe(T::Arsip);
+
+        $n = $this->alur->batalkanTahapan($n, $this->tamu, 'bupati');
+        expect($n->tahap)->toBe(T::Penandatanganan)
+            ->and($n->tahapan_ttd)->not->toHaveKey('bupati')
+            ->and($n->catatan_tahap)->toBe('Tanda Bupati dibatalkan.')
+            ->and($this->admin->notifikasiNaskah()->where('data->slug', $n->slug)->whereNull('read_at')->exists())->toBeTrue();
+
+        foreach (['paraf_koordinasi', 'asisten', 'sekda'] as $kunci) {
+            $n = $this->alur->batalkanTahapan($n, $this->admin, $kunci);
+        }
+        expect($n->tahapan_ttd)->toBeNull()->and($n->tahap)->toBe(T::Penandatanganan);
+
+        expect(fn () => $this->alur->batalkanTahapan($n, $this->tamu, 'sekda'))->toThrow(ValidationException::class);
+
+        $n->forceFill(['tahap' => T::Selesai, 'tahapan_ttd' => ['sekda' => now()->toDateString()]])->save();
+        expect(fn () => $this->alur->batalkanTahapan($n, $this->admin, 'sekda'))->toThrow(HttpException::class);
+        expect($this->alur->bolehKelolaTtd($n, $this->admin))->toBeFalse();
+    });
+
+    it('Admin mengubah tanggal dan membatalkan dari layar kerja', function () {
+        $n = $this->alur->tandaiTahapan($this->n, $this->admin, now()->subDay()->toDateString());
+
+        Livewire::actingAs($this->admin)->test(LayarKerja::class, ['naskah' => $n])
+            ->assertSee('Tahapan Tanda Tangan')
+            ->assertSee('Ubah Tanggal')
+            ->call('bukaTahapan', 'paraf_koordinasi', 'ubah')
+            ->assertSet('tanggalTtd', now()->subDay()->toDateString())
+            ->set('tanggalTtd', now()->addDay()->toDateString())
+            ->call('simpanTahapan')
+            ->assertHasErrors('tanggalTahapan')
+            ->set('tanggalTtd', now()->subDays(2)->toDateString())
+            ->call('simpanTahapan')
+            ->assertHasNoErrors();
+
+        expect($n->fresh()->tahapan_ttd['paraf_koordinasi'])->toBe(now()->subDays(2)->toDateString());
+
+        Livewire::actingAs($this->admin)->test(LayarKerja::class, ['naskah' => $n])->call('batalkanTahapan', 'paraf_koordinasi');
+
+        expect($n->fresh()->tahapan_ttd)->toBeNull();
+    });
+
+    it('halaman pantau Tamu: tombol hilang setelah naskah diarsipkan', function () {
+        $this->actingAs($this->tamu)->get(route('v2.naskah.pantau', $this->n))->assertOk()->assertSee('Pantau Tanda Tangan');
+
+        $this->n->forceFill(['tahap' => T::Selesai])->save();
+
+        Livewire::actingAs($this->tamu)->test(PantauNaskah::class, ['naskah' => $this->n])
+            ->assertSee('Naskah sudah diarsipkan')
+            ->assertDontSee('Tandai Selesai')
+            ->assertDontSee('Ubah Tanggal');
+
+        // Akun dengan peran kerja tetap dibawa ke layar kerja.
+        expect($this->n->tautanUntuk($this->admin))->toBe(route('v2.naskah.kerja', $this->n))
+            ->and($this->n->tautanUntuk($this->tamu))->toBe(route('v2.naskah.pantau', $this->n));
+    });
+});
+
+describe('ganti peneliti', function () {
+    beforeEach(function () {
+        $n = Naskah::create(['jenis' => 'Peraturan Bupati', 'tentang' => 'Ganti Peneliti', 'pemrakarsa_id' => $this->pd->id, 'nomor_nota' => 'ND-'.uniqid(), 'tanggal_nota' => now()]);
+        $this->alur->isiBaris($n, [['bagian' => 'batang_tubuh', 'label' => 'Pasal 1', 'teks' => 'Isi pasal.']]);
+        $n->berkas()->create(['jenis' => 'nota_dinas_pd', 'path' => 'x.pdf', 'nama_asli' => 'x.pdf', 'diunggah_oleh' => $this->pd->id]);
+        $this->alur->jalankan($n, $this->pd, 'ajukan');
+        $this->alur->jalankan($n, $this->admin, 'setujui_berkas');
+        $this->n = $this->alur->jalankan($n, $this->verifikator, 'tugaskan_peneliti', null, $this->peneliti->id);
+        $this->lain = tap(User::factory()->create())->assignRole('Peneliti');
+    });
+
+    it('Verifikator mengganti peneliti tanpa mengubah tahap; peneliti lama kehilangan akses', function () {
+        expect($this->alur->aksiTersedia($this->n, $this->verifikator))->toHaveKey('ganti_peneliti')
+            ->and($this->alur->aksiTersedia($this->n, $this->admin))->not->toHaveKey('ganti_peneliti')
+            ->and($this->alur->aksiTersedia($this->n, $this->peneliti))->not->toHaveKey('ganti_peneliti');
+
+        $n = $this->alur->gantiPeneliti($this->n, $this->verifikator, $this->lain->id, 'Peneliti lama cuti');
+
+        expect($n->tahap)->toBe(T::Penelitian)
+            ->and($n->peneliti_id)->toBe($this->lain->id)
+            ->and($this->peneliti->can('view', $n))->toBeFalse()
+            ->and($this->lain->can('view', $n))->toBeTrue()
+            ->and($this->alur->modeBaris($n, $this->lain))->toBe(AlurNaskah::MODE_TELITI);
+
+        $riwayat = $n->riwayat()->first();
+        expect([$riwayat->aksi, $riwayat->sebelum, $riwayat->sesudah, $riwayat->catatan])
+            ->toBe(['ganti_peneliti', $this->peneliti->nama_user, $this->lain->nama_user, 'Peneliti lama cuti']);
+
+        $baru = $this->lain->notifikasiNaskah()->latest()->first()->data;
+        expect($baru['kategori'])->toBe('tugas')->and($baru['title'])->toBe('Anda ditugaskan meneliti rancangan');
+
+        expect($this->peneliti->notifikasiNaskah()->whereNull('read_at')->where('data->kategori', 'tugas')->exists())->toBeFalse()
+            ->and($this->peneliti->notifikasiNaskah()->where('data->title', 'Anda tidak lagi menjadi peneliti naskah ini')->exists())->toBeTrue();
+    });
+
+    it('di luar giliran peneliti, peneliti baru hanya diberi kabar', function () {
+        $this->n->baris()->get()->each(fn (B $b) => $this->alur->tetapkan($b, $this->peneliti));
+        $n = $this->alur->jalankan($this->n, $this->peneliti, 'teruskan_ke_verifikator');
+
+        $this->alur->gantiPeneliti($n, $this->verifikator, $this->lain->id);
+
+        $data = $this->lain->notifikasiNaskah()->latest()->first()->data;
+        expect($data['kategori'])->toBe('kabar')->and($data['title'])->toBe('Anda ditugaskan sebagai peneliti naskah ini');
+    });
+
+    it('menolak peneliti yang sama, bukan peneliti, pengguna tanpa hak, dan naskah terkunci', function () {
+        expect(fn () => $this->alur->gantiPeneliti($this->n, $this->verifikator, $this->peneliti->id))->toThrow(ValidationException::class);
+        expect(fn () => $this->alur->gantiPeneliti($this->n, $this->verifikator, $this->pd->id))->toThrow(ValidationException::class);
+        expect(fn () => $this->alur->gantiPeneliti($this->n, $this->verifikator, null))->toThrow(ValidationException::class);
+        expect(fn () => $this->alur->gantiPeneliti($this->n, $this->admin, $this->lain->id))->toThrow(HttpException::class);
+
+        $final = naskahFinal($this, tentang: 'Sudah Final');
+        expect($this->alur->aksiTersedia($final, $this->verifikator))->not->toHaveKey('ganti_peneliti');
+        expect(fn () => $this->alur->gantiPeneliti($final, $this->verifikator, $this->lain->id))->toThrow(HttpException::class);
+    });
+
+    it('dari layar kerja: peneliti yang sedang bertugas tidak ditawarkan', function () {
+        Livewire::actingAs($this->verifikator)->test(LayarKerja::class, ['naskah' => $this->n])
+            ->assertSee('Ganti Peneliti')
+            ->call('pilihAksi', 'ganti_peneliti')
+            ->assertSee('Peneliti sekarang')
+            ->assertViewHas('peneliti', fn ($daftar) => ! $daftar->contains('id', $this->peneliti->id) && $daftar->contains('id', $this->lain->id))
+            ->set('penelitiId', $this->lain->id)
+            ->call('jalankanAksi')
+            ->assertHasNoErrors();
+
+        expect($this->n->fresh()->peneliti_id)->toBe($this->lain->id);
+    });
+});
+
+/** PNG transparan 1000x400 dengan coretan berbentuk tangga di tengah. */
+function ttdContoh(): UploadedFile
+{
+    $g = imagecreatetruecolor(1000, 400);
+    imagealphablending($g, false);
+    imagesavealpha($g, true);
+    imagefill($g, 0, 0, imagecolorallocatealpha($g, 255, 255, 255, 127));
+    $hitam = imagecolorallocatealpha($g, 0, 0, 0, 0);
+    imagefilledrectangle($g, 300, 150, 499, 199, $hitam);
+    imagefilledrectangle($g, 500, 200, 699, 249, $hitam);
+    ob_start();
+    imagepng($g);
+
+    return UploadedFile::fake()->createWithContent('ttd.png', ob_get_clean());
+}
+
+describe('tanda tangan peneliti', function () {
+    it('digambar ulang menjadi PNG transparan yang tepinya dipangkas', function () {
+        Livewire::actingAs($this->peneliti)->test(TandaTanganSaya::class)
+            ->set('gambar', ttdContoh())
+            ->assertHasNoErrors()
+            ->assertSee('Simpan Tanda Tangan')
+            ->call('simpan')
+            ->assertHasNoErrors();
+
+        $path = $this->peneliti->refresh()->file_ttd;
+        $g = imagecreatefromstring(Storage::disk('local')->get($path));
+
+        expect($path)->toStartWith('tanda_tangan/peneliti/')
+            ->and([imagesx($g), imagesy($g)])->toBe([400, 100])
+            ->and(imagecolorsforindex($g, imagecolorat($g, 399, 0))['alpha'])->toBe(127)
+            ->and(imagecolorsforindex($g, imagecolorat($g, 0, 0))['alpha'])->toBe(0);
+
+        $this->actingAs($this->peneliti)->get($this->peneliti->ttdUrl())->assertOk()->assertHeader('X-Content-Type-Options', 'nosniff');
+        $this->actingAs($this->peneliti)->get('/view-private/tanda_tangan/peneliti/' . basename($path))->assertForbidden();
+    });
+
+    it('hanya untuk Peneliti, dan menolak berkas yang bukan gambar', function () {
+        Livewire::actingAs($this->pd)->test(TandaTanganSaya::class)->assertForbidden();
+
+        Livewire::actingAs($this->peneliti)->test(TandaTanganSaya::class)
+            ->set('gambar', UploadedFile::fake()->create('a.pdf', 10, 'application/pdf'))
+            ->assertHasErrors('gambar')
+            ->assertSet('gambar', null);
+    });
+
+    it('masuk ke matriks di atas nama peneliti setelah nota dinas terbit', function () {
+        $n = naskahFinal($this);
+        $cetak = app(CetakNaskah::class);
+        // Disimpan ke variabel: file sementaranya terhapus begitu objeknya dibuang.
+        $gambar = ttdContoh();
+        TandaTanganPeneliti::simpan($this->peneliti, $gambar->getRealPath());
+        $this->peneliti->forceFill(['nama_user' => 'NAMA PENELITI', 'NIP' => '19880101'])->save();
+
+        $draf = $cetak->pdfMatriks($n->fresh());
+        expect(teksPdfAkhir($draf))->toContain('PENELITI')->toContain('NAMAPENELITI')->toContain('19880101')
+            ->and(substr_count($draf, '/Subtype /Image'))->toBe(0);
+
+        $n = $this->alur->terbitkanNota($n, $this->admin, '12', 'Sekda', $this->ttd->id);
+
+        // Gambar Kabag di uji ini tidak punya file, jadi gambar yang ada adalah tanda tangan peneliti
+        // (PNG transparan tersimpan sebagai gambar dan topeng transparansinya).
+        expect(substr_count($cetak->pdfMatriks($n->fresh()), '/Subtype /Image'))->toBeGreaterThan(0);
     });
 });

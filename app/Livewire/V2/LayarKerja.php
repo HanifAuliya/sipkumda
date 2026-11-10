@@ -3,6 +3,7 @@
 namespace App\Livewire\V2;
 
 use App\Enums\TahapNaskah;
+use App\Livewire\V2\Concerns\KelolaTahapanTtd;
 use App\Models\Naskah;
 use App\Models\NaskahBaris as B;
 use App\Models\NaskahBerkas;
@@ -27,6 +28,7 @@ use Livewire\WithFileUploads;
 #[Layout('layouts.kerja')]
 class LayarKerja extends Component
 {
+    use KelolaTahapanTtd;
     use WithFileUploads;
 
     private const FILTER = ['semua', 'belum', 'perlu', 'diubah', 'berubah'];
@@ -77,9 +79,15 @@ class LayarKerja extends Component
     public $berkasBaru;
     public string $jenisBerkas = NaskahBerkas::LAMPIRAN;
 
-    public function mount(Naskah $naskah): void
+    public function mount(Naskah $naskah)
     {
         Gate::authorize('view', $naskah);
+
+        // Tamu memantau tanda tangan, bukan mengerjakan matriks.
+        if (auth()->user()->pemantau()) {
+            return $this->redirectRoute('v2.naskah.pantau', $naskah);
+        }
+
         $this->naskah = $naskah;
         $naskah->tandaiNotifikasiDibaca(auth()->user());
 
@@ -180,6 +188,7 @@ class LayarKerja extends Component
         $this->naskah = match ($this->aksiTerpilih) {
             'terbitkan_nota' => $alur->terbitkanNota($this->naskah, $user, $this->nomorInputan, $this->kepada, $this->tandaTanganId),
             'tandai_tahapan' => $alur->tandaiTahapan($this->naskah, $user, $this->tanggalTahapan),
+            'ganti_peneliti' => $alur->gantiPeneliti($this->naskah, $user, $this->penelitiId, $this->catatan ?: null),
             'arsipkan' => $this->arsipkan($alur),
             default => $alur->jalankan($this->naskah, $user, $this->aksiTerpilih, $this->catatan ?: null, $this->penelitiId),
         };
@@ -349,7 +358,11 @@ class LayarKerja extends Component
             'total' => $total,
             'diperiksa' => $total - ($hitung[B::BELUM] ?? 0),
             'aksi' => $alur->aksiTersedia($this->naskah, $user),
-            'peneliti' => $this->aksiTerpilih === 'tugaskan_peneliti' ? User::role('Peneliti')->orderBy('nama_user')->get(['id', 'nama_user']) : collect(),
+            // Saat mengganti, peneliti yang sedang bertugas tidak ditawarkan lagi.
+            'peneliti' => in_array($this->aksiTerpilih, ['tugaskan_peneliti', 'ganti_peneliti'], true)
+                ? User::role('Peneliti')->whereKeyNot($this->naskah->peneliti_id ?? 0)->orderBy('nama_user')->get(['id', 'nama_user'])
+                : collect(),
+            'bolehKelolaTtd' => $alur->bolehKelolaTtd($this->naskah, $user),
             'daftarTtd' => $this->aksiTerpilih === 'terbitkan_nota' ? TandaTangan::where('status', 'Aktif')->get(['id', 'nama_ttd', 'jabatan']) : collect(),
             'peringatan' => $this->tab === 'kerja' && $bertugas
                 ? PemeriksaPenomoran::periksa($this->naskah->baris()->where('bagian', 'batang_tubuh')->get())

@@ -158,6 +158,12 @@ class Naskah extends Model
         $user->notifikasiNaskah()->whereNull('read_at')->where('data->slug', $this->slug)->update(['read_at' => now()]);
     }
 
+    /** Tamu hanya memantau tanda tangan, jadi dibawa ke halaman pantau, bukan layar kerja matriks. */
+    public function tautanUntuk(User $user): string
+    {
+        return $user->pemantau() ? route('v2.naskah.pantau', $this) : route('v2.naskah.kerja', $this);
+    }
+
     public function giliranMilik(User $user): bool
     {
         return match ($this->tahap->peran()) {

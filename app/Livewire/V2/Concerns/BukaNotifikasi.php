@@ -30,8 +30,8 @@ trait BukaNotifikasi
             return null;
         }
 
-        if ($naskah->giliranMilik($user)) {
-            return $this->redirectRoute('v2.naskah.kerja', $naskah);
+        if ($naskah->giliranMilik($user) || $user->pemantau()) {
+            return $this->redirect($naskah->tautanUntuk($user));
         }
 
         $this->dispatch('bukaDetailNaskah', slug: $naskah->slug);

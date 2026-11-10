@@ -90,6 +90,7 @@
 .bi-code::before { content: "\e1bc"; }
 .bi-collection::before { content: "\e466"; }
 .bi-cpu::before { content: "\e610"; }
+.bi-dash-lg::before { content: "\e32a"; }
 .bi-database::before { content: "\e1de"; }
 .bi-display::before { content: "\e32e"; }
 .bi-download::before { content: "\e20c"; }

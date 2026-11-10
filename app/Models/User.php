@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Notifications\NaskahNotification;
 use App\Support\FotoProfil;
+use App\Support\TandaTanganPeneliti;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -42,7 +43,24 @@ class User extends Authenticatable implements MustVerifyEmail
 
     protected static function booted(): void
     {
-        static::deleted(fn (self $user) => FotoProfil::buang($user->foto_profil));
+        static::deleted(function (self $user) {
+            FotoProfil::buang($user->foto_profil);
+            TandaTanganPeneliti::buang($user->file_ttd);
+        });
+    }
+
+    /** Tamu memantau tahapan tanda tangan; akun yang juga punya peran kerja tetap memakai layar kerja. */
+    public function pemantau(): bool
+    {
+        return $this->hasRole('Tamu') && ! $this->hasAnyRole(['Admin', 'Super Admin', 'Verifikator', 'Peneliti', 'Perangkat Daerah']);
+    }
+
+    /** Sama seperti foto: nama file acak berganti setiap unggah. */
+    public function ttdUrl(): ?string
+    {
+        return $this->file_ttd
+            ? route('tanda-tangan-saya', ['v' => substr(pathinfo($this->file_ttd, PATHINFO_FILENAME), 0, 12)])
+            : null;
     }
 
     /** Nama filenya acak dan berganti setiap unggah, jadi browser tidak menampilkan foto lama. */

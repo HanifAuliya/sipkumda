@@ -11,8 +11,9 @@
             <i class="bi bi-list text-2xl" aria-hidden="true"></i>
         </button>
         <button type="button" class="hidden size-10 shrink-0 place-items-center rounded-lg text-white/80 transition hover:bg-white/10 hover:text-white lg:grid"
-            x-on:click="sidebarCollapsed = !sidebarCollapsed" aria-label="Ciutkan menu">
-            <i class="bi bi-text-indent-right text-xl" aria-hidden="true" x-bind:class="sidebarCollapsed && 'bi-text-indent-left'"></i>
+            x-on:click="sidebarCollapsed = !sidebarCollapsed" x-bind:aria-label="sidebarCollapsed ? 'Lebarkan menu' : 'Ciutkan menu'">
+            {{-- Panah ke kiri = ciutkan, ke kanan = lebarkan. --}}
+            <i class="bi text-xl" aria-hidden="true" x-bind:class="sidebarCollapsed ? 'bi-text-indent-right' : 'bi-text-indent-left'"></i>
         </button>
 
         <p class="truncate text-sm font-semibold tracking-wide text-white/90">

@@ -7,8 +7,11 @@
         <div class="lg:col-span-3">
             <livewire:profile.update-profile-information />
         </div>
-        <div class="lg:col-span-2">
+        <div class="space-y-6 lg:col-span-2">
             <livewire:profile.update-password />
+            @if (auth()->user()->hasRole('Peneliti'))
+                <livewire:profile.tanda-tangan-saya />
+            @endif
         </div>
     </div>
 </div>

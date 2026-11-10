@@ -4,9 +4,11 @@ import Swal from 'sweetalert2';
 import './theme';
 import './navigasi';
 import chart from './alpine/chart';
+import editorRumusan from './alpine/editor-rumusan';
 import tabelDariClipboard from './tempel-tabel';
 
 Alpine.data('chart', chart);
+Alpine.data('editorRumusan', editorRumusan);
 
 window.Swal = Swal;
 window.tabelDariClipboard = tabelDariClipboard;

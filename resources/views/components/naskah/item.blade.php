@@ -60,7 +60,9 @@
 
         <div class="flex shrink-0 gap-2 max-lg:w-full lg:justify-end">
             <x-naskah.detail-button :naskah="$naskah" label="Detail" class="max-lg:flex-1" />
-            @if ($giliran)
+            @if (auth()->user()->pemantau())
+                <x-ui.button size="rapat" icon="vector-pen" :href="route('v2.naskah.pantau', $naskah)" class="max-lg:flex-1">Pantau</x-ui.button>
+            @elseif ($giliran)
                 <x-ui.button size="rapat" icon="pencil-square" :href="route('v2.naskah.kerja', $naskah)" class="max-lg:flex-1">Kerjakan</x-ui.button>
             @endif
         </div>

@@ -64,6 +64,21 @@ class PesanNotifikasi
         return self::susun($naskah, self::KABAR, "{$tahapan} sudah selesai", $pelaku);
     }
 
+    /**
+     * Verifikator mengganti peneliti. Peneliti baru mendapat tugas bila sedang gilirannya,
+     * selain itu sekadar kabar; peneliti lama diberi tahu bahwa naskah ini bukan tugasnya lagi.
+     */
+    public static function penelitiDiganti(Naskah $naskah, User $pelaku, ?string $catatan, bool $baru): array
+    {
+        if (! $baru) {
+            return self::susun($naskah, self::KABAR, 'Anda tidak lagi menjadi peneliti naskah ini', $pelaku, $catatan);
+        }
+
+        return $naskah->tahap->peran() === 'Peneliti'
+            ? self::susun($naskah, self::TUGAS, self::judulTugas($naskah->tahap, $naskah->tahap), $pelaku, $catatan)
+            : self::susun($naskah, self::KABAR, 'Anda ditugaskan sebagai peneliti naskah ini', $pelaku, $catatan);
+    }
+
     private static function judulTugas(T $tahap, T $dari): string
     {
         return match ($tahap) {

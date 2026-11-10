@@ -104,7 +104,9 @@
         <x-slot:footer>
             <x-ui.button variant="outline" x-on:click="close()">Tutup</x-ui.button>
             @if ($naskah)
-                @if ($giliranSaya)
+                @if (auth()->user()->pemantau())
+                    <x-ui.button icon="vector-pen" :href="route('v2.naskah.pantau', $naskah)">Pantau Tanda Tangan</x-ui.button>
+                @elseif ($giliranSaya)
                     <x-ui.button icon="pencil-square" :href="route('v2.naskah.kerja', $naskah)">Kerjakan Naskah</x-ui.button>
                 @else
                     <x-ui.button variant="outline-primary" icon="table" :href="route('v2.naskah.kerja', $naskah)">Lihat Matriks</x-ui.button>

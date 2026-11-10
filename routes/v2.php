@@ -7,6 +7,7 @@ use App\Http\Middleware\TandaiAplikasiV2;
 use App\Livewire\V2\DaftarNaskah;
 use App\Livewire\V2\LayarKerja;
 use App\Livewire\V2\Notifikasi;
+use App\Livewire\V2\PantauNaskah;
 use App\Livewire\V2\PengaturanNaskah;
 use Illuminate\Support\Facades\Route;
 
@@ -27,6 +28,10 @@ Route::middleware(['auth', 'verified', TandaiAplikasiV2::class])->prefix('v2')->
     Route::livewire('/naskah/{naskah}', LayarKerja::class)
         ->missing(fn () => redirect()->route('v2.beranda')->with('pesan', 'Naskah yang Anda buka sudah dibuang atau tidak ditemukan.'))
         ->name('naskah.kerja');
+
+    Route::livewire('/naskah/{naskah}/pantau', PantauNaskah::class)
+        ->missing(fn () => redirect()->route('v2.beranda')->with('pesan', 'Naskah yang Anda buka sudah dibuang atau tidak ditemukan.'))
+        ->name('naskah.pantau');
 
     Route::get('/naskah/{naskah}/berkas/{berkas}', BerkasNaskahController::class)->name('naskah.berkas');
 

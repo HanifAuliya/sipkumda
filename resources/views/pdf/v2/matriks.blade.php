@@ -27,7 +27,10 @@
         .tabel-sel { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 2pt 0; font-size: 9pt; }
         .matriks .tabel-sel td { padding: 1pt 2pt; word-wrap: break-word; }
         .penanda { font-weight: bold; }
-        .ttd { margin-top: 18pt; margin-left: 65%; text-align: center; page-break-inside: avoid; }
+        /* Dompdf tidak mengenal flex: dua blok tanda tangan disusun dengan tabel tanpa garis. */
+        .ttd { width: 100%; margin-top: 18pt; border-collapse: collapse; page-break-inside: avoid; }
+        .ttd td { width: 35%; text-align: center; vertical-align: top; padding: 0; }
+        .ttd td.sela { width: 30%; }
         .ttd p { margin: 0; }
         .ttd .ruang { height: 60pt; }
         .ttd .gambar-ttd { height: 60pt; }
@@ -85,21 +88,40 @@
         </tbody>
     </table>
 
-    <div class="ttd">
-        <p>KEPALA BAGIAN HUKUM</p>
-        @if ($nota?->pathTandaTangan())
-            <img src="{{ $nota->pathTandaTangan() }}" alt="Tanda Tangan" class="gambar-ttd">
-        @else
-            <div class="ruang"></div>
-        @endif
-        @if ($nota)
-            <p class="nama">{{ $nota->tandaTangan->nama_ttd }}</p>
-            <p>{{ $nota->tandaTangan->jabatan }}</p>
-            <p>NIP {{ $nota->tandaTangan->nip_ttd }}</p>
-        @else
-            <p>............................</p>
-        @endif
-    </div>
+    <table class="ttd">
+        <tr>
+            <td>
+                @if ($peneliti)
+                    <p>PENELITI</p>
+                    @if ($ttdPeneliti)
+                        <img src="{{ $ttdPeneliti }}" alt="Tanda Tangan Peneliti" class="gambar-ttd">
+                    @else
+                        <div class="ruang"></div>
+                    @endif
+                    <p class="nama">{{ $peneliti->nama_user }}</p>
+                    @if (filled($peneliti->NIP))
+                        <p>NIP {{ $peneliti->NIP }}</p>
+                    @endif
+                @endif
+            </td>
+            <td class="sela"></td>
+            <td>
+                <p>KEPALA BAGIAN HUKUM</p>
+                @if ($nota?->pathTandaTangan())
+                    <img src="{{ $nota->pathTandaTangan() }}" alt="Tanda Tangan" class="gambar-ttd">
+                @else
+                    <div class="ruang"></div>
+                @endif
+                @if ($nota)
+                    <p class="nama">{{ $nota->tandaTangan->nama_ttd }}</p>
+                    <p>{{ $nota->tandaTangan->jabatan }}</p>
+                    <p>NIP {{ $nota->tandaTangan->nip_ttd }}</p>
+                @else
+                    <p>............................</p>
+                @endif
+            </td>
+        </tr>
+    </table>
 </body>
 
 </html>

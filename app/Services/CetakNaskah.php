@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Naskah;
 use App\Models\NaskahBaris;
+use App\Support\TandaTanganPeneliti;
 use App\Support\TataLetakNaskah;
 use App\Support\TemplateNaskah;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -527,9 +528,14 @@ class CetakNaskah
         // Saat dibuka kembali untuk koreksi, matriks kembali bertanda draf sampai disetujui ulang.
         $nota = $naskah->tahap->terkunci() ? $naskah->notaDinas()->with('tandaTangan')->first() : null;
 
+        // Tanda tangan peneliti mengikuti Kepala Bagian Hukum: baru dibubuhkan setelah nota dinas terbit.
+        $peneliti = $naskah->peneliti;
+
         return Pdf::loadView('pdf.v2.matriks', [
             'naskah' => $naskah,
             'nota' => $nota,
+            'peneliti' => $peneliti,
+            'ttdPeneliti' => $nota ? TandaTanganPeneliti::path($peneliti) : null,
             'isi' => $isi,
             'singkatan' => $naskah->jenis === 'Keputusan Bupati' ? 'Rancangan Keputusan' : 'Raperbup',
             'judul' => $naskah->jenis === 'Keputusan Bupati' ? 'KEPUTUSAN BUPATI' : 'PERATURAN BUPATI',

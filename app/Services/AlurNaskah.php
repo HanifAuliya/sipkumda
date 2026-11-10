@@ -107,7 +107,56 @@ class AlurNaskah
             }
         }
 
+        // Bukan perpindahan tahap: naskah tetap di tahapnya, hanya penelitinya yang berganti.
+        if ($this->bolehGantiPeneliti($naskah, $user)) {
+            $hasil['ganti_peneliti'] = [
+                'label' => 'Ganti Peneliti', 'ikon' => 'person-gear', 'varian' => 'outline',
+                'peneliti' => true, 'hambatan' => null,
+            ];
+        }
+
         return $hasil;
+    }
+
+    /** Verifikator bisa mengganti peneliti selama penelitian dan fasilitasi, sebelum isi naskah dikunci. */
+    public function bolehGantiPeneliti(Naskah $naskah, User $user): bool
+    {
+        return $user->hasRole('Verifikator')
+            && $naskah->peneliti_id !== null
+            && ! $naskah->tahap->terkunci()
+            && ! in_array($naskah->tahap, [T::Draf, T::PersetujuanBerkas, T::PilihPeneliti], true);
+    }
+
+    public function gantiPeneliti(Naskah $naskah, User $user, ?int $penelitiId, ?string $catatan = null): Naskah
+    {
+        return DB::transaction(function () use ($naskah, $user, $penelitiId, $catatan) {
+            $naskah = Naskah::whereKey($naskah->id)->lockForUpdate()->firstOrFail();
+            abort_unless($this->bolehGantiPeneliti($naskah, $user), 403, 'Peneliti tidak bisa diganti pada tahap ini.');
+
+            $baru = $penelitiId ? User::role('Peneliti')->find($penelitiId) : null;
+
+            if (! $baru) {
+                $this->gagal('penelitiId', 'Pilih peneliti terlebih dahulu.');
+            }
+            if ($baru->id === $naskah->peneliti_id) {
+                $this->gagal('penelitiId', 'Peneliti ini yang sedang ditugaskan. Pilih peneliti lain.');
+            }
+
+            $lama = User::find($naskah->peneliti_id);
+            $naskah->peneliti_id = $baru->id;
+            $naskah->save();
+
+            $this->catat($naskah, $user, 'ganti_peneliti', filled($catatan) ? $catatan : null, $lama?->nama_user, $baru->nama_user);
+
+            // Tugas yang belum dibuka peneliti lama tidak berlaku lagi, karena ia tidak bisa membuka naskahnya.
+            if ($lama) {
+                $naskah->notifikasi()->where('notifiable_id', $lama->id)->whereNull('read_at')->update(['read_at' => now()]);
+                $lama->notify(new NaskahNotification(PesanNotifikasi::penelitiDiganti($naskah, $user, $catatan, baru: false)));
+            }
+            $baru->notify(new NaskahNotification(PesanNotifikasi::penelitiDiganti($naskah, $user, $catatan, baru: true)));
+
+            return $naskah;
+        });
     }
 
     /** Kunci tahapan penandatanganan berikutnya yang belum selesai. */
@@ -197,31 +246,115 @@ class AlurNaskah
                 ->exists();
     }
 
-    /** Mencatat satu tahapan tanda tangan, berurutan. Tahapan terakhir membawa naskah ke arsip. */
-    public function tandaiTahapan(Naskah $naskah, User $user, ?string $tanggal = null): Naskah
+    /**
+     * Mencatat satu tahapan tanda tangan. Tanpa $kunci, tahapan berikutnya menurut urutan.
+     * Urutan boleh dilompati karena di lapangan kadang begitu, tetapi dicatat di riwayat.
+     * Tahapan terakhir yang lengkap membawa naskah ke arsip.
+     */
+    public function tandaiTahapan(Naskah $naskah, User $user, ?string $tanggal = null, ?string $kunci = null): Naskah
     {
-        $tanggal = filled($tanggal) ? $tanggal : now()->toDateString();
+        $tanggal = $this->tanggalTahapan($tanggal);
 
-        if (! strtotime($tanggal) || $tanggal > now()->toDateString()) {
-            $this->gagal('tanggalTahapan', 'Tanggal tidak boleh melebihi hari ini.');
-        }
-
-        return DB::transaction(function () use ($naskah, $user, $tanggal) {
+        return DB::transaction(function () use ($naskah, $user, $tanggal, $kunci) {
             $naskah = $this->kunciUntukAksi($naskah, $user, 'tandai_tahapan');
-            $tahapan = $this->tahapanBerikutnya($naskah);
+            $berikutnya = $this->tahapanBerikutnya($naskah);
+            $tahapan = $kunci ?? $berikutnya;
 
-            $naskah->tahapan_ttd = ($naskah->tahapan_ttd ?? []) + [$tahapan => $tanggal];
+            abort_unless(isset(self::TAHAPAN_TTD[$tahapan]), 404);
+
+            if (isset($naskah->tahapan_ttd[$tahapan])) {
+                $this->gagal('tahapan', self::TAHAPAN_TTD[$tahapan] . ' sudah ditandai. Ubah tanggalnya bila perlu.');
+            }
+
+            $naskah->tahapan_ttd = $this->urutkanTahapan(($naskah->tahapan_ttd ?? []) + [$tahapan => $tanggal]);
+            $catatan = $tahapan !== $berikutnya ? 'Tidak berurutan: ' . self::TAHAPAN_TTD[$berikutnya] . ' belum ditandai.' : null;
+
+            $this->catat($naskah, $user, 'tahapan', $catatan, null, self::TAHAPAN_TTD[$tahapan]);
 
             if ($this->tahapanBerikutnya($naskah) === null) {
                 return $this->pindah($naskah, $user, T::Arsip);
             }
 
             $naskah->save();
-            $this->catat($naskah, $user, 'tahapan', null, null, self::TAHAPAN_TTD[$tahapan]);
             $this->beriTahuPemrakarsa($naskah, $user, self::TAHAPAN_TTD[$tahapan]);
 
             return $naskah;
         });
+    }
+
+    /** Admin dan Tamu bisa membetulkan tahapan tanda tangan sampai naskah diarsipkan ke JDIH. */
+    public function bolehKelolaTtd(Naskah $naskah, User $user): bool
+    {
+        return in_array($naskah->tahap, [T::Penandatanganan, T::Arsip], true) && $user->hasAnyRole(['Admin', 'Tamu']);
+    }
+
+    /** Membetulkan tanggal tahapan yang salah dipilih. */
+    public function ubahTanggalTahapan(Naskah $naskah, User $user, string $kunci, ?string $tanggal): Naskah
+    {
+        $tanggal = $this->tanggalTahapan($tanggal);
+
+        return DB::transaction(function () use ($naskah, $user, $kunci, $tanggal) {
+            $naskah = $this->kunciTahapan($naskah, $user, $kunci);
+            $lama = $naskah->tahapan_ttd[$kunci];
+
+            if ($lama !== $tanggal) {
+                $naskah->tahapan_ttd = [...$naskah->tahapan_ttd, $kunci => $tanggal];
+                $naskah->save();
+                $this->catat($naskah, $user, 'tahapan_tanggal', self::TAHAPAN_TTD[$kunci], $lama, $tanggal);
+            }
+
+            return $naskah;
+        });
+    }
+
+    /** Menghapus tanda yang salah. Bila naskah sudah menunggu arsip, ia kembali ke penandatanganan. */
+    public function batalkanTahapan(Naskah $naskah, User $user, string $kunci): Naskah
+    {
+        return DB::transaction(function () use ($naskah, $user, $kunci) {
+            $naskah = $this->kunciTahapan($naskah, $user, $kunci);
+            $nama = self::TAHAPAN_TTD[$kunci];
+
+            $naskah->tahapan_ttd = array_diff_key($naskah->tahapan_ttd, [$kunci => true]) ?: null;
+            $this->catat($naskah, $user, 'tahapan_batal', null, $nama, null);
+
+            if ($naskah->tahap === T::Arsip) {
+                return $this->pindah($naskah, $user, T::Penandatanganan, "Tanda {$nama} dibatalkan.");
+            }
+
+            $naskah->save();
+
+            return $naskah;
+        });
+    }
+
+    private function kunciTahapan(Naskah $naskah, User $user, string $kunci): Naskah
+    {
+        abort_unless(isset(self::TAHAPAN_TTD[$kunci]), 404);
+        $naskah = Naskah::whereKey($naskah->id)->lockForUpdate()->firstOrFail();
+        abort_unless($this->bolehKelolaTtd($naskah, $user), 403, 'Tahapan tanda tangan tidak bisa diubah pada tahap ini.');
+
+        if (! isset($naskah->tahapan_ttd[$kunci])) {
+            $this->gagal('tahapan', self::TAHAPAN_TTD[$kunci] . ' belum ditandai.');
+        }
+
+        return $naskah;
+    }
+
+    private function tanggalTahapan(?string $tanggal): string
+    {
+        $tanggal = filled($tanggal) ? $tanggal : now()->toDateString();
+
+        if (! preg_match('/^\d{4}-\d{2}-\d{2}$/', $tanggal) || ! strtotime($tanggal) || $tanggal > now()->toDateString()) {
+            $this->gagal('tanggalTahapan', 'Tanggal tidak boleh melebihi hari ini.');
+        }
+
+        return $tanggal;
+    }
+
+    /** Disimpan menurut urutan resmi, apa pun urutan penandaannya. */
+    private function urutkanTahapan(array $tahapan): array
+    {
+        return array_intersect_key(array_replace(self::TAHAPAN_TTD, $tahapan), $tahapan);
     }
 
     /** Naskah bertanda tangan basah masuk ke tabel arsip yang sama dengan JDIH. */
