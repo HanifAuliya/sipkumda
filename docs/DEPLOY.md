@@ -118,7 +118,59 @@ Sesudah isinya benar, arahkan `DB_DATABASE` ke database itu lalu jalankan `php a
 Salin isi `berkas/private` dan `berkas/public` ke `storage/app/private` dan `storage/app/public`.
 File dump tidak memuat nama database, jadi tidak akan menimpa database lain selama nama tujuannya benar.
 
-## 7. Hasil load test
+## 7. Notifikasi WhatsApp
+
+Notifikasi naskah juga dikirim ke WhatsApp lewat satu nomor kantor yang disambungkan seperti WhatsApp Web.
+Pengirimnya program open source **GOWA** ([go-whatsapp-web-multidevice](https://github.com/aldinokemal/go-whatsapp-web-multidevice))
+yang berjalan di server yang sama, jadi isi pesan tidak lewat layanan pihak ketiga. Jalur ini **bukan jalur resmi Meta**:
+nomornya bisa diblokir bila dianggap spam. Pakai nomor yang sudah lama aktif dengan WhatsApp Business, dan minta
+pegawai menyimpan nomor itu sebagai kontak.
+
+**Memasang GOWA (sekali)**
+
+1. Unduh `whatsapp_<versi>_windows_amd64.zip` (atau `linux_amd64`) dari halaman rilis, cocokkan dengan `checksums.txt`,
+   lalu ekstrak ke folder tersendiri di luar folder aplikasi. Versi yang diuji: **v9.7.0**.
+2. Jalankan dengan pengaturan berikut (contoh Windows: `jalankan-gowa.bat` di folder yang sama):
+
+   ```bat
+   set APP_HOST=127.0.0.1
+   set APP_PORT=3000
+   set APP_BASIC_AUTH=sifkumda:<password-acak-panjang>
+   set APP_OS=SIFKUMDA
+   set APP_UI_ENABLED=false
+   set APP_UI_AUTO_UPDATE=false
+   set MCP_ENABLED=false
+   set WHATSAPP_AUTO_REPLY=Nomor ini hanya mengirim notifikasi otomatis SIFKUMDA. Mohon tidak membalas.
+   windows-amd64.exe rest
+   ```
+
+   `APP_HOST=127.0.0.1` wajib: GOWA hanya boleh diakses dari server itu sendiri. Dashboard bawaan GOWA dan
+   endpoint MCP dimatikan karena tidak dipakai.
+3. Pasang sebagai layanan yang otomatis berjalan saat server menyala (NSSM di Windows, systemd di Linux), seperti queue worker.
+4. Isi `.env` lalu `php artisan config:cache`:
+
+   | Variabel | Nilai |
+   |---|---|
+   | `WA_DRIVER` | `gowa` (`log` = hanya dicatat di log) |
+   | `WA_GOWA_URL` | `http://127.0.0.1:3000` |
+   | `WA_GOWA_USER` / `WA_GOWA_PASSWORD` | sama dengan `APP_BASIC_AUTH` GOWA |
+
+5. Masuk sebagai Admin, buka menu **WhatsApp**, lalu scan QR dari HP kantor (*Perangkat tertaut → Tautkan perangkat*).
+   Kirim pesan uji dari halaman yang sama.
+
+**Cara kerja.** Setiap notifikasi lonceng ikut membuat pesan di tabel `pesan_wa` bagi pengguna yang mengisi nomor WhatsApp
+dan tidak mematikannya. Bawaannya hanya notifikasi yang perlu tindakan (giliran dan pengembalian); Admin bisa mengubahnya.
+Pesan dikirim oleh queue worker dan oleh `wa:kirim` di penjadwal setiap menit, dengan jeda 2–5 detik antarpesan.
+
+- Sambungan putus: pesan tetap menunggu dan terkirim begitu tersambung lagi. Pesan yang sudah dibuka di lonceng,
+  atau tertunda lebih dari 48 jam (`WA_KEDALUWARSA_JAM`), tidak dikirim.
+- Admin melihat peringatan di Beranda bila ada pesan menunggu lebih dari 10 menit.
+- Sambungan biasanya putus karena GOWA perlu diperbarui setelah WhatsApp berubah, server atau GOWA mati,
+  HP kantor tidak membuka WhatsApp sekitar 14 hari, atau perangkat tertaut dikeluarkan dari HP.
+- Folder `storages` GOWA menyimpan sesi WhatsApp. Jangan dihapus, dan jangan dibagikan: siapa pun yang memegangnya
+  bisa mengirim pesan atas nama nomor kantor.
+
+## 8. Hasil load test
 
 Lingkungan: Apache 2.4.62 + PHP 8.5 (mod_php, 64 thread), MySQL 8.0.40, 16 CPU logis,
 mode production dengan `config:cache`. Data: 10.009 produk hukum dan 3.024 rancangan.

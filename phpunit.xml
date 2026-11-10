@@ -33,5 +33,9 @@
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
+        <!-- Uji tidak pernah mengirim WhatsApp sungguhan, juga tanpa jeda antarpesan. -->
+        <env name="WA_DRIVER" value="log" force="true"/>
+        <env name="WA_JEDA_MIN" value="0" force="true"/>
+        <env name="WA_JEDA_MAX" value="0" force="true"/>
     </php>
 </phpunit>

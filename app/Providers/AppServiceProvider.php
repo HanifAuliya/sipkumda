@@ -9,6 +9,9 @@ use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
+use App\Support\Wa\PengirimGowa;
+use App\Support\Wa\PengirimLog;
+use App\Support\Wa\PengirimWa;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -17,7 +20,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Jalur WhatsApp dipilih lewat WA_DRIVER; selain gowa, pesan hanya dicatat di log.
+        $this->app->bind(PengirimWa::class, fn () => config('whatsapp.driver') === 'gowa'
+            ? new PengirimGowa(config('whatsapp.gowa.url'), config('whatsapp.gowa.user'), config('whatsapp.gowa.password'), config('whatsapp.gowa.device'))
+            : new PengirimLog());
     }
 
     /**
@@ -40,6 +46,8 @@ class AppServiceProvider extends ServiceProvider
             $schedule = app(Schedule::class);
             $schedule->command('notifications:clear')->daily();
             $schedule->command('backup:jalankan')->dailyAt('01:00')->withoutOverlapping(120);
+            // Cadangan bila queue worker tidak berjalan, dan pengirim ulang setelah sambungan WhatsApp pulih.
+            $schedule->command('wa:kirim')->everyMinute()->withoutOverlapping(10);
         });
     }
 }

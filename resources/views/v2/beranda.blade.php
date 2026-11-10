@@ -8,6 +8,14 @@
         <x-ui.alert type="info" dismissible>{{ session('pesan') }}</x-ui.alert>
     @endif
 
+    {{-- Sambungan WhatsApp putus atau penjadwal tidak berjalan: pesan menumpuk tanpa ada yang tahu. --}}
+    @if ($user->hasAnyRole(['Admin', 'Super Admin']) && ($tertundaWa = App\Models\PesanWa::tertundaLama()) > 0)
+        <x-ui.alert type="warning" title="WhatsApp tertunda.">
+            {{ $tertundaWa }} pesan WhatsApp belum terkirim lebih dari 10 menit. Notifikasi tetap ada di lonceng.
+            <a href="{{ route('v2.whatsapp') }}" wire:navigate class="font-semibold underline underline-offset-2">Periksa sambungan WhatsApp</a>
+        </x-ui.alert>
+    @endif
+
     {{-- Sambutan --}}
     <section class="relative overflow-hidden rounded-2xl bg-linear-to-br from-navy-900 via-navy-800 to-primary-700 p-5 text-white shadow-card sm:p-6">
         <div class="pointer-events-none absolute -top-16 -right-10 size-64 rounded-full bg-white/5"></div>

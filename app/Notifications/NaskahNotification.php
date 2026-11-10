@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Notifications\Channels\WhatsAppChannel;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 
@@ -14,13 +15,19 @@ class NaskahNotification extends Notification
     {
     }
 
+    /** Lonceng selalu; WhatsApp memutuskan sendiri apakah penerima perlu dikirimi (lihat AntreanWa). */
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', WhatsAppChannel::class];
     }
 
     public function toDatabase(object $notifiable): array
     {
         return [...$this->data, 'type' => 'naskah'];
+    }
+
+    public function data(): array
+    {
+        return $this->data;
     }
 }

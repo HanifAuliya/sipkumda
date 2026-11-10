@@ -18,6 +18,18 @@
                 <x-form.input type="email" id="email" wire:model="email" icon="envelope" required />
             </x-form.field>
 
+            <x-form.field label="Nomor WhatsApp" for="no_wa" error="no_wa" hint="Untuk notifikasi naskah yang perlu Anda kerjakan. Contoh: 081234567890.">
+                <x-form.input id="no_wa" wire:model="no_wa" icon="whatsapp" inputmode="tel" placeholder="081234567890" />
+            </x-form.field>
+
+            <label class="flex items-start gap-3 text-sm">
+                <input type="checkbox" wire:model="wa_aktif" class="mt-0.5 rounded text-primary-600 focus:ring-primary-300">
+                <span>
+                    <span class="font-semibold text-navy-900 dark:text-white">Kirim notifikasi ke WhatsApp</span>
+                    <span class="block text-slate-500 dark:text-slate-400">Bila dimatikan, notifikasi tetap ada di lonceng aplikasi.</span>
+                </span>
+            </label>
+
             <p class="text-sm text-slate-500 dark:text-slate-400">NIP, perangkat daerah, dan role hanya bisa diubah oleh admin.</p>
 
             <div class="flex justify-end gap-2">
@@ -33,6 +45,14 @@
                 <span class="mr-1.5">{{ $email }}</span>
                 @if ($akun->hasVerifiedEmail())
                     <x-ui.badge color="success" icon="check2">Terverifikasi</x-ui.badge>
+                @endif
+            </x-profil.baris>
+            <x-profil.baris icon="whatsapp" label="WhatsApp">
+                @if (filled($no_wa))
+                    <span class="mr-1.5">{{ $no_wa }}</span>
+                    <x-ui.badge :color="$wa_aktif ? 'success' : 'slate'">{{ $wa_aktif ? 'Notifikasi aktif' : 'Notifikasi mati' }}</x-ui.badge>
+                @else
+                    <span class="text-slate-400">Belum diisi</span>
                 @endif
             </x-profil.baris>
             <x-profil.baris icon="building" label="Perangkat Daerah">{{ $daftar_perangkat_daerah->firstWhere('id', $perangkat_daerah_id)?->nama_perangkat_daerah ?? '-' }}</x-profil.baris>

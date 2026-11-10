@@ -126,6 +126,10 @@
                 </x-form.select>
             </x-form.field>
 
+            <x-form.field label="Nomor WhatsApp" for="no_wa" error="no_wa" hint="Opsional, untuk notifikasi. Contoh: 081234567890." class="sm:col-span-2">
+                <x-form.input id="no_wa" wire:model="no_wa" icon="whatsapp" inputmode="tel" placeholder="081234567890" />
+            </x-form.field>
+
             <x-form.field label="Perangkat Daerah" for="perangkat_daerah_id" error="perangkat_daerah_id" required class="sm:col-span-2">
                 <x-form.select id="perangkat_daerah_id" wire:model="perangkat_daerah_id" icon="building">
                     <option value="" hidden>Pilih perangkat daerah</option>

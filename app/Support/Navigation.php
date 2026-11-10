@@ -135,6 +135,7 @@ class Navigation
                 'title' => 'Pengaturan',
                 'items' => [
                     ['label' => 'Pengaturan Naskah', 'route' => 'v2.pengaturan', 'icon' => 'gear', 'roles' => ['Admin', 'Verifikator', 'Super Admin']],
+                    ['label' => 'WhatsApp', 'route' => 'v2.whatsapp', 'icon' => 'whatsapp', 'roles' => ['Admin', 'Super Admin']],
                 ],
             ],
         ];

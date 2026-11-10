@@ -186,7 +186,9 @@
 .bi-person-gear::before { content: "\e4cc"; }
 .bi-person-lock::before { content: "\e2fa"; }
 .bi-person-plus::before { content: "\e4d0"; }
+.bi-phone::before { content: "\e1e0"; }
 .bi-plus-lg::before { content: "\e3d4"; }
+.bi-qr-code::before { content: "\e3e6"; }
 .bi-question::before { content: "\e3e8"; }
 .bi-question-square::before { content: "\e608"; }
 .bi-record-circle-fill::before { font-family: "Phosphor-Fill" !important; content: "\e3ee"; }

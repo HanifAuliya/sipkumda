@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Profile;
 
+use App\Support\Wa\NomorWa;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Locked;
@@ -20,6 +21,8 @@ class UpdateProfileInformation extends Component
     public $role;
     public $perangkat_daerah_id;
     public $daftar_perangkat_daerah;
+    public $no_wa;
+    public bool $wa_aktif = true;
 
 
     /** Data tampil sebagai bacaan dulu; form baru terbuka lewat tombol Ubah. */
@@ -35,6 +38,8 @@ class UpdateProfileInformation extends Component
         $user = Auth::user();
         $this->nama_user = $user->nama_user;
         $this->email = $user->email;
+        $this->no_wa = $user->no_wa ? NomorWa::tampil($user->no_wa) : '';
+        $this->wa_aktif = (bool) $user->wa_aktif;
         $this->resetValidation();
         $this->mengubah = false;
     }
@@ -46,6 +51,8 @@ class UpdateProfileInformation extends Component
         $this->nama_user = $user->nama_user;
         $this->NIP = $user->NIP;
         $this->email = $user->email;
+        $this->no_wa = $user->no_wa ? NomorWa::tampil($user->no_wa) : '';
+        $this->wa_aktif = (bool) $user->wa_aktif;
         $this->role = $user->role; // Role hanya untuk ditampilkan
         $this->perangkat_daerah_id = $user->perangkat_daerah_id;
         // Ambil semua perangkat daerah untuk dropdown
@@ -70,7 +77,9 @@ class UpdateProfileInformation extends Component
                     'required',
                     'exists:perangkat_daerah,id',
                 ],
-            ]);
+                'no_wa' => NomorWa::aturan(),
+                'wa_aktif' => 'boolean',
+            ], [], ['no_wa' => 'nomor WhatsApp']);
 
             $user = Auth::user();
 
@@ -78,6 +87,8 @@ class UpdateProfileInformation extends Component
             $user->nama_user = $this->nama_user;
             $user->email = $this->email;
             $user->perangkat_daerah_id = $this->perangkat_daerah_id;
+            $user->no_wa = NomorWa::normal($this->no_wa);
+            $user->wa_aktif = $this->wa_aktif;
 
             // Reset email_verified_at jika email berubah
             if ($user->isDirty('email')) {
@@ -87,6 +98,7 @@ class UpdateProfileInformation extends Component
             // Simpan ke database
             $user->save();
 
+            $this->no_wa = $user->no_wa ? NomorWa::tampil($user->no_wa) : '';
             $this->mengubah = false;
             $this->dispatch('profil-diperbarui');
 

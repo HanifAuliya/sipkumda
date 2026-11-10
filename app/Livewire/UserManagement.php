@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Mail\AktivasiAkun;
 use App\Models\User;
 use App\Models\PerangkatDaerah;
+use App\Support\Wa\NomorWa;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Str;
@@ -30,7 +31,7 @@ class UserManagement extends Component
     public $isVerifier = false; // Menandai apakah user adalah Verifikator
 
 
-    public $nama_user, $NIP, $email, $password, $role, $perangkat_daerah_id;
+    public $nama_user, $NIP, $email, $password, $role, $perangkat_daerah_id, $no_wa;
     public $daftar_perangkat_daerah;
     public $userIdToEdit = null;
 
@@ -104,7 +105,9 @@ class UserManagement extends Component
                 'email' => 'required|email:rfc,dns|lowercase|max:100|unique:users,email',
                 'role' => 'required|exists:roles,name',
                 'perangkat_daerah_id' => 'required|exists:perangkat_daerah,id',
-            ]);
+                'no_wa' => NomorWa::aturan(),
+            ], [], ['no_wa' => 'nomor WhatsApp']);
+            $validated['no_wa'] = NomorWa::normal($validated['no_wa'] ?? null);
 
             // Password acak ini tidak diberikan kepada siapa pun; pengguna membuat sendiri lewat tautan aktivasi.
             $validated['password'] = Hash::make(Str::random(64));
@@ -197,6 +200,7 @@ class UserManagement extends Component
         // Mengambil nama role pertama yang terkait dengan user
         $this->role = $user->getRoleNames()->first(); // Pastikan hanya satu role yang diambil
         $this->perangkat_daerah_id = $user->perangkat_daerah_id;
+        $this->no_wa = $user->no_wa ? NomorWa::tampil($user->no_wa) : '';
 
         $this->dispatch('openModal', 'userModal');
     }
@@ -238,7 +242,8 @@ class UserManagement extends Component
                 ],
                 'perangkat_daerah_id' => 'required|exists:perangkat_daerah,id',
                 'role' => 'required|string|exists:roles,name', // Pastikan role ada di tabel roles
-            ]);
+                'no_wa' => NomorWa::aturan(),
+            ], [], ['no_wa' => 'nomor WhatsApp']);
 
             // Perbarui data pengguna
             $user->update([
@@ -246,6 +251,7 @@ class UserManagement extends Component
                 'NIP' => $validated['NIP'],
                 'email' => $validated['email'],
                 'perangkat_daerah_id' => $validated['perangkat_daerah_id'],
+                'no_wa' => NomorWa::normal($validated['no_wa'] ?? null),
             ]);
 
             // Tetapkan role ke pengguna menggunakan Spatie
@@ -300,6 +306,7 @@ class UserManagement extends Component
         $this->password = '';
         $this->role = '';
         $this->perangkat_daerah_id = null;
+        $this->no_wa = '';
         $this->userIdToEdit = null;
 
         // Reset error validasi sebelumnya

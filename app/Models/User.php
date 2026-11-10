@@ -29,7 +29,11 @@ class User extends Authenticatable implements MustVerifyEmail
         'email_verified_at', // Pastikan kolom ini ada di properti fillable
         'password',
         'perangkat_daerah_id',
+        'no_wa',
     ];
+
+    /** Sama dengan nilai bawaan kolomnya, supaya akun yang baru dibuat langsung menerima WhatsApp. */
+    protected $attributes = ['wa_aktif' => true];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -105,6 +109,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'wa_aktif' => 'boolean',
         ];
     }
 }
