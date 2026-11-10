@@ -101,11 +101,13 @@ it('tabel Word tidak terbelah antarhalaman dan kolomnya mengikuti isi', function
     $zip->close();
     unlink($word);
 
-    // Tata letak diktum juga berupa tabel; tabel isi adalah yang berkolom tiga (No, Jabatan, Kedudukan).
-    preg_match_all('/<w:tblGrid>(.*?)<\/w:tblGrid>/s', $xml, $grid);
-    $kolom = collect($grid[1])
+    // Tata letak konsiderans dan diktum juga berupa tabel; tabel isi (No, Jabatan, Kedudukan)
+    // adalah satu-satunya yang barisnya dilarang terbelah.
+    // Tabel bisa bersarang di sel diktum, jadi tiap tblGrid dibaca bersama baris yang langsung mengikutinya.
+    $kolom = collect(array_slice(explode('<w:tblGrid>', $xml), 1))
+        ->filter(fn (string $isi) => str_contains(preg_split('/<\/w:tbl>|<w:tbl>/', $isi)[0], '<w:cantSplit'))
         ->map(function (string $isi) {
-            preg_match_all('/w:w="(\d+)"/', $isi, $lebar);
+            preg_match_all('/w:w="(\d+)"/', strstr($isi, '</w:tblGrid>', true), $lebar);
 
             return array_map('intval', $lebar[1]);
         })

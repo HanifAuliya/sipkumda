@@ -12,6 +12,7 @@ use App\Models\NotaDinas;
 use App\Models\TandaTangan;
 use App\Models\User;
 use App\Notifications\NaskahNotification;
+use App\Support\FormatDokumen;
 use App\Support\PesanNotifikasi;
 use App\Support\TemplateNaskah;
 use Illuminate\Http\UploadedFile;
@@ -212,16 +213,19 @@ class AlurNaskah
         return Cache::lock('nomor-nota-dinas', 15)->block(10, fn () => DB::transaction(function () use ($naskah, $user, $nomorInputan, $kepada, $tandaTanganId) {
             $naskah = $this->kunciUntukAksi($naskah, $user, 'terbitkan_nota');
             $tahun = now()->year;
+            $pola = FormatDokumen::nota()['nomor'];
+            // Pola dengan {kode} (NDPB/NDSK) memisahkan urutan per jenis; tanpa itu satu urutan untuk semua.
+            $perJenis = str_contains($pola, '{kode}');
 
-            if ($this->nomorNotaDipakai((int) $nomorInputan, $naskah->jenis, $tahun)) {
-                $this->gagal('nomorInputan', "Nomor {$nomorInputan} sudah digunakan untuk {$naskah->jenis} tahun {$tahun}.");
+            if ($this->nomorNotaDipakai((int) $nomorInputan, $naskah->jenis, $tahun, $perJenis)) {
+                $this->gagal('nomorInputan', $perJenis
+                    ? "Nomor {$nomorInputan} sudah digunakan untuk {$naskah->jenis} tahun {$tahun}."
+                    : "Nomor {$nomorInputan} sudah digunakan pada nota dinas tahun {$tahun}.");
             }
-
-            $kode = $naskah->jenis === 'Peraturan Bupati' ? 'NDPB' : 'NDSK';
 
             $naskah->notaDinas()->create([
                 'nomor_inputan' => $nomorInputan,
-                'nomor_nota' => "180/{$nomorInputan}/{$kode}/KUM/{$tahun}",
+                'nomor_nota' => FormatDokumen::nomorNota($pola, $nomorInputan, $naskah->jenis, $tahun),
                 'tanggal_nota' => now(),
                 'kepada' => $kepada,
                 'tanda_tangan_id' => $tandaTanganId,
@@ -231,18 +235,18 @@ class AlurNaskah
         }));
     }
 
-    private function nomorNotaDipakai(int $nomor, string $jenis, int $tahun): bool
+    private function nomorNotaDipakai(int $nomor, string $jenis, int $tahun, bool $perJenis = true): bool
     {
         // Alur lama masih menyimpan Keputusan Bupati dengan nama "Surat Keputusan".
         $jenisLama = $jenis === 'Keputusan Bupati' ? 'Surat Keputusan' : $jenis;
 
         return NaskahNotaDinas::whereRaw('CAST(nomor_inputan AS UNSIGNED) = ?', [$nomor])
             ->whereYear('tanggal_nota', $tahun)
-            ->whereHas('naskah', fn ($q) => $q->where('jenis', $jenis))
+            ->when($perJenis, fn ($q) => $q->whereHas('naskah', fn ($q) => $q->where('jenis', $jenis)))
             ->exists()
             || NotaDinas::whereRaw('CAST(nomor_inputan AS UNSIGNED) = ?', [$nomor])
                 ->whereYear('tanggal_nota', $tahun)
-                ->whereHas('fasilitasi.rancangan', fn ($q) => $q->where('jenis_rancangan', $jenisLama))
+                ->when($perJenis, fn ($q) => $q->whereHas('fasilitasi.rancangan', fn ($q) => $q->where('jenis_rancangan', $jenisLama)))
                 ->exists();
     }
 

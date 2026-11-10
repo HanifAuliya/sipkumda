@@ -1,271 +1,125 @@
+{{--
+    Nota dinas Kepala Bagian Hukum untuk Perangkat Daerah. Isi dan format diatur di menu Format Dokumen,
+    bawaannya mengikuti Nota Dinas 100.3/437/ND/KUM/2026. Teks sudah diisi (isian {jenis} dst.) oleh CetakNaskah.
+--}}
+@php
+    $m = $f['margin'];
+    $huruf = $f['huruf']['nama'] === 'Arial' ? "'Arial', Helvetica, sans-serif" : "'{$f['huruf']['nama']}', 'Times New Roman', Times, serif";
+    $ttd = $nota->tandaTangan;
+    // Tanda panah pembuka dan penutup; DejaVu Sans dipakai karena huruf bawaan PDF tidak punya glifnya.
+    $panah = '<span class="panah">&#10146;</span>';
+@endphp
 <!DOCTYPE html>
 <html lang="id">
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nota Dinas</title>
+    <title>Nota Dinas {{ $nota->nomor_nota }}</title>
     <style>
-        /* Pengaturan Halaman PDF */
-        @page {
-            size: A4;
-            margin: 1cm 2cm 2cm 2cm;
-            /* Kurangi margin atas menjadi 1cm */
-        }
-
-
-        /* Mengatur jarak antar baris agar lebih rapat */
-        body {
-            font-family: 'Arial', sans-serif;
-            font-size: 11pt;
-            text-align: justify;
-            margin: 0 auto;
-            padding-top: 100px;
-            width: 100%;
-            max-width: 18cm;
-            line-height: 1.1;
-            /* Lebih rapat dari default */
-        }
-
-        /* Menggunakan tabel agar lebih rapi */
-        .table-info {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .table-info td {
-            padding: 2px 0;
-            /* Mengurangi jarak antar baris */
-            vertical-align: top;
-            /* Pastikan teks rata atas */
-        }
-
-        /* Mengatur jarak antar teks */
-        .table-info td:first-child {
-            width: 100px;
-        }
-
-        /* Header */
-        .header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            width: 100%;
-            background-color: white;
-            text-align: center;
-            z-index: 1000;
-        }
-
-        .header img {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 3cm;
-            height: auto;
-        }
-
-        .header p {
-            margin: 3px 0;
-            font-size: 10pt;
-        }
-
-        .header .title {
-            margin-left: 80px;
-            font-size: 18pt;
-            font-weight: bold;
-        }
-
-        .header .subtitle {
-            margin-left: 80px;
-            font-size: 10pt;
-            font-weight: bold;
-        }
-
-        .header .gov-name {
-            margin-left: 80px;
-            font-size: 14pt;
-            font-weight: bold;
-        }
-
-        .header .no-telp {
-            margin-left: 80px;
-        }
-
-        .double-line {
-            border-top: 2px solid black;
-            border-bottom: 1px solid black;
-            margin: 10px 0;
-            padding-bottom: 5px;
-        }
-
-        /* Judul */
-        h1 {
-            font-size: 14pt;
-            font-weight: bold;
-            text-align: center;
-            text-decoration: underline;
-            margin-top: 20px;
-        }
-
-        /* Konten */
-        .content {
-            font-size: 11pt;
-            margin-top: 15px;
-        }
-
-        .content p {
-            margin: 5px 0;
-        }
-
-        .align-labels {
-            display: grid;
-            grid-template-columns: 100px auto;
-            gap: 5px;
-        }
-
-        .single-line {
-            border-top: 1px solid black;
-            margin: 10px 0;
-        }
-
-        ol,
-        li {
-            margin-left: 20px;
-            padding-left: 5px;
-        }
-
-        /* Tanda Tangan */
-        .signature {
-            float: right;
-            text-align: center;
-            width: 40%;
-            margin-top: 80px;
-            position: relative;
-            /* Pastikan konteks posisi */
-        }
-
-        .signature img.ttd {
-            width: 5cm;
-            /* Lebar tetap */
-            height: 4cm;
-            /* Tinggi tetap */
-            object-fit: contain;
-            /* Pastikan gambar tidak terdistorsi */
-            position: absolute;
-            top: -10px;
-            /* Pindahkan ke atas agar tidak menimpa teks */
-            left: 50%;
-            transform: translateX(-50%);
-            /* Pusatkan gambar */
-            z-index: 10;
-            /* Pastikan berada di atas teks */
-        }
-
-        .signature .name {
-            font-weight: bold;
-            margin-top: 60px;
-            /* Tambahkan jarak setelah tanda tangan */
-        }
+        @page { margin: {{ $m['atas'] }}cm {{ $m['kanan'] }}cm {{ $m['bawah'] }}cm {{ $m['kiri'] }}cm; }
+        body { font-family: {!! $huruf !!}; font-size: {{ $f['huruf']['ukuran'] }}pt; line-height: {{ round((float) $f['huruf']['spasi'] * 1.15, 3) }}; color: #000; }
+        p { margin: 0; }
+        table { border-collapse: collapse; }
+        td { vertical-align: top; padding: 0; }
+        /* Garis ganda di bawah kop; DomPDF menggambarnya pada sel, bukan pada tabel. */
+        .kop { width: 100%; margin-bottom: 8pt; }
+        .kop td { vertical-align: middle; padding-bottom: 6pt; border-bottom: 3px double #000; }
+        .kop .logo { width: {{ (float) $f['kop']['lebar_logo'] + 0.3 }}cm; }
+        .kop .logo img { width: {{ $f['kop']['lebar_logo'] }}cm; }
+        .kop .teks { text-align: center; line-height: 1.15; }
+        h1 { text-align: center; font-size: {{ $f['judul']['ukuran'] }}pt; font-weight: bold; text-decoration: underline; margin: 10pt 0 10pt; }
+        .info { width: 100%; margin-bottom: 12pt; }
+        .info td { padding: 1pt 0; text-align: justify; }
+        .info .label { width: 3.2cm; }
+        .info .titik { width: .35cm; }
+        .isi { width: 100%; text-align: justify; }
+        .isi td { padding-bottom: 6pt; text-align: justify; }
+        .isi .tanda { width: .75cm; }
+        .isi .nomor { width: .7cm; }
+        .ketentuan { width: 100%; margin-top: 3pt; }
+        .ketentuan td { padding: 0 0 2pt; text-align: justify; }
+        .ketentuan .huruf { width: .7cm; }
+        .panah { font-family: 'DejaVu Sans', sans-serif; font-size: .85em; }
+        .ttd { margin-left: {{ $f['ttd']['kiri'] }}cm; margin-top: 16pt; text-align: center; page-break-inside: avoid; }
+        .ttd .ruang { height: 2.2cm; }
+        .ttd .gambar { height: 2.2cm; }
     </style>
 </head>
 
 <body>
-    <div class="header">
-        <img src="{{ public_path('assets/img/brand/barabai.png') }}" alt="Logo Barabai">
-        <p class="gov-name">PEMERINTAH KABUPATEN HULU SUNGAI TENGAH</p>
-        <p class="title">SEKRETARIAT DAERAH</p>
-        <p class="subtitle">Jalan Perwira No. 1 Telpon (0517) 41029, 43120</p>
-        <p class="no-telp">No Telp : fax : (0517) 41052 - Kode Pos : 71311 - Email: setda@hulusungaitengah.go.id</p>
-        <div class="double-line"></div>
-    </div>
-
-    <h1>NOTA DINAS</h1>
-
-    <div class="content">
-        <table class="table-info">
+    @if ($kop || $logo)
+        <table class="kop">
             <tr>
-                <td>Kepada Yth.</td>
-                <td>: </td>
-                <td> &nbsp;{{ $nota->kepada }}</td>
-            </tr>
-            <tr>
-                <td>Dari</td>
-                <td>: </td>
-                <td> &nbsp;Kepala Bagian Hukum</td>
-            </tr>
-            <tr>
-                <td>Tanggal</td>
-                <td>: </td>
-                <td> &nbsp;{{ \Carbon\Carbon::parse($nota->tanggal_nota)->translatedFormat('j F Y') ?? '...' }}
+                @if ($logo)
+                    <td class="logo"><img src="{{ $logo }}" alt=""></td>
+                @endif
+                <td class="teks">
+                    @foreach ($kop as $baris)
+                        <p style="font-size: {{ $baris['ukuran'] }}pt; {{ ! empty($baris['tebal']) ? 'font-weight: bold;' : '' }}">{{ $baris['teks'] }}</p>
+                    @endforeach
                 </td>
             </tr>
-            <tr>
-                <td>Nomor</td>
-                <td>: </td>
-                <td> &nbsp;{{ $nota->nomor_nota ?? '...' }}</td>
-            </tr>
-            <tr>
-                <td>Perihal</td>
-                <td>: &nbsp;</td>
-                <td style="padding-left: 4px">
-                    Koreksi atas {{ $naskah->jenis }}
-                    Hulu Sungai Tengah tentang
-                    {{ $naskah->tentang }} </td>
-            </tr>
         </table>
-        <div class="single-line"></div>
+    @endif
 
-        <p style="margin-left: 115px; ">
-            Sehubungan dengan Nota Dinas Kepala
-            {{ $naskah->pemrakarsa->perangkatDaerah->nama_perangkat_daerah ?? '-' }} Nomor:
-            {{ $naskah->nomor_nota }}
-            tanggal {{ $naskah->tanggal_nota?->translatedFormat('j F Y') }}
-            perihal sebagaimana tersebut di
-            atas, dengan ini disampaikan beberapa hal:
-        </p>
+    <h1>{{ $f['judul']['teks'] }}</h1>
 
-        <ol style="margin-left: 110px;margin-top : -3px ">
-            <li>
-                Konsep {{ $naskah->jenis }} Hulu Sungai Tengah sebagaimana dimaksud
-                telah diteliti dan dikoreksi oleh Bagian Hukum sesuai dengan bentuk dan format penyusunan Peraturan
-                Perundang-Undangan yang berlaku dengan
-                beberapa perbaikan sebagaimana pada matriks hasil koreksi;
-            </li>
-            <li>
-                Berkenaan dengan substansi/materi dari {{ $naskah->jenis }} Hulu
-                Sungai
-                Tengah ini menjadi tanggung jawab Perangkat Daerah pengusul;
-            </li>
-            <li>
-                Untuk proses Penandatanganan {{ $naskah->jenis }} Hulu Sungai
-                Tengah
-                dimaksud haruslah mengikuti mekanisme dan prosedur yang berlaku:
-                <ol type="a" style="margin-rightt: 50px;">
-                    <li>Konsep {{ $naskah->jenis }} dibuat dalam rangkap 3 (tiga);
-                    </li>
-                    <li>
-                        Sebelum dilakukan pemarafan secara hirarki agar dimintakan paraf
-                        koordinasi Bagian Hukum;
-                    </li>
-                    <li>Jenis huruf menggunakan "Bookman Old Style".</li>
-                </ol>
-            </li>
-        </ol>
+    <table class="info">
+        <tr><td class="label">Kepada Yth.</td><td class="titik">:</td><td>{{ $nota->kepada }}</td></tr>
+        <tr><td class="label">Dari</td><td class="titik">:</td><td>{{ $f['dari'] }}</td></tr>
+        <tr><td class="label">Tanggal</td><td class="titik">:</td><td>{{ $nota->tanggal_nota ? \Illuminate\Support\Carbon::parse($nota->tanggal_nota)->translatedFormat('j F Y') : '...' }}</td></tr>
+        <tr><td class="label">Nomor</td><td class="titik">:</td><td>{{ $nota->nomor_nota }}</td></tr>
+        <tr><td class="label">Perihal</td><td class="titik">:</td><td>{{ $perihal }}</td></tr>
+    </table>
 
-        <p style="margin-left: 125px; ">
-            - Demikian disampaikan, untuk bahan selanjutnya.
-        </p>
-    </div>
-
-    <div class="signature">
-        <p>Kepala Bagian Hukum,</p>
-        @if ($nota->pathTandaTangan())
-            <img src="{{ $nota->pathTandaTangan() }}" alt="Tanda Tangan" class="ttd">
+    <table class="isi">
+        @if ($pembuka !== '')
+            <tr>
+                <td class="tanda">{!! $panah !!}</td>
+                <td colspan="2">{{ $pembuka }}</td>
+            </tr>
         @endif
-        <p class="name" style="margin-top: 55px">{{ $nota->tandaTangan->nama_ttd }}</p>
-        <p style="margin-top: -10px">{{ $nota->tandaTangan->jabatan }}</p>
-        <p style="margin-top: -10px">NIP. {{ $nota->tandaTangan->nip_ttd }}</p>
+        @foreach ($butir as $i => $teks)
+            <tr>
+                <td class="tanda"></td>
+                <td class="nomor">{{ $i + 1 }}.</td>
+                <td>
+                    {{ $teks }}
+                    @if ($loop->last && $ketentuan)
+                        <table class="ketentuan">
+                            @foreach ($ketentuan as $j => $baris)
+                                <tr>
+                                    <td class="huruf">{{ chr(97 + $j % 26) }}.</td>
+                                    <td>{{ $baris }}</td>
+                                </tr>
+                            @endforeach
+                        </table>
+                    @endif
+                </td>
+            </tr>
+        @endforeach
+        @if ($penutup !== '')
+            <tr>
+                <td class="tanda">{!! $panah !!}</td>
+                <td colspan="2">{{ $penutup }}</td>
+            </tr>
+        @endif
+    </table>
+
+    <div class="ttd">
+        <p>{{ $f['ttd']['jabatan'] }}</p>
+        @if ($gambarTtd)
+            <img src="{{ $gambarTtd }}" alt="Tanda Tangan" class="gambar">
+        @else
+            <div class="ruang"></div>
+        @endif
+        <p>{{ $ttd?->nama_ttd }}</p>
+        @if (filled($ttd?->jabatan))
+            <p>{{ $ttd->jabatan }}</p>
+        @endif
+        @if (filled($ttd?->nip_ttd))
+            <p>NIP {{ $ttd->nip_ttd }}</p>
+        @endif
     </div>
 </body>
 

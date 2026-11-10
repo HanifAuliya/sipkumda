@@ -7,6 +7,7 @@ use App\Livewire\V2\LayarKerja;
 use App\Livewire\V2\Lonceng;
 use App\Livewire\V2\PantauNaskah;
 use App\Livewire\Profile\TandaTanganSaya;
+use App\Support\FormatDokumen;
 use App\Support\TandaTanganPeneliti;
 use App\Livewire\Verifikator\TandaTangan\PengelolaTtd;
 use App\Models\DokumentasiProdukHukum;
@@ -89,22 +90,28 @@ describe('nota dinas', function () {
         $n = $this->alur->terbitkanNota($n, $this->admin, '12', 'Sekretaris Daerah', $this->ttd->id);
 
         expect($n->tahap)->toBe(T::Penandatanganan)
-            ->and($n->notaDinas->nomor_nota)->toBe('180/12/NDPB/KUM/' . now()->year);
+            ->and($n->notaDinas->nomor_nota)->toBe('100.3/12/ND/KUM/' . now()->year);
     });
 
-    it('nomor Keputusan Bupati memakai kode NDSK', function () {
-        $n = $this->alur->terbitkanNota(naskahFinal($this, 'Keputusan Bupati'), $this->verifikator, '3', 'Sekda', $this->ttd->id);
+    it('pola nomor mengikuti menu Format Dokumen; {kode} menjadi NDSK atau NDPB', function () {
+        $format = FormatDokumen::nota();
+        FormatDokumen::simpanNota([...$format, 'nomor' => '180/{nomor}/{kode}/KUM/{tahun}']);
 
-        expect($n->notaDinas->nomor_nota)->toBe('180/3/NDSK/KUM/' . now()->year);
+        $sk = $this->alur->terbitkanNota(naskahFinal($this, 'Keputusan Bupati'), $this->verifikator, '3', 'Sekda', $this->ttd->id);
+        $perbup = $this->alur->terbitkanNota(naskahFinal($this), $this->verifikator, '3', 'Sekda', $this->ttd->id);
+
+        expect($sk->notaDinas->nomor_nota)->toBe('180/3/NDSK/KUM/' . now()->year)
+            ->and($perbup->notaDinas->nomor_nota)->toBe('180/3/NDPB/KUM/' . now()->year);
     });
 
-    it('menolak nomor ganda, termasuk "012" dan "12", di jenis yang sama', function () {
+    it('menolak nomor ganda, termasuk "012" dan "12"; tanpa {kode} satu urutan untuk semua jenis', function () {
         $this->alur->terbitkanNota(naskahFinal($this), $this->admin, '12', 'Sekda', $this->ttd->id);
-        $kedua = naskahFinal($this);
 
-        expect(fn () => $this->alur->terbitkanNota($kedua, $this->admin, '012', 'Sekda', $this->ttd->id))->toThrow(ValidationException::class);
+        expect(fn () => $this->alur->terbitkanNota(naskahFinal($this), $this->admin, '012', 'Sekda', $this->ttd->id))->toThrow(ValidationException::class);
+        expect(fn () => $this->alur->terbitkanNota(naskahFinal($this, 'Keputusan Bupati'), $this->admin, '12', 'Sekda', $this->ttd->id))->toThrow(ValidationException::class);
 
-        // Jenis berbeda boleh memakai nomor yang sama.
+        // Dengan {kode} di pola, jenis berbeda boleh memakai nomor yang sama.
+        FormatDokumen::simpanNota([...FormatDokumen::nota(), 'nomor' => '180/{nomor}/{kode}/KUM/{tahun}']);
         $sk = $this->alur->terbitkanNota(naskahFinal($this, 'Keputusan Bupati'), $this->admin, '12', 'Sekda', $this->ttd->id);
         expect($sk->tahap)->toBe(T::Penandatanganan);
     });
@@ -144,14 +151,15 @@ describe('nota dinas', function () {
         $n = $this->alur->terbitkanNota($n, $this->admin, '12', 'Sekda', $this->ttd->id);
         $matriks = teksPdfAkhir($cetak->pdfMatriks($n->fresh()));
 
-        expect($matriks)->not->toContain('DRAF')->toContain('180/12/NDPB/KUM')->toContain('NAMAKABAG')->toContain('19731002');
+        expect($matriks)->not->toContain('DRAF')->toContain('100.3/12/ND/KUM')->toContain('NAMAKABAG')->toContain('19731002');
     });
 
     it('nota dinas PDF memuat data naskah dan bisa diunduh yang berhak', function () {
         $n = $this->alur->terbitkanNota(naskahFinal($this), $this->admin, '12', 'Sekda', $this->ttd->id);
         $teks = teksPdfAkhir(app(CetakNaskah::class)->pdfNotaDinas($n));
 
-        expect($teks)->toContain('180/12/NDPB/KUM')->toContain('DanaDesa')->toContain('DinasUji')->toContain('NAMAKABAG');
+        expect($teks)->toContain('100.3/12/ND/KUM')->toContain('DanaDesa')->toContain('DinasUji')->toContain('NAMAKABAG')
+            ->toContain('KoreksiatasPeraturanBupatitentangDanaDesa.')->toContain('NOTADINAS');
 
         $this->actingAs($this->pd)->get(route('v2.naskah.cetak', [$n, 'nota-dinas']))->assertOk()->assertDownload();
         $this->actingAs(tap(User::factory()->create())->assignRole('Perangkat Daerah'))->get(route('v2.naskah.cetak', [$n, 'nota-dinas']))->assertForbidden();

@@ -8,7 +8,9 @@ use App\Livewire\V2\DaftarNaskah;
 use App\Livewire\V2\LayarKerja;
 use App\Livewire\V2\Notifikasi;
 use App\Livewire\V2\PantauNaskah;
+use App\Livewire\V2\PengaturanFormat;
 use App\Livewire\V2\PengaturanNaskah;
+use App\Support\FormatDokumen;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -45,6 +47,19 @@ Route::middleware(['auth', 'verified', TandaiAplikasiV2::class])->prefix('v2')->
         ->whereIn('jenis', ['peraturan-bupati', 'keputusan-bupati'])
         ->middleware('throttle:30,1')
         ->name('template');
+
+    Route::middleware('role:Admin|Verifikator|Super Admin')->group(function () {
+        Route::livewire('/pengaturan/format', PengaturanFormat::class)->name('format');
+
+        // Lambang kop naskah atau logo kop nota yang sedang dipakai, untuk pratinjau di menu Format Dokumen.
+        Route::get('/pengaturan/format/gambar/{bagian}', function (string $bagian) {
+            $format = $bagian === 'nota' ? FormatDokumen::nota() : FormatDokumen::naskah($bagian === 'kepbup' ? FormatDokumen::KEPBUP : FormatDokumen::PERBUP);
+            $path = $bagian === 'nota' ? FormatDokumen::pathLogoNota($format) : FormatDokumen::pathLambang($format);
+            abort_unless($path, 404);
+
+            return response()->file($path, ['X-Content-Type-Options' => 'nosniff', 'Cache-Control' => 'private, max-age=31536000, immutable']);
+        })->whereIn('bagian', ['kepbup', 'perbup', 'nota'])->name('format.gambar');
+    });
 
     Route::livewire('/pengaturan', PengaturanNaskah::class)
         ->middleware('role:Admin|Verifikator|Super Admin')

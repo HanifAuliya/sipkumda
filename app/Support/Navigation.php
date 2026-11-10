@@ -135,6 +135,7 @@ class Navigation
                 'title' => 'Pengaturan',
                 'items' => [
                     ['label' => 'Pengaturan Naskah', 'route' => 'v2.pengaturan', 'icon' => 'gear', 'roles' => ['Admin', 'Verifikator', 'Super Admin']],
+                    ['label' => 'Format Dokumen', 'route' => 'v2.format', 'icon' => 'file-earmark-text', 'roles' => ['Admin', 'Verifikator', 'Super Admin']],
                 ],
             ],
         ];

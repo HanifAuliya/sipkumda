@@ -4,14 +4,21 @@ namespace App\Services;
 
 use App\Models\Naskah;
 use App\Models\NaskahBaris;
+use App\Models\NaskahNotaDinas;
+use App\Models\PerangkatDaerah;
+use App\Models\TandaTangan;
+use App\Models\User;
+use App\Support\FormatDokumen;
 use App\Support\TandaTanganPeneliti;
 use App\Support\TataLetakNaskah;
 use App\Support\TemplateNaskah;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Dompdf\Dompdf;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use PhpOffice\PhpWord\Element\Cell;
+use PhpOffice\PhpWord\Element\Footer;
 use PhpOffice\PhpWord\Element\Section;
 use PhpOffice\PhpWord\IOFactory;
 use PhpOffice\PhpWord\PhpWord;
@@ -25,17 +32,13 @@ use PhpOffice\PhpWord\SimpleType\Jc;
 class CetakNaskah
 {
     /**
-     * Kertas F4 (Permendagri 80/2015 Pasal 167) dalam satuan twip (1 inci = 1440).
-     * Tepi 3/2/2/2,5 cm mengikuti batas paling sedikit pada Pasal 34 Perbup HST 12/2025. Pasal itu
-     * ditujukan bagi naskah korespondensi dan khusus; belum ada angka khusus untuk produk hukum.
+     * Kertas, tepi, huruf, kop, dan paraf naskah diatur di menu Format Dokumen (App\Support\FormatDokumen).
+     * Satuan Word adalah twip (1 inci = 1440), satuan DomPDF adalah point (1 inci = 72).
      */
-    private const F4_LEBAR = 12240;
-    private const F4_TINGGI = 18720;
-    private const TEPI_KIRI = 1701;
-    private const TEPI_KANAN = 1134;
-    private const TEPI_ATAS = 1134;
-    private const TEPI_BAWAH = 1417;
-    private const LEBAR_ISI = self::F4_LEBAR - self::TEPI_KIRI - self::TEPI_KANAN;
+    private array $f = [];
+
+    /** Lebar bidang tulis naskah yang sedang dicetak, dalam twip. */
+    private int $lebarIsi = 0;
 
     /** File font di resources/fonts => tebal dan gaya huruf. */
     private const BOOKMAN = [
@@ -48,7 +51,6 @@ class CetakNaskah
     private const INDEN = 567;
 
     /** Lebar blok tanda tangan: baris jabatan terpanjang pada Bookman Old Style 12, supaya nama rata tengah terhadapnya. */
-    private const KIRI_DITETAPKAN = 4536;
     private const LEBAR_DITETAPKAN = 3971;
     private const LEBAR_DIUNDANGKAN = 4576;
 
@@ -58,26 +60,22 @@ class CetakNaskah
     /** Batas tinggi satu baris tabel matriks, jauh di bawah kapasitas satu halaman mendatar. */
     private const MATRIKS_MAKS_BARIS = 22;
 
-    /** Gambar lambang opsional: kop tetap tercetak tanpa gambar bila file ini belum ada. */
-    public static function lambang(): ?string
-    {
-        $path = public_path('assets/img/garuda.png');
-
-        return is_file($path) ? $path : null;
-    }
-
     /** @return string path file sementara; pemanggil yang menghapusnya */
     public function wordNaskah(Naskah $naskah): string
     {
-        return $this->tulisWord("{$naskah->nomor} - {$naskah->tentang}", TataLetakNaskah::susun($naskah, $naskah->baris()->get()));
+        return $this->tulisWord("{$naskah->nomor} - {$naskah->tentang}", TataLetakNaskah::susun($naskah, $naskah->baris()->get()), FormatDokumen::naskah($naskah->jenis));
     }
 
     /** Template kosong untuk PD: bila ditulis mengikuti ini, pembacaan Word menjadi akurat. */
-    public function wordTemplate(string $jenis): string
+    public function wordTemplate(string $jenis, ?array $format = null): string
     {
-        $naskah = new Naskah(['jenis' => $jenis]);
+        return $this->tulisWord("Template {$jenis}", TataLetakNaskah::susun(new Naskah(['jenis' => $jenis]), self::barisContoh($jenis)), $format ?? FormatDokumen::naskah($jenis));
+    }
 
-        $baris = collect(TemplateNaskah::kerangka($jenis, '...'))->map(function (array $item, int $i) {
+    /** Baris kerangka naskah berisi titik-titik, untuk template dan contoh di menu Format Dokumen. */
+    private static function barisContoh(string $jenis): Collection
+    {
+        return collect(TemplateNaskah::kerangka($jenis, '...'))->map(function (array $item, int $i) {
             $contoh = match (true) {
                 filled($item['teks']) => $item['teks'],
                 str_starts_with((string) $item['label'], 'Pasal') => "(1) ...\n(2) ...",
@@ -87,35 +85,41 @@ class CetakNaskah
             return (new NaskahBaris(['bagian' => $item['bagian'], 'label' => $item['label'], 'rumusan_awal' => $contoh]))
                 ->forceFill(['id' => $i + 1, 'status' => NaskahBaris::BELUM]);
         });
-
-        return $this->tulisWord("Template {$jenis}", TataLetakNaskah::susun($naskah, $baris));
     }
 
-    private function tulisWord(string $judul, array $susunan): string
+    private function tulisWord(string $judul, array $susunan, array $format): string
     {
         // Tanda & dan < di rumusan harus lolos sebagai teks, bukan merusak XML dokumen.
         Settings::setOutputEscapingEnabled(true);
 
+        $this->f = $format;
+        $m = $format['margin'];
+        $this->lebarIsi = $this->twip($format['kertas']['lebar']) - $this->twip($m['kiri']) - $this->twip($m['kanan']);
+
         $word = new PhpWord();
-        $word->setDefaultFontName('Bookman Old Style');
-        $word->setDefaultFontSize(12);
+        $word->setDefaultFontName($format['huruf']['nama']);
+        $word->setDefaultFontSize((float) $format['huruf']['ukuran']);
+        $word->setDefaultParagraphStyle(['lineHeight' => (float) $format['huruf']['spasi']]);
         $word->getDocInfo()->setTitle($judul)->setCreator('SIFKUMDA');
 
+        // Tepi atas halaman berikutnya; halaman pertama ditambah ruang kop (lihat wordKop()).
         $halaman = $word->addSection([
-            'pageSizeW' => self::F4_LEBAR,
-            'pageSizeH' => self::F4_TINGGI,
-            'marginLeft' => self::TEPI_KIRI,
-            'marginRight' => self::TEPI_KANAN,
-            'marginTop' => self::TEPI_ATAS,
-            'marginBottom' => self::TEPI_BAWAH,
+            'pageSizeW' => $this->twip($format['kertas']['lebar']),
+            'pageSizeH' => $this->twip($format['kertas']['tinggi']),
+            'marginLeft' => $this->twip($m['kiri']),
+            'marginRight' => $this->twip($m['kanan']),
+            'marginTop' => $this->twip($m['atas']),
+            'marginBottom' => $this->twip($m['bawah']),
         ]);
 
-        if ($lambang = self::lambang()) {
-            $halaman->addImage($lambang, ['width' => 70, 'alignment' => Jc::CENTER]);
-        }
-        $halaman->addText(TataLetakNaskah::KOP, ['bold' => true, 'size' => 14], ['alignment' => Jc::CENTER, 'spaceAfter' => 240]);
+        $this->wordKop($halaman);
 
-        foreach ($susunan as $blok) {
+        // Kotak paraf di halaman pertama; halaman tanda tangan mendapatkannya di bawah penutup.
+        if ($this->adaParaf()) {
+            $this->wordParaf($halaman->addFooter(Footer::FIRST));
+        }
+
+        foreach (self::gayaKonsiderans($susunan, $format) as $blok) {
             match ($blok['tipe']) {
                 'tengah' => $this->wordTengah($halaman, $blok),
                 'daftar' => $this->wordDaftar($halaman, $blok),
@@ -129,6 +133,95 @@ class CetakNaskah
         IOFactory::createWriter($word, 'Word2007')->save($path);
 
         return $path;
+    }
+
+    private function twip(float|int|string $cm): int
+    {
+        return FormatDokumen::cmKeTwip((float) $cm);
+    }
+
+    /**
+     * Halaman pertama: judul dimulai pada jarak "atas_pertama" dari tepi kertas. Ruang di atasnya
+     * (atas_pertama dikurangi tepi atas biasa) berisi lambang dan teks kop, atau dibiarkan kosong
+     * bila kop dimatikan karena naskah dicetak di kertas kop emas.
+     */
+    private function wordKop(Section $halaman): void
+    {
+        $kop = $this->f['kop'];
+        $ruang = max(0.0, (float) $this->f['margin']['atas_pertama'] - (float) $this->f['margin']['atas']);
+        $terpakai = 0.0;
+
+        if ($kop['tampil'] && ($lambang = FormatDokumen::pathLambang($this->f)) && $kop['lebar_lambang'] > 0) {
+            [$w, $h] = getimagesize($lambang);
+            $lebar = FormatDokumen::cmKePoint((float) $kop['lebar_lambang']);
+            $halaman->addImage($lambang, ['width' => $lebar, 'height' => $lebar * $h / $w, 'alignment' => Jc::CENTER]);
+            $terpakai += (float) $kop['lebar_lambang'] * $h / $w + 0.2;
+        }
+
+        $teks = $kop['tampil'] ? trim((string) $kop['teks']) : '';
+        $tinggiTeks = $teks !== '' ? (float) $kop['ukuran'] * 1.25 / 72 * 2.54 : 0.0;
+        $sisa = $ruang > 0 ? max(0.0, $ruang - $terpakai - $tinggiTeks) : 0.42;
+
+        if ($teks !== '') {
+            $halaman->addText($teks, ['bold' => true, 'size' => (float) $kop['ukuran']], ['alignment' => Jc::CENTER, 'spaceAfter' => $this->twip($sisa)]);
+        } elseif ($sisa > 0) {
+            // Paragraf 1 pt yang jarak sesudahnya mendorong judul ke posisinya.
+            $halaman->addText('', ['size' => 1], ['spaceAfter' => $this->twip($sisa), 'lineHeight' => 1.0]);
+        }
+    }
+
+    private function adaParaf(): bool
+    {
+        return $this->f['paraf']['tampil'] && $this->jabatanParaf() !== [];
+    }
+
+    private function jabatanParaf(): array
+    {
+        return array_values(array_filter(array_map('trim', $this->f['paraf']['jabatan'] ?? []), 'strlen'));
+    }
+
+    /** Kotak paraf hierarki: kolom jabatan dan kolom paraf yang dikosongkan untuk diisi tangan. */
+    private function wordParaf(Section|Footer $wadah): void
+    {
+        $ukuran = min(11.0, (float) $this->f['huruf']['ukuran']);
+        $tabel = $wadah->addTable(['layout' => 'fixed', 'borderSize' => 6, 'borderColor' => '000000', 'cellMargin' => 60]);
+        $paragraf = ['spaceAfter' => 0, 'lineHeight' => 1.3];
+
+        $judul = $tabel->addRow();
+        $judul->addCell($this->twip(self::LEBAR_JABATAN_PARAF))->addText((string) $this->f['paraf']['judul'], ['size' => $ukuran], $paragraf + ['alignment' => Jc::CENTER]);
+        $judul->addCell($this->twip(1.8));
+
+        foreach ($this->jabatanParaf() as $jabatan) {
+            $tr = $tabel->addRow();
+            $tr->addCell($this->twip(self::LEBAR_JABATAN_PARAF))->addText($jabatan, ['size' => $ukuran], $paragraf);
+            $tr->addCell($this->twip(1.8));
+        }
+    }
+
+    /**
+     * Gaya titik dua konsiderans. "rapat" (pedoman SK): "Menimbang:", "Menetapkan:", dan "MEMUTUSKAN:"
+     * tanpa spasi dan tanpa kolom titik dua; "kolom": "Menimbang :" dengan titik dua sejajar.
+     */
+    private static function gayaKonsiderans(array $susunan, array $format): array
+    {
+        $rapat = ($format['konsiderans']['titik_dua'] ?? 'kolom') === 'rapat';
+
+        return array_map(function (array $blok) use ($rapat) {
+            $blok['rapat'] = $rapat;
+
+            if (! $rapat) {
+                return $blok;
+            }
+
+            match ($blok['tipe']) {
+                'tengah' => $blok['baris'] = array_map(fn ($b) => preg_replace('/^MEMUTUSKAN\s*:$/u', 'MEMUTUSKAN:', $b), $blok['baris']),
+                'daftar' => $blok['label'] .= ':',
+                'diktum' => $blok['pembuka'] .= ':',
+                default => null,
+            };
+
+            return $blok;
+        }, $susunan);
     }
 
     private function wordTengah(Section $halaman, array $blok): void
@@ -145,16 +238,19 @@ class CetakNaskah
 
     private function wordDaftar(Section $halaman, array $blok): void
     {
-        [$lebarLabel, $lebarTitik, $lebarNomor] = [1531, 284, 454];
+        // Gaya rapat: titik dua menempel pada label, jadi kolom titik dua tidak ada.
+        [$lebarLabel, $lebarTitik, $lebarNomor] = [$this->twip($this->f['konsiderans']['lebar_label']), $blok['rapat'] ? 0 : 284, 454];
         $adaNomor = (bool) array_filter(array_column($blok['butir'], 'nomor'));
-        $lebarIsi = self::LEBAR_ISI - $lebarLabel - $lebarTitik - ($adaNomor ? $lebarNomor : 0);
+        $lebarIsi = $this->lebarIsi - $lebarLabel - $lebarTitik - ($adaNomor ? $lebarNomor : 0);
 
         $tabel = $halaman->addTable(['layout' => 'fixed', 'cellMargin' => 0]);
 
         foreach ($blok['butir'] as $i => $butir) {
             $baris = $tabel->addRow();
             $baris->addCell($lebarLabel)->addText($i === 0 ? $blok['label'] : '');
-            $baris->addCell($lebarTitik)->addText($i === 0 ? ':' : '');
+            if (! $blok['rapat']) {
+                $baris->addCell($lebarTitik)->addText($i === 0 ? ':' : '');
+            }
             if ($adaNomor) {
                 $baris->addCell($lebarNomor)->addText((string) $butir['nomor']);
             }
@@ -170,8 +266,8 @@ class CetakNaskah
      */
     private function wordDiktum(Section $halaman, array $blok): void
     {
-        [$lebarLabel, $lebarTitik] = [1531, 284];
-        $lebarSisa = self::LEBAR_ISI - $lebarLabel - $lebarTitik;
+        [$lebarLabel, $lebarTitik] = [$this->twip($this->f['konsiderans']['lebar_label']), 284];
+        $lebarSisa = $this->lebarIsi - $lebarLabel - $lebarTitik;
 
         $bernomor = array_filter(array_merge(...array_column($blok['butir'], 'baris')), fn ($b) => $b['nomor'] !== null && ! isset($b['tabel']));
         $kolomNomor = $bernomor ? max(array_column($bernomor, 'tingkat')) + 1 : 0;
@@ -184,7 +280,7 @@ class CetakNaskah
 
         $pembuka = $tabel->addRow();
         $pembuka->addCell($lebarLabel)->addText($blok['pembuka']);
-        $pembuka->addCell($lebarTitik)->addText(':');
+        $pembuka->addCell($lebarTitik)->addText($blok['rapat'] ? '' : ':');
         $selPenuh($pembuka)->addText('');
 
         foreach ($blok['butir'] as $butir) {
@@ -271,7 +367,7 @@ class CetakNaskah
             }
 
             $tr->addCell(self::INDEN)->addText($baris['nomor']);
-            $tr->addCell(self::LEBAR_ISI - ($tingkat + 1) * self::INDEN, $sisaKolom > 1 ? ['gridSpan' => $sisaKolom] : [])
+            $tr->addCell($this->lebarIsi - ($tingkat + 1) * self::INDEN, $sisaKolom > 1 ? ['gridSpan' => $sisaKolom] : [])
                 ->addText($baris['isi'], null, ['alignment' => Jc::BOTH, 'spaceAfter' => 60]);
         }
     }
@@ -280,8 +376,9 @@ class CetakNaskah
      * @param  Section|Cell  $wadah
      * @param  array<int, array<int, string>>  $isi
      */
-    private function wordTabel(Section|Cell $wadah, array $isi, int $lebarTersedia = self::LEBAR_ISI): void
+    private function wordTabel(Section|Cell $wadah, array $isi, ?int $lebarTersedia = null): void
     {
+        $lebarTersedia ??= $this->lebarIsi;
         $kolom = max(array_map('count', $isi));
         $lebar = $this->lebarKolomTabel($isi, $kolom, $lebarTersedia);
         $tabel = $wadah->addTable(['layout' => 'fixed', 'borderSize' => 6, 'borderColor' => '000000', 'cellMargin' => 60]);
@@ -321,7 +418,13 @@ class CetakNaskah
     private function wordPenutup(Section $halaman, array $blok): void
     {
         $halaman->addTextBreak(1);
-        $this->wordBlokJabatan($halaman, $blok['ditetapkan'], self::KIRI_DITETAPKAN, self::LEBAR_DITETAPKAN);
+        $kiri = min($this->twip($this->f['penutup']['kiri']), $this->lebarIsi - 2000);
+        $this->wordBlokJabatan($halaman, $blok['ditetapkan'], $kiri, min(self::LEBAR_DITETAPKAN, $this->lebarIsi - $kiri));
+
+        if ($this->adaParaf()) {
+            $halaman->addTextBreak(1);
+            $this->wordParaf($halaman);
+        }
 
         if ($blok['diundangkan']) {
             $halaman->addTextBreak(1);
@@ -346,7 +449,7 @@ class CetakNaskah
     {
         foreach ($baris as $teks) {
             $halaman->addText($teks, null, [
-                'indentation' => ['left' => $kiri, 'right' => self::LEBAR_ISI - $kiri - $lebar],
+                'indentation' => ['left' => $kiri, 'right' => max(0, $this->lebarIsi - $kiri - $lebar)],
                 'alignment' => TataLetakNaskah::barisTempatTanggal($teks) ? Jc::START : Jc::CENTER,
                 'keepNext' => true,
                 'spaceAfter' => 0,
@@ -444,21 +547,149 @@ class CetakNaskah
     public function pdfNotaDinas(Naskah $naskah): string
     {
         $nota = $naskah->notaDinas()->with('tandaTangan')->firstOrFail();
+        $naskah->loadMissing('pemrakarsa.perangkatDaerah');
 
-        return Pdf::loadView('pdf.v2.nota-dinas', ['naskah' => $naskah, 'nota' => $nota])->setPaper('A4', 'portrait')->output();
+        return $this->pdfNota($naskah, $nota, FormatDokumen::nota());
+    }
+
+    /** Contoh nota dinas dari isian menu Format Dokumen, dengan data contoh. */
+    public function pdfContohNota(array $format): string
+    {
+        $naskah = new Naskah([
+            'jenis' => FormatDokumen::KEPBUP, 'tentang' => 'Contoh Judul Keputusan Bupati',
+            'nomor_nota' => '400.10/123/DPMD/' . now()->year, 'tanggal_nota' => now(),
+        ]);
+        $naskah->setRelation('pemrakarsa', (new User(['nama_user' => 'Contoh']))
+            ->setRelation('perangkatDaerah', new PerangkatDaerah(['nama_perangkat_daerah' => 'Dinas Contoh'])));
+
+        $ttd = TandaTangan::where('status', 'Aktif')->first()
+            ?? new TandaTangan(['nama_ttd' => 'NAMA KEPALA BAGIAN HUKUM', 'jabatan' => 'Pembina', 'nip_ttd' => '19xxxxxx xxxxxx x xxx']);
+        $nota = (new NaskahNotaDinas([
+            'nomor_inputan' => '123',
+            'nomor_nota' => FormatDokumen::nomorNota($format['nomor'], '123', FormatDokumen::KEPBUP, now()->year),
+            'tanggal_nota' => now(),
+            'kepada' => 'Kepala Dinas Contoh',
+        ]))->setRelation('tandaTangan', $ttd);
+
+        return $this->pdfNota($naskah, $nota, $format);
+    }
+
+    private function pdfNota(Naskah $naskah, NaskahNotaDinas $nota, array $f): string
+    {
+        $isian = [
+            '{jenis}' => (string) $naskah->jenis,
+            '{tentang}' => (string) $naskah->tentang,
+            '{perangkat_daerah}' => $naskah->pemrakarsa?->perangkatDaerah?->nama_perangkat_daerah ?? '...',
+            '{nomor_nota_pd}' => $naskah->nomor_nota ?: '...',
+            '{tanggal_nota_pd}' => $naskah->tanggal_nota?->translatedFormat('j F Y') ?? '...',
+        ];
+        $isi = fn (?string $teks) => trim(FormatDokumen::isi((string) $teks, $isian));
+        $daftar = fn (array $baris) => array_values(array_filter(array_map($isi, $baris), 'strlen'));
+
+        return Pdf::loadView('pdf.v2.nota-dinas', [
+            'nota' => $nota,
+            'f' => $f,
+            'logo' => $f['kop']['tampil'] ? FormatDokumen::pathLogoNota($f) : null,
+            'kop' => $f['kop']['tampil'] ? array_values(array_filter($f['kop']['baris'], fn ($b) => filled($b['teks'] ?? null))) : [],
+            'perihal' => $isi($f['perihal']),
+            'pembuka' => $isi($f['pembuka']),
+            'butir' => $daftar($f['butir']),
+            'ketentuan' => $daftar($f['ketentuan']),
+            'penutup' => $isi($f['penutup']),
+            'gambarTtd' => $f['ttd']['gambar'] ? $nota->pathTandaTangan() : null,
+        ])->setPaper($this->kertas($f), 'portrait')->output();
+    }
+
+    /** @return array{0: int, 1: int, 2: float, 3: float} ukuran kertas dalam point untuk DomPDF */
+    private function kertas(array $f): array
+    {
+        return [0, 0, FormatDokumen::cmKePoint((float) $f['kertas']['lebar']), FormatDokumen::cmKePoint((float) $f['kertas']['tinggi'])];
     }
 
     public function pdfNaskah(Naskah $naskah): string
     {
-        $pdf = Pdf::loadView('pdf.v2.naskah', [
-            'naskah' => $naskah,
-            'blok' => TataLetakNaskah::susun($naskah, $naskah->baris()->get()),
-            'lambang' => self::lambang(),
-        ])->setPaper(self::F4_POINT, 'portrait');
+        return $this->pdfNaskahDari($naskah, $naskah->baris()->get(), FormatDokumen::naskah($naskah->jenis));
+    }
 
-        $this->pasangBookman($pdf->getDomPDF());
+    /** Contoh naskah berisi titik-titik dari isian menu Format Dokumen, sebelum disimpan. */
+    public function pdfContohNaskah(string $jenis, array $format): string
+    {
+        return $this->pdfNaskahDari(new Naskah(['jenis' => $jenis]), self::barisContoh($jenis), $format);
+    }
+
+    /** Tinggi satu baris kotak paraf hierarki (cm), untuk ruang yang disisihkan di halaman pertama PDF. */
+    private const BARIS_PARAF = 0.75;
+
+    /** Lebar kolom jabatan kotak paraf (cm); kolom paraf 1,8 cm. */
+    private const LEBAR_JABATAN_PARAF = 6.2;
+
+    private function pdfNaskahDari(Naskah $naskah, Collection $baris, array $f): string
+    {
+        $this->f = $f;
+        $paraf = $this->adaParaf() ? $this->jabatanParaf() : [];
+
+        $blok = self::gayaKonsiderans(TataLetakNaskah::susun($naskah, $baris), $f);
+
+        $buat = function (bool $sisihkanParaf) use ($f, $blok, $paraf) {
+            $pdf = Pdf::loadView('pdf.v2.naskah', [
+                'f' => $f,
+                'blok' => $blok,
+                'lambang' => $f['kop']['tampil'] ? FormatDokumen::pathLambang($f) : null,
+                'paraf' => $paraf,
+                'sisihkanParaf' => $sisihkanParaf,
+                'tinggiParaf' => (count($paraf) + 1) * self::BARIS_PARAF,
+            ])->setPaper($this->kertas($f), 'portrait');
+
+            $this->pasangBookman($pdf->getDomPDF());
+            $pdf->render();
+
+            return $pdf;
+        };
+
+        // Kotak paraf selalu ada di bawah tanda tangan. Halaman pertama juga diberi kotak bila naskahnya
+        // lebih dari satu halaman: dirender ulang dengan ruang bawah halaman 1 disisihkan (@page :first),
+        // supaya naskah satu halaman tidak terdorong menjadi dua oleh ruang yang tidak dipakai.
+        $pdf = $buat(false);
+
+        if ($paraf && $pdf->getDomPDF()->getCanvas()->get_page_count() > 1) {
+            $pdf = $buat(true);
+            $this->parafHalamanPertama($pdf->getDomPDF(), $paraf, $f);
+        }
 
         return $pdf->output();
+    }
+
+    private function parafHalamanPertama(Dompdf $dompdf, array $jabatan, array $f): void
+    {
+        $dompdf->getCanvas()->page_script(function (int $halaman, int $jumlah, $canvas, $fontMetrics) use ($jabatan, $f) {
+            if ($halaman !== 1 || $jumlah < 2) {
+                return;
+            }
+
+            $pt = fn (float $cm) => FormatDokumen::cmKePoint($cm);
+            $baris = $pt(self::BARIS_PARAF);
+            $tinggi = $baris * (count($jabatan) + 1);
+            $x = $pt((float) $f['margin']['kiri']);
+            $y = $canvas->get_height() - $pt((float) $f['margin']['bawah']) - $tinggi;
+            [$lebarJabatan, $lebarParaf] = [$pt(self::LEBAR_JABATAN_PARAF), $pt(1.8)];
+            $huruf = $fontMetrics->getFont($f['huruf']['nama']) ?? $fontMetrics->getFont('times');
+
+            foreach ([(string) $f['paraf']['judul'], ...$jabatan] as $i => $teks) {
+                $atas = $y + $i * $baris;
+                $canvas->rectangle($x, $atas, $lebarJabatan, $baris, [0, 0, 0], 0.5);
+                $canvas->rectangle($x + $lebarJabatan, $atas, $lebarParaf, $baris, [0, 0, 0], 0.5);
+
+                // Satu baris per kotak: jabatan yang panjang dikecilkan hurufnya, bukan dipotong.
+                $ukuran = min(11.0, (float) $f['huruf']['ukuran']);
+                $lebarTeks = $fontMetrics->getTextWidth($teks, $huruf, $ukuran);
+                if ($lebarTeks > $lebarJabatan - 8) {
+                    $ukuran *= ($lebarJabatan - 8) / $lebarTeks;
+                    $lebarTeks = $fontMetrics->getTextWidth($teks, $huruf, $ukuran);
+                }
+                $kiriTeks = $i === 0 ? $x + ($lebarJabatan - $lebarTeks) / 2 : $x + 4;
+                $canvas->text($kiriTeks, $atas + ($baris - $ukuran) / 2, $teks, $huruf, $ukuran);
+            }
+        });
     }
 
     /**

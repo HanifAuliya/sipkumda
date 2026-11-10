@@ -89,7 +89,9 @@ class TemplateNaskah
         $titik = '.......................';
         $bupati = Pengaturan::ambil(Pengaturan::NAMA_BUPATI, $titik);
 
-        $ditetapkan = "Ditetapkan di Barabai\npada tanggal ...\n\nBUPATI HULU SUNGAI TENGAH,\n\n\n\n{$bupati}";
+        // Tempat penetapan diatur di menu Format Dokumen; berlaku untuk naskah yang dibuat sesudahnya.
+        $tempat = FormatDokumen::naskah($jenis)['penutup']['tempat'];
+        $ditetapkan = "Ditetapkan di {$tempat}\npada tanggal ...\n\nBUPATI HULU SUNGAI TENGAH,\n\n\n\n{$bupati}";
 
         if ($jenis === 'Keputusan Bupati') {
             return $ditetapkan;
@@ -97,7 +99,7 @@ class TemplateNaskah
 
         $sekda = Pengaturan::ambil(Pengaturan::NAMA_SEKDA, $titik);
 
-        return "{$ditetapkan}\n\nDiundangkan di Barabai\npada tanggal ...\n\nSEKRETARIS DAERAH\nKABUPATEN HULU SUNGAI TENGAH,\n\n\n\n{$sekda}"
+        return "{$ditetapkan}\n\nDiundangkan di {$tempat}\npada tanggal ...\n\nSEKRETARIS DAERAH\nKABUPATEN HULU SUNGAI TENGAH,\n\n\n\n{$sekda}"
             . "\n\nBERITA DAERAH KABUPATEN HULU SUNGAI TENGAH TAHUN ... NOMOR ...";
     }
 

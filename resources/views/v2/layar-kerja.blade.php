@@ -627,7 +627,7 @@
 
         @if ($bentuk === 'nota')
             <div class="space-y-3">
-                <x-form.field label="Nomor nota dinas" for="nomorInputan" error="nomorInputan" required hint="Angka tengah pada 180/…/KUM/{{ now()->year }}.">
+                <x-form.field label="Nomor nota dinas" for="nomorInputan" error="nomorInputan" required hint="Menjadi {{ App\Support\FormatDokumen::nomorNota(App\Support\FormatDokumen::nota()['nomor'], '…', $naskah->jenis, now()->year) }} (pola nomor di menu Format Dokumen).">
                     <input id="nomorInputan" type="text" inputmode="numeric" maxlength="3" wire:model="nomorInputan" class="{{ $isian }}">
                 </x-form.field>
                 <x-form.field label="Kepada" for="kepada" error="kepada" required>

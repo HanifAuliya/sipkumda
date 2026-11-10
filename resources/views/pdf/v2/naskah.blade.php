@@ -1,20 +1,40 @@
+{{--
+    Naskah PDF. Kertas, tepi, huruf, kop, dan paraf mengikuti menu Format Dokumen (App\Support\FormatDokumen).
+    $f format, $blok susunan TataLetakNaskah, $lambang path gambar atau null, $paraf daftar jabatan paraf hierarki.
+--}}
+@php
+    $m = $f['margin'];
+    $lebarIsi = (float) $f['kertas']['lebar'] - (float) $m['kiri'] - (float) $m['kanan'];
+    // Halaman pertama: judul dimulai pada jarak atas_pertama dari tepi kertas; ruang di atasnya untuk kop.
+    $ruangKop = max(0, (float) $m['atas_pertama'] - (float) $m['atas']);
+    $kiriTtd = min((float) $f['penutup']['kiri'], max(0, $lebarIsi - 4));
+    $huruf = $f['huruf']['nama'] === 'Arial' ? "'Arial', Helvetica, sans-serif" : "'{$f['huruf']['nama']}', 'Times New Roman', Times, serif";
+    $teksKop = $f['kop']['tampil'] ? trim((string) $f['kop']['teks']) : '';
+@endphp
 <!DOCTYPE html>
 <html lang="id">
 
 <head>
     <meta charset="UTF-8">
-    <title>{{ $naskah->nomor }}</title>
+    <title>Naskah</title>
     <style>
-        @page { margin: 2cm 2cm 2.5cm 3cm; }
-        body { font-family: 'Bookman Old Style', 'Times New Roman', Times, serif; font-size: 12pt; line-height: 1.35; color: #000; }
-        .kop { text-align: center; font-weight: bold; font-size: 14pt; margin-bottom: 14pt; }
+        @page { margin: {{ $m['atas'] }}cm {{ $m['kanan'] }}cm {{ $m['bawah'] }}cm {{ $m['kiri'] }}cm; }
+        @if ($paraf && $sisihkanParaf)
+            /* Ruang kotak paraf hierarki di bawah halaman pertama (digambar setelah halaman dihitung). */
+            @page :first { margin-bottom: {{ (float) $m['bawah'] + $tinggiParaf + 0.4 }}cm; }
+        @endif
+        body { font-family: {!! $huruf !!}; font-size: {{ $f['huruf']['ukuran'] }}pt; line-height: {{ round((float) $f['huruf']['spasi'] * 1.2, 3) }}; color: #000; }
+        .kop { text-align: center; font-weight: bold; font-size: {{ $f['kop']['ukuran'] }}pt; }
+        .ruang-kop { height: {{ $ruangKop }}cm; overflow: hidden; }
+        .kop-biasa { margin-bottom: 14pt; }
         .lambang { margin-bottom: 6pt; }
-        .lambang img { width: 70px; }
+        .lambang img { width: {{ $f['kop']['lebar_lambang'] }}cm; }
         .tengah { text-align: center; margin: 12pt 0 6pt; }
+        .ruang-kop + .tengah { margin-top: 0; }
         .tengah p { margin: 0; }
         table { width: 100%; border-collapse: collapse; }
         td { vertical-align: top; padding: 0 0 3pt; text-align: justify; }
-        td.label { width: 2.7cm; text-align: left; }
+        td.label { width: {{ $f['konsiderans']['lebar_label'] }}cm; text-align: left; }
         td.titik { width: .5cm; text-align: left; }
         td.nomor { width: .8cm; text-align: left; }
         .isi { white-space: pre-line; }
@@ -25,20 +45,29 @@
         .penutup { margin-top: 16pt; page-break-inside: avoid; }
         .penutup p { margin: 0; min-height: 14pt; }
         /* Selebar baris jabatan terpanjang, supaya jabatan dan nama rata tengah sesamanya. */
-        .ditetapkan { margin-left: 8cm; width: 7cm; }
+        .ditetapkan { margin-left: {{ $kiriTtd }}cm; width: {{ min(7, $lebarIsi - $kiriTtd) }}cm; }
         .diundangkan { margin-top: 14pt; width: 8.1cm; }
         .penutup .jabatan { text-align: center; }
         .penutup .berita { margin-top: 14pt; }
         .tembusan { margin-top: 14pt; }
+        .paraf { width: 8cm; margin-top: 18pt; font-size: {{ min(11, (float) $f['huruf']['ukuran']) }}pt; line-height: 1.2; }
+        .paraf td { border: 1px solid #000; height: {{ 0.75 - 0.2 }}cm; padding: .1cm .15cm; text-align: left; vertical-align: middle; }
+        .paraf td.jabatan-paraf { width: 6.2cm; }
+        /* Tanda tangan dan kotak paraf selalu sehalaman. */
+        .akhir { page-break-inside: avoid; }
+        .paraf td.kosong { width: 1.8cm; }
+        .paraf .judul-paraf { text-align: center; }
     </style>
 </head>
 
 <body>
-    <div class="kop">
-        @if ($lambang)
+    <div @class(['kop', 'ruang-kop' => $ruangKop > 0, 'kop-biasa' => $ruangKop <= 0])>
+        @if ($lambang && $f['kop']['lebar_lambang'] > 0)
             <div class="lambang"><img src="{{ $lambang }}" alt=""></div>
         @endif
-        {{ App\Support\TataLetakNaskah::KOP }}
+        @if ($teksKop !== '')
+            {{ $teksKop }}
+        @endif
     </div>
 
     @foreach ($blok as $b)
@@ -53,7 +82,9 @@
                 @foreach ($b['butir'] as $i => $butir)
                     <tr>
                         <td class="label">{{ $i === 0 ? $b['label'] : '' }}</td>
-                        <td class="titik">{{ $i === 0 ? ':' : '' }}</td>
+                        @unless ($b['rapat'])
+                            <td class="titik">{{ $i === 0 ? ':' : '' }}</td>
+                        @endunless
                         @if ($butir['nomor'])
                             <td class="nomor">{{ $butir['nomor'] }}</td>
                         @endif
@@ -66,7 +97,7 @@
             <table class="daftar">
                 <tr>
                     <td class="label">{{ $b['pembuka'] }}</td>
-                    <td class="titik">:</td>
+                    <td class="titik">{{ $b['rapat'] ? '' : ':' }}</td>
                     <td></td>
                 </tr>
                 @foreach ($b['butir'] as $butir)
@@ -80,6 +111,7 @@
                 @endforeach
             </table>
         @elseif ($b['tipe'] === 'penutup')
+            <div class="akhir">
             <div class="penutup">
                 <div class="ditetapkan">
                     @foreach ($b['ditetapkan'] as $baris)
@@ -103,6 +135,16 @@
                         @endforeach
                     </div>
                 @endif
+            </div>
+
+            @if ($paraf)
+                <table class="paraf">
+                    <tr><td class="jabatan-paraf judul-paraf">{{ $f['paraf']['judul'] }}</td><td class="kosong"></td></tr>
+                    @foreach ($paraf as $jabatan)
+                        <tr><td class="jabatan-paraf">{{ $jabatan }}</td><td class="kosong"></td></tr>
+                    @endforeach
+                </table>
+            @endif
             </div>
         @else
             @foreach ($b['baris'] as $baris)

@@ -156,13 +156,16 @@ describe('tata letak', function () {
         $zip = new ZipArchive();
         $zip->open($path);
         $xml = $zip->getFromName('word/document.xml');
-        $berkas = collect(range(0, $zip->numFiles - 1))->map(fn ($i) => $zip->getNameIndex($i));
+        $footer = collect(range(0, $zip->numFiles - 1))->map(fn ($i) => $zip->getNameIndex($i))
+            ->filter(fn ($b) => str_contains($b, 'footer'))
+            ->map(fn ($b) => $zip->getFromName($b))
+            ->implode('');
         $zip->close();
         unlink($path);
 
         expect($xml)->toContain('Menetapkan', 'tahap satu;', 'Rapat', 'Tembusan :')
-            // Produk hukum yang terbit tidak bernomor halaman.
-            ->and($berkas->filter(fn ($b) => str_contains($b, 'footer')))->toBeEmpty()
+            // Produk hukum yang terbit tidak bernomor halaman; footer halaman pertama hanya memuat kotak paraf.
+            ->and($footer)->not->toContain('PAGE')->toContain('Paraf Hierarki')
             ->and($cetak->pdfNaskah($n))->toStartWith('%PDF');
     });
 
