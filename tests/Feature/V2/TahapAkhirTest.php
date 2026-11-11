@@ -13,6 +13,7 @@ use App\Models\DokumentasiProdukHukum;
 use App\Models\FasilitasiProdukHukum;
 use App\Models\Naskah;
 use App\Models\NaskahBaris as B;
+use App\Models\NaskahBerkas;
 use App\Models\NotaDinas;
 use App\Models\PerangkatDaerah;
 use App\Models\RancanganProdukHukum;
@@ -162,6 +163,34 @@ describe('nota dinas', function () {
 
         $this->actingAs($this->pd)->get(route('v2.naskah.cetak', [$n, 'nota-dinas']))->assertOk()->assertDownload();
         $this->actingAs(tap(User::factory()->create())->assignRole('Perangkat Daerah'))->get(route('v2.naskah.cetak', [$n, 'nota-dinas']))->assertForbidden();
+    });
+
+    it('dibekukan saat terbit; perubahan Format Dokumen baru berlaku setelah Admin menerbitkan ulang', function () {
+        $n = $this->alur->terbitkanNota(naskahFinal($this), $this->admin, '12', 'Sekda', $this->ttd->id);
+        $cetak = app(CetakNaskah::class);
+        $pertama = $n->berkas()->where('jenis', NaskahBerkas::NOTA_DINAS)->sole();
+
+        FormatDokumen::simpanNota([...FormatDokumen::nota(), 'penutup' => 'Atas perhatiannya diucapkan terima kasih.']);
+
+        // Surat yang sudah terbit tidak ikut berubah.
+        expect($pertama->aktif)->toBeTrue()
+            ->and(teksPdfAkhir($cetak->pdfNotaDinas($n)))->toContain('Demikiandisampaikan')->not->toContain('terimakasih');
+
+        expect(fn () => $this->alur->terbitUlangNota($n, $this->verifikator, 'Kop berganti'))->toThrow(HttpException::class)
+            ->and(fn () => $this->alur->terbitUlangNota($n, $this->admin, ''))->toThrow(ValidationException::class);
+
+        $kedua = $this->alur->terbitUlangNota($n, $this->admin, 'Kalimat penutup diperbarui');
+        $versi = $n->berkas()->where('jenis', NaskahBerkas::NOTA_DINAS)->reorder('id')->get();
+
+        expect($versi)->toHaveCount(2)
+            ->and($versi[0]->aktif)->toBeFalse()
+            ->and($versi[1]->is($kedua))->toBeTrue()
+            ->and($kedua->keterangan)->toBe('Kalimat penutup diperbarui')
+            ->and($kedua->nama_asli)->toContain('versi 2')
+            ->and(teksPdfAkhir($cetak->pdfNotaDinas($n)))->toContain('terimakasih')->toContain('100.3/12/ND/KUM')
+            // Versi sebelum perubahan tetap bisa diunduh untuk dibandingkan.
+            ->and(teksPdfAkhir(Storage::disk('local')->get($versi[0]->path)))->toContain('Demikiandisampaikan')
+            ->and($n->riwayat()->where('aksi', 'terbit_ulang_nota')->value('catatan'))->toBe('Kalimat penutup diperbarui');
     });
 
     it('tanda tangan yang dipakai nota dinas v2 tidak bisa dihapus', function () {

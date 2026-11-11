@@ -11,16 +11,20 @@ class NaskahBerkas extends Model
     public const LAMPIRAN = 'lampiran';
     public const BAHAN_PENDUKUNG = 'bahan_pendukung';
 
+    /** PDF nota dinas yang dibekukan saat terbit; versi yang diterbitkan ulang menggantikan yang aktif. */
+    public const NOTA_DINAS = 'nota_dinas';
+
     public const LABEL = [
         self::NOTA_DINAS_PD => 'Nota Dinas PD',
         self::WORD_ASLI => 'Word asli',
         self::LAMPIRAN => 'Lampiran naskah',
         self::BAHAN_PENDUKUNG => 'Bahan pendukung',
+        self::NOTA_DINAS => 'Nota Dinas',
     ];
 
     protected $table = 'naskah_berkas';
 
-    protected $fillable = ['naskah_id', 'jenis', 'path', 'nama_asli', 'aktif', 'diunggah_oleh'];
+    protected $fillable = ['naskah_id', 'jenis', 'path', 'nama_asli', 'aktif', 'keterangan', 'diunggah_oleh'];
 
     protected function casts(): array
     {

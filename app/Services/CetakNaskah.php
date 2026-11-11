@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Naskah;
 use App\Models\NaskahBaris;
+use App\Models\NaskahBerkas;
 use App\Models\NaskahNotaDinas;
 use App\Models\PerangkatDaerah;
 use App\Models\TandaTangan;
@@ -17,6 +18,7 @@ use Dompdf\Dompdf;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpWord\ComplexType\TblWidth;
 use PhpOffice\PhpWord\Element\Cell;
 use PhpOffice\PhpWord\Element\Footer;
@@ -609,7 +611,24 @@ class CetakNaskah
         return $hasil;
     }
 
+    /**
+     * Nota dinas yang berlaku: PDF yang dibekukan saat terbit (atau saat terakhir diterbitkan ulang),
+     * jadi perubahan menu Format Dokumen tidak mengubah surat yang sudah terbit. Nota dinas lama yang
+     * terbit sebelum ada pembekuan dibuat langsung dari pengaturan sekarang.
+     */
     public function pdfNotaDinas(Naskah $naskah): string
+    {
+        $berlaku = $naskah->berkas()->where('jenis', NaskahBerkas::NOTA_DINAS)->where('aktif', true)->latest('id')->first();
+
+        if ($berlaku && Storage::disk('local')->exists($berlaku->path)) {
+            return Storage::disk('local')->get($berlaku->path);
+        }
+
+        return $this->pdfNotaDinasTerkini($naskah);
+    }
+
+    /** Nota dinas dari pengaturan Format Dokumen sekarang, untuk dibekukan saat terbit atau terbit ulang. */
+    public function pdfNotaDinasTerkini(Naskah $naskah): string
     {
         $nota = $naskah->notaDinas()->with('tandaTangan')->firstOrFail();
         $naskah->loadMissing('pemrakarsa.perangkatDaerah');

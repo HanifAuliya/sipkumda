@@ -363,6 +363,29 @@
                                         Belum terbit
                                     @endif
                                 </dd>
+                                @if ($nota && $notaBerlaku)
+                                    {{-- PDF dibekukan saat terbit; versi sebelumnya ada di tab Berkas. --}}
+                                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                                        Versi {{ $versiNota }}{{ $versiNota > 1 ? ' · diterbitkan ulang ' . $notaBerlaku->created_at->translatedFormat('d M Y') : '' }}
+                                    </p>
+                                @endif
+                                @if ($bolehTerbitUlang)
+                                    <div x-data="{ buka: false }" x-on:nota-terbit-ulang.window="buka = false" class="mt-2">
+                                        <x-ui.button size="rapat" variant="outline" icon="arrow-clockwise" x-show="!buka" x-on:click="buka = true; $nextTick(() => $refs.alasan.focus())">Terbitkan Ulang</x-ui.button>
+                                        <form x-show="buka" x-cloak wire:submit="terbitUlangNota" class="space-y-2">
+                                            <x-form.field label="Alasan penerbitan ulang" for="alasanTerbitUlang" error="alasanTerbitUlang" required
+                                                hint="Nota dinas dibuat lagi dari pengaturan Format Dokumen terbaru dengan nomor dan tanggal yang sama. Versi sekarang tetap disimpan di tab Berkas.">
+                                                <textarea id="alasanTerbitUlang" x-ref="alasan" wire:model="alasanTerbitUlang" rows="2" maxlength="500"
+                                                    placeholder="Contoh: kop surat diperbarui"
+                                                    class="w-full rounded-lg border-slate-200 text-sm dark:border-navy-700 dark:bg-navy-950"></textarea>
+                                            </x-form.field>
+                                            <div class="flex gap-2">
+                                                <x-ui.button type="submit" size="rapat" icon="arrow-clockwise" loading="terbitUlangNota">Terbitkan Ulang</x-ui.button>
+                                                <x-ui.button size="rapat" variant="outline" x-on:click="buka = false">Batal</x-ui.button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                @endif
                             </div>
                         </dl>
                         @if ($tahap !== TahapNaskah::Final)
@@ -473,8 +496,11 @@
                             <div class="min-w-0 flex-1">
                                 <p class="truncate text-sm font-semibold text-navy-900 dark:text-slate-100">{{ $file->nama_asli }}</p>
                                 <p class="text-sm text-slate-500">
-                                    {{ NaskahBerkas::LABEL[$file->jenis] }}{{ $file->aktif ? '' : ' (versi lama)' }} · {{ $file->pengunggah->nama_user ?? '-' }} · {{ $file->created_at->translatedFormat('d M Y H:i') }}
+                                    {{ NaskahBerkas::LABEL[$file->jenis] }}{{ $file->aktif ? '' : ($file->jenis === NaskahBerkas::NOTA_DINAS ? ' (diganti)' : ' (versi lama)') }} · {{ $file->pengunggah->nama_user ?? '-' }} · {{ $file->created_at->translatedFormat('d M Y H:i') }}
                                 </p>
+                                @if (filled($file->keterangan))
+                                    <p class="text-sm text-slate-500 italic dark:text-slate-400">Alasan: {{ $file->keterangan }}</p>
+                                @endif
                             </div>
                             <x-ui.button size="rapat" variant="outline" icon="download" :href="route('v2.naskah.berkas', [$naskah, $file])">Unduh</x-ui.button>
                         </div>
@@ -524,6 +550,8 @@
                                         menambah baris {{ $sasaran ?? $r->sesudah }}
                                     @elseif ($r->aksi === 'buang_baris')
                                         menghapus baris sisipan {{ $r->sesudah }}
+                                    @elseif ($r->aksi === 'terbit_ulang_nota')
+                                        menerbitkan ulang nota dinas: {{ $r->sesudah }}
                                     @else
                                         menandai {{ $sasaran }}: {{ B::LABEL_STATUS[$rincian['status'] ?? 'belum'] ?? '' }}
                                     @endif

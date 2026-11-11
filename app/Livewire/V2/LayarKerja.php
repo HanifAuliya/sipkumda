@@ -65,6 +65,9 @@ class LayarKerja extends Component
     public string $kepada = '';
     public ?int $tandaTanganId = null;
 
+    /** Alasan Admin menerbitkan ulang nota dinas dari pengaturan Format Dokumen terbaru. */
+    public string $alasanTerbitUlang = '';
+
     public string $tanggalTahapan = '';
 
     /** Isian arsip. */
@@ -242,6 +245,17 @@ class LayarKerja extends Component
             'nomorArsip', 'tanggalPenetapan', 'nomorBerita', 'tahunBerita', 'fileArsip');
     }
 
+    public function terbitUlangNota(AlurNaskah $alur): void
+    {
+        Gate::authorize('view', $this->naskah);
+        $berkas = $alur->terbitUlangNota($this->naskah, auth()->user(), $this->alasanTerbitUlang);
+
+        $this->reset('alasanTerbitUlang');
+        $this->naskah->refresh();
+        $this->dispatch('nota-terbit-ulang');
+        $this->dispatch('swal:toast', ['type' => 'success', 'message' => "Nota dinas diterbitkan ulang ({$berkas->nama_asli})."]);
+    }
+
     public function buangDraf(AlurNaskah $alur)
     {
         $nama = $this->naskah->nomor === null
@@ -399,6 +413,10 @@ class LayarKerja extends Component
                 ? PemeriksaPenomoran::periksa($this->naskah->baris()->where('bagian', 'batang_tubuh')->get())
                 : [],
             'nota' => $this->naskah->tahap->langkah() >= 4 || $this->naskah->tahap === TahapNaskah::ValidasiFasilitasi ? $this->naskah->notaDinas()->first() : null,
+            // Versi PDF nota dinas yang berlaku; versi yang diganti ada di tab Berkas.
+            'notaBerlaku' => $this->naskah->berkas()->where('jenis', NaskahBerkas::NOTA_DINAS)->where('aktif', true)->latest('id')->first(),
+            'versiNota' => $this->naskah->berkas()->where('jenis', NaskahBerkas::NOTA_DINAS)->count(),
+            'bolehTerbitUlang' => $alur->bolehTerbitUlangNota($this->naskah, $user),
             'isiVersi' => $this->versiTerpilih ? $this->naskah->versi()->find($this->versiTerpilih) : null,
             'bolehUnggah' => $this->bolehUnggah($alur),
             'blokNaskah' => match (true) {

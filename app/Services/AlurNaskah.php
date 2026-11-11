@@ -6,6 +6,7 @@ use App\Enums\TahapNaskah as T;
 use App\Models\DokumentasiProdukHukum;
 use App\Models\Naskah;
 use App\Models\NaskahBaris as B;
+use App\Models\NaskahBerkas;
 use App\Models\NaskahNotaDinas;
 use App\Models\NaskahRiwayat;
 use App\Models\NotaDinas;
@@ -21,6 +22,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -211,7 +213,7 @@ class AlurNaskah
             $this->gagal('tandaTanganId', 'Pilih tanda tangan.');
         }
 
-        return Cache::lock('nomor-nota-dinas', 15)->block(10, fn () => DB::transaction(function () use ($naskah, $user, $nomorInputan, $kepada, $tandaTanganId) {
+        $naskah = Cache::lock('nomor-nota-dinas', 15)->block(10, fn () => DB::transaction(function () use ($naskah, $user, $nomorInputan, $kepada, $tandaTanganId) {
             $naskah = $this->kunciUntukAksi($naskah, $user, 'terbitkan_nota');
             $tahun = now()->year;
             $pola = FormatDokumen::nota()['nomor'];
@@ -234,6 +236,70 @@ class AlurNaskah
 
             return $this->pindah($naskah, $user, T::Penandatanganan);
         }));
+
+        // Dibekukan di luar kunci nomor supaya penerbit lain tidak ikut menunggu pembuatan PDF.
+        // Bila gagal, nota dinas tetap terbit dan unduhannya dibuat langsung dari pengaturan.
+        try {
+            $this->simpanPdfNota($naskah, $user, null);
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
+        return $naskah;
+    }
+
+    /**
+     * Admin menerbitkan ulang nota dinas dari pengaturan Format Dokumen terbaru, misalnya karena kop
+     * atau pejabat berganti. Nomor dan tanggalnya tetap; versi sebelumnya disimpan sebagai "diganti".
+     */
+    public function terbitUlangNota(Naskah $naskah, User $user, ?string $alasan): NaskahBerkas
+    {
+        if (! $user->hasAnyRole(['Admin', 'Super Admin'])) {
+            abort(403, 'Hanya Admin yang bisa menerbitkan ulang nota dinas.');
+        }
+        if (blank($alasan)) {
+            $this->gagal('alasanTerbitUlang', 'Tulis alasan penerbitan ulang.');
+        }
+
+        return DB::transaction(function () use ($naskah, $user, $alasan) {
+            $naskah = Naskah::whereKey($naskah->id)->lockForUpdate()->firstOrFail();
+
+            if (! $this->bolehTerbitUlangNota($naskah, $user)) {
+                abort(403, 'Nota dinas tidak bisa diterbitkan ulang pada tahap ini.');
+            }
+
+            $berkas = $this->simpanPdfNota($naskah, $user, trim($alasan));
+            $this->catat($naskah, $user, 'terbit_ulang_nota', trim($alasan), null, $berkas->nama_asli);
+
+            return $berkas;
+        });
+    }
+
+    public function bolehTerbitUlangNota(Naskah $naskah, User $user): bool
+    {
+        return $user->hasAnyRole(['Admin', 'Super Admin'])
+            && $naskah->tahap !== T::Selesai
+            && $naskah->notaDinas()->exists();
+    }
+
+    /** Membuat PDF nota dinas dari pengaturan sekarang dan menyimpannya sebagai versi yang berlaku. */
+    private function simpanPdfNota(Naskah $naskah, User $user, ?string $alasan): NaskahBerkas
+    {
+        $isi = app(CetakNaskah::class)->pdfNotaDinasTerkini($naskah);
+        $versi = $naskah->berkas()->where('jenis', NaskahBerkas::NOTA_DINAS)->count() + 1;
+        $path = "naskah/{$naskah->slug}/nota-dinas-v{$versi}-" . Str::random(8) . '.pdf';
+
+        Storage::disk('local')->put($path, $isi);
+        $naskah->berkas()->where('jenis', NaskahBerkas::NOTA_DINAS)->update(['aktif' => false]);
+
+        return $naskah->berkas()->create([
+            'jenis' => NaskahBerkas::NOTA_DINAS,
+            'path' => $path,
+            'nama_asli' => "Nota Dinas {$naskah->nomor_tampil} versi {$versi}.pdf",
+            'aktif' => true,
+            'keterangan' => $alasan,
+            'diunggah_oleh' => $user->id,
+        ]);
     }
 
     private function nomorNotaDipakai(int $nomor, string $jenis, int $tahun, bool $perJenis = true): bool
@@ -404,7 +470,6 @@ class AlurNaskah
         });
     }
 
-    /** Membuang draf yang tidak jadi diajukan beserta berkasnya. */
     /**
      * Perangkat Daerah boleh membuang drafnya sendiri selama belum pernah diajukan (belum bernomor).
      * Rancangan yang sudah bernomor hanya bisa dihapus Admin, supaya nomor yang sudah tercatat di nota
@@ -419,6 +484,7 @@ class AlurNaskah
         return $naskah->tahap === T::Draf && $naskah->pemrakarsa_id === $user->id;
     }
 
+    /** Membuang draf (atau rancangan bernomor, oleh Admin) beserta berkasnya. */
     public function buangDraf(Naskah $naskah, User $user): void
     {
         $slug = DB::transaction(function () use ($naskah, $user) {

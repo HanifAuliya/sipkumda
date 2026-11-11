@@ -7,6 +7,11 @@
 @endphp
 
 <form wire:submit="simpan('nota')" class="space-y-6" wire:key="format-nota">
+    <x-ui.alert type="warning" icon="exclamation-triangle">
+        Perubahan berlaku untuk nota dinas yang terbit <strong>sesudah disimpan</strong>. Nota dinas yang sudah terbit tidak berubah;
+        bila perlu ikut diperbarui, Admin bisa menekan <strong>Terbitkan Ulang</strong> di naskahnya. Versi sebelumnya tetap tersimpan.
+    </x-ui.alert>
+
     <x-ui.alert type="info" icon="info-circle">
         Teks di bawah boleh memuat isian otomatis:
         @foreach (FormatDokumen::ISIAN_NOTA as $isian => $arti)
