@@ -4,8 +4,8 @@
 --}}
 @php
     $sections = \App\Support\Navigation::for(auth()->user());
-    // v2 berpindah menu tanpa memuat ulang halaman; aplikasi lama tetap seperti semula.
-    $tanpaMuatUlang = \App\Support\Navigation::modeV2();
+    // Berpindah menu tanpa memuat ulang halaman.
+    $tanpaMuatUlang = true;
 @endphp
 
 {{-- Latar gelap saat laci terbuka (mobile) --}}

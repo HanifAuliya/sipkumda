@@ -1,9 +1,7 @@
 <?php
 
 use App\Exports\DokumentasiExport;
-use App\Livewire\PerangkatDaerah\Rancangan\SedangDiajukan;
 use App\Livewire\Profile\UpdateProfileInformation;
-use App\Livewire\Verifikator\Rancangan\MenungguPeneliti;
 use App\Models\RancanganProdukHukum;
 use App\Models\Revisi;
 use App\Models\User;
@@ -83,35 +81,12 @@ describe('login', function () {
 });
 
 describe('aksi livewire', function () {
-    it('tidak bisa upload ulang berkas rancangan milik perangkat daerah lain', function () {
-        $milikOrangLain = rancanganMilik(akun('Perangkat Daerah'));
-
-        Livewire::actingAs(akun('Perangkat Daerah'))
-            ->test(SedangDiajukan::class)
-            ->call('openUploadUlangModal', $milikOrangLain->id_rancangan)
-            ->assertNotFound()
-            ->assertSet('selectedRancanganId', null);
-    });
-
     it('tidak bisa mengubah NIP sendiri dari form profil', function () {
         Livewire::actingAs(akun('Perangkat Daerah'))
             ->test(UpdateProfileInformation::class)
             ->set('NIP', 'nip-orang-lain');
     })->throws(CannotUpdateLockedPropertyException::class);
 
-    it('hanya akun peneliti yang bisa ditunjuk sebagai peneliti', function () {
-        $rancangan = rancanganMilik(akun('Perangkat Daerah'), ['status_berkas' => 'Disetujui']);
-        Revisi::create(['id_rancangan' => $rancangan->id_rancangan, 'status_revisi' => 'Menunggu Peneliti', 'status_validasi' => 'Belum Tahap Validasi']);
-
-        Livewire::actingAs(akun('Verifikator'))
-            ->test(MenungguPeneliti::class)
-            ->call('openModal', $rancangan->id_rancangan)
-            ->set('selectedPeneliti', akun('Perangkat Daerah')->id)
-            ->call('assignPeneliti')
-            ->assertHasErrors('selectedPeneliti');
-
-        expect($rancangan->revisi()->first()->status_revisi)->toBe('Menunggu Peneliti');
-    });
 });
 
 it('menyimpan teks berawalan = di ekspor Excel sebagai teks, bukan rumus', function () {

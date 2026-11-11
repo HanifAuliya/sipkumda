@@ -20,35 +20,8 @@ beforeEach(function () {
     $this->peran = fn (string $peran) => tap(User::factory()->create(['email_verified_at' => now()]))->assignRole($peran);
 });
 
-describe('pilih aplikasi', function () {
-    it('halaman pilihan menawarkan kedua aplikasi', function () {
-        $this->actingAs(($this->peran)('Admin'))->get(route('aplikasi.pilih'))
-            ->assertOk()->assertSee('SIFKUMDA v2')->assertSee('Aplikasi saat ini');
-    });
-
-    it('menuju aplikasi yang dipilih dan mengingat pilihannya', function (string $pilihan, string $tujuan) {
-        $this->actingAs(($this->peran)('Admin'))
-            ->post(route('aplikasi.simpan'), ['aplikasi' => $pilihan])
-            ->assertRedirect(route($tujuan))
-            ->assertSessionHas(Navigation::SESI_APLIKASI, $pilihan);
-    })->with([
-        'lama' => [Navigation::LAMA, 'dashboard'],
-        'v2' => [Navigation::V2, 'v2.beranda'],
-    ]);
-
-    it('menolak pilihan yang tidak dikenal', function () {
-        $this->actingAs(($this->peran)('Admin'))
-            ->post(route('aplikasi.simpan'), ['aplikasi' => 'lain'])
-            ->assertSessionHasErrors('aplikasi');
-    });
-
-    it('harus login', function () {
-        $this->get(route('aplikasi.pilih'))->assertRedirect(route('login'));
-    });
-});
-
 describe('menu', function () {
-    it('halaman v2 memakai kerangka lama dengan menu v2', function () {
+    it('menu Peneliti memuat pekerjaannya', function () {
         $this->actingAs(($this->peran)('Peneliti'))->get(route('v2.beranda'))
             ->assertOk()
             ->assertSee('Penelitian Rancangan')
@@ -56,14 +29,9 @@ describe('menu', function () {
             ->assertDontSee('Upload Penelitian');
     });
 
-    it('halaman bersama tetap memakai menu aplikasi yang dipilih', function () {
-        $admin = ($this->peran)('Admin');
-
-        $this->actingAs($admin)->withSession([Navigation::SESI_APLIKASI => Navigation::V2])
-            ->get(route('user.management'))->assertOk()->assertSee('Pengaturan Naskah');
-
-        $this->actingAs($admin)->withSession([Navigation::SESI_APLIKASI => Navigation::LAMA])
-            ->get(route('user.management'))->assertOk()->assertDontSee('Pengaturan Naskah');
+    it('halaman di luar alur naskah memakai menu yang sama', function () {
+        $this->actingAs(($this->peran)('Admin'))->get(route('user.management'))
+            ->assertOk()->assertSee('Pengaturan Naskah')->assertSee('Persetujuan Berkas');
     });
 
     it('setiap peran hanya melihat menu pekerjaannya', function (string $peran, array $ada, array $tidak) {
@@ -84,13 +52,13 @@ describe('menu', function () {
         'verifikator' => ['Verifikator', ['Pilih Peneliti', 'Validasi Rancangan', 'Validasi Fasilitasi', 'Kelola TTD'], ['Rancanganku', 'Persetujuan Berkas']],
     ]);
 
-    it('semua menu v2 bisa dibuka oleh perannya', function (string $peran) {
+    it('semua menu bisa dibuka oleh perannya', function (string $peran) {
         $user = ($this->peran)($peran);
         $this->actingAs($user)->get(route('v2.beranda'))->assertOk();
 
-        foreach (Navigation::sectionsV2() as $bagian) {
+        foreach (Navigation::sections() as $bagian) {
             foreach ($bagian['items'] as $item) {
-                if (($item['route'] === 'v2.daftar' || str_starts_with($item['route'], 'v2.')) && (empty($item['roles']) || $user->hasAnyRole($item['roles']))) {
+                if (empty($item['roles']) || $user->hasAnyRole($item['roles'])) {
                     $this->get(route($item['route'], $item['params'] ?? []))->assertOk();
                 }
             }
@@ -203,12 +171,11 @@ describe('detail naskah', function () {
             ->call('tutup')->assertSet('naskahId', null)->assertDontSee('Tentang Uji');
     });
 
-    it('modal tersedia di halaman v2 dan halaman bersama, tidak di aplikasi lama', function () {
+    it('modal detail tersedia di semua halaman dalam', function () {
         $admin = ($this->peran)('Admin');
 
         $this->actingAs($admin)->get(route('v2.beranda'))->assertSeeLivewire(DetailNaskah::class);
-        $this->withSession([Navigation::SESI_APLIKASI => Navigation::V2])->get(route('user.management'))->assertSeeLivewire(DetailNaskah::class);
-        $this->withSession([Navigation::SESI_APLIKASI => Navigation::LAMA])->get(route('user.management'))->assertDontSeeLivewire(DetailNaskah::class);
+        $this->get(route('user.management'))->assertSeeLivewire(DetailNaskah::class);
     });
 });
 

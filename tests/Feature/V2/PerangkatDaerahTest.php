@@ -17,7 +17,7 @@ it('menu Perangkat Daerah hanya untuk Admin', function () {
 
     $this->actingAs($pd)->get(route('v2.perangkat-daerah'))->assertForbidden();
     $this->actingAs($verifikator)->get(route('v2.perangkat-daerah'))->assertForbidden();
-    $this->actingAs($this->admin)->withSession(['aplikasi' => 'v2'])->get(route('v2.perangkat-daerah'))
+    $this->actingAs($this->admin)->get(route('v2.perangkat-daerah'))
         ->assertOk()->assertSee('Tambah Perangkat Daerah');
 });
 

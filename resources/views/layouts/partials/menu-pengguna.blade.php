@@ -1,17 +1,10 @@
 {{--
     Tema, notifikasi, dan menu pengguna. Warnanya mengikuti warna teks pembungkusnya,
     jadi cocok untuk topbar navy maupun header putih lembar kerja.
-
-    $modeV2 wajib dikirim pemanggil: lembar kerja merender bagian ini lewat permintaan Livewire,
-    dan Navigation::modeV2() tidak bisa mengenali v2 dari rute permintaan itu.
 --}}
 <x-ui.tombol-tema />
 
-@if ($modeV2)
-    <livewire:v2.lonceng wire:key="lonceng-pengguna" />
-@else
-    <livewire:notification-dropdown />
-@endif
+<livewire:v2.lonceng wire:key="lonceng-pengguna" />
 
 <x-ui.dropdown width="w-60">
     <x-slot:trigger>
@@ -28,7 +21,6 @@
     </div>
     <div class="pt-1.5">
         <x-ui.dropdown-item :href="route('profile.edit')" icon="person">Profil Saya</x-ui.dropdown-item>
-        <x-ui.dropdown-item :href="route('aplikasi.pilih')" icon="arrow-left-right">Pindah Aplikasi</x-ui.dropdown-item>
         <form method="POST" action="{{ route('logout') }}">
             @csrf
             <x-ui.dropdown-item type="submit" icon="box-arrow-right" danger>Keluar</x-ui.dropdown-item>

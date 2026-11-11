@@ -26,20 +26,11 @@
         @include('layouts.partials.footer')
     </div>
 
-    {{-- Modal detail bersama: Livewire.dispatch('openModalDetailRancangan', { slug }) / ('openDetailFasilitasi', { id }) --}}
-    @if (\App\Support\Navigation::modeV2())
-        <livewire:v2.detail-naskah />
-    @endif
-
-    @unless (request()->routeIs('v2.*'))
-        <livewire:notification-modal.detail-rancangan />
-        <livewire:fasilitasi.detail-fasilitasi />
-    @endunless
+    {{-- Modal detail naskah bersama: Livewire.dispatch('bukaDetailNaskah', { slug }) --}}
+    <livewire:v2.detail-naskah />
 
     {{-- Dipakai resources/js/navigasi.js bila server lambat saat berpindah menu. --}}
-    @if (\App\Support\Navigation::modeV2())
-        <template id="kerangka-halaman">@include('layouts.partials.kerangka')</template>
-    @endif
+    <template id="kerangka-halaman">@include('layouts.partials.kerangka')</template>
 
     @livewireScriptConfig
     @stack('scripts')

@@ -1,7 +1,6 @@
 <?php
 
 use App\Enums\TahapNaskah as T;
-use App\Livewire\NotificationDropdown;
 use App\Livewire\V2\LayarKerja;
 use App\Livewire\V2\Lonceng;
 use App\Livewire\V2\Notifikasi;
@@ -148,7 +147,7 @@ describe('keadaan belum dibaca', function () {
         expect($this->admin->notifikasiNaskah()->count())->toBe(0);
     });
 
-    it('lonceng v2 dan lonceng lama tidak saling mencampur notifikasi', function () {
+    it('lonceng hanya memuat notifikasi naskah, bukan sisa notifikasi alur sebelumnya', function () {
         $this->pd->notify(new NaskahNotification(['kategori' => 'kabar', 'title' => 'Kabar naskah v2', 'message' => '-']));
         DatabaseNotification::create([
             'id' => (string) str()->uuid(), 'type' => 'App\Notifications\ValidationResultNotification',
@@ -158,10 +157,6 @@ describe('keadaan belum dibaca', function () {
         Livewire::actingAs($this->pd)->test(Lonceng::class)
             ->assertSee('Kabar naskah v2')->assertDontSee('Kabar alur lama')
             ->assertViewHas('belumDibaca', 1);
-
-        Livewire::actingAs($this->pd)->test(NotificationDropdown::class)
-            ->assertSee('Kabar alur lama')->assertDontSee('Kabar naskah v2')
-            ->assertViewHas('unreadCount', 1);
     });
 
     it('notifikasi format lama tetap tampil', function () {

@@ -8,73 +8,14 @@ use Illuminate\Support\Facades\Route;
 /**
  * Struktur menu sidebar beserta role yang boleh melihat tiap item.
  * Item tanpa "roles" tampil untuk semua pengguna yang login.
- *
- * Aplikasi lama dan v2 memakai kerangka tampilan yang sama; yang berbeda hanya isi menunya.
  */
 class Navigation
 {
-    /** Kunci sesi pilihan aplikasi setelah login. */
-    public const SESI_APLIKASI = 'aplikasi';
-
-    public const LAMA = 'lama';
-
-    public const V2 = 'v2';
-
-    public static function sections(): array
-    {
-        return [
-            [
-                'title' => null,
-                'items' => [
-                    ['label' => 'Dashboard', 'route' => 'dashboard', 'icon' => 'grid-1x2'],
-                ],
-            ],
-            [
-                'title' => 'Manajemen User',
-                'items' => [
-                    ['label' => 'Profil', 'route' => 'profile.edit', 'icon' => 'person'],
-                    ['label' => 'Daftar Pengguna', 'route' => 'user.management', 'icon' => 'people', 'roles' => ['Admin', 'Verifikator', 'Super Admin']],
-                ],
-            ],
-            [
-                'title' => 'Rancangan Produk Hukum',
-                'items' => [
-                    ['label' => 'Rancanganku', 'route' => 'rancanganku', 'icon' => 'clipboard2', 'roles' => ['Perangkat Daerah']],
-                    ['label' => 'Daftar Rancangan', 'route' => 'daftar-rancangan', 'icon' => 'clipboard2-data', 'roles' => ['Admin', 'Verifikator', 'Perangkat Daerah', 'Peneliti', 'Super Admin']],
-                    ['label' => 'Persetujuan Berkas', 'route' => 'admin.persetujuan', 'icon' => 'clipboard2-check', 'roles' => ['Admin']],
-                    ['label' => 'Template Bahan Penting', 'route' => 'bahan-penting', 'icon' => 'list-task', 'roles' => ['Admin']],
-                    ['label' => 'Pilih Peneliti', 'route' => 'verifikator.pilih-peneliti', 'icon' => 'person-check', 'roles' => ['Verifikator']],
-                    ['label' => 'Upload Penelitian', 'route' => 'revisi.rancangan', 'icon' => 'pencil-square', 'roles' => ['Peneliti']],
-                    ['label' => 'Validasi Rancangan', 'route' => 'verifikator.validasi-rancangan', 'icon' => 'patch-check', 'roles' => ['Verifikator']],
-                ],
-            ],
-            [
-                'title' => 'Fasilitasi Produk Hukum',
-                'items' => [
-                    ['label' => 'Fasilitasiku', 'route' => 'fasilitasiku.main', 'icon' => 'files', 'roles' => ['Perangkat Daerah']],
-                    ['label' => 'Persetujuan Fasilitasi', 'route' => 'persetujuan-fasilitasi.main', 'icon' => 'file-check', 'roles' => ['Peneliti']],
-                    ['label' => 'Validasi Fasilitasi', 'route' => 'validasi-fasilitasi', 'icon' => 'file-earmark-check', 'roles' => ['Verifikator']],
-                    ['label' => 'Kelola TTD', 'route' => 'kelola-ttd.main', 'icon' => 'pen', 'roles' => ['Verifikator']],
-                    ['label' => 'Daftar Nota Dinas', 'route' => 'nota-dinas.generate', 'icon' => 'file-text', 'roles' => ['Admin', 'Verifikator', 'Perangkat Daerah']],
-                    ['label' => 'Manajemen Fasilitasi', 'route' => 'manajemen-fasilitasi', 'icon' => 'file-earmark-break', 'roles' => ['Admin', 'Tamu']],
-                    ['label' => 'Daftar Fasilitasi', 'route' => 'daftar-fasilitasi', 'icon' => 'collection', 'roles' => ['Admin', 'Verifikator', 'Peneliti', 'Super Admin']],
-                ],
-            ],
-            [
-                'title' => 'Dokumentasi Produk Hukum',
-                'items' => [
-                    ['label' => 'Daftar Dokumentasi', 'route' => 'dokumentasi.main', 'icon' => 'folder-check', 'roles' => ['Admin', 'Verifikator', 'Perangkat Daerah', 'Peneliti']],
-                    ['label' => 'Master Data', 'route' => 'masterdata.main', 'icon' => 'journals', 'roles' => ['Admin', 'Verifikator', 'Peneliti', 'Super Admin']],
-                ],
-            ],
-        ];
-    }
-
     /**
-     * Menu v2 mengikuti susunan menu lama, disesuaikan dengan alur baru:
-     * semua pekerjaan rancangan dan fasilitasi membuka naskah yang sama, tanpa unggah ulang berkas.
+     * Susunan menu mengikuti aplikasi sebelumnya supaya tetap dikenali pengguna: semua pekerjaan
+     * rancangan dan fasilitasi membuka naskah yang sama, tanpa unggah ulang berkas.
      */
-    public static function sectionsV2(): array
+    public static function sections(): array
     {
         $daftar = fn (string $label, string $kelompok, string $icon, ?array $roles = null) => array_filter([
             'label' => $label,
@@ -142,34 +83,9 @@ class Navigation
         ];
     }
 
-    /**
-     * Halaman v2 selalu memakai menu v2. Halaman lama yang juga ada di menu v2 (Profil, Kelola TTD, dst.)
-     * mengikuti aplikasi yang dipilih, sehingga pengguna tidak terlempar ke menu lama saat membukanya.
-     */
-    public static function modeV2(): bool
-    {
-        $rute = request()->route()?->getName() ?? '';
-
-        if (str_starts_with($rute, 'v2.')) {
-            return true;
-        }
-
-        if (session(self::SESI_APLIKASI) !== self::V2) {
-            return false;
-        }
-
-        return collect(self::sectionsV2())->pluck('items')->flatten(1)->contains('route', $rute);
-    }
-
-    /** Aplikasi pilihan pengguna, juga terbaca pada permintaan pembaruan Livewire. */
-    public static function dipilihV2(): bool
-    {
-        return session(self::SESI_APLIKASI) === self::V2;
-    }
-
     public static function beranda(): string
     {
-        return route(self::modeV2() ? 'v2.beranda' : 'dashboard');
+        return route('v2.beranda');
     }
 
     public static function aktif(array $item): bool
@@ -194,7 +110,7 @@ class Navigation
      */
     public static function for(Authenticatable $user): array
     {
-        return collect(self::modeV2() ? self::sectionsV2() : self::sections())
+        return collect(self::sections())
             ->map(function (array $section) use ($user) {
                 $section['items'] = array_values(array_filter(
                     $section['items'],

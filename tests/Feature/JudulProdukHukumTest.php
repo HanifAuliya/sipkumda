@@ -1,7 +1,6 @@
 <?php
 
 use App\Livewire\Dokumentasi\AjukanDokumentasiProdukHukum;
-use App\Livewire\PerangkatDaerah\Rancangan\AjukanRancangan;
 use App\Models\DokumentasiProdukHukum;
 use App\Models\PerangkatDaerah;
 use App\Models\RancanganProdukHukum;
@@ -51,18 +50,10 @@ it('arsip manual menolak judul yang melewati batas dengan pesan, bukan error dat
     expect(DokumentasiProdukHukum::count())->toBe(0);
 });
 
-it('rancangan aplikasi lama bisa menyimpan judul panjang sampai batas kolom', function () {
+it('data rancangan dari alur sebelumnya bisa memuat judul panjang sampai batas kolom', function () {
     $rancangan = RancanganProdukHukum::factory()->create(['tentang' => str_repeat('a', DokumentasiProdukHukum::TENTANG_MAKS)]);
 
     expect(mb_strlen($rancangan->refresh()->tentang))->toBe(DokumentasiProdukHukum::TENTANG_MAKS);
-});
-
-it('form judul tidak menampilkan penghitung batas', function () {
-    $pd = tap(User::factory()->create())->assignRole('Perangkat Daerah');
-
-    Livewire::actingAs($pd)->test(AjukanRancangan::class)
-        ->assertSeeHtml('<textarea rows="3"')
-        ->assertDontSee('karakter');
 });
 
 it('arsip manual menyimpan judul tempelan Word menjadi satu baris', function () {
@@ -73,14 +64,4 @@ it('arsip manual menyimpan judul tempelan Word menjadi satu baris', function () 
         ->assertHasNoErrors();
 
     expect(DokumentasiProdukHukum::first()->tentang_dokumentasi)->toBe('Perubahan Atas Peraturan Tentang Dana Desa');
-});
-
-it('aplikasi lama merapikan judul sebelum memeriksa pengajuan', function () {
-    $pd = tap(User::factory()->create())->assignRole('Perangkat Daerah');
-
-    Livewire::actingAs($pd)->test(AjukanRancangan::class)
-        ->set('tentang', "Dana\r\n  Desa ")
-        ->call('submit')
-        ->assertSet('tentang', 'Dana Desa')
-        ->assertHasErrors('rancangan');
 });

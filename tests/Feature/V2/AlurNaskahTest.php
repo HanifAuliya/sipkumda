@@ -1,7 +1,6 @@
 <?php
 
 use App\Enums\TahapNaskah as T;
-use App\Livewire\NotificationDropdown;
 use App\Livewire\V2\BarisKerja;
 use App\Livewire\V2\BuatNaskah;
 use App\Livewire\V2\LayarKerja;
@@ -846,9 +845,8 @@ describe('bagian wajib dan lembar kerja', function () {
         Livewire::actingAs($this->peneliti)
             ->test(LayarKerja::class, ['naskah' => $n])
             ->assertSeeLivewire(Lonceng::class)
-            ->assertDontSeeLivewire(NotificationDropdown::class)
             ->call('pilihBlok', 'menimbang')
-            ->assertDontSeeLivewire(NotificationDropdown::class);
+            ->assertSeeLivewire(Lonceng::class);
     });
 
     it('badge Keputusan Bupati berbeda warna dari Peraturan Bupati', function () {

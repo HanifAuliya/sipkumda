@@ -29,7 +29,7 @@ class PasswordConfirmationTest extends TestCase
             'password' => 'password',
         ]);
 
-        $response->assertRedirect('/dashboard');
+        $response->assertRedirect('/v2');
     }
 
     public function test_password_is_not_confirmed_with_invalid_password()

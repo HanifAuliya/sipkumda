@@ -30,7 +30,7 @@ class AuthenticationTest extends TestCase
         ]);
 
         $this->assertAuthenticated();
-        $response->assertRedirect(route('aplikasi.pilih'));
+        $response->assertRedirect(route('v2.beranda'));
     }
 
     public function test_users_can_not_authenticate_with_invalid_password()

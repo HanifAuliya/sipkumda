@@ -14,17 +14,22 @@ beforeEach(function () {
     $this->admin = tap(User::factory()->create())->assignRole('Admin');
 });
 
-it('menu v2 berpindah tanpa muat ulang, sedangkan aplikasi lama tetap seperti semula', function () {
+it('menu berpindah tanpa muat ulang, juga di halaman di luar alur naskah', function () {
+    foreach (['v2.beranda', 'user.management'] as $rute) {
+        $this->actingAs($this->admin)->get(route($rute))
+            ->assertOk()
+            ->assertSee('wire:navigate', false)
+            ->assertSee('data-penanda-menu', false);
+    }
+});
+
+it('alamat lama diarahkan ke Dashboard dan tidak ada lagi pilihan aplikasi', function () {
+    $this->actingAs($this->admin)->get('/dashboard')->assertRedirect('/v2');
+    $this->actingAs($this->admin)->get('/pilih-aplikasi')->assertRedirect('/v2');
+
     $this->actingAs($this->admin)->get(route('v2.beranda'))
         ->assertOk()
-        ->assertSee('wire:navigate', false)
-        ->assertSee('data-penanda-menu', false);
-
-    $this->actingAs($this->admin)->withSession([Navigation::SESI_APLIKASI => Navigation::LAMA])
-        ->get(route('dashboard'))
-        ->assertOk()
-        ->assertDontSee('wire:navigate', false)
-        ->assertDontSee('data-penanda-menu', false);
+        ->assertDontSee('Pindah Aplikasi');
 });
 
 it('tampilan awal selalu terang, tidak mengikuti tema Windows atau HP', function () {
@@ -43,16 +48,13 @@ it('tampilan awal selalu terang, tidak mengikuti tema Windows atau HP', function
     }
 });
 
-it('kerangka saat server lambat hanya ada di v2, layar masuk ada di kedua aplikasi', function () {
-    $this->actingAs($this->admin)->get(route('v2.beranda'))
-        ->assertSee('id="kerangka-halaman"', false)
-        ->assertSee('id="layar-masuk"', false)
-        ->assertSee('Sistem Fasilitasi Produk Hukum Daerah');
-
-    $this->actingAs($this->admin)->withSession([Navigation::SESI_APLIKASI => Navigation::LAMA])
-        ->get(route('dashboard'))
-        ->assertDontSee('id="kerangka-halaman"', false)
-        ->assertSee('id="layar-masuk"', false);
+it('kerangka saat server lambat dan layar masuk ada di semua halaman dalam', function () {
+    foreach (['v2.beranda', 'user.management'] as $rute) {
+        $this->actingAs($this->admin)->get(route($rute))
+            ->assertSee('id="kerangka-halaman"', false)
+            ->assertSee('id="layar-masuk"', false)
+            ->assertSee('Sistem Fasilitasi Produk Hukum Daerah');
+    }
 });
 
 it('layar masuk tampil lagi setelah login berikutnya', function () {
@@ -61,23 +63,15 @@ it('layar masuk tampil lagi setelah login berikutnya', function () {
     $this->get(route('login'))->assertOk()->assertSee("sessionStorage.removeItem('splash-shown')", false);
 });
 
-it('tombol Kembali mengikuti aplikasi yang sedang dipakai', function () {
-    // Halaman lama yang dibuka dari menu v2 tidak boleh melempar pengguna ke aplikasi lama.
-    $this->actingAs($this->admin)->withSession([Navigation::SESI_APLIKASI => Navigation::V2])
-        ->get(route('user.management'))
+it('tombol Kembali di halaman mana pun menuju Dashboard', function () {
+    $this->actingAs($this->admin)->get(route('user.management'))
         ->assertOk()
         ->assertSee('href="'.route('v2.beranda').'"', false);
-
-    $this->actingAs($this->admin)->withSession([Navigation::SESI_APLIKASI => Navigation::LAMA])
-        ->get(route('user.management'))
-        ->assertOk()
-        ->assertSee('href="'.route('dashboard').'"', false)
-        ->assertDontSee('wire:navigate', false);
 });
 
 it('setiap menu v2 satu peran memakai ikon yang berbeda', function () {
     foreach (['Admin', 'Verifikator', 'Peneliti', 'Perangkat Daerah', 'Tamu'] as $peran) {
-        $menu = collect(Navigation::sectionsV2())->pluck('items')->flatten(1)
+        $menu = collect(Navigation::sections())->pluck('items')->flatten(1)
             ->filter(fn (array $item) => empty($item['roles']) || in_array($peran, $item['roles'], true));
 
         expect($menu->pluck('icon')->duplicates()->all())->toBe([], "Ikon kembar pada peran {$peran}");

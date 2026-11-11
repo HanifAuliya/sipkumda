@@ -36,15 +36,15 @@
 
     <ul class="mt-2 flex flex-wrap gap-x-5 gap-y-1.5 text-sm text-slate-500 dark:text-slate-400">
         @if ($tahap->langkah() >= 1)
-            <x-rancangan.meta icon="person-gear">
+            <x-naskah.meta icon="person-gear">
                 Peneliti:
                 <span @class(['font-semibold', 'text-primary-600 dark:text-primary-300' => $naskah->peneliti, 'text-rose-500' => ! $naskah->peneliti])>
                     {{ $naskah->peneliti->nama_user ?? 'Belum ditentukan' }}
                 </span>
-            </x-rancangan.meta>
+            </x-naskah.meta>
         @endif
-        <x-rancangan.meta icon="building">{{ $naskah->pemrakarsa->perangkatDaerah->nama_perangkat_daerah ?? $naskah->pemrakarsa->nama_user }}</x-rancangan.meta>
-        <x-rancangan.meta icon="calendar3">{{ $naskah->diajukan_at ? 'Diajukan '.tanggal($naskah->diajukan_at, true) : 'Belum diajukan' }}</x-rancangan.meta>
+        <x-naskah.meta icon="building">{{ $naskah->pemrakarsa->perangkatDaerah->nama_perangkat_daerah ?? $naskah->pemrakarsa->nama_user }}</x-naskah.meta>
+        <x-naskah.meta icon="calendar3">{{ $naskah->diajukan_at ? 'Diajukan '.tanggal($naskah->diajukan_at, true) : 'Belum diajukan' }}</x-naskah.meta>
     </ul>
 
     <div class="mt-4 flex flex-col gap-3 border-t border-slate-100 pt-4 lg:flex-row lg:items-center lg:justify-between dark:border-navy-800">

@@ -6,10 +6,8 @@ use App\Livewire\Dokumentasi\AjukanDokumentasiProdukHukum;
 use App\Livewire\Dokumentasi\Dokumentasi;
 use App\Models\DokumentasiProdukHukum;
 use App\Models\FasilitasiProdukHukum;
-use App\Models\NotaDinas;
 use App\Models\PerangkatDaerah;
 use App\Models\RancanganProdukHukum;
-use App\Models\TandaTangan;
 use App\Models\User;
 use App\Support\Status;
 use Database\Seeders\RoleSeeder;
@@ -80,7 +78,7 @@ it('berkas unduhan JDIH memakai nama resmi', function () {
         ->toContain('keputusan-bupati-nomor-5-tahun-2025.pdf');
 });
 
-describe('alur lama', function () {
+describe('data dari alur sebelumnya', function () {
     beforeEach(function () {
         $pd = User::factory()->create(['perangkat_daerah_id' => PerangkatDaerah::factory()->create()->id]);
         $this->rancangan = RancanganProdukHukum::factory()->create(['id_user' => $pd->id, 'jenis_rancangan' => 'Surat Keputusan']);
@@ -88,21 +86,6 @@ describe('alur lama', function () {
             'rancangan_id' => $this->rancangan->id_rancangan, 'tanggal_fasilitasi' => now(), 'file_rancangan' => 'x.pdf',
             'status_berkas_fasilitasi' => 'Disetujui', 'status_validasi_fasilitasi' => 'Diterima',
         ]);
-    });
-
-    it('nota dinas memakai nama resmi', function () {
-        $ttd = TandaTangan::create([
-            'nama_ttd' => 'NAMA KABAG', 'nip_ttd' => '19731002', 'jabatan' => 'Pembina Tk.I',
-            'file_ttd' => 'tanda_tangan/ttd/x.png', 'dibuat_oleh' => $this->admin->id, 'status' => 'Aktif',
-        ]);
-        $nota = NotaDinas::create([
-            'fasilitasi_id' => $this->fasilitasi->id, 'nomor_inputan' => '21', 'nomor_nota' => 'x',
-            'tanggal_nota' => now(), 'tanda_tangan_id' => $ttd->id, 'kepada' => 'Sekda',
-        ]);
-
-        $html = view('pdf.nota-dinas', ['notaDinas' => $nota])->render();
-
-        expect($html)->toContain('Koreksi atas Keputusan Bupati')->not->toContain('Surat Keputusan');
     });
 
     it('arsip baru dari rancangan tersimpan dengan nama resmi', function () {

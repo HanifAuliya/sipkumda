@@ -116,7 +116,7 @@
         </div>
 
         <div class="ml-auto flex shrink-0 items-center gap-1">
-            @include('layouts.partials.menu-pengguna', ['modeV2' => true])
+            @include('layouts.partials.menu-pengguna')
         </div>
     </header>
 

@@ -1,36 +1,16 @@
 <?php
 
-use App\Http\Controllers\PilihAplikasiController;
-use App\Livewire\Dashboard;
-use App\Livewire\UserManagement;
-use App\Livewire\ProfileManagement;
-
-use Illuminate\Support\Facades\Route;
-
-use App\Livewire\Dokumentasi\MasterData;
-use App\Livewire\Dokumentasi\Dokumentasi;
-use App\Livewire\Rancangan\DaftarRancangan;
-use App\Livewire\Rancangan\TambahBahanPenting;
-use App\Livewire\Admin\NotaDinas\KelolaNotaDinas;
-
-use App\Livewire\Admin\Rancangan\PersetujuanMain;
 use App\Http\Controllers\FotoProfilController;
-use App\Http\Controllers\TandaTanganSayaController;
 use App\Http\Controllers\JdihController;
 use App\Http\Controllers\PrivateFileController;
-use App\Livewire\Peneliti\Rancangan\RevisiRancangan;
-
-use App\Livewire\Verifikator\Rancangan\ValidasiMain;
-use App\Livewire\Verifikator\Rancangan\PilihPeneliti;
-use App\Livewire\Admin\Fasilitasi\ManajemenFasilitasi;
+use App\Http\Controllers\TandaTanganSayaController;
+use App\Livewire\Dokumentasi\Dokumentasi;
+use App\Livewire\Dokumentasi\MasterData;
+use App\Livewire\ProfileManagement;
+use App\Livewire\Rancangan\TambahBahanPenting;
+use App\Livewire\UserManagement;
 use App\Livewire\Verifikator\TandaTangan\PengelolaTtd;
-use App\Livewire\PerangkatDaerah\Rancangan\Rancanganku;
-
-use App\Livewire\FasilitasiProdukHukum\DaftarFasilitasi;
-use App\Livewire\PerangkatDaerah\Fasilitasi\Fasilitasiku;
-use App\Livewire\Verifikator\Fasilitasi\ValidasiFasilitasi;
-use App\Livewire\Peneliti\Fasilitasi\PersetujuanFasilitasiMain;
-
+use Illuminate\Support\Facades\Route;
 
 // Halaman publik (JDIH): tanpa sesi & cookie agar ringan untuk banyak pengunjung
 // dan bisa di-cache browser/proxy. Jangan memakai fitur yang butuh sesi di sini.
@@ -50,105 +30,46 @@ Route::withoutMiddleware([
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/pilih-aplikasi', [PilihAplikasiController::class, 'create'])->name('aplikasi.pilih');
-    Route::post('/pilih-aplikasi', [PilihAplikasiController::class, 'store'])->name('aplikasi.simpan');
     Route::get('/foto-profil', FotoProfilController::class)->name('foto-profil');
     Route::get('/tanda-tangan-saya', TandaTanganSayaController::class)->name('tanda-tangan-saya');
+
+    // Alamat lama (dashboard dan pilihan aplikasi sebelum alur naskah menjadi satu-satunya) diarahkan ke Dashboard.
+    Route::redirect('/dashboard', '/v2');
+    Route::redirect('/pilih-aplikasi', '/v2');
 });
 
 Route::middleware('auth')->group(function () {
-    Route::livewire('/dashboard', Dashboard::class)
-        ->middleware(['verified'])
-        ->name('dashboard');
-
-    // Daftar Rancangan (Semua Role terkait )
-    Route::livewire('/daftar-rancangan', DaftarRancangan::class)
-        ->middleware('role:Admin|Verifikator|Perangkat Daerah|Peneliti|Super Admin')
-        ->name('daftar-rancangan');
-
-    Route::livewire('/daftar-fasilitasi', DaftarFasilitasi::class)
-        ->middleware('role:Admin|Verifikator|Perangkat Daerah|Peneliti|Super Admin')
-        ->name('daftar-fasilitasi');
-
-
-    // Profile (Semua Role termasuk Super Admin). Halaman bebas dibuka; kata sandi hanya diminta
-    // untuk tindakan berisiko: ganti kata sandi, ganti email, dan ganti gambar tanda tangan.
+    // Profil (semua peran). Halaman bebas dibuka; kata sandi hanya diminta untuk tindakan berisiko:
+    // ganti kata sandi, ganti email, dan ganti gambar tanda tangan.
     Route::livewire('/profile', ProfileManagement::class)->name('profile.edit');
 
-    // User Management (Admin, Verifikator, dan Super Admin)
     Route::middleware(['role:Admin|Verifikator|Super Admin'])->group(function () {
         Route::livewire('/user-management', UserManagement::class)->name('user.management');
     });
 
-    // Rancanganku (Perangkat Daerah)
-    Route::middleware(['role:Perangkat Daerah'])->group(function () {
-        Route::livewire('/rancanganku', Rancanganku::class)
-            ->name('rancanganku');
-    });
-    // Admin-Only Routes 
-    Route::middleware(['role:Admin'])->group(function () {
-        Route::livewire('/rancangan/persetujuan', PersetujuanMain::class)->name('admin.persetujuan');
-    });
-
-    // Verifikator-Only Routes 
-    Route::middleware(['role:Verifikator'])->group(function () {
-        Route::livewire('/rancangan/pilih-peneliti', PilihPeneliti::class)->name('verifikator.pilih-peneliti');
-        Route::livewire('/validasi-rancangan', ValidasiMain::class)->name('verifikator.validasi-rancangan');
-    });
-
-    Route::middleware(['role:Peneliti'])->group(function () {
-        // Revisi Rancangan 
-        Route::livewire('/revisi/rancangan', RevisiRancangan::class)
-            ->name('revisi.rancangan');
-    });
-    // View Private Files
+    // Berkas privat (dokumentasi, bahan penting, tanda tangan).
     Route::get('/view-private/{folder}/{subfolder}/{filename}', PrivateFileController::class)
         ->where(['folder' => '[a-z_]+', 'subfolder' => '[a-z_]+', 'filename' => '[^/\\\\]+'])
         ->name('private-file');
 
-    // Fasilitasi
     Route::middleware(['role:Verifikator'])->group(function () {
-        Route::livewire('/validasi/fasilitasi', ValidasiFasilitasi::class)
-            ->name('validasi-fasilitasi');
-        Route::livewire('/kelola-ttd', PengelolaTtd::class)
-            ->name('kelola-ttd.main');
+        Route::livewire('/kelola-ttd', PengelolaTtd::class)->name('kelola-ttd.main');
     });
 
-    Route::middleware(['role:Perangkat Daerah'])->group(function () {
-        // Menu Fasilitasiku
-        Route::livewire('/fasilitasiku', Fasilitasiku::class)
-            ->name('fasilitasiku.main');
-    });
-
-    Route::middleware(['role:Admin|Super Admin|Verifikator|Perangkat Daerah'])->group(function () {
-        // Menu Fasilitasiku
-        Route::livewire('/nota-dinas', KelolaNotaDinas::class)
-            ->name('nota-dinas.generate');
-    });
-
-    Route::middleware(['role:Peneliti'])->group(function () {
-        Route::livewire('/persetujuan-fasilitasi', PersetujuanFasilitasiMain::class)->name('persetujuan-fasilitasi.main');
-    });
     Route::middleware(['role:Admin'])->group(function () {
-        Route::livewire('/kelola-bahan-penting', TambahBahanPenting::class)
-            ->name('bahan-penting');
+        Route::livewire('/kelola-bahan-penting', TambahBahanPenting::class)->name('bahan-penting');
     });
-    // Tamu hanya mengatur tahapan paraf dan tanda tangan.
-    Route::middleware(['role:Admin|Tamu'])->group(function () {
-        Route::livewire('/manajemen-fasilitasi', ManajemenFasilitasi::class)
-            ->name('manajemen-fasilitasi');
-    });
+
     Route::middleware(['role:Admin|Verifikator|Perangkat Daerah|Peneliti'])->group(function () {
         Route::livewire('/dokumentasi-produk-hukum', Dokumentasi::class)->name('dokumentasi.main');
     });
 
+    // Master Data juga menjadi arsip baca untuk rancangan, revisi, dan fasilitasi dari alur sebelumnya.
     Route::middleware(['role:Admin|Verifikator|Peneliti|Super Admin'])->group(function () {
         Route::livewire('/master-data', MasterData::class)->name('masterdata.main');
         Route::get('/export-master-data', [MasterData::class, 'export'])->name('export.masterdata');
     });
-
 });
-
 
 require __DIR__ . '/auth.php';
 require __DIR__ . '/v2.php';

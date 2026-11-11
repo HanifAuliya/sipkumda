@@ -3,7 +3,6 @@
 use App\Http\Controllers\V2\BerkasNaskahController;
 use App\Http\Controllers\V2\CetakNaskahController;
 use App\Livewire\V2\Beranda;
-use App\Http\Middleware\TandaiAplikasiV2;
 use App\Livewire\V2\DaftarNaskah;
 use App\Livewire\V2\LayarKerja;
 use App\Livewire\V2\Notifikasi;
@@ -17,11 +16,11 @@ use Illuminate\Support\Facades\Storage;
 
 /*
 |--------------------------------------------------------------------------
-| Aplikasi v2 (matriks sebagai sumber naskah)
+| Alur naskah (matriks sebagai sumber naskah)
 |--------------------------------------------------------------------------
-| Berjalan berdampingan dengan alur lama, memakai login dan data pengguna yang sama.
+| Awalan /v2 dan nama rute v2.* dipertahankan supaya tautan dan notifikasi yang sudah beredar tetap berlaku.
 */
-Route::middleware(['auth', 'verified', TandaiAplikasiV2::class])->prefix('v2')->name('v2.')->group(function () {
+Route::middleware(['auth', 'verified'])->prefix('v2')->name('v2.')->group(function () {
     Route::livewire('/', Beranda::class)->name('beranda');
 
     Route::livewire('/daftar/{kelompok}', DaftarNaskah::class)->name('daftar');

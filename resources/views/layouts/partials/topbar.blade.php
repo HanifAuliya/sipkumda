@@ -1,8 +1,4 @@
 {{-- Topbar navy: tombol menu, judul aplikasi, tema, notifikasi, menu pengguna. --}}
-@php
-    $modeV2 = \App\Support\Navigation::modeV2();
-@endphp
-
 <header class="sticky top-0 z-30 bg-navy-900 text-white shadow-md dark:shadow-none dark:ring-1 dark:ring-white/5">
     <div class="flex h-16 items-center gap-3 px-4 sm:px-6 lg:px-8">
         {{-- Menu (mobile: buka laci, desktop: ciutkan) --}}
@@ -20,12 +16,9 @@
             <span class="hidden md:inline">Sistem Fasilitasi Produk Hukum Daerah</span>
             <span class="md:hidden">SIFKUMDA</span>
         </p>
-        @if ($modeV2)
-            <span class="shrink-0 rounded-full bg-white/15 px-2 py-0.5 text-xs font-bold">v2</span>
-        @endif
 
         <div class="ml-auto flex items-center gap-1 sm:gap-2">
-            @include('layouts.partials.menu-pengguna', ['modeV2' => $modeV2])
+            @include('layouts.partials.menu-pengguna')
         </div>
     </div>
 </header>
