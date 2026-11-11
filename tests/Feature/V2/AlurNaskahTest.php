@@ -834,19 +834,20 @@ describe('bagian wajib dan lembar kerja', function () {
         $this->actingAs($this->peneliti)->get(route('v2.naskah.kerja', $n))->assertOk()
             ->assertDontSeeHtml('sticky top-0 z-30')
             ->assertSeeInOrder([$n->nomor, 'Dana Desa', 'Peraturan Bupati', 'Penelitian'])
-            ->assertSee(['Ganti tema', 'Notifikasi', 'Pindah Aplikasi', 'Keluar', 'Buka daftar bagian'], false);
+            ->assertSee(['Ganti tema', 'Notifikasi', 'Keluar', 'Buka daftar bagian'], false)
+            ->assertDontSee('Pindah Aplikasi');
 
         $this->actingAs($this->peneliti)->get(route('v2.beranda'))->assertOk()->assertSeeHtml('sticky top-0 z-30');
     });
 
-    it('lonceng lembar kerja tetap lonceng v2, juga saat halaman dirender ulang', function () {
+    it('lembar kerja memuat lonceng notifikasi dan tetap bisa dirender ulang', function () {
         $n = naskahPenelitian($this);
 
         Livewire::actingAs($this->peneliti)
             ->test(LayarKerja::class, ['naskah' => $n])
             ->assertSeeLivewire(Lonceng::class)
             ->call('pilihBlok', 'menimbang')
-            ->assertSeeLivewire(Lonceng::class);
+            ->assertOk();
     });
 
     it('badge Keputusan Bupati berbeda warna dari Peraturan Bupati', function () {

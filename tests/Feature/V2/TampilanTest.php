@@ -149,6 +149,6 @@ it('daftar kosong menawarkan ajukan rancangan, dan pencarian kosong menawarkan h
         ->assertSee('Ajukan Rancangan Baru')
         ->assertDontSee('Hapus pencarian dan filter')
         ->set('search', 'tidak-ada')
-        ->assertSee('Tidak ada naskah yang cocok dengan pencarian.')
+        ->assertSee('Tidak ada naskah yang cocok dengan pencarian atau filter.')
         ->assertSee('Hapus pencarian dan filter');
 });
