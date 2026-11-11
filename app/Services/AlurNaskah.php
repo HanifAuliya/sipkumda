@@ -69,6 +69,9 @@ class AlurNaskah
         'arsipkan' => ['dari' => T::Arsip, 'ke' => T::Selesai, 'label' => 'Arsipkan ke JDIH', 'ikon' => 'archive', 'varian' => 'success', 'form' => 'arsip'],
     ];
 
+    /** Yang menerbitkan nota dinas juga boleh membetulkan dan menerbitkannya ulang. */
+    private const PENERBIT_ULANG_NOTA = ['Admin', 'Verifikator', 'Super Admin'];
+
     /** Urutan penandatanganan di luar sistem, dicatat satu per satu. */
     public const TAHAPAN_TTD = [
         'paraf_koordinasi' => 'Paraf Koordinasi',
@@ -258,8 +261,8 @@ class AlurNaskah
      */
     public function terbitUlangNota(Naskah $naskah, User $user, ?string $alasan, ?int $tandaTanganId = null, ?string $kepada = null): NaskahBerkas
     {
-        if (! $user->hasAnyRole(['Admin', 'Super Admin'])) {
-            abort(403, 'Hanya Admin yang bisa menerbitkan ulang nota dinas.');
+        if (! $user->hasAnyRole(self::PENERBIT_ULANG_NOTA)) {
+            abort(403, 'Hanya Admin atau Verifikator yang bisa menerbitkan ulang nota dinas.');
         }
         if (blank($alasan)) {
             $this->gagal('alasanTerbitUlang', 'Tulis alasan penerbitan ulang.');
@@ -301,7 +304,7 @@ class AlurNaskah
 
     public function bolehTerbitUlangNota(Naskah $naskah, User $user): bool
     {
-        return $user->hasAnyRole(['Admin', 'Super Admin'])
+        return $user->hasAnyRole(self::PENERBIT_ULANG_NOTA)
             && $naskah->tahap !== T::Selesai
             && $naskah->notaDinas()->exists();
     }

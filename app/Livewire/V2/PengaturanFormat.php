@@ -210,7 +210,7 @@ class PengaturanFormat extends Component
         $nama = 'Contoh ' . $this->judul($bagian);
 
         if ($bagian === 'nota') {
-            $isi = $cetak->pdfContohNota($format);
+            [$isi] = $cetak->pdfPratinjauNota($format);
 
             return response()->streamDownload(fn () => print($isi), "{$nama}.pdf", ['Content-Type' => 'application/pdf']);
         }
@@ -224,7 +224,8 @@ class PengaturanFormat extends Component
             }, "{$nama}.docx", ['Content-Type' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']);
         }
 
-        $isi = $cetak->pdfContohNaskah(self::JENIS[$bagian], $format);
+        // Sama dengan pratinjau: naskah sungguhan bila ada. Contoh Word di atas tetap templat titik-titik untuk diisi.
+        [$isi] = $cetak->pdfPratinjauNaskah(self::JENIS[$bagian], $format);
 
         return response()->streamDownload(fn () => print($isi), "{$nama}.pdf", ['Content-Type' => 'application/pdf']);
     }

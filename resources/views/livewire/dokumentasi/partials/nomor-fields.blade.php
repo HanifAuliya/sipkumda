@@ -2,6 +2,7 @@
     Field nomor produk hukum + nomor berita daerah, dipakai form tambah dan edit dokumentasi.
     - tahunTetap   : tahun produk hukum (teks); null = tahun diisi lewat properti "tahun"
     - beritaWajib  : nomor/tahun berita daerah wajib diisi
+    Susunan nomor lengkap (properti "pola_nomor") hanya berlaku untuk Keputusan Bupati.
 --}}
 @php
     $beritaWajib ??= true;
@@ -36,5 +37,10 @@
             <input wire:model="tahun_berita" inputmode="numeric" maxlength="4" placeholder="YYYY" aria-label="Tahun berita daerah"
                 x-on:input="{{ $angka(4) }}" class="{{ $isian }}">
         </div>
+    </x-form.field>
+
+    <x-form.field label="Susunan nomor Keputusan Bupati" for="pola_nomor" error="pola_nomor" class="sm:col-span-2"
+        hint="Khusus Keputusan Bupati, mis. 140/{nomor}/412.1.6/TAHUN {tahun} tampil sebagai Nomor 140/1/412.1.6/TAHUN 2025. Kosongkan untuk Peraturan Bupati atau bila cukup Nomor 1 Tahun 2025.">
+        <x-form.input id="pola_nomor" wire:model="pola_nomor" maxlength="100" placeholder="140/{nomor}/412.1.6/TAHUN {tahun}" autocomplete="off" />
     </x-form.field>
 </div>

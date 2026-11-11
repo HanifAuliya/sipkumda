@@ -19,7 +19,7 @@
                 @else
                     <div class="grid gap-5 sm:grid-cols-2">
                         <x-form.field label="Jenis Produk Hukum" for="jenis_dokumentasi" error="jenis_dokumentasi" required>
-                            <x-form.select id="jenis_dokumentasi" wire:model="jenis_dokumentasi">
+                            <x-form.select id="jenis_dokumentasi" wire:model.live="jenis_dokumentasi">
                                 <option value="" hidden>Pilih jenis</option>
                                 <option value="Peraturan Bupati">Peraturan Bupati</option>
                                 <option value="Keputusan Bupati">Keputusan Bupati</option>

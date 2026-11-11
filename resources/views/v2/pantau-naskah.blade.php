@@ -348,13 +348,16 @@
                 @endif
             </dl>
 
-            <x-ui.button variant="outline" :icon="$lihatIsi ? 'eye-slash' : 'eye'" class="mt-5 w-full" wire:click="$toggle('lihatIsi')" loading="$toggle('lihatIsi')">
-                {{ $lihatIsi ? 'Sembunyikan Isi Naskah' : 'Lihat Isi Naskah' }}
-            </x-ui.button>
+            @if ($pemantau)
+                {{-- Tamu tidak bisa membuka matriks, jadi isi naskah dibaca dari sini. Peran lain memakai tombol Buka Matriks di kepala halaman. --}}
+                <x-ui.button variant="outline" :icon="$lihatIsi ? 'eye-slash' : 'eye'" class="mt-5 w-full" wire:click="$toggle('lihatIsi')" loading="$toggle('lihatIsi')">
+                    {{ $lihatIsi ? 'Sembunyikan Isi Naskah' : 'Lihat Isi Naskah' }}
+                </x-ui.button>
+            @endif
         </x-ui.card>
     </div>
 
-    @if ($lihatIsi)
+    @if ($lihatIsi && $pemantau)
         {{-- Isi naskah muncul di bawah halaman, jadi layar digulir ke sini supaya terlihat tombolnya bekerja. --}}
         <section class="mt-6 scroll-mt-24" aria-label="Isi naskah" wire:key="isi-naskah"
             x-data x-init="$nextTick(() => $el.scrollIntoView({ behavior: 'smooth', block: 'start' }))">

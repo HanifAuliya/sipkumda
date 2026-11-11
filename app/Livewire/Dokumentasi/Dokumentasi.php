@@ -45,12 +45,18 @@ class Dokumentasi extends Component
     #[Locked]
     public $editTahun;
     public $nomor;
+
+    /** Susunan nomor lengkap Keputusan Bupati, mis. 140/{nomor}/412.1.6/TAHUN {tahun}. */
+    public $pola_nomor = '';
     public $nomor_berita;
     public $tahun_berita;
     public $tanggal_penetapan;
     public $file_produk_hukum;
 
+    protected $messages = ['pola_nomor.regex' => 'Susunan nomor harus memuat {nomor}.'];
+
     protected $validationAttributes = [
+        'pola_nomor' => 'susunan nomor',
         'nomor_berita' => 'nomor berita daerah',
         'tahun_berita' => 'tahun berita daerah',
         'file_produk_hukum' => 'file produk hukum',
@@ -123,6 +129,7 @@ class Dokumentasi extends Component
         $this->editId = $dokumentasi->id;
         $this->editTahun = $dokumentasi->tahun;
         $this->nomor = $dokumentasi->nomor;
+        $this->pola_nomor = (string) $dokumentasi->pola_nomor;
         [$this->nomor_berita, $this->tahun_berita] = array_pad(explode('/', (string) $dokumentasi->nomor_tahun_berita, 2), 2, '');
         $this->tanggal_penetapan = $dokumentasi->tanggal_penetapan
             ? \Illuminate\Support\Carbon::parse($dokumentasi->tanggal_penetapan)->format('Y-m-d')
@@ -138,6 +145,7 @@ class Dokumentasi extends Component
 
         $this->validate([
             'nomor' => 'required|numeric|digits_between:1,3',
+            'pola_nomor' => ['nullable', 'string', 'max:100', 'regex:/\{nomor\}/'],
             'nomor_berita' => 'required|numeric',
             'tahun_berita' => 'required|numeric|digits:4',
             'tanggal_penetapan' => 'required|date',
@@ -154,6 +162,10 @@ class Dokumentasi extends Component
 
             $data = [
                 'nomor' => $this->nomor,
+                // Susunan nomor hanya untuk Keputusan Bupati; jenis lain tetap "Nomor 1 Tahun 2025".
+                'pola_nomor' => in_array($dokumentasi->jenis_dokumentasi, Status::varianJenis('Keputusan Bupati'), true) && filled($this->pola_nomor)
+                    ? trim($this->pola_nomor)
+                    : null,
                 'nomor_tahun_berita' => "{$this->nomor_berita}/{$this->tahun_berita}",
                 'tanggal_penetapan' => $this->tanggal_penetapan,
             ];
@@ -187,7 +199,7 @@ class Dokumentasi extends Component
 
     public function resetForm()
     {
-        $this->reset(['editId', 'editTahun', 'nomor', 'nomor_berita', 'tahun_berita', 'tanggal_penetapan', 'file_produk_hukum']);
+        $this->reset(['editId', 'editTahun', 'nomor', 'pola_nomor', 'nomor_berita', 'tahun_berita', 'tanggal_penetapan', 'file_produk_hukum']);
         $this->resetValidation();
     }
 
@@ -230,6 +242,8 @@ class Dokumentasi extends Component
             ->orderBy(in_array($this->sortColumn, self::SORTABLE, true) ? $this->sortColumn : 'tanggal_pengarsipan', $this->sortDirection === 'asc' ? 'asc' : 'desc')
             ->orderByDesc('created_at')
             ->paginate($this->perPage);
+
+        $dokumentasiList->load('naskah');
 
         return view('livewire.dokumentasi.dokumentasi', [
             'dokumentasiList' => $dokumentasiList,

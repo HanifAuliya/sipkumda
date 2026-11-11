@@ -82,6 +82,14 @@
                         <p class="sel-kedua mt-1 max-sm:hidden">
                             @if ($dokumentasi->rancangan)
                                 <i class="bi bi-link-45deg"></i> Rancangan {{ $dokumentasi->rancangan->no_rancangan }}
+                            @elseif ($dokumentasi->naskah)
+                                {{-- Diarsipkan dari naskah v2: yang berhak melihat naskahnya bisa langsung membukanya. --}}
+                                <i class="bi bi-link-45deg"></i>
+                                @can('view', $dokumentasi->naskah)
+                                    <a href="{{ route('v2.naskah.kerja', $dokumentasi->naskah) }}" class="font-medium text-primary-600 underline-offset-2 hover:underline dark:text-primary-300">Naskah {{ $dokumentasi->naskah->nomor_tampil }}</a>
+                                @else
+                                    Naskah {{ $dokumentasi->naskah->nomor_tampil }}
+                                @endcan
                             @else
                                 <i class="bi bi-archive"></i> Dokumen terdahulu
                             @endif

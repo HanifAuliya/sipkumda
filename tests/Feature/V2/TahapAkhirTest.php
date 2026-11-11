@@ -176,7 +176,9 @@ describe('nota dinas', function () {
         expect($pertama->aktif)->toBeTrue()
             ->and(teksPdfAkhir($cetak->pdfNotaDinas($n)))->toContain('Demikiandisampaikan')->not->toContain('terimakasih');
 
-        expect(fn () => $this->alur->terbitUlangNota($n, $this->verifikator, 'Kop berganti'))->toThrow(HttpException::class)
+        // Yang menerbitkan nota dinas (Admin dan Verifikator) boleh menerbitkan ulang; peran lain tidak.
+        expect($this->alur->bolehTerbitUlangNota($n, $this->verifikator))->toBeTrue()
+            ->and(fn () => $this->alur->terbitUlangNota($n, $this->pd, 'Kop berganti'))->toThrow(HttpException::class)
             ->and(fn () => $this->alur->terbitUlangNota($n, $this->admin, ''))->toThrow(ValidationException::class);
 
         $kedua = $this->alur->terbitUlangNota($n, $this->admin, 'Kalimat penutup diperbarui');
@@ -446,7 +448,9 @@ describe('arsip ke JDIH', function () {
 
         expect($d->nomor)->toBe('1')
             ->and($d->pola_nomor)->toBe('800/{nomor}/412.1.6/TAHUN {tahun}')
-            ->and($d->nomor_formatted)->toBe('Nomor 800/1/412.1.6/TAHUN 2025');
+            ->and($d->nomor_formatted)->toBe('Nomor 800/1/412.1.6/TAHUN 2025')
+            // Daftar Dokumentasi menautkan dokumen ini ke naskah asalnya.
+            ->and($d->naskah->is($sk))->toBeTrue();
 
         // Nomor urut yang dibetulkan lewat Daftar Dokumentasi ikut mengubah nomor lengkapnya.
         $d->update(['nomor' => '9']);

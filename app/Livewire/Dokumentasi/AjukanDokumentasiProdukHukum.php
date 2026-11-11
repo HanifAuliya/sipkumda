@@ -7,6 +7,7 @@ use App\Models\FasilitasiProdukHukum;
 use App\Models\PerangkatDaerah;
 use App\Models\User;
 use App\Notifications\DokumentasiNotification;
+use App\Support\FormatDokumen;
 use App\Support\Status;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
@@ -29,6 +30,9 @@ class AjukanDokumentasiProdukHukum extends Component
     public $rancanganId; // id fasilitasi
     public $nomor;
     public $tahun;
+
+    /** Susunan nomor lengkap Keputusan Bupati; terisi dari menu Format Dokumen dan bisa diganti. */
+    public $pola_nomor = '';
     public $nomor_berita;
     public $tahun_berita;
     public $tanggal_penetapan;
@@ -37,6 +41,8 @@ class AjukanDokumentasiProdukHukum extends Component
     public $jenis_dokumentasi;
     public $tentang_dokumentasi;
 
+    protected $messages = ['pola_nomor.regex' => 'Susunan nomor harus memuat {nomor}.'];
+
     protected $validationAttributes = [
         'rancanganId' => 'rancangan',
         'nomor_berita' => 'nomor berita daerah',
@@ -44,6 +50,7 @@ class AjukanDokumentasiProdukHukum extends Component
         'file_produk_hukum' => 'file produk hukum',
         'perangkat_daerah_id' => 'perangkat daerah',
         'jenis_dokumentasi' => 'jenis produk hukum',
+        'pola_nomor' => 'susunan nomor',
         'tentang_dokumentasi' => 'tentang',
     ];
 
@@ -66,6 +73,23 @@ class AjukanDokumentasiProdukHukum extends Component
         $this->dispatch('openModal', 'modalTambahDokumentasi');
     }
 
+    /** Keputusan Bupati memakai susunan nomor dari menu Format Dokumen; jenis lain tanpa susunan. */
+    private function isiPolaNomor(?string $jenis): void
+    {
+        $this->pola_nomor = $jenis === FormatDokumen::KEPBUP ? FormatDokumen::naskah(FormatDokumen::KEPBUP)['nomor_arsip'] : '';
+    }
+
+    public function updatedJenisDokumentasi($jenis): void
+    {
+        $this->isiPolaNomor($jenis);
+    }
+
+    public function updatedRancanganId($id): void
+    {
+        $rancangan = $id ? $this->fasilitasiTersedia()->with('rancangan')->find($id)?->rancangan : null;
+        $this->isiPolaNomor($rancangan ? Status::label($rancangan->jenis_rancangan) : null);
+    }
+
     // Dipanggil setelah dokumentasi dihapus agar pilihan rancangan diperbarui.
     #[On('loadData')]
     public function loadData()
@@ -83,6 +107,7 @@ class AjukanDokumentasiProdukHukum extends Component
         $this->validate([
             'rancanganId' => $manual ? 'nullable' : 'required|integer',
             'nomor' => 'required|numeric|digits_between:1,3',
+            'pola_nomor' => ['nullable', 'string', 'max:100', 'regex:/\{nomor\}/'],
             'tahun' => $manual ? 'required|numeric|digits:4' : 'nullable',
             'nomor_berita' => ($manual ? 'required' : 'nullable') . '|numeric|digits_between:1,3',
             'tahun_berita' => ($manual ? 'required' : 'nullable') . '|numeric|digits:4',
@@ -134,6 +159,8 @@ class AjukanDokumentasiProdukHukum extends Component
 
             DokumentasiProdukHukum::create($data + [
                 'nomor' => $this->nomor,
+                // Susunan nomor hanya untuk Keputusan Bupati; jenis lain tetap "Nomor 1 Tahun 2025".
+                'pola_nomor' => $data['jenis_dokumentasi'] === FormatDokumen::KEPBUP && filled($this->pola_nomor) ? trim($this->pola_nomor) : null,
                 'nomor_tahun_berita' => ($this->nomor_berita ?: '-') . '/' . ($this->tahun_berita ?: '-'),
                 'tanggal_pengarsipan' => now(),
                 'tanggal_penetapan' => $this->tanggal_penetapan,
@@ -160,7 +187,7 @@ class AjukanDokumentasiProdukHukum extends Component
     public function resetForm()
     {
         $this->reset([
-            'rancanganId', 'nomor', 'tahun', 'nomor_berita', 'tahun_berita', 'tanggal_penetapan',
+            'rancanganId', 'nomor', 'pola_nomor', 'tahun', 'nomor_berita', 'tahun_berita', 'tanggal_penetapan',
             'file_produk_hukum', 'perangkat_daerah_id', 'jenis_dokumentasi', 'tentang_dokumentasi',
         ]);
         $this->resetValidation();

@@ -41,6 +41,12 @@ class DokumentasiProdukHukum extends Model
         return $this->belongsTo(RancanganProdukHukum::class, 'rancangan_id');
     }
 
+    /** Naskah v2 yang diarsipkan menjadi dokumentasi ini (kosong untuk rancangan aplikasi lama dan dokumen terdahulu). */
+    public function naskah()
+    {
+        return $this->hasOne(Naskah::class, 'dokumentasi_id');
+    }
+
     // Relasi ke Perangkat Daerah
     public function perangkatDaerah()
     {

@@ -52,7 +52,6 @@ Route::middleware(['auth', 'verified', TandaiAplikasiV2::class])->prefix('v2')->
 
     Route::middleware('role:Admin|Verifikator|Super Admin')->group(function () {
         Route::livewire('/pengaturan/format', PengaturanFormat::class)->name('format');
-        Route::livewire('/pengaturan/perangkat-daerah', PengaturanPerangkatDaerah::class)->name('perangkat-daerah');
 
         // Lambang kop naskah atau logo kop nota yang sedang dipakai, untuk pratinjau di menu Format Dokumen.
         Route::get('/pengaturan/format/gambar/{bagian}', function (string $bagian) {
@@ -76,6 +75,11 @@ Route::middleware(['auth', 'verified', TandaiAplikasiV2::class])->prefix('v2')->
             ]);
         })->whereIn('bagian', ['kepbup', 'perbup', 'nota'])->middleware('throttle:120,1')->name('format.pratinjau');
     });
+
+    // Daftar Perangkat Daerah adalah data induk (dipakai akun pengguna dan dokumentasi), jadi hanya Admin.
+    Route::livewire('/pengaturan/perangkat-daerah', PengaturanPerangkatDaerah::class)
+        ->middleware('role:Admin|Super Admin')
+        ->name('perangkat-daerah');
 
     Route::livewire('/pengaturan', PengaturanNaskah::class)
         ->middleware('role:Admin|Verifikator|Super Admin')
