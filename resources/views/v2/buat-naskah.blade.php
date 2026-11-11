@@ -29,7 +29,7 @@
                 </x-form.field>
 
                 <x-form.field label="Nomor Nota Dinas PD" for="nomorNota" error="nomorNota" required hint="Akan dicetak di nota dinas hasil.">
-                    <x-form.input id="nomorNota" wire:model.live.blur="nomorNota" placeholder="Contoh: NOTA-2023-001" />
+                    <x-form.input id="nomorNota" wire:model.live.blur="nomorNota" placeholder="Contoh: 400.10/123/DPMD/{{ now()->year }}" />
                 </x-form.field>
             </div>
 

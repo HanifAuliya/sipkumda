@@ -30,16 +30,16 @@
                         <x-ui.info-item label="Jenis"><x-ui.status-badge :value="$naskah->jenis" /></x-ui.info-item>
                         <x-ui.info-item label="Tentang">{{ $naskah->tentang }}</x-ui.info-item>
                         <x-ui.info-item label="Tanggal Pengajuan">{{ $naskah->diajukan_at ? tanggal($naskah->diajukan_at, true) : 'Belum diajukan' }}</x-ui.info-item>
-                        <x-ui.info-item label="User Pengaju">{{ $naskah->pemrakarsa->nama_user }}</x-ui.info-item>
+                        <x-ui.info-item label="Diajukan oleh">{{ $naskah->pemrakarsa->nama_user }}</x-ui.info-item>
                         <x-ui.info-item label="Perangkat Daerah">{{ $naskah->pemrakarsa->perangkatDaerah->nama_perangkat_daerah ?? '-' }}</x-ui.info-item>
-                        <x-ui.info-item label="Nomor Nota">{{ $naskah->nomor_nota ?? '-' }}</x-ui.info-item>
-                        <x-ui.info-item label="Tanggal Nota">{{ tanggal($naskah->tanggal_nota) }}</x-ui.info-item>
+                        <x-ui.info-item label="Nomor Nota Dinas PD">{{ $naskah->nomor_nota ?? '-' }}</x-ui.info-item>
+                        <x-ui.info-item label="Tanggal Nota Dinas PD">{{ tanggal($naskah->tanggal_nota) }}</x-ui.info-item>
                     </x-ui.info-list>
                 </section>
 
                 <section class="rounded-xl ring-1 ring-slate-100 dark:ring-navy-800">
                     <h4 class="flex items-center gap-2 border-b border-slate-100 px-4 py-3 text-sm font-semibold dark:border-navy-800">
-                        <i class="bi bi-journal-check text-emerald-500"></i> Hasil Penelitian
+                        <i class="bi bi-journal-check text-emerald-500"></i> Perkembangan
                     </h4>
                     <x-ui.info-list class="px-4">
                         <x-ui.info-item label="Tahap Saat Ini"><x-ui.badge :color="$tahap->warna()">{{ $tahap->label() }}</x-ui.badge></x-ui.info-item>

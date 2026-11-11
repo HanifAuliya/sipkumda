@@ -141,7 +141,7 @@ class PengelolaTtd extends Component
 
     public function render()
     {
-        $ttdList = TandaTangan::withCount('notaDinas')
+        $ttdList = TandaTangan::withCount(['notaDinas', 'naskahNotaDinas'])
             ->where(function ($query) {
                 $query->where('nama_ttd', 'like', "%{$this->search}%")
                     ->orWhere('nip_ttd', 'like', "%{$this->search}%")

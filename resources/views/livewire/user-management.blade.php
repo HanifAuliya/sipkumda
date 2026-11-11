@@ -82,11 +82,11 @@
                                     <x-ui.button variant="soft-primary" size="sm" square icon="send" title="Kirim Ulang Aktivasi" aria-label="Kirim ulang aktivasi"
                                         wire:click="kirimUlangAktivasi({{ $user->id }})" loading="kirimUlangAktivasi({{ $user->id }})" />
                                 @endunless
-                                <x-ui.button variant="soft-primary" size="sm" square icon="pencil" title="Ubah"
-                                    wire:click="edit({{ $user->id }})" loading="edit({{ $user->id }})" />
-                                <x-ui.button variant="soft-danger" size="sm" square icon="trash" title="Hapus"
+                                <x-ui.button variant="outline" size="sm" icon="pencil" class="max-sm:size-10 max-sm:px-0" title="Ubah" aria-label="Ubah {{ $user->nama_user }}"
+                                    wire:click="edit({{ $user->id }})" loading="edit({{ $user->id }})"><span class="max-sm:hidden">Ubah</span></x-ui.button>
+                                <x-ui.button variant="soft-danger" size="sm" icon="trash" class="max-sm:size-10 max-sm:px-0" title="Hapus" aria-label="Hapus {{ $user->nama_user }}"
                                     x-on:click="$confirm({ text: {{ \Illuminate\Support\Js::from('Pengguna ' . $user->nama_user . ' akan dihapus permanen.') }}, confirmText: 'Ya, hapus' })
-                                        .then(ok => ok && $wire.delete({{ $user->id }}))" />
+                                        .then(ok => ok && $wire.delete({{ $user->id }}))"><span class="max-sm:hidden">Hapus</span></x-ui.button>
                         </div>
                     </td>
                     @endif

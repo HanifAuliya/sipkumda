@@ -42,14 +42,14 @@
                         @endif
                     </td>
                     <td class="max-sm:hidden"><x-ui.badge :color="$ttd->status === 'Aktif' ? 'success' : 'danger'">{{ $ttd->status }}</x-ui.badge></td>
-                    <td class="sel-kedua whitespace-nowrap max-sm:hidden">{{ $ttd->nota_dinas_count }} dokumen</td>
+                    <td class="sel-kedua whitespace-nowrap max-sm:hidden">{{ $ttd->nota_dinas_count + $ttd->naskah_nota_dinas_count }} nota dinas</td>
                     <td>
                         <div class="flex justify-end gap-1.5">
-                            <x-ui.button variant="soft-primary" size="sm" square icon="pencil" title="Ubah" aria-label="Ubah tanda tangan {{ $ttd->nama_ttd }}"
-                                wire:click="openModalEdit({{ $ttd->id }})" loading="openModalEdit({{ $ttd->id }})" />
-                            <x-ui.button variant="soft-danger" size="sm" square icon="trash" title="Hapus" aria-label="Hapus tanda tangan {{ $ttd->nama_ttd }}" data-nama="{{ $ttd->nama_ttd }}"
+                            <x-ui.button variant="outline" size="sm" icon="pencil" class="max-sm:size-10 max-sm:px-0" title="Ubah" aria-label="Ubah tanda tangan {{ $ttd->nama_ttd }}"
+                                wire:click="openModalEdit({{ $ttd->id }})" loading="openModalEdit({{ $ttd->id }})"><span class="max-sm:hidden">Ubah</span></x-ui.button>
+                            <x-ui.button variant="soft-danger" size="sm" icon="trash" class="max-sm:size-10 max-sm:px-0" title="Hapus" aria-label="Hapus tanda tangan {{ $ttd->nama_ttd }}" data-nama="{{ $ttd->nama_ttd }}"
                                 x-on:click="$confirm({ title: 'Hapus TTD?', text: `TTD ${$el.dataset.nama} akan dihapus permanen.`, confirmText: 'Ya, hapus' })
-                                    .then((ok) => ok && $wire.delete({{ $ttd->id }}))" />
+                                    .then((ok) => ok && $wire.delete({{ $ttd->id }}))"><span class="max-sm:hidden">Hapus</span></x-ui.button>
                         </div>
                     </td>
                 </tr>

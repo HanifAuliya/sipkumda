@@ -33,7 +33,7 @@ class Navigation
                 ],
             ],
             [
-                'title' => 'Manajemen User',
+                'title' => 'Akun',
                 'items' => [
                     ['label' => 'Profil', 'route' => 'profile.edit', 'icon' => 'person'],
                     ['label' => 'Daftar Pengguna', 'route' => 'user.management', 'icon' => 'people', 'roles' => ['Admin', 'Verifikator', 'Super Admin']],
@@ -45,7 +45,6 @@ class Navigation
                     $daftar('Rancanganku', 'rancanganku', 'clipboard2', ['Perangkat Daerah']),
                     $daftar('Daftar Rancangan', 'rancangan', 'clipboard2-data', ['Admin', 'Verifikator', 'Peneliti', 'Super Admin']),
                     $daftar('Persetujuan Berkas', 'persetujuan-berkas', 'clipboard2-check', ['Admin']),
-                    ['label' => 'Template Bahan Penting', 'route' => 'bahan-penting', 'icon' => 'list-task', 'roles' => ['Admin']],
                     $daftar('Pilih Peneliti', 'pilih-peneliti', 'person-check', ['Verifikator']),
                     $daftar('Penelitian Rancangan', 'penelitian', 'pencil-square', ['Peneliti']),
                     $daftar('Validasi Rancangan', 'validasi-rancangan', 'patch-check', ['Verifikator']),
@@ -58,7 +57,6 @@ class Navigation
                     $daftar('Persetujuan Fasilitasi', 'persetujuan-fasilitasi', 'file-check', ['Peneliti']),
                     $daftar('Pengecekan Fasilitasi', 'cek-peneliti', 'ui-checks', ['Peneliti']),
                     $daftar('Validasi Fasilitasi', 'validasi-fasilitasi', 'file-earmark-check', ['Verifikator']),
-                    ['label' => 'Kelola TTD', 'route' => 'kelola-ttd.main', 'icon' => 'pen', 'roles' => ['Verifikator']],
                     $daftar('Daftar Nota Dinas', 'nota-dinas', 'file-text', ['Admin', 'Verifikator', 'Perangkat Daerah']),
                     $daftar('Penandatanganan', 'penandatanganan', 'vector-pen', ['Admin', 'Tamu']),
                     $daftar('Daftar Fasilitasi', 'fasilitasi', 'collection', ['Admin', 'Verifikator', 'Peneliti', 'Super Admin']),
@@ -77,6 +75,9 @@ class Navigation
                 'items' => [
                     ['label' => 'Pengaturan Naskah', 'route' => 'v2.pengaturan', 'icon' => 'gear', 'roles' => ['Admin', 'Verifikator', 'Super Admin']],
                     ['label' => 'Format Dokumen', 'route' => 'v2.format', 'icon' => 'file-earmark-text', 'roles' => ['Admin', 'Verifikator', 'Super Admin']],
+                    // Dipakai saat menerbitkan nota dinas dan saat PD menyusun rancangan, bukan tahap pekerjaan.
+                    ['label' => 'Kelola TTD', 'route' => 'kelola-ttd.main', 'icon' => 'pen', 'roles' => ['Verifikator']],
+                    ['label' => 'Template Bahan Penting', 'route' => 'bahan-penting', 'icon' => 'list-task', 'roles' => ['Admin']],
                     ['label' => 'Perangkat Daerah', 'route' => 'v2.perangkat-daerah', 'icon' => 'building', 'roles' => ['Admin', 'Super Admin']],
                 ],
             ],
