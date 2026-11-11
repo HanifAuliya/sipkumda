@@ -52,6 +52,31 @@
 
     --animate-fade-in: fade-in 0.25s ease-out;
     --animate-marquee: marquee 30s linear infinite;
+    /* Beranda publik: isi naik saat halaman dibuka, kartu mengapung pelan, latar bergeser lambat. */
+    --animate-naik: naik 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+    --animate-apung: apung 6s ease-in-out infinite;
+    --animate-hanyut: hanyut 16s ease-in-out infinite alternate;
+    --animate-isi: isi 1.6s cubic-bezier(0.16, 1, 0.3, 1) 0.9s both;
+
+    @keyframes naik {
+        from { opacity: 0; transform: translateY(1.25rem); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes apung {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-0.5rem); }
+    }
+
+    @keyframes hanyut {
+        from { transform: translate(0, 0) scale(1); }
+        to { transform: translate(2.5rem, 1.5rem) scale(1.12); }
+    }
+
+    @keyframes isi {
+        from { transform: scaleX(0); }
+        to { transform: scaleX(1); }
+    }
 
     @keyframes fade-in {
         from { opacity: 0; transform: translateY(4px); }
@@ -511,14 +536,15 @@
     .table-base {
         @apply w-full border-separate border-spacing-0 text-left text-sm tabular-nums;
 
+        /* Kepala tabel tenang: tanpa latar, hanya garis bawah, supaya isi baris yang menonjol. */
         & thead th {
-            @apply border-y border-slate-100 bg-slate-50 px-3 py-3 text-sm font-semibold whitespace-nowrap
-                text-slate-600 dark:border-navy-800 dark:bg-navy-950/40 dark:text-slate-300;
+            @apply border-b border-slate-200 px-3 pt-1 pb-3 text-sm font-medium whitespace-nowrap
+                text-slate-500 dark:border-navy-700 dark:text-slate-400;
         }
 
         /* Isi sejajar di tengah baris, termasuk tombol aksi. */
         & tbody td {
-            @apply border-b border-slate-100 px-3 py-3.5 align-middle text-slate-700 dark:border-navy-800 dark:text-slate-300;
+            @apply border-b border-slate-100 px-3 py-4 align-middle text-slate-700 dark:border-navy-800 dark:text-slate-300;
         }
 
         & tbody tr:last-child td {
@@ -545,7 +571,7 @@
         }
 
         &:has(thead th.text-right:last-child) thead th:last-child {
-            @apply max-xl:bg-slate-50 dark:max-xl:bg-navy-900;
+            @apply max-xl:bg-white dark:max-xl:bg-navy-900;
         }
 
         &:has(thead th.text-right:last-child) tbody tr:hover td:not([colspan]):last-child {

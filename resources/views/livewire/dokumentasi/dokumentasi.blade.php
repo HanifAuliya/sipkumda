@@ -73,7 +73,7 @@
             @forelse ($dokumentasiList as $dokumentasi)
                 @php $file = private_file_url('dokumentasi/file_produk_hukum', $dokumentasi->file_produk_hukum); @endphp
                 <tr wire:key="dokumentasi-{{ $dokumentasi->id }}">
-                    <td class="sm:min-w-76 {{ App\Support\Status::garisJenis($dokumentasi->jenis_dokumentasi) }}">
+                    <td class="sm:min-w-76">
                         <div class="flex flex-wrap items-center gap-2">
                             <span class="sel-utama">{{ $dokumentasi->nomor_formatted }}</span>
                             <x-ui.status-badge :value="$dokumentasi->jenis_dokumentasi" />

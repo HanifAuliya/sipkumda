@@ -16,16 +16,13 @@ class Status
      */
     private const NAMA_JENIS = ['Surat Keputusan' => 'Keputusan Bupati'];
 
-    /** Kode singkat jenis produk hukum, sama dengan awalan nomor rancangannya. */
-    public const KODE_JENIS = ['Peraturan Bupati' => 'PB', 'Keputusan Bupati' => 'SK'];
-
-    /** Warna garis penanda baris tabel per jenis, senada dengan kodenya. */
-    public static function garisJenis(?string $jenis): string
+    /** Warna titik penanda jenis produk hukum; null bila nilainya bukan jenis. */
+    public static function titikJenis(?string $jenis): ?string
     {
-        return match (self::KODE_JENIS[self::label((string) $jenis)] ?? null) {
-            'PB' => 'border-l-4 border-l-primary-400',
-            'SK' => 'border-l-4 border-l-accent-500',
-            default => 'border-l-4 border-l-transparent',
+        return match (self::label((string) $jenis)) {
+            'Peraturan Bupati' => 'bg-primary-500',
+            'Keputusan Bupati' => 'bg-accent-500',
+            default => null,
         };
     }
 

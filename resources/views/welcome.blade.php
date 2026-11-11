@@ -1,44 +1,44 @@
 {{-- Beranda publik SIFKUMDA. JDIH hanya tampil sebagai cuplikan. Data dari JdihController@beranda. --}}
 @php
     $fitur = [
-        ['send-check', 'Pengajuan daring', 'Rancangan, matrik, dan nota dinas diajukan langsung dari kantor perangkat daerah tanpa berkas fisik bolak-balik.'],
-        ['clipboard2-check', 'Cek kelengkapan otomatis', 'Berkas yang diunggah diperiksa kelengkapannya sebelum diajukan, sehingga lebih jarang dikembalikan.'],
-        ['activity', 'Status yang transparan', 'Setiap tahap — verifikasi, penelitian, validasi, hingga paraf — tercatat dan bisa dipantau kapan saja.'],
+        ['send-check', 'Pengajuan daring', 'Rancangan diajukan dari kantor perangkat daerah. Isinya dibaca dari file Word atau diketik langsung, tanpa berkas fisik bolak-balik.'],
+        ['table', 'Satu naskah, satu matriks', 'Semua pihak bekerja pada naskah yang sama. Setiap penyempurnaan tercatat per rumusan, jadi tidak ada lagi unggah ulang berkas.'],
+        ['activity', 'Status yang transparan', 'Setiap tahap, dari pemeriksaan berkas, penelitian, validasi, hingga paraf, tercatat dan bisa dipantau kapan saja.'],
         ['bell', 'Notifikasi setiap tahap', 'Perangkat daerah, verifikator, dan peneliti mendapat pemberitahuan begitu ada yang perlu ditindaklanjuti.'],
-        ['file-earmark-text', 'Nota dinas otomatis', 'Nota dinas fasilitasi dibuat dari sistem lengkap dengan nomor dan tanda tangan, siap dicetak.'],
+        ['file-earmark-text', 'Nota dinas otomatis', 'Nota dinas fasilitasi dibuat dari sistem lengkap dengan nomor dan tanda tangan. Naskah dan matriks bisa dicetak kapan saja.'],
         ['archive', 'Arsip & JDIH', 'Produk hukum yang telah ditetapkan diarsipkan dan dapat dicari oleh masyarakat melalui JDIH.'],
     ];
 
-    // Sesuai alur di public/assets/img/alur.
+    // Alur naskah: satu naskah berjalan dari penyusunan sampai arsip, tanpa unggah ulang.
     $alur = [
         'rancangan' => ['Pengajuan Rancangan', 'file-earmark-plus', [
-            ['Perangkat Daerah', 'Mengajukan rancangan', 'Unggah rancangan & matrik (Word) serta nota dinas (PDF).'],
-            ['Admin Bagian Hukum', 'Memeriksa berkas', 'Berkas lengkap diteruskan; bila ditolak, perangkat daerah mengunggah ulang sesuai catatan.'],
-            ['Verifikator', 'Menunjuk peneliti', 'Rancangan diteruskan kepada peneliti yang ditugaskan.'],
-            ['Peneliti', 'Meneliti & merevisi', 'Peneliti meneliti rancangan dan mengunggah hasil revisi beserta matriknya.'],
-            ['Verifikator', 'Memvalidasi hasil penelitian', 'Hasil penelitian divalidasi; bila belum sesuai, dikembalikan ke peneliti.'],
-            ['Perangkat Daerah', 'Menyesuaikan rancangan', 'Rancangan diperbaiki sesuai hasil penelitian sebagai bahan fasilitasi.'],
+            ['Perangkat Daerah', 'Menyusun dan mengajukan', 'Unggah file Word rancangan atau ketik isinya langsung, lalu lampirkan nota dinas (PDF).'],
+            ['Admin Bagian Hukum', 'Memeriksa berkas', 'Berkas lengkap diteruskan; bila belum, dikembalikan ke perangkat daerah dengan catatan.'],
+            ['Verifikator', 'Menugaskan peneliti', 'Rancangan diteruskan kepada peneliti yang ditugaskan.'],
+            ['Peneliti', 'Meneliti per rumusan', 'Setiap rumusan diperiksa di matriks: tetap, disempurnakan, atau diminta diperbaiki perangkat daerah.'],
+            ['Perangkat Daerah', 'Menyesuaikan rumusan', 'Rumusan yang diminta peneliti diperbaiki langsung di naskah yang sama.'],
+            ['Verifikator', 'Memvalidasi rancangan', 'Hasil penelitian divalidasi; bila belum sesuai, dikembalikan ke peneliti.'],
         ]],
         'fasilitasi' => ['Fasilitasi & Penetapan', 'patch-check', [
-            ['Perangkat Daerah', 'Mengajukan fasilitasi', 'Unggah rancangan hasil perbaikan (PDF) melalui menu Fasilitasiku.'],
-            ['Peneliti', 'Memeriksa kesesuaian', 'Dicocokkan dengan hasil penelitian; bila belum sesuai, perangkat daerah mengunggah ulang.'],
-            ['Verifikator', 'Memvalidasi fasilitasi', 'Fasilitasi yang sesuai divalidasi untuk dibuatkan nota dinas.'],
-            ['Admin Bagian Hukum', 'Menerbitkan nota dinas', 'Nota dinas fasilitasi diterbitkan dan dapat dicetak perangkat daerah.'],
-            ['Perangkat Daerah', 'Proses paraf', 'Paraf koordinasi, asisten, sekda, hingga bupati — setiap tahap dicatat di sistem.'],
-            ['Admin Bagian Hukum', 'Mengarsipkan', 'Produk hukum yang ditetapkan diarsipkan dan tampil di JDIH untuk umum.'],
+            ['Perangkat Daerah', 'Mengajukan fasilitasi', 'Rancangan yang disetujui diajukan untuk fasilitasi, tanpa mengunggah berkas lagi.'],
+            ['Peneliti', 'Memeriksa kesesuaian', 'Naskah dicocokkan dengan hasil penelitian sebelum diteruskan.'],
+            ['Verifikator', 'Memvalidasi fasilitasi', 'Naskah yang sudah sesuai disetujui menjadi final dan isinya dikunci.'],
+            ['Bagian Hukum', 'Menerbitkan nota dinas', 'Nota dinas fasilitasi diterbitkan dan dapat diunduh perangkat daerah.'],
+            ['Bagian Hukum', 'Mencatat paraf dan tanda tangan', 'Paraf koordinasi, asisten, sekda, hingga bupati dicatat tahap demi tahap.'],
+            ['Bagian Hukum', 'Mengarsipkan', 'Produk hukum yang ditetapkan diarsipkan dan tampil di JDIH untuk umum.'],
         ]],
     ];
 
     $peran = [
-        ['building', 'Perangkat Daerah', 'Mengajukan rancangan dan fasilitasi, memantau status, serta mencetak nota dinas.'],
-        ['person-check', 'Admin Bagian Hukum', 'Memeriksa kelengkapan berkas, menerbitkan nota dinas, dan mengarsipkan produk hukum.'],
-        ['patch-check', 'Verifikator', 'Menunjuk peneliti dan memvalidasi hasil penelitian maupun fasilitasi.'],
-        ['search', 'Peneliti', 'Meneliti rancangan, mengunggah revisi, dan memeriksa berkas fasilitasi.'],
+        ['building', 'Perangkat Daerah', 'Menyusun dan mengajukan rancangan, menyesuaikan rumusan, serta memantau status dan mengunduh nota dinas.'],
+        ['person-check', 'Admin Bagian Hukum', 'Memeriksa kelengkapan berkas, menerbitkan nota dinas, mencatat tanda tangan, dan mengarsipkan produk hukum.'],
+        ['patch-check', 'Verifikator', 'Menugaskan peneliti dan memvalidasi hasil penelitian maupun fasilitasi.'],
+        ['search', 'Peneliti', 'Meneliti rancangan per rumusan di matriks dan memeriksa naskah fasilitasi.'],
     ];
 
     $faq = [
         ['Siapa yang dapat menggunakan SIFKUMDA?', 'Perangkat daerah di lingkungan Pemerintah Kabupaten Hulu Sungai Tengah serta pegawai Bagian Hukum Sekretariat Daerah. Akun disediakan oleh Bagian Hukum; tidak ada pendaftaran mandiri.'],
-        ['Berkas apa saja yang perlu disiapkan untuk pengajuan?', 'Rancangan dan matrik dalam format Word (.doc/.docx), nota dinas dalam format PDF, dan bahan pendukung (opsional) dalam format PDF. Ukuran setiap berkas maksimal 20 MB.'],
+        ['Berkas apa saja yang perlu disiapkan untuk pengajuan?', 'Nota dinas perangkat daerah dalam format PDF. File rancangan dalam format Word (.docx) bersifat opsional, karena isi rancangan juga bisa diketik langsung. Ukuran setiap berkas maksimal 20 MB.'],
         ['Bagaimana cara mengetahui status pengajuan?', 'Masuk ke SIFKUMDA lalu buka menu Rancanganku atau Fasilitasiku. Setiap perubahan status juga dikirim sebagai notifikasi di dalam aplikasi.'],
         ['Saya lupa password, apa yang harus dilakukan?', 'Gunakan tautan "Lupa password?" di halaman masuk untuk menerima tautan atur ulang melalui email yang terdaftar, atau hubungi Bagian Hukum.'],
         ['Apakah masyarakat umum dapat melihat produk hukum?', 'Ya. Produk hukum yang telah ditetapkan dapat dicari dan diunduh tanpa akun melalui halaman Produk Hukum (JDIH).'],
@@ -66,22 +66,22 @@
         {{-- Gelap di sisi teks, lebih terang di sisi kanan agar gambar latar tetap terlihat. --}}
         <div class="absolute inset-0 -z-10 bg-linear-to-r from-navy-950/95 via-navy-950/75 to-navy-950/40"></div>
         <div class="absolute inset-x-0 bottom-0 -z-10 h-40 bg-linear-to-t from-navy-950/80 to-transparent"></div>
-        <div class="pointer-events-none absolute -top-40 -right-40 -z-10 size-[32rem] rounded-full bg-primary-500/20 blur-3xl"></div>
-        <div class="pointer-events-none absolute -bottom-48 -left-24 -z-10 size-[28rem] rounded-full bg-brand-500/15 blur-3xl"></div>
+        <div class="pointer-events-none absolute -top-40 -right-40 -z-10 size-[32rem] animate-hanyut rounded-full bg-primary-500/20 blur-3xl"></div>
+        <div class="pointer-events-none absolute -bottom-48 -left-24 -z-10 size-[28rem] animate-hanyut rounded-full bg-brand-500/15 blur-3xl [animation-direction:alternate-reverse]"></div>
 
         <div class="mx-auto grid max-w-7xl items-center gap-14 px-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:px-8">
             <div class="text-white">
-                <p class="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-xs font-semibold tracking-wide ring-1 ring-white/15 backdrop-blur">
+                <p class="inline-flex animate-naik items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-xs font-semibold tracking-wide ring-1 ring-white/15 backdrop-blur">
                     <i class="bi bi-bank text-brand-500"></i> Bagian Hukum Setda Kabupaten Hulu Sungai Tengah
                 </p>
-                <h1 class="mt-6 text-4xl leading-[1.1] font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
+                <h1 class="mt-6 animate-naik text-4xl leading-[1.1] font-extrabold tracking-tight text-white [animation-delay:120ms] sm:text-5xl lg:text-6xl">
                     Sistem Informasi <span class="bg-linear-to-r from-brand-500 to-emerald-300 bg-clip-text text-transparent">Fasilitasi</span> Produk Hukum Daerah
                 </h1>
-                <p class="mt-6 max-w-xl text-base leading-relaxed text-white/75 sm:text-lg">
+                <p class="mt-6 max-w-xl animate-naik text-base leading-relaxed text-white/75 [animation-delay:240ms] sm:text-lg">
                     Pengajuan, penelitian, fasilitasi, hingga dokumentasi Peraturan Bupati dan Keputusan Bupati dalam satu sistem — lebih cepat, tertib, dan transparan.
                 </p>
 
-                <div class="mt-9 flex flex-wrap items-center gap-3">
+                <div class="mt-9 flex animate-naik flex-wrap items-center gap-3 [animation-delay:360ms]">
                     <a href="{{ route('login') }}" class="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-6 py-3.5 text-sm font-semibold text-white dark:text-navy-950 shadow-xl shadow-brand-500/25 transition hover:-translate-y-0.5 hover:bg-brand-600">
                         <i class="bi bi-box-arrow-in-right"></i> Masuk ke SIFKUMDA
                     </a>
@@ -90,7 +90,7 @@
                     </a>
                 </div>
 
-                <p class="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-white/60">
+                <p class="mt-6 flex animate-naik flex-wrap items-center gap-x-5 gap-y-2 text-sm text-white/60 [animation-delay:480ms]">
                     <span class="inline-flex items-center gap-1.5"><i class="bi bi-shield-check text-brand-500"></i> Akses khusus perangkat daerah</span>
                     <a href="{{ asset('assets/document/SIFKUMDA-PanduanLogin.pdf') }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 hover:text-white">
                         <i class="bi bi-book"></i> Panduan login
@@ -99,7 +99,7 @@
             </div>
 
             {{-- Ilustrasi pelacakan status (dekoratif) --}}
-            <div class="relative mx-auto w-full max-w-md lg:max-w-none" aria-hidden="true">
+            <div class="relative mx-auto w-full max-w-md animate-naik [animation-delay:300ms] lg:max-w-none" aria-hidden="true">
                 <div class="absolute -inset-4 rounded-[2rem] bg-linear-to-br from-primary-500/30 to-brand-500/20 blur-2xl"></div>
                 {{-- Ruang ekstra atas/bawah (sm:pt-12 / sm:pb-14) untuk chip & kartu notifikasi yang menempel, agar tidak menutupi isi. --}}
                 <div class="relative rounded-3xl bg-white/95 p-6 shadow-2xl ring-1 ring-white/20 backdrop-blur sm:pt-12 sm:pb-14 dark:bg-navy-900/95">
@@ -112,8 +112,8 @@
                     </div>
 
                     <ol class="mt-6 space-y-4">
-                        @foreach ([['Diajukan perangkat daerah', 'selesai'], ['Berkas diverifikasi', 'selesai'], ['Diteliti peneliti', 'aktif'], ['Validasi verifikator', 'menunggu'], ['Fasilitasi & nota dinas', 'menunggu']] as [$langkah, $status])
-                            <li class="flex items-center gap-3">
+                        @foreach ([['Diajukan perangkat daerah', 'selesai'], ['Berkas diperiksa', 'selesai'], ['Diteliti per rumusan', 'aktif'], ['Validasi verifikator', 'menunggu'], ['Fasilitasi & nota dinas', 'menunggu']] as [$langkah, $status])
+                            <li class="flex animate-naik items-center gap-3" style="animation-delay: {{ 600 + $loop->index * 140 }}ms">
                                 <span @class([
                                     'grid size-8 shrink-0 place-items-center rounded-full text-sm',
                                     'bg-emerald-500 text-white' => $status === 'selesai',
@@ -128,15 +128,15 @@
                     </ol>
 
                     <div class="mt-6 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-navy-800">
-                        <div class="h-full w-1/2 rounded-full bg-linear-to-r from-emerald-500 to-primary-500"></div>
+                        <div class="h-full w-1/2 origin-left animate-isi rounded-full bg-linear-to-r from-emerald-500 to-primary-500"></div>
                     </div>
                 </div>
 
-                <div class="absolute -bottom-7 -left-6 hidden items-center gap-3 rounded-2xl bg-white p-3 pr-5 shadow-xl ring-1 ring-slate-100 sm:flex dark:bg-navy-900 dark:ring-navy-800">
+                <div class="absolute -bottom-7 -left-6 hidden animate-apung items-center gap-3 rounded-2xl bg-white p-3 pr-5 shadow-xl ring-1 ring-slate-100 [animation-delay:1.2s] sm:flex dark:bg-navy-900 dark:ring-navy-800">
                     <span class="grid size-10 place-items-center rounded-xl bg-emerald-50 text-xl text-emerald-600 dark:bg-emerald-500/15"><i class="bi bi-bell"></i></span>
                     <span class="text-xs leading-tight"><strong class="block text-navy-900 dark:text-white">Notifikasi baru</strong><span class="text-slate-500">Hasil penelitian siap divalidasi</span></span>
                 </div>
-                <div class="absolute -top-5 right-6 hidden items-center gap-2 rounded-2xl bg-white px-4 py-2.5 shadow-xl ring-1 ring-slate-100 sm:flex dark:bg-navy-900 dark:ring-navy-800">
+                <div class="absolute -top-5 right-6 hidden animate-apung items-center gap-2 rounded-2xl bg-white px-4 py-2.5 shadow-xl ring-1 ring-slate-100 sm:flex dark:bg-navy-900 dark:ring-navy-800">
                     <i class="bi bi-patch-check-fill text-primary-500"></i>
                     <span class="text-xs font-semibold text-navy-900 dark:text-white">Berkas lengkap</span>
                 </div>
@@ -146,7 +146,7 @@
 
     {{-- Statistik --}}
     <section class="relative z-10 mx-auto -mt-12 max-w-6xl px-5 lg:px-8">
-        <dl class="grid grid-cols-2 gap-px overflow-hidden rounded-3xl bg-slate-200 shadow-card ring-1 ring-slate-200 lg:grid-cols-4 dark:bg-navy-800 dark:ring-navy-800">
+        <dl class="grid animate-naik grid-cols-2 gap-px overflow-hidden rounded-3xl bg-slate-200 shadow-card ring-1 ring-slate-200 [animation-delay:500ms] lg:grid-cols-4 dark:bg-navy-800 dark:ring-navy-800">
             @foreach ([
                 ['file-earmark-text', $statistik['rancangan'], 'Rancangan diajukan'],
                 ['hourglass-split', $statistik['diproses'], 'Sedang diproses'],
@@ -167,10 +167,10 @@
     {{-- Keunggulan --}}
     <section id="layanan" class="scroll-mt-20 py-20 lg:py-28">
         <div class="mx-auto max-w-7xl px-5 lg:px-8">
-            <div class="mx-auto max-w-2xl text-center">
+            <div class="mx-auto max-w-2xl text-center transition duration-700 ease-out" {!! $reveal !!}>
                 <p class="text-sm font-bold tracking-wider text-brand-600 uppercase">Layanan</p>
                 <h2 class="mt-2 text-3xl font-extrabold tracking-tight text-navy-900 sm:text-4xl dark:text-white">Fasilitasi produk hukum tanpa berkas bolak-balik</h2>
-                <p class="mt-4 text-slate-600 dark:text-slate-400">Semua pihak bekerja pada sistem yang sama, dari pengajuan pertama hingga produk hukum diarsipkan.</p>
+                <p class="mt-4 text-slate-600 dark:text-slate-400">Semua pihak bekerja pada naskah yang sama, dari pengajuan pertama hingga produk hukum diarsipkan.</p>
             </div>
 
             <div class="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -192,7 +192,7 @@
     <section id="alur" class="scroll-mt-20 bg-slate-50 py-20 lg:py-28 dark:bg-navy-900" x-data="{ tab: 'rancangan' }">
         <div class="mx-auto max-w-7xl px-5 lg:px-8">
             <div class="flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-end">
-                <div class="max-w-2xl">
+                <div class="max-w-2xl transition duration-700 ease-out" {!! $reveal !!}>
                     <p class="text-sm font-bold tracking-wider text-brand-600 uppercase">Alur</p>
                     <h2 class="mt-2 text-3xl font-extrabold tracking-tight text-navy-900 sm:text-4xl dark:text-white">Dari pengajuan sampai penetapan</h2>
                     <p class="mt-4 text-slate-600 dark:text-slate-400">Dua tahap besar dengan peran yang jelas di setiap langkahnya.</p>
@@ -214,7 +214,8 @@
                     x-transition:enter="transition duration-300" x-transition:enter-start="opacity-0 translate-y-2"
                     class="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3" role="tabpanel" aria-label="{{ $label }}">
                     @foreach ($langkah as $i => [$siapa, $judul, $isi])
-                        <li class="relative rounded-3xl bg-white p-6 ring-1 ring-slate-200/70 dark:bg-navy-950 dark:ring-navy-800">
+                        <li class="relative rounded-3xl bg-white p-6 ring-1 ring-slate-200/70 transition duration-700 ease-out hover:-translate-y-1 hover:shadow-card dark:bg-navy-950 dark:ring-navy-800"
+                            style="transition-delay: {{ $i * 70 }}ms" {!! $reveal !!}>
                             <div class="flex items-center justify-between">
                                 <span class="grid size-11 place-items-center rounded-2xl bg-navy-900 text-lg font-extrabold text-white dark:bg-primary-500">{{ $i + 1 }}</span>
                                 <span class="rounded-full bg-primary-50 px-3 py-1 text-xs font-semibold text-primary-700 dark:bg-primary-500/10 dark:text-primary-300">{{ $siapa }}</span>
@@ -231,7 +232,7 @@
     {{-- Peran --}}
     <section class="py-20 lg:py-28">
         <div class="mx-auto grid max-w-7xl items-center gap-12 px-5 lg:grid-cols-2 lg:px-8">
-            <div class="relative" {!! $reveal !!}>
+            <div class="relative transition duration-700 ease-out" {!! $reveal !!}>
                 <img src="{{ asset('assets/img/theme/Surat-Keputusan.jpg') }}" alt="Penandatanganan dokumen produk hukum" class="aspect-[4/3] w-full rounded-3xl object-cover shadow-2xl" loading="lazy">
                 <div class="absolute -right-4 -bottom-6 hidden rounded-2xl bg-white p-5 shadow-xl ring-1 ring-slate-100 sm:block dark:bg-navy-900 dark:ring-navy-800">
                     <p class="text-3xl font-extrabold text-navy-900 dark:text-white">{{ $angka($statistik['instansi']) }}</p>
@@ -243,8 +244,9 @@
                 <p class="text-sm font-bold tracking-wider text-brand-600 uppercase">Peran Pengguna</p>
                 <h2 class="mt-2 text-3xl font-extrabold tracking-tight text-navy-900 sm:text-4xl dark:text-white">Setiap pihak tahu apa yang harus dikerjakan</h2>
                 <div class="mt-8 grid gap-4 sm:grid-cols-2">
-                    @foreach ($peran as [$ikon, $judul, $isi])
-                        <div class="rounded-2xl border border-slate-100 p-5 transition hover:border-primary-100 hover:bg-slate-50/60 dark:border-navy-800 dark:hover:bg-navy-900">
+                    @foreach ($peran as $i => [$ikon, $judul, $isi])
+                        <div class="rounded-2xl border border-slate-100 p-5 transition duration-700 ease-out hover:border-primary-100 hover:bg-slate-50/60 dark:border-navy-800 dark:hover:bg-navy-900"
+                            style="transition-delay: {{ $i * 90 }}ms" {!! $reveal !!}>
                             <span class="grid size-10 place-items-center rounded-xl bg-brand-500/10 text-lg text-brand-600 dark:text-brand-500"><i class="bi bi-{{ $ikon }}"></i></span>
                             <h3 class="mt-3 font-bold text-navy-900 dark:text-white">{{ $judul }}</h3>
                             <p class="mt-1 text-sm leading-relaxed text-slate-600 dark:text-slate-400">{{ $isi }}</p>
@@ -275,7 +277,9 @@
             @if ($terbaru->isNotEmpty())
                 <div class="mt-10 grid gap-5 md:grid-cols-3">
                     @foreach ($terbaru as $dokumen)
-                        <x-jdih.kartu :dokumen="$dokumen" class="dark:border-white/10 dark:bg-white/5" />
+                        <div class="transition duration-700 ease-out" style="transition-delay: {{ $loop->index * 90 }}ms" {!! $reveal !!}>
+                            <x-jdih.kartu :dokumen="$dokumen" class="h-full dark:border-white/10 dark:bg-white/5" />
+                        </div>
                     @endforeach
                 </div>
             @endif
@@ -300,6 +304,7 @@
                 </a>
             </div>
 
+            <div class="transition duration-700 ease-out" {!! $reveal !!}>
             <div class="divide-y divide-slate-200 rounded-3xl border border-slate-200 dark:divide-navy-800 dark:border-navy-800" x-data="{ buka: 0 }">
                 @foreach ($faq as $i => [$tanya, $jawab])
                     <div>
@@ -315,6 +320,7 @@
                         </div>
                     </div>
                 @endforeach
+            </div>
             </div>
         </div>
     </section>

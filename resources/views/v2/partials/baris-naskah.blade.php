@@ -16,9 +16,9 @@
 
 <tr wire:key="naskah-{{ $naskah->id }}" class="cursor-pointer"
     x-on:click="$event.target.closest('a, button') || Livewire.dispatch('bukaDetailNaskah', { slug: {{ \Illuminate\Support\Js::from($naskah->slug) }} })">
-    <td class="sm:whitespace-nowrap {{ App\Support\Status::garisJenis($naskah->jenis) }}">
+    <td class="sm:whitespace-nowrap">
         <p class="sel-utama">{{ $naskah->nomor_tampil }}</p>
-        <div class="mt-1 flex flex-wrap gap-1.5">
+        <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1.5">
             <x-ui.status-badge :value="$naskah->jenis" />
             <x-ui.badge :color="$tahap->warna()" class="sm:hidden">{{ $tahap->label() }}</x-ui.badge>
         </div>
