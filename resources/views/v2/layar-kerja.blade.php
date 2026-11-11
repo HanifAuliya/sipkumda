@@ -180,6 +180,16 @@
                         .then(() => setTimeout(() => document.querySelector(tautan.getAttribute('href'))?.scrollIntoView(), 50));
                 }
             ">
+            {{-- Memperhatikan (opsional, Keputusan Bupati) belum ada: tombolnya di tempat bagian itu akan muncul. --}}
+            @if ($letakMemperhatikan === '')
+                <button type="button" wire:click="tambahMemperhatikan" wire:loading.attr="disabled" x-on:click="sidebarOpen = false"
+                    class="flex w-full items-center gap-2 rounded-lg border border-dashed border-slate-300 px-3 py-2 text-left text-sm font-medium text-slate-500 transition hover:border-primary-400 hover:bg-primary-50 hover:text-primary-700 dark:border-navy-700 dark:text-slate-400 dark:hover:border-primary-500 dark:hover:bg-primary-500/10 dark:hover:text-primary-300"
+                    title="Opsional: bagian Memperhatikan sesudah Mengingat, misalnya untuk surat rekomendasi atau berita acara">
+                    <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                    Tambah Memperhatikan
+                    <span class="ml-auto text-xs font-normal text-slate-400">opsional</span>
+                </button>
+            @endif
             @foreach ($daftarBlok as $b)
                 @php $aktif = $blokAktif['kunci'] === $b['kunci'] && $tab === 'kerja'; @endphp
 
@@ -222,6 +232,16 @@
                         @endforeach
                     </ul>
                 @endif
+
+                @if ($letakMemperhatikan === $b['kunci'])
+                <button type="button" wire:click="tambahMemperhatikan" wire:loading.attr="disabled" x-on:click="sidebarOpen = false"
+                    class="flex w-full items-center gap-2 rounded-lg border border-dashed border-slate-300 px-3 py-2 text-left text-sm font-medium text-slate-500 transition hover:border-primary-400 hover:bg-primary-50 hover:text-primary-700 dark:border-navy-700 dark:text-slate-400 dark:hover:border-primary-500 dark:hover:bg-primary-500/10 dark:hover:text-primary-300"
+                    title="Opsional: bagian Memperhatikan sesudah Mengingat, misalnya untuk surat rekomendasi atau berita acara">
+                    <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                    Tambah Memperhatikan
+                    <span class="ml-auto text-xs font-normal text-slate-400">opsional</span>
+                </button>
+            @endif
             @endforeach
         </nav>
 

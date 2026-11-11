@@ -56,6 +56,9 @@
         /* Tanda tangan dan kotak paraf selalu sehalaman. */
         .akhir { page-break-inside: avoid; }
         .paraf td.kosong { width: 1.8cm; }
+        /* Lampiran di halaman baru; kepalanya sejajar dengan blok tanda tangan. */
+        .kepala-lampiran { page-break-before: always; margin-left: {{ $kiriTtd }}cm; margin-bottom: 18pt; }
+        .kepala-lampiran p { margin: 0; }
         .paraf .judul-paraf { text-align: center; }
     </style>
 </head>
@@ -110,6 +113,18 @@
                     @endforeach
                 @endforeach
             </table>
+        @elseif ($b['tipe'] === 'lampiran')
+            <div class="kepala-lampiran">
+                @foreach ($b['kepala'] as $baris)
+                    <p>{{ $baris }}</p>
+                @endforeach
+            </div>
+        @elseif ($b['tipe'] === 'ttd')
+            <div class="penutup ditetapkan">
+                @foreach ($b['baris'] as $baris)
+                    <p class="jabatan">{{ $baris }}</p>
+                @endforeach
+            </div>
         @elseif ($b['tipe'] === 'penutup')
             <div class="akhir">
             <div class="penutup">

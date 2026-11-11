@@ -1,17 +1,14 @@
-{{-- Isi pasal atau diktum di layar: tabel, paragraf, serta ayat dan butir bernomor. --}}
+{{-- Isi pasal, diktum, atau lampiran di layar: tabel, paragraf, serta ayat dan butir bernomor. --}}
 @foreach ($daftar as $baris)
     @if (isset($baris['tabel']))
-        <div class="overflow-x-auto">
-            <table class="my-2 w-full border-collapse text-sm">
-                @foreach ($baris['tabel'] as $kolom)
-                    <tr>
-                        @foreach ($kolom as $isi)
-                            <td class="border border-black px-2 py-1 align-top">{{ $isi }}</td>
-                        @endforeach
-                    </tr>
-                @endforeach
-            </table>
+        {{-- Tabel menjorok sejajar dengan teks butir di atasnya. --}}
+        <div class="overflow-x-auto" style="margin-left: {{ $baris['tingkat'] * 2.75 }}rem">
+            <div class="my-2">@include('v2.partials.tabel-isi', ['tabel' => $baris])</div>
         </div>
+        @continue
+    @endif
+    @if ($baris['tengah'] ?? false)
+        <p class="mb-1 text-center">{{ $baris['isi'] }}</p>
         @continue
     @endif
     {{-- Tiap tingkat bergeser selebar kolom nomor (2rem) + jarak (0,75rem), supaya butir sejajar dengan teks di atasnya. --}}

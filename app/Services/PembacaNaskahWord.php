@@ -330,6 +330,13 @@ class PembacaNaskahWord
             if ($teks === '') {
                 return;
             }
+        } elseif ($this->jenis === 'Keputusan Bupati' && preg_match('/^memperhatikan\s*:?\s*(.*)$/isu', $teks, $m)) {
+            // Memperhatikan hanya dikenal pada Keputusan Bupati, sesudah Mengingat.
+            $this->pindahBagian('memperhatikan');
+            $teks = trim($m[1]);
+            if ($teks === '') {
+                return;
+            }
         } elseif (preg_match('/^(?:ditetapkan|diundangkan)\s+di\b/iu', $teks)) {
             $this->pindahBagian('penutup');
         } elseif (preg_match('/^M\s*E\s*M\s*U\s*T\s*U\s*S\s*K\s*A\s*N\s*:?$/u', $teks)) {
@@ -337,7 +344,7 @@ class PembacaNaskahWord
             if ($this->jenis === 'Keputusan Bupati') {
                 return;
             }
-        } elseif (preg_match('/^menetapkan\s*:?\s*(.*)$/isu', $teks, $m) && in_array($this->bagian, ['judul', 'menimbang', 'mengingat', 'diktum'], true)) {
+        } elseif (preg_match('/^menetapkan\s*:?\s*(.*)$/isu', $teks, $m) && in_array($this->bagian, ['judul', 'menimbang', 'mengingat', 'memperhatikan', 'diktum'], true)) {
             $this->pindahBagian('diktum');
             if ($this->jenis === 'Keputusan Bupati') {
                 if (trim($m[1]) === '') {
@@ -354,7 +361,7 @@ class PembacaNaskahWord
 
         match ($this->bagian) {
             'judul' => $this->prosesJudul($teks),
-            'menimbang', 'mengingat' => $this->baruBaris($this->bagian, null, $this->buangNomor($teks)),
+            'menimbang', 'mengingat', 'memperhatikan' => $this->baruBaris($this->bagian, null, $this->buangNomor($teks)),
             'diktum' => $this->prosesDiktum($teks),
             'batang_tubuh' => $this->prosesBatangTubuh($teks),
             default => $this->sambung($teks),
@@ -440,6 +447,7 @@ class PembacaNaskahWord
             str_contains($p, 'judul') => 'judul',
             str_contains($p, 'menimbang') => 'menimbang',
             str_contains($p, 'mengingat') => 'mengingat',
+            str_contains($p, 'memperhatikan') && $this->jenis === 'Keputusan Bupati' => 'memperhatikan',
             str_contains($p, 'diktum'), str_contains($p, 'menetapkan') => 'diktum',
             str_contains($p, 'batang') => 'batang_tubuh',
             str_contains($p, 'penutup') => 'penutup',

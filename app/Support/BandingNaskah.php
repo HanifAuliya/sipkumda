@@ -25,12 +25,23 @@ class BandingNaskah
         $penandaAwal = self::penandaAwal($naskah, $baris);
         $blok = [];
         $sebelumnya = null;
+        $lampiran = TataLetakNaskah::lampiranBaru($baris);
 
-        foreach ($baris as $item) {
+        foreach (TataLetakNaskah::lampiranDiAkhir($baris) as $item) {
             $lama = (string) $item->rumusan_awal;
             $baru = (string) $item->teksAkhir();
 
-            if ($item->bagian === 'lampiran' || ($lama === '' && $baru === '' && blank($item->label))) {
+            if ($lama === '' && $baru === '' && blank($item->label)) {
+                continue;
+            }
+
+            if ($item->bagian === 'lampiran') {
+                $jumlahAwal = count($blok);
+                TataLetakNaskah::bukaLampiran($blok, $lampiran, $item->status === NaskahBaris::DIHAPUS ? null : $item->label);
+                $blok[] = ['tipe' => 'teks', 'baris' => self::teks($lama, $baru, true)];
+                TataLetakNaskah::tandaiAsal($blok, $jumlahAwal, $item->id);
+                self::tandaiUbahan($blok, $jumlahAwal, in_array($item->status, NaskahBaris::BERUBAH, true));
+
                 continue;
             }
 
@@ -43,6 +54,7 @@ class BandingNaskah
                 'judul' => self::judul($blok, $lama, $baru, $sk),
                 'menimbang' => self::butir($blok, $awalBagian, 'Menimbang', $nomor, $lama, $baru),
                 'mengingat' => self::butir($blok, $awalBagian, 'Mengingat', $nomor, $lama, $baru),
+                'memperhatikan' => self::butir($blok, $awalBagian, 'Memperhatikan', $nomor, $lama, $baru),
                 'diktum' => $sk
                     ? self::diktumKeputusan($blok, $awalBagian, $nomor, $lama, $baru)
                     : self::diktumPeraturan($blok, $lama, $baru),
@@ -54,6 +66,8 @@ class BandingNaskah
             TataLetakNaskah::tandaiAsal($blok, $jumlahAwal, $item->id);
             self::tandaiUbahan($blok, $jumlahAwal, in_array($item->status, NaskahBaris::BERUBAH, true));
         }
+
+        TataLetakNaskah::tutupLampiran($blok, $lampiran);
 
         return $blok;
     }
@@ -177,7 +191,7 @@ class BandingNaskah
     }
 
     /** Isi pasal: tiap baris tetap punya tingkat dan nomor seperti bentuk cetaknya. */
-    private static function teks(string $lama, string $baru): array
+    public static function teks(string $lama, string $baru, bool $lampiran = false): array
     {
         $kunci = fn (array $b) => isset($b['tabel'])
             ? 'tabel ' . implode(' ', array_merge(...$b['tabel']))
@@ -185,7 +199,7 @@ class BandingNaskah
 
         $hasil = [];
 
-        foreach (self::selaras(TataLetakNaskah::barisTeks($lama), TataLetakNaskah::barisTeks($baru), $kunci) as [$x, $y]) {
+        foreach (self::selaras(TataLetakNaskah::barisTeks($lama, $lampiran), TataLetakNaskah::barisTeks($baru, $lampiran), $kunci) as [$x, $y]) {
             // Tabel yang berhadapan dengan teks biasa bukan versi dari baris yang sama.
             if ($x !== null && $y !== null && isset($x['tabel']) !== isset($y['tabel'])) {
                 $hasil[] = self::pasangTeks($x, null);
@@ -201,7 +215,14 @@ class BandingNaskah
     private static function pasangTeks(?array $x, ?array $y): array
     {
         if (isset($x['tabel']) || isset($y['tabel'])) {
-            return ['tingkat' => 0, 'nomor' => null, 'isi' => '', 'tabel' => self::gabungTabel($x['tabel'] ?? [], $y['tabel'] ?? [])];
+            return [
+                'tingkat' => ($y ?? $x)['tingkat'],
+                'nomor' => null,
+                'isi' => '',
+                'tabel' => self::gabungTabel($x['tabel'] ?? [], $y['tabel'] ?? []),
+                'rata' => ($y ?? $x)['rata'] ?? null,
+                'judul' => ($y ?? $x)['judul'] ?? false,
+            ];
         }
 
         $nomorX = $x['nomor'] ?? null;
@@ -211,6 +232,7 @@ class BandingNaskah
             'tingkat' => ($y ?? $x)['tingkat'],
             'nomor' => $nomorX === null && $nomorY === null ? null : self::beda($nomorX, $nomorY),
             'isi' => self::beda($x['isi'] ?? null, $y['isi'] ?? null),
+            'tengah' => ($y ?? $x)['tengah'] ?? false,
         ];
     }
 

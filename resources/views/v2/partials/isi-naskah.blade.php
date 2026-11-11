@@ -10,6 +10,14 @@
     $sel = 'align-top pb-1';
     // Pada panel sempit, rata kanan-kiri membuat jarak antarkata terlalu renggang.
     $rata = $ringkas ? 'text-left' : 'text-justify';
+    // Kolom label Menimbang dan KESATU; dilebarkan bila ada Memperhatikan, seperti pada cetakan.
+    $labelPanjang = collect($blok)->contains(fn (array $b) => $b['tipe'] === 'daftar' && str_starts_with((string) $b['label'], 'Memperhatikan'));
+    $lebarLabel = match (true) {
+        $ringkas && $labelPanjang => 'w-28',
+        $ringkas => 'w-24',
+        $labelPanjang => 'w-32',
+        default => 'w-28',
+    };
 
     // Satu baris naskah bisa menjadi beberapa blok (label dan isi), tetapi tombolnya cukup satu.
     $sudahBertombol = [];
@@ -47,7 +55,7 @@
                 @foreach ($b['butir'] as $i => $butir)
                     @php $idButir = $b['ids'][$i] ?? $b['id'] ?? null; @endphp
                     <tr class="group relative" data-baris="{{ $idButir }}">
-                        <td class="{{ $sel }} {{ $ringkas ? 'w-24' : 'w-28' }}">{{ $i === 0 ? $b['label'] : '' }}</td>
+                        <td class="{{ $sel }} {{ $lebarLabel }}">{{ $i === 0 ? $b['label'] : '' }}</td>
                         <td class="{{ $sel }} w-4">{{ $i === 0 ? ':' : '' }}</td>
                         @if ($butir['nomor'])
                             <td class="{{ $sel }} w-7">{{ $butir['nomor'] }}</td>
@@ -60,14 +68,14 @@
             {{-- Lebar kolom tetap: tabel di dalam diktum tidak boleh mendorong isi keluar kertas pada layar sempit. --}}
             <table class="mb-3 w-full table-fixed border-collapse">
                 <tr>
-                    <td class="{{ $sel }} {{ $ringkas ? 'w-24' : 'w-28' }}">{{ $b['pembuka'] }}</td>
+                    <td class="{{ $sel }} {{ $lebarLabel }}">{{ $b['pembuka'] }}</td>
                     <td class="{{ $sel }} w-4">:</td>
                     <td class="{{ $sel }}"></td>
                 </tr>
                 @foreach ($b['butir'] as $i => $butir)
                     @php $idButir = $b['ids'][$i] ?? null; @endphp
                     <tr class="group relative" data-baris="{{ $idButir }}">
-                        <td class="{{ $sel }} {{ $ringkas ? 'w-24' : 'w-28' }}">{{ $butir['nomor'] }}</td>
+                        <td class="{{ $sel }} {{ $lebarLabel }}">{{ $butir['nomor'] }}</td>
                         <td class="{{ $sel }} w-4">:</td>
                         <td class="{{ $sel }}">
                             @include('v2.partials.baris-teks', ['daftar' => $butir['baris'], 'rata' => $rata])
@@ -78,6 +86,20 @@
                     </tr>
                 @endforeach
             </table>
+        @elseif ($b['tipe'] === 'lampiran')
+            {{-- Lampiran dimulai di halaman baru; kepalanya di sisi kanan seperti pada naskah cetak. --}}
+            <div class="-mx-5 my-10 border-t-2 border-dashed border-slate-300 sm:-mx-16" role="separator" aria-label="Halaman lampiran"></div>
+            <div class="mb-6 ml-auto w-full max-w-[60%] text-left max-sm:max-w-full">
+                @foreach ($b['kepala'] as $baris)
+                    <p>{{ $baris }}</p>
+                @endforeach
+            </div>
+        @elseif ($b['tipe'] === 'ttd')
+            <div class="mt-8 ml-auto w-fit max-w-full">
+                @foreach ($b['baris'] as $baris)
+                    <p class="min-h-6 text-center">{{ $baris }}</p>
+                @endforeach
+            </div>
         @elseif ($b['tipe'] === 'penutup')
             <div class="group relative mt-8" data-baris="{{ $b['id'] ?? '' }}">
                 {{-- Lebar blok mengikuti baris terpanjang, supaya jabatan dan nama rata tengah sesamanya. --}}

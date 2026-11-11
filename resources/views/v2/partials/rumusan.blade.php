@@ -12,15 +12,7 @@
     @foreach ($potongan as $p)
         @isset($p['tabel'])
             <div class="my-2 overflow-x-auto">
-                <table class="w-full border-collapse font-sans text-sm">
-                    @foreach ($p['tabel'] as $kolom)
-                        <tr>
-                            @foreach ($kolom as $isi)
-                                <td class="border border-slate-300 px-2 py-1 align-top dark:border-navy-600">{{ $isi }}</td>
-                            @endforeach
-                        </tr>
-                    @endforeach
-                </table>
+                <div class="font-sans">@include('v2.partials.tabel-isi', ['tabel' => $p, 'garis' => 'border-slate-300 dark:border-navy-600'])</div>
             </div>
         @else
             <span class="block whitespace-pre-line">{{ $p['teks'] }}</span>

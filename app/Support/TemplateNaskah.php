@@ -17,6 +17,7 @@ class TemplateNaskah
         'judul' => 'Judul',
         'menimbang' => 'Konsiderans Menimbang',
         'mengingat' => 'Dasar Hukum Mengingat',
+        'memperhatikan' => 'Memperhatikan',
         'diktum' => 'Diktum',
         'batang_tubuh' => 'Batang Tubuh',
         'penutup' => 'Penutup',
@@ -28,6 +29,7 @@ class TemplateNaskah
         'judul' => 'Sesuaikan judul bila perlu. Nomor dan tahun dikosongkan, karena diisi saat penetapan.',
         'menimbang' => 'Satu baris untuk satu pertimbangan, diawali "bahwa". Huruf a, b, c dibuat otomatis.',
         'mengingat' => 'Satu baris untuk satu peraturan, dari yang tertinggi. Nomor urut dibuat otomatis.',
+        'memperhatikan' => 'Opsional. Satu baris untuk satu hal yang diperhatikan, misalnya surat rekomendasi atau berita acara. Nomor urut dibuat otomatis; bila hanya satu, ditulis tanpa nomor.',
         'diktum' => 'Isi bagian yang ditetapkan. Pada Keputusan Bupati, KESATU, KEDUA, dan seterusnya dibuat otomatis; rincian a., b. ditulis per baris di dalam diktumnya.',
         'batang_tubuh' => 'Satu baris untuk satu BAB atau Pasal. Ayat dan butir ditulis di dalam isi pasalnya.',
         'penutup' => 'Nama pejabat diambil dari Pengaturan. Tanggal dan nomor dikosongkan untuk tanda tangan basah.',
@@ -39,12 +41,15 @@ class TemplateNaskah
         'KESEBELAS', 'KEDUA BELAS', 'KETIGA BELAS', 'KEEMPAT BELAS', 'KELIMA BELAS',
     ];
 
-    /** Bagian yang dipakai suatu jenis, berurutan. */
+    /**
+     * Bagian yang dipakai suatu jenis, berurutan. Memperhatikan hanya ada pada Keputusan Bupati
+     * dan bersifat opsional: tidak ada di kerangka, ditambahkan lewat tombol di panel bagian.
+     */
     public static function bagian(string $jenis): array
     {
         return $jenis === 'Keputusan Bupati'
             ? array_diff_key(self::BAGIAN, ['batang_tubuh' => true])
-            : self::BAGIAN;
+            : array_diff_key(self::BAGIAN, ['memperhatikan' => true]);
     }
 
     /** Baris awal untuk naskah yang diketik langsung tanpa unggah Word. */
@@ -121,18 +126,20 @@ class TemplateNaskah
     }
 
     /**
-     * Penanda tiap baris: a./b. pada Menimbang, 1./2. pada Mengingat, KESATU/KEDUA pada diktum SK,
-     * sisanya label yang ditulis pengguna (BAB I, Pasal 5). Baris dihapus tidak ikut dihitung.
-     * Pertimbangan yang hanya satu ditulis tanpa huruf, seperti pada produk hukum yang terbit.
+     * Penanda tiap baris: a./b. pada Menimbang, 1./2. pada Mengingat dan Memperhatikan, KESATU/KEDUA pada
+     * diktum SK, sisanya label yang ditulis pengguna (BAB I, Pasal 5). Baris dihapus tidak ikut dihitung.
+     * Pertimbangan atau hal yang diperhatikan yang hanya satu ditulis tanpa nomor, seperti pada produk hukum yang terbit.
      *
      * @param  Collection<int, NaskahBaris>  $baris  urut menurut kolom urutan
      * @return array<int, string|null> id baris => penanda
      */
     public static function penanda(Naskah $naskah, Collection $baris): array
     {
-        $hitung = ['menimbang' => 0, 'mengingat' => 0, 'diktum' => 0];
+        $hitung = ['menimbang' => 0, 'mengingat' => 0, 'memperhatikan' => 0, 'diktum' => 0];
         $hasil = [];
-        $satuPertimbangan = $baris->filter(fn (NaskahBaris $b) => $b->bagian === 'menimbang' && $b->status !== NaskahBaris::DIHAPUS)->count() === 1;
+        $hanyaSatu = fn (string $bagian) => $baris->filter(fn (NaskahBaris $b) => $b->bagian === $bagian && $b->status !== NaskahBaris::DIHAPUS)->count() === 1;
+        $satuPertimbangan = $hanyaSatu('menimbang');
+        $satuPerhatian = $hanyaSatu('memperhatikan');
 
         foreach ($baris as $item) {
             $hidup = $item->status !== NaskahBaris::DIHAPUS;
@@ -142,6 +149,8 @@ class TemplateNaskah
                 $item->bagian === 'menimbang' && $satuPertimbangan => null,
                 $item->bagian === 'menimbang' => self::huruf(++$hitung['menimbang']) . '.',
                 $item->bagian === 'mengingat' => ++$hitung['mengingat'] . '.',
+                $item->bagian === 'memperhatikan' && $satuPerhatian => null,
+                $item->bagian === 'memperhatikan' => ++$hitung['memperhatikan'] . '.',
                 $item->bagian === 'diktum' && $naskah->jenis === 'Keputusan Bupati' => self::DIKTUM[$hitung['diktum']++] ?? null,
                 default => $item->label,
             };

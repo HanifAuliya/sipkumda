@@ -4,15 +4,7 @@
         @if ($loop->first && filled($penanda ?? null))
             <span class="penanda">{{ $penanda }}</span>
         @endif
-        <table class="tabel-sel">
-            @foreach ($p['tabel'] as $kolom)
-                <tr>
-                    @foreach ($kolom as $isi)
-                        <td>{{ $isi }}</td>
-                    @endforeach
-                </tr>
-            @endforeach
-        </table>
+        @include('pdf.v2.partials.tabel-isi', ['tabel' => $p, 'kelas' => 'tabel-sel'])
     @else
         <div class="teks">@if ($loop->first && filled($penanda ?? null))<span class="penanda">{{ $penanda }}</span> @endif{{ $p['teks'] }}</div>
     @endisset

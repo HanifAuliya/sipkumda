@@ -17,6 +17,7 @@ use Dompdf\Dompdf;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
+use PhpOffice\PhpWord\ComplexType\TblWidth;
 use PhpOffice\PhpWord\Element\Cell;
 use PhpOffice\PhpWord\Element\Footer;
 use PhpOffice\PhpWord\Element\Section;
@@ -92,6 +93,7 @@ class CetakNaskah
         // Tanda & dan < di rumusan harus lolos sebagai teks, bukan merusak XML dokumen.
         Settings::setOutputEscapingEnabled(true);
 
+        $format = self::lebarLabel($format, $susunan);
         $this->f = $format;
         $m = $format['margin'];
         $this->lebarIsi = $this->twip($format['kertas']['lebar']) - $this->twip($m['kiri']) - $this->twip($m['kanan']);
@@ -125,6 +127,8 @@ class CetakNaskah
                 'daftar' => $this->wordDaftar($halaman, $blok),
                 'diktum' => $this->wordDiktum($halaman, $blok),
                 'penutup' => $this->wordPenutup($halaman, $blok),
+                'lampiran' => $this->wordKepalaLampiran($halaman, $blok),
+                'ttd' => $this->wordTtdLampiran($halaman, $blok),
                 default => $this->wordTeks($halaman, $blok),
             };
         }
@@ -202,6 +206,24 @@ class CetakNaskah
      * Gaya titik dua konsiderans. "rapat" (pedoman SK): "Menimbang:", "Menetapkan:", dan "MEMUTUSKAN:"
      * tanpa spasi dan tanpa kolom titik dua; "kolom": "Menimbang :" dengan titik dua sejajar.
      */
+    /** Lebar "Memperhatikan:" pada Bookman Old Style 12 (3,41 cm) ditambah sedikit ruang. */
+    private const LEBAR_LABEL_MEMPERHATIKAN = 3.75;
+
+    /**
+     * Label Memperhatikan lebih panjang dari Menimbang dan Mengingat, jadi kolom labelnya dilebarkan
+     * bila bagian itu ada. Kolom KESATU ikut melebar supaya semua isi tetap sejajar.
+     */
+    private static function lebarLabel(array $format, array $susunan): array
+    {
+        $adaMemperhatikan = collect($susunan)->contains(fn (array $b) => $b['tipe'] === 'daftar' && str_starts_with($b['label'], 'Memperhatikan'));
+
+        if ($adaMemperhatikan) {
+            $format['konsiderans']['lebar_label'] = max((float) $format['konsiderans']['lebar_label'], self::LEBAR_LABEL_MEMPERHATIKAN);
+        }
+
+        return $format;
+    }
+
     private static function gayaKonsiderans(array $susunan, array $format): array
     {
         $rapat = ($format['konsiderans']['titik_dua'] ?? 'kolom') === 'rapat';
@@ -290,7 +312,7 @@ class CetakNaskah
                 $tr->addCell($lebarTitik)->addText($j === 0 ? ':' : '');
 
                 if (isset($isi['tabel'])) {
-                    $this->wordTabel($selPenuh($tr), $isi['tabel'], $lebarSisa);
+                    $this->wordTabel($selPenuh($tr), $isi, $lebarSisa);
                 } elseif ($isi['nomor'] === null) {
                     $selPenuh($tr)->addText($isi['isi'], null, ['alignment' => Jc::BOTH, 'spaceAfter' => 60]);
                 } else {
@@ -331,9 +353,12 @@ class CetakNaskah
             $butir = [];
 
             if (isset($baris['tabel'])) {
-                $this->wordTabel($halaman, $baris['tabel']);
+                // Tabel menjorok sejajar dengan teks butir di atasnya.
+                $jorok = $baris['tingkat'] * self::INDEN;
+                $this->wordTabel($halaman, $baris, $this->lebarIsi - $jorok, $jorok);
             } else {
-                $halaman->addText($baris['isi'], null, ['alignment' => Jc::BOTH, 'spaceAfter' => 60]);
+                $rata = ($baris['tengah'] ?? false) ? Jc::CENTER : Jc::BOTH;
+                $halaman->addText($baris['isi'], null, ['alignment' => $rata, 'spaceAfter' => 60]);
             }
         }
 
@@ -373,21 +398,35 @@ class CetakNaskah
     }
 
     /**
-     * @param  Section|Cell  $wadah
-     * @param  array<int, array<int, string>>  $isi
+     * Tabel isi naskah: rata kolom, baris judul (diulang di tiap halaman), dan judul kelompok
+     * yang dibentangkan selebar tabel mengikuti TataLetakNaskah::susunTabel().
+     *
+     * @param  array{tabel: list<list<string>>, rata?: ?list<string>, judul?: bool}  $item
      */
-    private function wordTabel(Section|Cell $wadah, array $isi, ?int $lebarTersedia = null): void
+    private function wordTabel(Section|Cell $wadah, array $item, ?int $lebarTersedia = null, int $jorok = 0): void
     {
         $lebarTersedia ??= $this->lebarIsi;
-        $kolom = max(array_map('count', $isi));
-        $lebar = $this->lebarKolomTabel($isi, $kolom, $lebarTersedia);
-        $tabel = $wadah->addTable(['layout' => 'fixed', 'borderSize' => 6, 'borderColor' => '000000', 'cellMargin' => 60]);
+        $kolom = max(array_map('count', $item['tabel']));
+        $lebar = $this->lebarKolomTabel($item['tabel'], $kolom, $lebarTersedia);
+        $gaya = ['layout' => 'fixed', 'borderSize' => 6, 'borderColor' => '000000', 'cellMargin' => 60];
+        $rata = ['left' => Jc::START, 'center' => Jc::CENTER, 'right' => Jc::END];
 
-        foreach ($isi as $sel) {
+        if ($jorok > 0) {
+            $gaya['indent'] = new TblWidth($jorok);
+        }
+
+        $tabel = $wadah->addTable($gaya);
+
+        foreach (TataLetakNaskah::susunTabel($item) as $baris) {
             // Satu baris tabel tidak boleh terbelah di pergantian halaman.
-            $tr = $tabel->addRow(null, ['cantSplit' => true]);
-            for ($i = 0; $i < $kolom; $i++) {
-                $tr->addCell($lebar[$i])->addText($sel[$i] ?? '', ['size' => 11], ['spaceAfter' => 0]);
+            $tr = $tabel->addRow(null, ['cantSplit' => true, 'tblHeader' => $baris['judul']]);
+            $i = 0;
+
+            foreach ($baris['sel'] as $sel) {
+                $lebarSel = array_sum(array_slice($lebar, $i, $sel['bentang']));
+                $tr->addCell($lebarSel, $sel['bentang'] > 1 ? ['gridSpan' => $sel['bentang']] : [])
+                    ->addText((string) $sel['isi'], ['size' => 11, 'bold' => $sel['tebal']], ['alignment' => $rata[$sel['rata']], 'spaceAfter' => 0]);
+                $i += $sel['bentang'];
             }
         }
 
@@ -442,6 +481,31 @@ class CetakNaskah
                 $halaman->addText($baris, null, ['keepNext' => true, 'spaceAfter' => 0]);
             }
         }
+    }
+
+    /** Lampiran mulai di halaman baru; kepalanya sejajar dengan blok tanda tangan penutup. */
+    private function wordKepalaLampiran(Section $halaman, array $blok): void
+    {
+        $kiri = min($this->twip($this->f['penutup']['kiri']), $this->lebarIsi - 2000);
+
+        foreach ($blok['kepala'] as $i => $baris) {
+            $halaman->addText($baris, null, [
+                'indentation' => ['left' => $kiri],
+                'pageBreakBefore' => $i === 0,
+                'keepNext' => true,
+                'spaceAfter' => 0,
+            ]);
+        }
+
+        $halaman->addTextBreak(1, null, ['spaceAfter' => 0]);
+    }
+
+    /** Tanda tangan penutup lampiran: jabatan dan nama, tanpa tempat dan tanggal. */
+    private function wordTtdLampiran(Section $halaman, array $blok): void
+    {
+        $halaman->addTextBreak(1);
+        $kiri = min($this->twip($this->f['penutup']['kiri']), $this->lebarIsi - 2000);
+        $this->wordBlokJabatan($halaman, $blok['baris'], $kiri, min(self::LEBAR_DITETAPKAN, $this->lebarIsi - $kiri));
     }
 
     /** Tempat dan tanggal rata kiri blok; jabatan dan nama rata tengah terhadap baris jabatan terpanjang. */
@@ -625,10 +689,12 @@ class CetakNaskah
 
     private function pdfNaskahDari(Naskah $naskah, Collection $baris, array $f): string
     {
+        $susunan = TataLetakNaskah::susun($naskah, $baris);
+        $f = self::lebarLabel($f, $susunan);
         $this->f = $f;
         $paraf = $this->adaParaf() ? $this->jabatanParaf() : [];
 
-        $blok = self::gayaKonsiderans(TataLetakNaskah::susun($naskah, $baris), $f);
+        $blok = self::gayaKonsiderans($susunan, $f);
 
         $buat = function (bool $sisihkanParaf) use ($f, $blok, $paraf) {
             $pdf = Pdf::loadView('pdf.v2.naskah', [

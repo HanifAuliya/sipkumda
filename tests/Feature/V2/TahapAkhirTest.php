@@ -501,6 +501,55 @@ describe('penomoran dan tabel', function () {
             ->and($baris[2]['nomor'])->toBe('(1)');
     });
 
+    it('membaca rata kolom dan baris judul dari baris pemisah', function () {
+        $judul = TataLetakNaskah::barisTeks("| NO | NAMA | BESARAN |\n| :-: | --- | --: |\n| 1 | A | 150.000 |")[0];
+        $tanpaJudul = TataLetakNaskah::barisTeks("| :-: | --- |\n| 1 | A |")[0];
+        $susun = TataLetakNaskah::susunTabel($judul);
+
+        expect($judul['judul'])->toBeTrue()
+            ->and($judul['rata'])->toBe(['center', 'left', 'right'])
+            ->and($tanpaJudul['judul'])->toBeFalse()
+            ->and($tanpaJudul['tabel'])->toBe([['1', 'A']])
+            ->and($susun[0]['sel'][2]['rata'])->toBe('center')
+            ->and($susun[1]['sel'][2]['rata'])->toBe('right')
+            ->and(TataLetakNaskah::selTabel('| Nama | : | Budi |'))->toBe(['Nama', ':', 'Budi']);
+    });
+
+    it('menyusun Memperhatikan sesudah Mengingat dengan nomor urut pada Keputusan Bupati', function () {
+        $sk = new Naskah(['jenis' => 'Keputusan Bupati']);
+        $baris = collect([
+            ['mengingat', 'Undang-Undang Nomor 23 Tahun 2014;'],
+            ['memperhatikan', 'Surat Rekomendasi Kesra;'],
+            ['memperhatikan', 'Berita Acara Evaluasi;'],
+            ['diktum', 'Menetapkan penerima hibah.'],
+        ])->map(fn ($b, $i) => (new B(['bagian' => $b[0], 'rumusan_awal' => $b[1]]))->forceFill(['id' => $i + 1, 'status' => B::BELUM]));
+
+        $daftar = array_values(array_filter(TataLetakNaskah::susun($sk, $baris), fn ($b) => $b['tipe'] === 'daftar'));
+        $tunggal = App\Support\TemplateNaskah::penanda($sk, $baris->reject(fn ($b) => $b->id === 3));
+
+        expect(array_column($daftar, 'label'))->toBe(['Mengingat', 'Memperhatikan'])
+            ->and(array_column($daftar[1]['butir'], 'nomor'))->toBe(['1.', '2.'])
+            ->and($tunggal[2])->toBeNull()
+            ->and(App\Support\TemplateNaskah::bagian('Peraturan Bupati'))->not->toHaveKey('memperhatikan');
+    });
+
+    it('membiarkan ayat sisipan saat merapikan nomor', function () {
+        expect(TataLetakNaskah::rapikanNomor("(1) a\n(1a) sisip\n(3) b"))->toBe("(1) a\n(1a) sisip\n(2) b");
+    });
+
+    it('mencetak lampiran sesudah tanda tangan walaupun barisnya di atas penutup', function () {
+        $baris = collect([
+            ['judul', 'KEPUTUSAN BUPATI HULU SUNGAI TENGAH'],
+            ['lampiran', "DAFTAR PENERIMA\n| NO | NAMA |\n| 1 | A |"],
+            ['penutup', "Ditetapkan di Barabai\nBUPATI HULU SUNGAI TENGAH,\n\nNAMA"],
+        ])->map(fn ($b, $i) => (new B(['bagian' => $b[0], 'rumusan_awal' => $b[1]]))->forceFill(['id' => $i + 1, 'status' => B::BELUM]));
+
+        $tipe = array_column(TataLetakNaskah::susun(new Naskah(['jenis' => 'Keputusan Bupati']), $baris), 'tipe');
+
+        expect(array_search('lampiran', $tipe))->toBeGreaterThan(array_search('penutup', $tipe))
+            ->and(end($tipe))->toBe('ttd');
+    });
+
     it('tabel tercetak di Word dan PDF', function () {
         $n = Naskah::create(['jenis' => 'Peraturan Bupati', 'tentang' => 'x', 'pemrakarsa_id' => $this->pd->id]);
         $this->alur->isiBaris($n, [['bagian' => 'batang_tubuh', 'label' => 'Pasal 1', 'teks' => "| Jabatan | Nilai |\n| Ketua & Wakil | Rp1 |"]]);

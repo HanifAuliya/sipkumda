@@ -117,6 +117,24 @@ class LayarKerja extends Component
         $this->blok = '';
     }
 
+    /** Memperhatikan bersifat opsional pada Keputusan Bupati: barisnya disisipkan sesudah Mengingat. */
+    public function tambahMemperhatikan(AlurNaskah $alur): void
+    {
+        Gate::authorize('view', $this->naskah);
+        abort_unless($this->naskah->jenis === 'Keputusan Bupati', 404);
+
+        $baris = $this->naskah->baris()->get();
+        abort_if($baris->contains('bagian', 'memperhatikan'), 409, 'Bagian Memperhatikan sudah ada.');
+
+        // Sesudah Mengingat; bila tidak ada, sesudah bagian terakhir sebelum diktum.
+        $acuan = $baris->whereIn('bagian', ['judul', 'menimbang', 'mengingat'])->last();
+        abort_if($acuan === null, 422, 'Naskah belum punya judul.');
+
+        $alur->tambahSetelah($acuan, auth()->user(), null, 'memperhatikan');
+        $this->strukturBerubah();
+        $this->pilihBlok('memperhatikan');
+    }
+
     public function pilihBlok(string $kunci): void
     {
         $this->blok = $kunci;
@@ -330,6 +348,14 @@ class LayarKerja extends Component
             ?? ($bertugas ? $daftarBlok->firstWhere('keadaan', '!=', 'selesai') : null)
             ?? $daftarBlok->first();
 
+        // Tombol Tambah Memperhatikan tampil sesudah bagian terakhir sebelum diktum yang terlihat.
+        $bisaTambahMemperhatikan = $this->naskah->jenis === 'Keputusan Bupati'
+            && in_array($mode, [AlurNaskah::MODE_SUSUN, AlurNaskah::MODE_TELITI, AlurNaskah::MODE_SESUAIKAN], true)
+            && ! $semuaBaris->contains('bagian', 'memperhatikan');
+        $letakMemperhatikan = $bisaTambahMemperhatikan
+            ? ($daftarBlok->filter(fn (array $b) => in_array($b['bagian'], ['judul', 'menimbang', 'mengingat'], true))->last()['kunci'] ?? '')
+            : null;
+
         // Disimpan supaya pilihan tidak melompat saat baris terakhir bagian ini selesai diperiksa.
         $this->blok = $blokAktif['kunci'] ?? '';
         $posisi = $blokAktif ? $daftarBlok->search(fn (array $b) => $b['kunci'] === $blokAktif['kunci']) : 0;
@@ -348,6 +374,7 @@ class LayarKerja extends Component
             'filterAktif' => $filter,
             'perId' => $perId,
             'daftarBlok' => $daftarBlok,
+            'letakMemperhatikan' => $letakMemperhatikan,
             'blokAktif' => $blokAktif,
             'posisiBlok' => $posisi,
             'blokSebelumnya' => $posisi > 0 ? $daftarBlok->get($posisi - 1) : null,

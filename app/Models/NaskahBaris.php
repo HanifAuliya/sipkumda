@@ -38,7 +38,7 @@ class NaskahBaris extends Model
     public const BERUBAH = [self::DIUBAH, self::DIHAPUS, self::PERLU_PD, self::DISESUAIKAN];
 
     /** Bagian yang barisnya bisa lebih dari satu. Judul, Penutup, dan Lampiran selalu satu baris. */
-    public const BAGIAN_BERULANG = ['menimbang', 'mengingat', 'diktum', 'batang_tubuh'];
+    public const BAGIAN_BERULANG = ['menimbang', 'mengingat', 'memperhatikan', 'diktum', 'batang_tubuh'];
 
     protected $table = 'naskah_baris';
 

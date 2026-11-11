@@ -628,10 +628,13 @@ class AlurNaskah
         });
     }
 
-    /** Menyisipkan baris baru setelah baris acuan. Di luar penyusunan, isinya masuk kolom 4. */
-    public function tambahSetelah(B $acuan, User $user, ?string $label = null): B
+    /**
+     * Menyisipkan baris baru setelah baris acuan. Di luar penyusunan, isinya masuk kolom 4.
+     * $bagian mengisi bagian lain dari acuannya, misalnya Memperhatikan yang disisipkan sesudah Mengingat.
+     */
+    public function tambahSetelah(B $acuan, User $user, ?string $label = null, ?string $bagian = null): B
     {
-        return DB::transaction(function () use ($acuan, $user, $label) {
+        return DB::transaction(function () use ($acuan, $user, $label, $bagian) {
             $naskah = Naskah::whereKey($acuan->naskah_id)->lockForUpdate()->firstOrFail();
             $mode = $this->modeBaris($naskah, $user);
 
@@ -645,7 +648,7 @@ class AlurNaskah
             $baru = B::create([
                 'naskah_id' => $naskah->id,
                 'urutan' => $urutan + 1,
-                'bagian' => $acuan->bagian,
+                'bagian' => $bagian ?? $acuan->bagian,
                 'label' => filled($label) ? trim($label) : null,
                 'status' => $mode === self::MODE_SUSUN ? B::BELUM : B::DIUBAH,
                 'giliran_diubah' => $naskah->giliran,

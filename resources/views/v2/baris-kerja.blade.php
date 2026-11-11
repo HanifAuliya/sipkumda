@@ -8,6 +8,9 @@
     $judul = $penanda ?: App\Support\TemplateNaskah::BAGIAN[$baris->bagian];
     $bisaDiatur = in_array($baris->bagian, B::BAGIAN_BERULANG, true);
     $pasal = $baris->bagian === 'batang_tubuh';
+    // Pasal dan lampiran memakai editor bernomor dan bertabel; lampiran biasanya berupa daftar dan tabel.
+    $pakaiEditor = $pasal || $baris->bagian === 'lampiran';
+    $gayaAwal = $pasal ? 'ayat' : 'angka';
     $bisaDibuang = $mode === A::MODE_TELITI && $baris->sisipan();
     $bisaDiberiPenanda = $pasal && $baris->sisipan() && in_array($mode, [A::MODE_TELITI, A::MODE_KOREKSI], true);
     // Baris yang baru disisipkan langsung siap diisi.
@@ -18,7 +21,7 @@
     $bidang = 'w-full rounded-lg border-slate-200 bg-white text-sm shadow-xs focus:border-primary-400 focus:ring-3 focus:ring-primary-100 dark:border-navy-700 dark:bg-navy-950 dark:focus:border-primary-500 dark:focus:ring-primary-500/20';
     $kotak = 'mt-1.5 min-h-24 rounded-lg px-3.5 py-3';
     $judulKolom = 'block text-sm font-semibold text-slate-500 dark:text-slate-400';
-    $petunjukTabel = 'Tabel dari Word atau Excel bisa langsung ditempel (Ctrl+V).';
+    $petunjukTabel = 'Enter membuat butir berikutnya, Tab dan Shift+Tab mengatur tingkat. Tabel dari Word atau Excel bisa langsung ditempel (Ctrl+V).';
 @endphp
 
 <article id="baris-{{ $baris->id }}" data-baris="{{ $baris->id }}"
@@ -39,7 +42,7 @@
         },
         {{-- x-show baru menampilkan editor setelah microtask, jadi $nextTick kadang masih terlalu awal. --}}
         buka() { this.ubah = true; setTimeout(() => this.fokusEditor(), 30); },
-        {{-- Rumusan pasal memakai editor bertabel; editor-nya pembungkus, bukan kotak teks. --}}
+        {{-- Rumusan pasal dan lampiran memakai editor bernomor; editor-nya pembungkus, bukan kotak teks. --}}
         fokusEditor() {
             const editor = this.$refs.editor;
             (editor.matches('textarea') ? editor : editor.querySelector('textarea'))?.focus();
@@ -52,9 +55,6 @@
         {{-- Diberi event input supaya simpan otomatis saat menyusun ikut berjalan. --}}
         setel(nilai) { this.teks = nilai; this.$nextTick(() => this.$refs.editor.dispatchEvent(new Event('input'))); },
         rapikan() { this.$wire.rapikanNomor(this.teks).then((hasil) => this.setel(hasil)); },
-        sisipTabel() {
-            this.$refs.editor.querySelector('[x-data]')?.dispatchEvent(new CustomEvent('sisip-tabel'));
-        },
         {{--
             Simpan otomatis saat menyusun: 0,8 detik setelah berhenti mengetik, atau langsung saat kursor keluar
             dari isian. Yang kedua mencegah ketikan terakhir hilang bila pengguna langsung pindah bagian.
@@ -97,7 +97,7 @@
             <div class="min-w-0">
                 <p class="{{ $judulKolom }}">Rumusan</p>
                 @php $barisAwal = min(14, max(3, substr_count($awal, "\n") + 2 + (int) (mb_strlen($awal) / 90))); @endphp
-                @if ($pasal)
+                @if ($pakaiEditor)
                     <div x-ref="editor" class="mt-1.5" x-on:input="simpanNanti()" x-on:focusout="$el.contains($event.relatedTarget) || simpanSekarang()">
                         @include('v2.partials.editor-rumusan', ['barisMinimal' => $barisAwal, 'label' => "Rumusan {$judul}"])
                     </div>
@@ -113,7 +113,6 @@
                         <div class="flex flex-wrap gap-2">
                             @if ($pasal)
                                 <x-ui.button size="rapat" variant="ghost" icon="list-ol" x-on:click="rapikan()">Rapikan Nomor</x-ui.button>
-                                <x-ui.button size="rapat" variant="ghost" icon="table" x-on:click="sisipTabel()">Sisipkan Tabel</x-ui.button>
                             @endif
                         </div>
                         <div class="flex flex-wrap items-center gap-2">
@@ -170,7 +169,7 @@
                         </div>
                     @endif
                     @php $barisAwal = min(16, max(5, substr_count($awal, "\n") + 3 + (int) (mb_strlen($awal) / 50))); @endphp
-                    @if ($pasal)
+                    @if ($pakaiEditor)
                         <div x-ref="editor">
                             @include('v2.partials.editor-rumusan', ['barisMinimal' => $barisAwal, 'label' => "Rumusan penyempurnaan {$judul}"])
                         </div>
@@ -259,9 +258,8 @@
         @if (in_array($mode, [A::MODE_TELITI, A::MODE_KOREKSI, A::MODE_SESUAIKAN], true))
             <div class="mt-4 flex flex-wrap items-center justify-between gap-2" x-show="ubah" x-cloak>
                 <div class="flex flex-wrap gap-2">
-                    @if ($pasal)
+                    @if ($pakaiEditor)
                         <x-ui.button size="rapat" variant="ghost" icon="list-ol" x-on:click="rapikan()">Rapikan Nomor</x-ui.button>
-                        <x-ui.button size="rapat" variant="ghost" icon="table" x-on:click="sisipTabel()">Sisipkan Tabel</x-ui.button>
                     @endif
                     @if ($bisaDibuang)
                         <x-ui.button size="rapat" variant="ghost" icon="trash" wire:click="buangSisipan" wire:confirm="Hapus baris sisipan ini?">Hapus Baris</x-ui.button>

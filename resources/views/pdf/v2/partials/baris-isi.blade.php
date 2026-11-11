@@ -1,14 +1,21 @@
-{{-- Satu baris isi pasal atau diktum pada PDF: tabel, paragraf, atau ayat dan butir bernomor. --}}
+{{-- Satu baris isi pasal, diktum, atau lampiran pada PDF: tabel, paragraf, atau ayat dan butir bernomor. --}}
 @if (isset($baris['tabel']))
-    <table class="tabel-isi">
-        @foreach ($baris['tabel'] as $sel)
+    @php
+        $tabel = view('pdf.v2.partials.tabel-isi', ['tabel' => $baris])->render();
+    @endphp
+    @if ($baris['tingkat'])
+        {{-- Tabel menjorok sejajar dengan teks butir di atasnya (1 cm per tingkat, sama dengan kolom nomor). --}}
+        <table>
             <tr>
-                @foreach ($sel as $isi)
-                    <td>{{ $isi }}</td>
-                @endforeach
+                <td style="width: {{ $baris['tingkat'] }}cm"></td>
+                <td>{!! $tabel !!}</td>
             </tr>
-        @endforeach
-    </table>
+        </table>
+    @else
+        {!! $tabel !!}
+    @endif
+@elseif ($baris['tengah'] ?? false)
+    <p class="paragraf" style="text-align: center">{{ $baris['isi'] }}</p>
 @elseif ($baris['nomor'] === null)
     <p class="paragraf">{{ $baris['isi'] }}</p>
 @else
