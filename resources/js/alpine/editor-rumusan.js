@@ -129,7 +129,7 @@ export default function editorRumusan(barisMinimal = 3, gayaAwal = 'ayat') {
         init() {
             akar = this.$el;
             this.muat(this.teks);
-            // Teks yang berubah dari luar (Batal, Rapikan Nomor, Kembalikan) dimuat ulang.
+            // Teks yang berubah dari luar (Batal, Kembalikan) dimuat ulang.
             this.$watch('teks', (nilai) => {
                 if (nilai !== this.ditulis) this.muat(nilai);
             });
@@ -427,7 +427,7 @@ export default function editorRumusan(barisMinimal = 3, gayaAwal = 'ayat') {
             this.fokusSel(this.indeks(tabel.id), 0, 0);
         },
 
-        /** Tempel tabel dari Word/Excel menjadi tabel; teks banyak baris dipecah per butir. */
+        /** Tempel tabel dari Word/Excel menjadi tabel; teks banyak baris dipecah per butir dan nomornya dirapikan. */
         tempelDiBaris(e, i) {
             const el = e.target;
             const tabel = tabelDariClipboard(e.clipboardData);
@@ -465,14 +465,14 @@ export default function editorRumusan(barisMinimal = 3, gayaAwal = 'ayat') {
                 akhir.isi += sesudah;
                 this.potong.splice(i + 1, 0, ...tambahan);
                 this.potong = this.rapikan(this.potong);
-                this.simpan();
+                this.simpanBernomor();
                 this.fokusBaris(akhir.id, posisi);
             } else {
                 const posisi = p.isi.length;
                 if (sesudah !== '') tambahan.push(baru({ jenis: 'baris', nomor: null, isi: sesudah }));
                 this.potong.splice(i + 1, 0, ...tambahan);
                 this.potong = this.rapikan(this.potong);
-                this.simpan();
+                this.simpanBernomor();
                 this.fokusBaris(p.id, posisi);
             }
         },

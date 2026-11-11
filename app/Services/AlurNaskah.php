@@ -18,6 +18,7 @@ use App\Support\TemplateNaskah;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
@@ -404,13 +405,38 @@ class AlurNaskah
     }
 
     /** Membuang draf yang tidak jadi diajukan beserta berkasnya. */
+    /**
+     * Perangkat Daerah boleh membuang drafnya sendiri selama belum pernah diajukan (belum bernomor).
+     * Rancangan yang sudah bernomor hanya bisa dihapus Admin, supaya nomor yang sudah tercatat di nota
+     * dinas dan notifikasi tidak hilang tanpa jejak. Penghapusannya dicatat di log aplikasi.
+     */
+    public function bolehBuang(Naskah $naskah, User $user): bool
+    {
+        if ($naskah->nomor !== null) {
+            return $user->hasAnyRole(['Admin', 'Super Admin']) && $naskah->tahap !== T::Selesai;
+        }
+
+        return $naskah->tahap === T::Draf && $naskah->pemrakarsa_id === $user->id;
+    }
+
     public function buangDraf(Naskah $naskah, User $user): void
     {
         $slug = DB::transaction(function () use ($naskah, $user) {
             $naskah = Naskah::whereKey($naskah->id)->lockForUpdate()->firstOrFail();
 
-            if ($naskah->tahap !== T::Draf || $naskah->pemrakarsa_id !== $user->id) {
-                abort(403, 'Hanya draf milik Anda yang bisa dibuang.');
+            if (! $this->bolehBuang($naskah, $user)) {
+                abort(403, $naskah->nomor !== null
+                    ? 'Rancangan yang sudah diajukan dan bernomor hanya bisa dihapus Admin.'
+                    : 'Hanya draf milik Anda yang bisa dibuang.');
+            }
+
+            if ($naskah->nomor !== null) {
+                Log::notice('Rancangan bernomor dihapus Admin.', [
+                    'nomor' => $naskah->nomor,
+                    'tentang' => $naskah->tentang,
+                    'tahap' => $naskah->tahap->value,
+                    'oleh' => $user->id,
+                ]);
             }
 
             $slug = $naskah->slug;
@@ -486,6 +512,8 @@ class AlurNaskah
         $aksi = self::AKSI[$kunci] ?? abort(404);
         abort_if(isset($aksi['form']), 400, 'Aksi ini memiliki isian sendiri.');
 
+        $asal = $naskah;
+
         DB::transaction(function () use (&$naskah, $user, $kunci, $aksi, $catatan, $penelitiId) {
             // Tahap dibaca ulang di dalam kunci: klik ganda atau tab lama tidak bisa memindahkan dua kali.
             $naskah = $this->kunciUntukAksi($naskah, $user, $kunci);
@@ -508,6 +536,11 @@ class AlurNaskah
 
             $naskah->diajukan_at ??= $kunci === 'ajukan' ? now() : null;
 
+            // Nomor rancangan diberikan saat pertama kali diajukan; diajukan ulang tetap memakai nomor yang sama.
+            if ($kunci === 'ajukan') {
+                $naskah->beriNomor();
+            }
+
             // Saat dibuka kembali, tanda tangan harus diulang karena isinya berubah.
             // Nota dinas yang sudah terbit tetap dipakai, jadi tidak perlu diterbitkan lagi.
             $ke = $aksi['ke'];
@@ -522,6 +555,11 @@ class AlurNaskah
 
             $naskah = $this->pindah($naskah, $user, $ke, $catatan);
         });
+
+        // Objek milik pemanggil (misalnya komponen Livewire) ikut tahu nomor yang baru diberikan.
+        if ($asal !== $naskah && $asal->nomor === null && $naskah->nomor !== null) {
+            $asal->forceFill(['nomor' => $naskah->nomor])->syncOriginalAttribute('nomor');
+        }
 
         return $naskah;
     }
@@ -595,7 +633,8 @@ class AlurNaskah
     {
         return $this->ubahBaris($baris, $user, [self::MODE_TELITI, self::MODE_KOREKSI], function (B $b) use ($keterangan) {
             // Judul, Penutup, dan Lampiran adalah bagian wajib naskah; isinya hanya bisa diubah.
-            if (! in_array($b->bagian, B::BAGIAN_BERULANG, true)) {
+            // Lampiran tambahan (Lampiran II, dst.) boleh dihapus selama masih ada lampiran lain.
+            if (! in_array($b->bagian, B::BAGIAN_BERULANG, true) && ! $this->lampiranTambahan($b)) {
                 abort(403, 'Bagian ini wajib ada dan tidak bisa dihapus.');
             }
 
@@ -671,8 +710,20 @@ class AlurNaskah
                 abort(403, 'Baris hanya bisa dibuang saat penyusunan.');
             }
 
+            if (! in_array($baris->bagian, B::BAGIAN_BERULANG, true) && ! $this->lampiranTambahan($baris)) {
+                abort(403, 'Bagian ini wajib ada dan tidak bisa dibuang.');
+            }
+
             $baris->delete();
         });
+    }
+
+    /** Baris lampiran yang bukan satu-satunya lampiran yang masih berlaku. */
+    public function lampiranTambahan(B $baris): bool
+    {
+        return $baris->bagian === 'lampiran'
+            && B::where('naskah_id', $baris->naskah_id)->where('bagian', 'lampiran')
+                ->whereKeyNot($baris->id)->where('status', '!=', B::DIHAPUS)->exists();
     }
 
     /** Peneliti membuang baris sisipan sungguhan. Baris usulan PD tetap lewat hapus() supaya jejaknya ada di matriks. */

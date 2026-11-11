@@ -37,7 +37,7 @@ class BandingNaskah
 
             if ($item->bagian === 'lampiran') {
                 $jumlahAwal = count($blok);
-                TataLetakNaskah::bukaLampiran($blok, $lampiran, $item->status === NaskahBaris::DIHAPUS ? null : $item->label);
+                TataLetakNaskah::bukaLampiran($blok, $lampiran, $item->status === NaskahBaris::DIHAPUS ? null : ($penanda[$item->id] ?? 'Lampiran'));
                 $blok[] = ['tipe' => 'teks', 'baris' => self::teks($lama, $baru, true)];
                 TataLetakNaskah::tandaiAsal($blok, $jumlahAwal, $item->id);
                 self::tandaiUbahan($blok, $jumlahAwal, in_array($item->status, NaskahBaris::BERUBAH, true));

@@ -5,22 +5,50 @@ use App\Livewire\Profile\UpdateProfileInformation;
 use App\Models\PerangkatDaerah;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
 
 beforeEach(function () {
     $this->pengguna = User::factory()->create(['password' => Hash::make('Lama#12345')]);
 });
 
-it('halaman profil meminta konfirmasi password dulu', function () {
-    $this->actingAs($this->pengguna)->get('/profile')->assertRedirect('/confirm-password');
+it('halaman profil langsung terbuka tanpa konfirmasi password', function () {
+    $this->actingAs($this->pengguna)->get('/profile')->assertOk();
 });
 
-it('halaman profil terbuka sesudah password dikonfirmasi', function () {
-    $this->actingAs($this->pengguna)
-        ->withSession(['auth.password_confirmed_at' => time()])
-        ->get('/profile')
-        ->assertOk();
+it('mengganti email meminta password saat ini, mengganti nama tidak', function () {
+    $emailLama = $this->pengguna->email;
+
+    Livewire::actingAs($this->pengguna)
+        ->test(UpdateProfileInformation::class)
+        ->call('mulaiUbah')
+        ->set('email', 'baru@contoh.go.id')
+        ->call('updateProfile')
+        ->assertHasErrors(['sandiSekarang' => 'required'])
+        ->set('sandiSekarang', 'salah')
+        ->call('updateProfile')
+        ->assertHasErrors(['sandiSekarang' => 'current_password']);
+
+    expect($this->pengguna->refresh()->email)->toBe($emailLama);
+
+    Livewire::actingAs($this->pengguna)
+        ->test(UpdateProfileInformation::class)
+        ->call('mulaiUbah')
+        ->set('email', 'baru@contoh.go.id')
+        ->set('sandiSekarang', 'Lama#12345')
+        ->call('updateProfile')
+        ->assertHasNoErrors()
+        ->assertSet('sandiSekarang', '');
+
+    expect($this->pengguna->refresh()->email)->toBe('baru@contoh.go.id');
 });
+
+// Sama seperti NIP (lihat KeamananTest): perangkat daerah hanya diubah oleh admin.
+it('perangkat daerah tidak bisa diubah sendiri dari peramban', function () {
+    Livewire::actingAs($this->pengguna)
+        ->test(UpdateProfileInformation::class)
+        ->set('perangkat_daerah_id', PerangkatDaerah::factory()->create()->id);
+})->throws(CannotUpdateLockedPropertyException::class);
 
 it('mengganti password bila password lama benar', function () {
     Livewire::actingAs($this->pengguna)

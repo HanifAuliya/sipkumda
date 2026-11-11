@@ -95,7 +95,7 @@ it('tombol ikon cukup besar untuk diklik dan ukuran ikonnya mengikuti tombol', f
 
 it('tombol Kerjakan hanya tampil pada naskah yang menjadi giliran pengguna', function () {
     $pd = tap(User::factory()->create())->assignRole('Perangkat Daerah');
-    $naskah = Naskah::create(['jenis' => 'Peraturan Bupati', 'tentang' => 'Uji', 'pemrakarsa_id' => $pd->id]);
+    $naskah = Naskah::create(['jenis' => 'Peraturan Bupati', 'tentang' => 'Uji Tombol Kerjakan', 'pemrakarsa_id' => $pd->id]);
     $lembarKerja = route('v2.naskah.kerja', $naskah);
 
     $this->actingAs($pd)->get(route('v2.daftar', 'rancanganku'))
@@ -104,7 +104,7 @@ it('tombol Kerjakan hanya tampil pada naskah yang menjadi giliran pengguna', fun
 
     $this->actingAs($this->admin)->get(route('v2.daftar', 'rancangan'))
         ->assertOk()
-        ->assertSee($naskah->nomor)
+        ->assertSee('Uji Tombol Kerjakan')
         ->assertDontSee($lembarKerja, false);
 });
 
@@ -135,7 +135,7 @@ it('naskah yang sudah dibuang mengarah ke Dashboard dengan pesan, bukan halaman 
         ->call('buangDraf')
         ->assertRedirect(route('v2.beranda'));
 
-    expect(session('pesan'))->toBe("Draf {$naskah->nomor} sudah dibuang.")
+    expect(session('pesan'))->toBe('Draf "Uji" sudah dihapus.')
         ->and(Naskah::find($naskah->id))->toBeNull();
 
     $this->actingAs($pd)->get($alamat)

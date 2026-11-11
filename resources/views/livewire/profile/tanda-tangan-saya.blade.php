@@ -25,6 +25,11 @@
     @enderror
 
     @if ($gambar)
+        <x-form.field label="Kata Sandi Saat Ini" for="sandiTtd" error="sandiSekarang" required class="mt-4 max-w-sm"
+            hint="Tanda tangan ini tercetak di matriks resmi, jadi penggantiannya perlu kata sandi.">
+            <x-form.password id="sandiTtd" name="sandiSekarang" wire:model="sandiSekarang" autocomplete="current-password"
+                wire:keydown.enter.prevent="simpan" />
+        </x-form.field>
         <div class="mt-4 flex flex-wrap items-center gap-2">
             <x-ui.button variant="success" icon="check2" wire:click="simpan" loading="simpan">Simpan Tanda Tangan</x-ui.button>
             <x-ui.button variant="outline" wire:click="batal">Batal</x-ui.button>

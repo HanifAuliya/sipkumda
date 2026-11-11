@@ -8,6 +8,7 @@ use App\Models\NaskahBerkas;
 use App\Services\AlurNaskah;
 use App\Services\PembacaNaskahWord;
 use App\Support\TemplateNaskah;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -39,6 +40,10 @@ class BuatNaskah extends Component
     /** Opsional: tanpa Word, PD mengetik baris langsung di layar kerja. */
     #[Validate('nullable|file|mimes:docx|max:20480')]
     public $word;
+
+    /** Bentuk file Word: naskah seperti yang dicetak, atau matriks berbentuk tabel. Dipilih pengguna. */
+    #[Validate('required|in:' . PembacaNaskahWord::BENTUK_NASKAH . ',' . PembacaNaskahWord::BENTUK_MATRIKS)]
+    public string $bentuk = PembacaNaskahWord::BENTUK_NASKAH;
 
     public function mount(): void
     {
@@ -73,13 +78,14 @@ class BuatNaskah extends Component
         // Dibaca sebelum menyimpan apa pun: file rusak cukup memberi pesan, tanpa naskah setengah jadi.
         if ($this->word) {
             try {
-                $baris = TemplateNaskah::denganPenutup($pembaca->baca($this->word->getRealPath(), $this->jenis)['baris'], $this->jenis);
+                $baris = TemplateNaskah::denganPenutup($pembaca->baca($this->word->getRealPath(), $this->jenis, $this->bentuk)['baris'], $this->jenis);
             } catch (RuntimeException $e) {
                 throw ValidationException::withMessages(['word' => $e->getMessage()]);
             }
         }
 
-        $naskah = Naskah::denganNomorTerkunci(function () use ($alur, $baris) {
+        // Draf belum bernomor; nomornya diberikan saat diajukan (lihat Naskah::beriNomor).
+        $naskah = DB::transaction(function () use ($alur, $baris) {
             $naskah = Naskah::create([
                 'jenis' => $this->jenis,
                 'tentang' => $this->tentang,

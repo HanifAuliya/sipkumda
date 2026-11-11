@@ -41,7 +41,7 @@
         .paragraf { text-align: justify; margin: 0 0 3pt; }
         .daftar { margin-bottom: 8pt; }
         .tabel-isi { margin: 4pt 0 8pt; }
-        .tabel-isi td { border: 1px solid #000; padding: 2pt 4pt; font-size: 11pt; text-align: left; }
+        .tabel-isi td { border: 1px solid #000; padding: 2pt 4pt; font-size: 11pt; text-align: left; vertical-align: middle; }
         .penutup { margin-top: 16pt; page-break-inside: avoid; }
         .penutup p { margin: 0; min-height: 14pt; }
         /* Selebar baris jabatan terpanjang, supaya jabatan dan nama rata tengah sesamanya. */

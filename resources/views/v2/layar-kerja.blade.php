@@ -100,7 +100,7 @@
 
         <div class="flex min-w-0 flex-1 items-center gap-2.5 text-sm">
             <span class="hidden text-slate-300 md:inline dark:text-navy-600" aria-hidden="true">/</span>
-            <span class="hidden shrink-0 font-medium md:inline">{{ $naskah->nomor }}</span>
+            <span class="hidden shrink-0 font-medium md:inline">{{ $naskah->nomor_tampil }}</span>
             <span class="hidden text-slate-300 sm:inline dark:text-navy-600" aria-hidden="true">/</span>
             <h1 class="hidden min-w-0 truncate font-semibold text-navy-900 sm:block dark:text-white" title="{{ $naskah->tentang }}">{{ $naskah->tentang }}</h1>
             <span @class([
@@ -136,7 +136,7 @@
             x-bind:class="! panelKiri && 'lg:invisible lg:opacity-0'">
         <div class="space-y-3 border-b border-slate-100 p-4 dark:border-navy-800">
             <div class="-my-1 flex items-center justify-between gap-2">
-                <h2 class="truncate text-base font-bold tracking-wide text-navy-900 dark:text-white" title="Nomor rancangan">{{ $naskah->nomor }}</h2>
+                <h2 class="truncate text-base font-bold tracking-wide text-navy-900 dark:text-white" title="Nomor rancangan">{{ $naskah->nomor_tampil }}</h2>
                 <button type="button" class="-mr-2 hidden size-9 shrink-0 place-items-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-navy-900 lg:grid dark:text-slate-400 dark:hover:bg-navy-800 dark:hover:text-white"
                     x-on:click="panelKiri = false" aria-controls="panel-bagian" aria-expanded="true" aria-label="Tutup panel bagian" title="Tutup panel">
                     <i class="bi bi-chevron-double-left text-base" aria-hidden="true"></i>
@@ -313,9 +313,15 @@
 
             <div class="ml-auto flex flex-wrap items-center justify-end gap-2">
                 <x-ui.button variant="outline" icon="layout-sidebar-reverse" x-cloak x-show="! pratinjau && $wire.tab === 'kerja'" x-on:click="pratinjau = true">Pratinjau Naskah</x-ui.button>
-                @if ($tahap === TahapNaskah::Draf && $naskah->pemrakarsa_id === auth()->id())
-                    <x-ui.button variant="outline-danger" icon="trash" wire:click="buangDraf" loading="buangDraf"
-                        wire:confirm="Buang draf ini beserta semua barisnya? Tindakan ini tidak bisa dibatalkan.">Buang Draf</x-ui.button>
+                @if ($bolehBuang)
+                    {{-- Draf yang belum diajukan dibuang PD sendiri; rancangan bernomor hanya bisa dihapus Admin. --}}
+                    @if ($naskah->nomor === null)
+                        <x-ui.button variant="outline-danger" icon="trash" wire:click="buangDraf" loading="buangDraf"
+                            wire:confirm="Buang draf ini beserta semua barisnya? Tindakan ini tidak bisa dibatalkan.">Buang Draf</x-ui.button>
+                    @else
+                        <x-ui.button variant="outline-danger" icon="trash" wire:click="buangDraf" loading="buangDraf"
+                            wire:confirm="Hapus rancangan {{ $naskah->nomor_tampil }} beserta seluruh baris, berkas, dan riwayatnya? Nomornya tidak akan dipakai lagi. Tindakan ini tidak bisa dibatalkan.">Hapus Rancangan</x-ui.button>
+                    @endif
                 @endif
                 @foreach ($aksi as $kunci => $tombol)
                     <span @if ($tombol['hambatan']) title="{{ $tombol['hambatan'] }}" @endif wire:key="aksi-{{ $kunci }}">

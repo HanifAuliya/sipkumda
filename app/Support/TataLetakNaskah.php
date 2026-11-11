@@ -45,7 +45,8 @@ class TataLetakNaskah
 
             if ($item->bagian === 'lampiran') {
                 $jumlahAwal = count($blok);
-                self::bukaLampiran($blok, $lampiran, $item->label);
+                // Satu baris satu lampiran: LAMPIRAN, atau LAMPIRAN I, II bila lebih dari satu.
+                self::bukaLampiran($blok, $lampiran, $penanda[$item->id] ?? 'Lampiran');
                 $blok[] = ['tipe' => 'teks', 'baris' => self::barisTeks($teks, true)];
                 self::tandaiAsal($blok, $jumlahAwal, $item->id);
 
@@ -116,8 +117,9 @@ class TataLetakNaskah
     }
 
     /**
-     * Baris lampiran pertama, atau yang diberi penanda (misalnya "LAMPIRAN II"), memulai halaman
-     * lampiran baru. Lampiran sebelumnya ditutup dengan tanda tangan.
+     * Baris lampiran yang diberi penanda (misalnya "LAMPIRAN II") memulai halaman lampiran baru;
+     * tanpa penanda (baris dihapus di matriks), barisnya menyambung lampiran yang sedang terbuka.
+     * Lampiran sebelumnya ditutup dengan tanda tangan.
      */
     public static function bukaLampiran(array &$blok, array &$lampiran, ?string $label): void
     {
@@ -280,7 +282,7 @@ class TataLetakNaskah
 
     /**
      * Gaya nomor rincian dari tingkat teratas, mengikuti Lampiran II UU 12/2011:
-     * ayat (1), huruf a., angka 1., huruf a), angka 1). Dipakai barisTeks dan rapikanNomor.
+     * ayat (1), huruf a., angka 1., huruf a), angka 1). Sama dengan GAYA di resources/js/nomor-rumusan.js.
      */
     public const GAYA_NOMOR = [
         'ayat' => '/^(\(\d+[a-z]?\))\s*(.*)$/su',
@@ -517,64 +519,5 @@ class TataLetakNaskah
         }
 
         return $hasil;
-    }
-
-    /**
-     * Mengurutkan ulang nomor ayat dan butir setelah ada yang disisipkan atau dihapus.
-     * Nomor di bawah suatu tingkat mulai lagi dari awal tiap kali tingkat itu berganti nomor;
-     * kalimat biasa mengakhiri daftar yang sedang berjalan, kecuali ayatnya. Ayat sisipan seperti "(1a)"
-     * dibiarkan dan tidak ikut dihitung (sama dengan editor-rumusan.js).
-     * Rujukan di dalam kalimat, misalnya "ayat (1)", tidak diubah dan tetap perlu diperiksa.
-     */
-    public static function rapikanNomor(?string $teks): string
-    {
-        $urutan = array_flip(array_keys(self::GAYA_NOMOR));
-        $hitung = array_fill_keys(array_keys(self::GAYA_NOMOR), 0);
-        $hasil = [];
-
-        foreach (preg_split('/\R/u', (string) $teks) as $baris) {
-            preg_match('/^(\s*)(.*)$/su', $baris, $m);
-            [, $tepi, $isiBaris] = $m;
-            [$gaya, , $isi] = $isiBaris === '' || str_starts_with($isiBaris, '|') ? [null, null, ''] : self::nomorBaris($isiBaris);
-
-            // Ayat sisipan, misalnya (1a), nomornya tetap.
-            $sisipan = $gaya === 'ayat' && preg_match('/^\(\d+[a-z]\)/', $isiBaris) === 1;
-
-            if ($gaya !== null && ! $sisipan) {
-                foreach ($hitung as $g => $n) {
-                    if ($urutan[$g] > $urutan[$gaya]) {
-                        $hitung[$g] = 0;
-                    }
-                }
-
-                $ke = ++$hitung[$gaya];
-                $nomor = match ($gaya) {
-                    'ayat' => "({$ke})",
-                    'huruf' => self::hurufKe($ke) . '.',
-                    'angka' => "{$ke}.",
-                    'huruf_kurung' => self::hurufKe($ke) . ')',
-                    'angka_kurung' => "{$ke})",
-                };
-                $baris = rtrim("{$tepi}{$nomor} {$isi}");
-            } elseif ($gaya === null && $isiBaris !== '' && ! str_starts_with($isiBaris, '|')) {
-                $hitung = ['ayat' => $hitung['ayat']] + array_fill_keys(array_keys(self::GAYA_NOMOR), 0);
-            }
-
-            $hasil[] = $baris;
-        }
-
-        return implode("\n", $hasil);
-    }
-
-    /** a sampai z, lalu aa, ab, dan seterusnya. */
-    private static function hurufKe(int $ke): string
-    {
-        $huruf = '';
-
-        for (; $ke > 0; $ke = intdiv($ke - 1, 26)) {
-            $huruf = chr(97 + ($ke - 1) % 26) . $huruf;
-        }
-
-        return $huruf;
     }
 }

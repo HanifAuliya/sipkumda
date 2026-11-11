@@ -10,7 +10,7 @@
 @endphp
 
 <div class="mx-auto max-w-6xl">
-    <x-ui.page-header title="Pantau Tanda Tangan" :description="$naskah->nomor . ' · ' . $naskah->jenis" icon="vector-pen" :back="route('v2.daftar', 'penandatanganan')" />
+    <x-ui.page-header title="Pantau Tanda Tangan" :description="$naskah->nomor_tampil . ' · ' . $naskah->jenis" icon="vector-pen" :back="route('v2.daftar', 'penandatanganan')" />
 
     <div class="grid items-start gap-6 lg:grid-cols-3">
         <div class="space-y-6 lg:col-span-2">

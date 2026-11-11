@@ -1,7 +1,6 @@
 <?php
 
 use App\Enums\TahapNaskah as T;
-use App\Livewire\V2\BarisKerja;
 use App\Livewire\V2\DetailNaskah;
 use App\Livewire\V2\LayarKerja;
 use App\Livewire\V2\Lonceng;
@@ -477,23 +476,9 @@ describe('kelengkapan layar', function () {
         }
     });
 
-    it('rapikan nomor tersedia dari layar', function () {
-        $n = naskahFinal($this);
-        $this->actingAs($this->admin);
-
-        Livewire::test(BarisKerja::class, ['baris' => $n->baris()->first(), 'naskah' => $n])
-            ->call('rapikanNomor', "(3) satu\n(7) dua")
-            ->assertReturned("(1) satu\n(2) dua");
-    });
 });
 
 describe('penomoran dan tabel', function () {
-    it('merapikan nomor ayat dan butir tanpa menyentuh rujukan', function () {
-        $hasil = TataLetakNaskah::rapikanNomor("(2) Sesuai ayat (9):\nb. satu;\nd. dua.\n(5) Lanjut:\n1. x;\n4. y.\nKalimat biasa:\nc. baru.");
-
-        expect($hasil)->toBe("(1) Sesuai ayat (9):\na. satu;\nb. dua.\n(2) Lanjut:\n1. x;\n2. y.\nKalimat biasa:\na. baru.");
-    });
-
     it('mengenali tabel di isi pasal dan membuangnya dari pemisah', function () {
         $baris = TataLetakNaskah::barisTeks("Besaran:\n| Jabatan | Nilai |\n| --- | --- |\n| Ketua | Rp1 |\n(1) Lanjut.");
 
@@ -531,10 +516,6 @@ describe('penomoran dan tabel', function () {
             ->and(array_column($daftar[1]['butir'], 'nomor'))->toBe(['1.', '2.'])
             ->and($tunggal[2])->toBeNull()
             ->and(App\Support\TemplateNaskah::bagian('Peraturan Bupati'))->not->toHaveKey('memperhatikan');
-    });
-
-    it('membiarkan ayat sisipan saat merapikan nomor', function () {
-        expect(TataLetakNaskah::rapikanNomor("(1) a\n(1a) sisip\n(3) b"))->toBe("(1) a\n(1a) sisip\n(2) b");
     });
 
     it('mencetak lampiran sesudah tanda tangan walaupun barisnya di atas penutup', function () {
@@ -669,6 +650,43 @@ a. huruf.
 
         expect($hasil->firstWhere('bagian', 'menimbang')['teks'])->toBe('bahwa satu;')
             ->and($hasil->firstWhere('label', 'Pasal 1')['teks'])->toContain("| No | Jabatan | Nilai |\n| 1 | Ketua | Rp1 |");
+    });
+
+    it('pembaca matriks membaca nomor butir dari kolom tanpa judul di kiri Rumusan', function () {
+        $word = new PhpWord();
+        $tabel = $word->addSection()->addTable();
+
+        // Judul kolom nomor butir hanya berisi spasi tak-putus, seperti pada matriks Ranperda.
+        foreach ([
+            ['No.', 'Materi', "\u{00A0}", 'Rumusan Ranperbup', 'Rumusan Penyempurnaan', 'Keterangan'],
+            ['1', 'Batang Tubuh', '', ['Pasal 1', 'Dalam Peraturan Bupati ini yang dimaksud dengan:'], '', ''],
+            ['', '', '1', 'Daerah adalah Kabupaten Hulu Sungai Tengah.', '', ''],
+            ['', '', '2', 'Bupati adalah Bupati Hulu Sungai Tengah.', '', ''],
+        ] as $sel) {
+            $r = $tabel->addRow();
+            foreach ($sel as $isi) {
+                $c = $r->addCell(1000);
+                foreach ((array) $isi as $paragraf) {
+                    $c->addText($paragraf);
+                }
+            }
+        }
+
+        $path = tempnam(sys_get_temp_dir(), 'matriks') . '.docx';
+        IOFactory::createWriter($word, 'Word2007')->save($path);
+        $pembaca = fn (string $bentuk) => collect((new PembacaNaskahWord())->baca($path, 'Peraturan Bupati', $bentuk)['baris']);
+        $pasal = $pembaca(PembacaNaskahWord::BENTUK_MATRIKS)->firstWhere('label', 'Pasal 1')['teks'];
+        $naskah = new PhpWord();
+        $naskah->addSection()->addText('Menimbang: bahwa satu;');
+        $pathNaskah = tempnam(sys_get_temp_dir(), 'naskah') . '.docx';
+        IOFactory::createWriter($naskah, 'Word2007')->save($pathNaskah);
+
+        expect($pasal)->toBe("Dalam Peraturan Bupati ini yang dimaksud dengan:\n1. Daerah adalah Kabupaten Hulu Sungai Tengah.\n2. Bupati adalah Bupati Hulu Sungai Tengah.")
+            ->and(fn () => (new PembacaNaskahWord())->baca($pathNaskah, 'Peraturan Bupati', PembacaNaskahWord::BENTUK_MATRIKS))
+            ->toThrow(RuntimeException::class, 'Tabel matriks');
+
+        unlink($path);
+        unlink($pathNaskah);
     });
 
     function barisPeriksa(array $data)
@@ -902,10 +920,17 @@ function ttdContoh(): UploadedFile
 
 describe('tanda tangan peneliti', function () {
     it('digambar ulang menjadi PNG transparan yang tepinya dipangkas', function () {
+        // Tanda tangan tercetak di matriks resmi, jadi penggantiannya meminta kata sandi.
         Livewire::actingAs($this->peneliti)->test(TandaTanganSaya::class)
             ->set('gambar', ttdContoh())
             ->assertHasNoErrors()
             ->assertSee('Simpan Tanda Tangan')
+            ->call('simpan')
+            ->assertHasErrors(['sandiSekarang' => 'required'])
+            ->set('sandiSekarang', 'salah')
+            ->call('simpan')
+            ->assertHasErrors(['sandiSekarang' => 'current_password'])
+            ->set('sandiSekarang', 'password')
             ->call('simpan')
             ->assertHasNoErrors();
 

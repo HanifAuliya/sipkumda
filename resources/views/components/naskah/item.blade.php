@@ -26,7 +26,7 @@
 ]) }}>
     <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <div class="flex min-w-0 flex-wrap items-center gap-2">
-            <h4 class="text-base font-bold">{{ $naskah->nomor }}</h4>
+            <h4 class="text-base font-bold">{{ $naskah->nomor_tampil }}</h4>
             <x-ui.status-badge :value="$naskah->jenis" />
         </div>
         <x-ui.badge :color="$tahap->warna()" size="lg" :icon="$ikon">{{ $tahap->label() }}</x-ui.badge>

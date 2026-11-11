@@ -7,7 +7,6 @@ use App\Notifications\NaskahNotification;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\DatabaseNotification;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -49,26 +48,62 @@ class Naskah extends Model
         ];
     }
 
-    /** Jalankan pembuatan naskah bergiliran supaya dua pengajuan tidak mendapat nomor yang sama. */
-    public static function denganNomorTerkunci(callable $buat): mixed
-    {
-        return Cache::lock('nomor-naskah', 15)->block(10, fn () => DB::transaction($buat));
-    }
+    /** Awalan nomor rancangan per jenis; berbeda dari alur lama. */
+    private const AWALAN = ['Peraturan Bupati' => 'NPB', 'Keputusan Bupati' => 'NSK'];
 
     protected static function booted(): void
     {
-        // Nomor NPB-2026-001 / NSK-2026-001, berurutan per jenis per tahun. Awalan berbeda dari alur lama.
         static::creating(function (Naskah $naskah) {
-            $awalan = ['Peraturan Bupati' => 'NPB', 'Keputusan Bupati' => 'NSK'][$naskah->jenis]
-                ?? throw new \InvalidArgumentException('Jenis naskah tidak valid.');
-            $tahun = now()->year;
+            if (! isset(self::AWALAN[$naskah->jenis])) {
+                throw new \InvalidArgumentException('Jenis naskah tidak valid.');
+            }
 
-            $terakhir = self::where('nomor', 'like', "{$awalan}-{$tahun}-%")->orderByDesc('id')->value('nomor');
-            $berikutnya = $terakhir ? (int) Str::afterLast($terakhir, '-') + 1 : 1;
-
-            $naskah->nomor = sprintf('%s-%d-%03d', $awalan, $tahun, $berikutnya);
             $naskah->slug = (string) Str::uuid();
         });
+
+        // Draf belum bernomor; naskah yang keluar dari tahap Draf selalu bernomor, lewat jalur apa pun
+        // (aksi Ajukan, seeder, atau naskah yang langsung dibuat di tahap lanjut).
+        static::saving(function (Naskah $naskah) {
+            if ($naskah->tahap !== TahapNaskah::Draf) {
+                $naskah->beriNomor();
+            }
+        });
+    }
+
+    /**
+     * Memberi nomor NPB-2026-001 / NSK-2026-001 saat pertama kali diajukan, berurutan per jenis per tahun.
+     *
+     * Baris penghitung di naskah_nomor_urut dikunci (SELECT ... FOR UPDATE) sampai transaksinya selesai,
+     * jadi pengajuan yang bersamaan dari beberapa Perangkat Daerah antre di database dan masing-masing
+     * mendapat nomor berikutnya. Penghitung hanya naik, sehingga nomor rancangan yang dihapus Admin tidak
+     * dipakai lagi. Indeks unik pada kolom nomor menjadi pengaman terakhir.
+     */
+    public function beriNomor(): void
+    {
+        if ($this->nomor !== null) {
+            return;
+        }
+
+        $awalan = self::AWALAN[$this->jenis] ?? throw new \InvalidArgumentException('Jenis naskah tidak valid.');
+        $tahun = now()->year;
+
+        $this->nomor = DB::transaction(function () use ($awalan, $tahun) {
+            $kunci = ['awalan' => $awalan, 'tahun' => $tahun];
+
+            // Baris penghitung tahun baru dibuat sekali; pengajuan lain yang bersamaan cukup melewatinya.
+            DB::table('naskah_nomor_urut')->insertOrIgnore($kunci + ['terakhir' => 0, 'created_at' => now(), 'updated_at' => now()]);
+
+            $berikutnya = (int) DB::table('naskah_nomor_urut')->where($kunci)->lockForUpdate()->value('terakhir') + 1;
+            DB::table('naskah_nomor_urut')->where($kunci)->update(['terakhir' => $berikutnya, 'updated_at' => now()]);
+
+            return sprintf('%s-%d-%03d', $awalan, $tahun, $berikutnya);
+        });
+    }
+
+    /** Nomor untuk ditampilkan: draf yang belum diajukan belum bernomor. */
+    public function getNomorTampilAttribute(): string
+    {
+        return $this->nomor ?? 'Draf';
     }
 
     public function getRouteKeyName(): string

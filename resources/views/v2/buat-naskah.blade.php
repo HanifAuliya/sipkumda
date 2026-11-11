@@ -40,9 +40,33 @@
                 Tanpa file Word, isi rancangan bisa diketik langsung.
             </x-ui.alert>
 
+            {{-- Dipilih sebelum mengunggah: naskah dibaca per paragraf, matriks dari kolom Rumusan. --}}
+            <x-form.field label="Bentuk File Rancangan" error="bentuk" hint="Hanya berlaku bila file Word diunggah.">
+                <div class="grid gap-3 sm:grid-cols-2" role="radiogroup" aria-label="Bentuk file rancangan">
+                    @foreach ([
+                        App\Services\PembacaNaskahWord::BENTUK_NASKAH => ['file-earmark-text', 'Naskah Rancangan', 'Ditulis seperti naskah yang dicetak: judul, Menimbang, Mengingat, pasal atau diktum.'],
+                        App\Services\PembacaNaskahWord::BENTUK_MATRIKS => ['table', 'Matriks', 'Tabel dengan kolom Materi dan Rumusan; isi kolom Rumusan yang dibaca.'],
+                    ] as $nilai => [$ikon, $nama, $keterangan])
+                        <label @class([
+                            'flex cursor-pointer gap-3 rounded-lg p-3.5 ring-1 transition has-focus-visible:ring-2 has-focus-visible:ring-primary-500',
+                            'bg-primary-50 ring-2 ring-primary-400 dark:bg-primary-500/10 dark:ring-primary-500' => $bentuk === $nilai,
+                            'ring-slate-200 hover:bg-slate-50 dark:ring-navy-700 dark:hover:bg-navy-800' => $bentuk !== $nilai,
+                        ])>
+                            <input type="radio" name="bentuk" wire:model.live="bentuk" value="{{ $nilai }}" class="sr-only">
+                            <i @class(['bi bi-' . $ikon . ' mt-0.5 text-lg', 'text-primary-600 dark:text-primary-300' => $bentuk === $nilai, 'text-slate-400' => $bentuk !== $nilai]) aria-hidden="true"></i>
+                            <span class="min-w-0">
+                                <span class="block text-sm font-semibold">{{ $nama }}</span>
+                                <span class="mt-0.5 block text-sm text-slate-500 dark:text-slate-400">{{ $keterangan }}</span>
+                            </span>
+                        </label>
+                    @endforeach
+                </div>
+            </x-form.field>
+
             <div class="grid gap-5 sm:grid-cols-2">
                 <x-form.upload model="notaDinas" :file="$notaDinas" label="Nota Dinas Perangkat Daerah" accept=".pdf" hint="PDF, maks. 20MB" required />
-                <x-form.upload model="word" :file="$word" label="File Rancangan (opsional)" accept=".docx" hint="Word (.docx), maks. 20MB" />
+                <x-form.upload model="word" :file="$word" accept=".docx" hint="Word (.docx), maks. 20MB"
+                    :label="$bentuk === App\Services\PembacaNaskahWord::BENTUK_MATRIKS ? 'File Matriks (opsional)' : 'File Naskah Rancangan (opsional)'" />
             </div>
         </form>
 

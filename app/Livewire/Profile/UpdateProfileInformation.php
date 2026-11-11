@@ -12,12 +12,14 @@ class UpdateProfileInformation extends Component
 {
     public $nama_user;
     public $email;
-    public $password;
-    public $password_confirmation;
+    /** Diminta hanya saat email diganti, karena email dipakai untuk mengatur ulang kata sandi. */
+    public string $sandiSekarang = '';
     // NIP adalah identitas login dan hanya diubah oleh admin.
     #[Locked]
     public $NIP;
     public $role;
+    // Perangkat daerah juga hanya diubah oleh admin; dikunci supaya tidak bisa dikirim dari peramban.
+    #[Locked]
     public $perangkat_daerah_id;
     public $daftar_perangkat_daerah;
 
@@ -35,6 +37,7 @@ class UpdateProfileInformation extends Component
         $user = Auth::user();
         $this->nama_user = $user->nama_user;
         $this->email = $user->email;
+        $this->sandiSekarang = '';
         $this->resetValidation();
         $this->mengubah = false;
     }
@@ -55,6 +58,8 @@ class UpdateProfileInformation extends Component
     public function updateProfile()
     {
         try {
+            $emailBerubah = $this->email !== Auth::user()->email;
+
             // Validasi input
             $this->validate([
                 'nama_user' => 'required|string|max:255',
@@ -66,18 +71,14 @@ class UpdateProfileInformation extends Component
                     'max:255',              // Maksimal panjang 255 karakter
                     Rule::unique('users', 'email')->ignore(Auth::id()),
                 ],
-                'perangkat_daerah_id' => [
-                    'required',
-                    'exists:perangkat_daerah,id',
-                ],
-            ]);
+                'sandiSekarang' => [Rule::requiredIf($emailBerubah), 'nullable', 'current_password'],
+            ], [], ['sandiSekarang' => 'kata sandi saat ini']);
 
             $user = Auth::user();
 
             // Perbarui data pengguna
             $user->nama_user = $this->nama_user;
             $user->email = $this->email;
-            $user->perangkat_daerah_id = $this->perangkat_daerah_id;
 
             // Reset email_verified_at jika email berubah
             if ($user->isDirty('email')) {
@@ -87,6 +88,7 @@ class UpdateProfileInformation extends Component
             // Simpan ke database
             $user->save();
 
+            $this->sandiSekarang = '';
             $this->mengubah = false;
             $this->dispatch('profil-diperbarui');
 

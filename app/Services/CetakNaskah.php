@@ -64,7 +64,7 @@ class CetakNaskah
     /** @return string path file sementara; pemanggil yang menghapusnya */
     public function wordNaskah(Naskah $naskah): string
     {
-        return $this->tulisWord("{$naskah->nomor} - {$naskah->tentang}", TataLetakNaskah::susun($naskah, $naskah->baris()->get()), FormatDokumen::naskah($naskah->jenis));
+        return $this->tulisWord("{$naskah->nomor_tampil} - {$naskah->tentang}", TataLetakNaskah::susun($naskah, $naskah->baris()->get()), FormatDokumen::naskah($naskah->jenis));
     }
 
     /** Template kosong untuk PD: bila ditulis mengikuti ini, pembacaan Word menjadi akurat. */
@@ -424,7 +424,8 @@ class CetakNaskah
 
             foreach ($baris['sel'] as $sel) {
                 $lebarSel = array_sum(array_slice($lebar, $i, $sel['bentang']));
-                $tr->addCell($lebarSel, $sel['bentang'] > 1 ? ['gridSpan' => $sel['bentang']] : [])
+                // Isi sel rata tengah secara vertikal, seperti tabel pada produk hukum yang terbit.
+                $tr->addCell($lebarSel, ['valign' => 'center'] + ($sel['bentang'] > 1 ? ['gridSpan' => $sel['bentang']] : []))
                     ->addText((string) $sel['isi'], ['size' => 11, 'bold' => $sel['tebal']], ['alignment' => $rata[$sel['rata']], 'spaceAfter' => 0]);
                 $i += $sel['bentang'];
             }

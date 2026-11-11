@@ -106,10 +106,10 @@ describe('daftar naskah', function () {
     it('hanya memuat tahap menu itu dan hak lihat tetap berlaku', function () {
         $pd = ($this->peran)('Perangkat Daerah');
         $lain = ($this->peran)('Perangkat Daerah');
-        $buat = fn (User $u, string $tahap, string $tentang) => Naskah::denganNomorTerkunci(fn () => Naskah::create([
+        $buat = fn (User $u, string $tahap, string $tentang) => Naskah::create([
             'jenis' => 'Peraturan Bupati', 'tentang' => $tentang, 'pemrakarsa_id' => $u->id, 'tahap' => $tahap,
             'nomor_nota' => uniqid(), 'tanggal_nota' => now(),
-        ]));
+        ]);
 
         $buat($pd, 'penelitian', 'Rancangan Milik Saya');
         $buat($pd, 'selesai', 'Sudah Selesai Milik Saya');
@@ -128,10 +128,10 @@ describe('daftar naskah', function () {
 
     it('menu pekerjaan memisahkan yang menunggu dan riwayatnya', function () {
         $pd = ($this->peran)('Perangkat Daerah');
-        $buat = fn (string $tahap, string $tentang) => Naskah::denganNomorTerkunci(fn () => Naskah::create([
+        $buat = fn (string $tahap, string $tentang) => Naskah::create([
             'jenis' => 'Peraturan Bupati', 'tentang' => $tentang, 'pemrakarsa_id' => $pd->id, 'tahap' => $tahap,
             'nomor_nota' => uniqid(), 'tanggal_nota' => now(),
-        ]));
+        ]);
         $buat('persetujuan_berkas', 'Masih Menunggu');
         $buat('penelitian', 'Sudah Lewat');
         $buat('draf', 'Belum Sampai');
@@ -146,10 +146,10 @@ describe('daftar naskah', function () {
 
     it('daftar tidak langsung membuka layar kerja, hanya tombol detail', function (string $kelompok) {
         $pd = ($this->peran)('Perangkat Daerah');
-        $n = Naskah::denganNomorTerkunci(fn () => Naskah::create([
+        $n = Naskah::create([
             'jenis' => 'Peraturan Bupati', 'tentang' => 'Uji', 'pemrakarsa_id' => $pd->id, 'tahap' => 'penelitian',
             'nomor_nota' => uniqid(), 'tanggal_nota' => now(),
-        ]));
+        ]);
 
         $this->actingAs($pd)->get(route('v2.daftar', $kelompok))
             ->assertOk()->assertSee($n->nomor)->assertSee('bukaDetailNaskah', false)
@@ -160,10 +160,10 @@ describe('daftar naskah', function () {
 describe('detail naskah', function () {
     beforeEach(function () {
         $this->pemilik = ($this->peran)('Perangkat Daerah');
-        $this->naskah = Naskah::denganNomorTerkunci(fn () => Naskah::create([
+        $this->naskah = Naskah::create([
             'jenis' => 'Peraturan Bupati', 'tentang' => 'Tentang Uji', 'pemrakarsa_id' => $this->pemilik->id,
             'nomor_nota' => 'NOTA-UJI', 'tanggal_nota' => now(),
-        ]));
+        ]);
     });
 
     it('membuka modal dengan tombol kerjakan saat giliran pengguna', function () {
@@ -215,10 +215,10 @@ describe('detail naskah', function () {
 describe('layar kerja', function () {
     it('draf dibuka dari bagian pertama yang belum terisi, lampiran kosong tidak dihitung', function () {
         $pd = ($this->peran)('Perangkat Daerah');
-        $n = Naskah::denganNomorTerkunci(fn () => Naskah::create([
+        $n = Naskah::create([
             'jenis' => 'Keputusan Bupati', 'tentang' => 'Uji', 'pemrakarsa_id' => $pd->id,
             'nomor_nota' => uniqid(), 'tanggal_nota' => now(),
-        ]));
+        ]);
         $alur = app(AlurNaskah::class);
         $baris = fn (array $kosong) => collect(['judul', 'menimbang', 'mengingat', 'diktum', 'penutup', 'lampiran'])
             ->map(fn (string $b) => ['bagian' => $b, 'label' => null, 'teks' => in_array($b, $kosong, true) ? '' : 'isi'])->all();
@@ -234,10 +234,10 @@ describe('layar kerja', function () {
 
     it('tombol kembali menuju daftar asal, bukan alamat lain', function () {
         $pd = ($this->peran)('Perangkat Daerah');
-        $n = Naskah::denganNomorTerkunci(fn () => Naskah::create([
+        $n = Naskah::create([
             'jenis' => 'Keputusan Bupati', 'tentang' => 'Uji', 'pemrakarsa_id' => $pd->id,
             'nomor_nota' => uniqid(), 'tanggal_nota' => now(),
-        ]));
+        ]);
         $daftar = route('v2.daftar', 'rancanganku');
 
         $this->actingAs($pd)->withHeader('referer', $daftar)->get(route('v2.naskah.kerja', $n))->assertSee('href="'.$daftar.'"', false);

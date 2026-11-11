@@ -16,12 +16,12 @@ class CetakNaskahController extends Controller
         return match ($berkas) {
             'naskah-word' => response()->download(
                 $cetak->wordNaskah($naskah),
-                "{$naskah->nomor}-naskah.docx",
+                "{$naskah->nomor_tampil}-naskah.docx",
                 ['Content-Type' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
             )->deleteFileAfterSend(),
-            'naskah-pdf' => $this->pdf($cetak->pdfNaskah($naskah), "{$naskah->nomor}-naskah.pdf"),
-            'matriks-pdf' => $this->pdf($cetak->pdfMatriks($naskah), "{$naskah->nomor}-matriks.pdf"),
-            'nota-dinas' => $this->pdf($cetak->pdfNotaDinas($naskah), "{$naskah->nomor}-nota-dinas.pdf"),
+            'naskah-pdf' => $this->pdf($cetak->pdfNaskah($naskah), "{$naskah->nomor_tampil}-naskah.pdf"),
+            'matriks-pdf' => $this->pdf($cetak->pdfMatriks($naskah), "{$naskah->nomor_tampil}-matriks.pdf"),
+            'nota-dinas' => $this->pdf($cetak->pdfNotaDinas($naskah), "{$naskah->nomor_tampil}-nota-dinas.pdf"),
         };
     }
 

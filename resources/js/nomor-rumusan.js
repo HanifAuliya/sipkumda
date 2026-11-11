@@ -1,5 +1,5 @@
 /**
- * Nomor ayat dan butir rumusan, sama dengan TataLetakNaskah (GAYA_NOMOR, nomorBaris, barisTeks, rapikanNomor),
+ * Nomor ayat dan butir rumusan, sama dengan TataLetakNaskah (GAYA_NOMOR, nomorBaris, barisTeks),
  * supaya yang tampil di editor sama dengan hasil cetak.
  */
 
@@ -88,8 +88,8 @@ export function hitungTingkat(potong) {
 }
 
 /**
- * Mengurutkan ulang nomor, sama dengan TataLetakNaskah::rapikanNomor(): nomor di bawah suatu tingkat
- * mulai lagi tiap kali tingkat itu berganti nomor; kalimat biasa mengakhiri daftar kecuali ayatnya.
+ * Mengurutkan ulang nomor seperti daftar bernomor di Word: nomor di bawah suatu tingkat mulai lagi
+ * tiap kali tingkat itu berganti nomor; kalimat biasa mengakhiri daftar kecuali ayatnya.
  * Mengubah `nomor` pada potongan secara langsung.
  */
 export function nomoriUlang(potong) {

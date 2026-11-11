@@ -133,6 +133,50 @@ describe('alur lengkap', function () {
     });
 });
 
+describe('nomor rancangan', function () {
+    it('diberikan saat diajukan, berurutan, dan draf yang dibuang tidak memakai nomor', function () {
+        $tahun = now()->year;
+        $pertama = naskahDraf($this->pd);
+        $dibuang = naskahDraf($this->pd);
+        $kedua = naskahDraf($this->pd);
+
+        expect($pertama->nomor)->toBeNull()->and($pertama->nomor_tampil)->toBe('Draf');
+
+        $this->alur->buangDraf($dibuang, $this->pd);
+        $this->alur->jalankan($kedua, $this->pd, 'ajukan');
+        $this->alur->jalankan($pertama, $this->pd, 'ajukan');
+
+        // Urutan nomor mengikuti urutan pengajuan, bukan urutan pembuatan draf.
+        expect($kedua->fresh()->nomor)->toBe("NPB-{$tahun}-001")
+            ->and($pertama->fresh()->nomor)->toBe("NPB-{$tahun}-002")
+            ->and($pertama->nomor)->toBe("NPB-{$tahun}-002");
+    });
+
+    it('tetap sama saat dikembalikan dan diajukan ulang, dan hanya Admin yang bisa menghapusnya', function () {
+        $n = naskahDraf($this->pd);
+        $this->alur->jalankan($n, $this->pd, 'ajukan');
+        $nomor = $n->fresh()->nomor;
+
+        $this->alur->jalankan($n, $this->admin, 'tolak_berkas', 'Nota dinas belum ditandatangani.');
+        $this->alur->jalankan($n, $this->pd, 'ajukan');
+
+        expect($n->fresh()->nomor)->toBe($nomor)
+            ->and($this->alur->bolehBuang($n->fresh(), $this->pd))->toBeFalse()
+            ->and($this->alur->bolehBuang($n->fresh(), $this->admin))->toBeTrue();
+
+        $this->alur->jalankan($n, $this->admin, 'tolak_berkas', 'Lengkapi lagi.');
+        expect(fn () => $this->alur->buangDraf($n->fresh(), $this->pd))->toThrow(Symfony\Component\HttpKernel\Exception\HttpException::class);
+
+        $this->alur->buangDraf($n->fresh(), $this->admin);
+        $baru = naskahDraf($this->pd);
+        $this->alur->jalankan($baru, $this->pd, 'ajukan');
+
+        // Nomor yang dihapus Admin tidak dipakai lagi.
+        expect(Naskah::find($n->id))->toBeNull()
+            ->and($baru->fresh()->nomor)->not->toBe($nomor);
+    });
+});
+
 describe('aturan giliran', function () {
     it('menolak aksi di luar giliran', function () {
         $n = naskahDraf($this->pd);
@@ -440,9 +484,10 @@ describe('pratinjau dan perbandingan', function () {
     });
 
     it('rumusan bertabel dipisah dari teks biasa untuk tampilan layar', function () {
+        // Baris pemisah sesudah baris pertama menandai baris judul; rata kolomnya kiri.
         expect(TataLetakNaskah::potongan("Besaran:\n| Jabatan | Nilai |\n| --- | --- |\n| Ketua | Rp1 |\nSelesai."))->toBe([
             ['teks' => 'Besaran:'],
-            ['tabel' => [['Jabatan', 'Nilai'], ['Ketua', 'Rp1']]],
+            ['tabel' => [['Jabatan', 'Nilai'], ['Ketua', 'Rp1']], 'rata' => ['left', 'left'], 'judul' => true],
             ['teks' => 'Selesai.'],
         ]);
     });
@@ -549,8 +594,9 @@ describe('hak akses tampilan', function () {
         $n = naskahDraf($this->pd);
         $lain = tap(User::factory()->create())->assignRole('Perangkat Daerah');
 
-        $this->actingAs($lain)->get(route('v2.beranda'))->assertOk()->assertDontSee($n->nomor);
-        $this->actingAs($this->pd)->get(route('v2.beranda'))->assertOk()->assertSee($n->nomor);
+        // Draf belum bernomor, jadi dikenali dari judulnya.
+        $this->actingAs($lain)->get(route('v2.beranda'))->assertOk()->assertDontSee($n->tentang);
+        $this->actingAs($this->pd)->get(route('v2.beranda'))->assertOk()->assertSee($n->tentang);
     });
 });
 
@@ -757,6 +803,30 @@ describe('bagian wajib dan lembar kerja', function () {
         Livewire::actingAs($this->peneliti)
             ->test(BarisKerja::class, ['baris' => $n->baris()->where('bagian', 'menimbang')->first(), 'naskah' => $n])
             ->assertSee('Hapus Rumusan');
+    });
+
+    it('lampiran bisa ditambah menjadi Lampiran I dan II, tetapi lampiran terakhir tidak bisa dihapus', function () {
+        $n = naskahDraf($this->pd);
+        $pertama = B::create(['naskah_id' => $n->id, 'urutan' => 90, 'bagian' => 'lampiran', 'rumusan_awal' => 'DAFTAR A']);
+
+        Livewire::actingAs($this->pd)
+            ->test(BarisKerja::class, ['baris' => $pertama, 'naskah' => $n])
+            ->assertSee('Tambah Lampiran')
+            ->assertDontSeeHtml('aria-label="Hapus baris ini"');
+        expect(fn () => $this->alur->buangSaatMenyusun($pertama, $this->pd))->toThrow(HttpException::class);
+
+        $kedua = $this->alur->tambahSetelah($pertama, $this->pd);
+        $kedua->update(['rumusan_awal' => 'DAFTAR B']);
+        $kepala = collect(TataLetakNaskah::susun($n, $n->baris()->get()))->where('tipe', 'lampiran')->pluck('kepala.0')->all();
+
+        expect($kepala)->toBe(['LAMPIRAN I', 'LAMPIRAN II']);
+        Livewire::actingAs($this->pd)
+            ->test(BarisKerja::class, ['baris' => $kedua, 'naskah' => $n])
+            ->assertSeeHtml('aria-label="Hapus baris ini"');
+
+        $this->alur->buangSaatMenyusun($kedua, $this->pd);
+        expect(B::find($kedua->id))->toBeNull()
+            ->and(collect(TataLetakNaskah::susun($n, $n->baris()->get()))->where('tipe', 'lampiran')->pluck('kepala.0')->all())->toBe(['LAMPIRAN']);
     });
 
     it('lembar kerja memakai header jalur dengan badge jenis dokumen', function () {

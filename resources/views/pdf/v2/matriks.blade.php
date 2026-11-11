@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Matrik {{ $naskah->nomor }}</title>
+    <title>Matrik {{ $naskah->nomor_tampil }}</title>
     <style>
         @page { margin: 1.5cm 1.5cm 1.5cm 1.5cm; }
         body { font-family: 'Times New Roman', Times, serif; font-size: 10.5pt; line-height: 1.25; color: #000; }

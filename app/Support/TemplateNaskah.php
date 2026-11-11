@@ -33,7 +33,7 @@ class TemplateNaskah
         'diktum' => 'Isi bagian yang ditetapkan. Pada Keputusan Bupati, KESATU, KEDUA, dan seterusnya dibuat otomatis; rincian a., b. ditulis per baris di dalam diktumnya.',
         'batang_tubuh' => 'Satu baris untuk satu BAB atau Pasal. Ayat dan butir ditulis di dalam isi pasalnya.',
         'penutup' => 'Nama pejabat diambil dari Pengaturan. Tanggal dan nomor dikosongkan untuk tanda tangan basah.',
-        'lampiran' => 'Keterangan lampiran, bila ada. Filenya diunggah di tab Berkas.',
+        'lampiran' => 'Opsional. Satu baris untuk satu lampiran, dicetak di halaman baru sesudah tanda tangan. Bila lebih dari satu, LAMPIRAN I, II, dan seterusnya dibuat otomatis.',
     ];
 
     private const DIKTUM = [
@@ -127,7 +127,8 @@ class TemplateNaskah
 
     /**
      * Penanda tiap baris: a./b. pada Menimbang, 1./2. pada Mengingat dan Memperhatikan, KESATU/KEDUA pada
-     * diktum SK, sisanya label yang ditulis pengguna (BAB I, Pasal 5). Baris dihapus tidak ikut dihitung.
+     * diktum SK, Lampiran I/II bila lampirannya lebih dari satu, sisanya label yang ditulis pengguna (BAB I, Pasal 5).
+     * Baris dihapus tidak ikut dihitung; lampiran yang masih kosong juga tidak, karena tidak dicetak.
      * Pertimbangan atau hal yang diperhatikan yang hanya satu ditulis tanpa nomor, seperti pada produk hukum yang terbit.
      *
      * @param  Collection<int, NaskahBaris>  $baris  urut menurut kolom urutan
@@ -135,11 +136,13 @@ class TemplateNaskah
      */
     public static function penanda(Naskah $naskah, Collection $baris): array
     {
-        $hitung = ['menimbang' => 0, 'mengingat' => 0, 'memperhatikan' => 0, 'diktum' => 0];
+        $hitung = ['menimbang' => 0, 'mengingat' => 0, 'memperhatikan' => 0, 'diktum' => 0, 'lampiran' => 0];
         $hasil = [];
         $hanyaSatu = fn (string $bagian) => $baris->filter(fn (NaskahBaris $b) => $b->bagian === $bagian && $b->status !== NaskahBaris::DIHAPUS)->count() === 1;
         $satuPertimbangan = $hanyaSatu('menimbang');
         $satuPerhatian = $hanyaSatu('memperhatikan');
+        $lampiranTerisi = fn (NaskahBaris $b) => $b->bagian === 'lampiran' && $b->status !== NaskahBaris::DIHAPUS && filled($b->teksAkhir());
+        $banyakLampiran = $baris->filter($lampiranTerisi)->count() > 1;
 
         foreach ($baris as $item) {
             $hidup = $item->status !== NaskahBaris::DIHAPUS;
@@ -152,8 +155,23 @@ class TemplateNaskah
                 $item->bagian === 'memperhatikan' && $satuPerhatian => null,
                 $item->bagian === 'memperhatikan' => ++$hitung['memperhatikan'] . '.',
                 $item->bagian === 'diktum' && $naskah->jenis === 'Keputusan Bupati' => self::DIKTUM[$hitung['diktum']++] ?? null,
+                $item->bagian === 'lampiran' && filled($item->label) => $item->label,
+                $item->bagian === 'lampiran' => $banyakLampiran && $lampiranTerisi($item) ? 'Lampiran ' . self::romawi(++$hitung['lampiran']) : null,
                 default => $item->label,
             };
+        }
+
+        return $hasil;
+    }
+
+    private static function romawi(int $n): string
+    {
+        $hasil = '';
+
+        foreach (['M' => 1000, 'CM' => 900, 'D' => 500, 'CD' => 400, 'C' => 100, 'XC' => 90, 'L' => 50, 'XL' => 40, 'X' => 10, 'IX' => 9, 'V' => 5, 'IV' => 4, 'I' => 1] as $angka => $nilai) {
+            for (; $n >= $nilai; $n -= $nilai) {
+                $hasil .= $angka;
+            }
         }
 
         return $hasil;

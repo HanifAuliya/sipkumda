@@ -52,6 +52,6 @@ class PantauNaskah extends Component
             'bolehKelola' => $alur->bolehKelolaTtd($this->naskah, auth()->user()),
             'riwayat' => $riwayat,
             'blokNaskah' => $this->lihatIsi ? TataLetakNaskah::susun($this->naskah, $this->naskah->baris()->get()) : [],
-        ])->title('Pantau ' . $this->naskah->nomor);
+        ])->title('Pantau ' . $this->naskah->nomor_tampil);
     }
 }

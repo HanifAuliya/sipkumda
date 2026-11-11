@@ -71,10 +71,9 @@ Route::middleware('auth')->group(function () {
         ->name('daftar-fasilitasi');
 
 
-    // Profile (Semua Role termasuk Super Admin)
-    Route::middleware(['password.confirm'])->group(function () {
-        Route::livewire('/profile', ProfileManagement::class)->name('profile.edit');
-    });
+    // Profile (Semua Role termasuk Super Admin). Halaman bebas dibuka; kata sandi hanya diminta
+    // untuk tindakan berisiko: ganti kata sandi, ganti email, dan ganti gambar tanda tangan.
+    Route::livewire('/profile', ProfileManagement::class)->name('profile.edit');
 
     // User Management (Admin, Verifikator, dan Super Admin)
     Route::middleware(['role:Admin|Verifikator|Super Admin'])->group(function () {

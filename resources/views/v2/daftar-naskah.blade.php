@@ -58,7 +58,7 @@
                     <tr wire:key="naskah-{{ $naskah->id }}" class="cursor-pointer"
                         x-on:click="$event.target.closest('a, button') || Livewire.dispatch('bukaDetailNaskah', { slug: {{ \Illuminate\Support\Js::from($naskah->slug) }} })">
                         <td class="sm:whitespace-nowrap">
-                            <p class="sel-utama">{{ $naskah->nomor }}</p>
+                            <p class="sel-utama">{{ $naskah->nomor_tampil }}</p>
                             <div class="mt-1 flex flex-wrap gap-1.5">
                                 <x-ui.status-badge :value="$naskah->jenis" />
                                 <x-ui.badge :color="$naskah->tahap->warna()" class="sm:hidden">{{ $naskah->tahap->label() }}</x-ui.badge>

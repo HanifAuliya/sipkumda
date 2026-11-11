@@ -17,7 +17,10 @@ class TandaTanganSaya extends Component
 
     public $gambar;
 
-    protected $validationAttributes = ['gambar' => 'gambar tanda tangan'];
+    /** Gambar ini tercetak di matriks resmi, jadi menggantinya meminta kata sandi. */
+    public string $sandiSekarang = '';
+
+    protected $validationAttributes = ['gambar' => 'gambar tanda tangan', 'sandiSekarang' => 'kata sandi saat ini'];
 
     public function mount(): void
     {
@@ -49,14 +52,14 @@ class TandaTanganSaya extends Component
 
     public function batal(): void
     {
-        $this->reset('gambar');
+        $this->reset('gambar', 'sandiSekarang');
         $this->resetValidation();
     }
 
     public function simpan(): void
     {
         abort_unless(Auth::user()->hasRole('Peneliti'), 403);
-        $this->validate($this->aturan());
+        $this->validate($this->aturan() + ['sandiSekarang' => ['required', 'current_password']]);
 
         try {
             TandaTanganPeneliti::simpan(Auth::user(), $this->gambar->getRealPath());
@@ -67,7 +70,7 @@ class TandaTanganSaya extends Component
             throw ValidationException::withMessages(['gambar' => 'Gambar tidak bisa dibaca. Coba pilih gambar lain.']);
         }
 
-        $this->reset('gambar');
+        $this->reset('gambar', 'sandiSekarang');
         $this->dispatch('swal:toast', ['type' => 'success', 'message' => 'Tanda tangan tersimpan.']);
     }
 

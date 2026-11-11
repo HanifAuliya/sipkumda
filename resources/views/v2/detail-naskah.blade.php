@@ -26,7 +26,7 @@
                         <i class="bi bi-file-earmark-text text-primary-500"></i> Informasi Utama
                     </h4>
                     <x-ui.info-list class="px-4">
-                        <x-ui.info-item label="Nomor">{{ $naskah->nomor }}</x-ui.info-item>
+                        <x-ui.info-item label="Nomor">{{ $naskah->nomor_tampil }}</x-ui.info-item>
                         <x-ui.info-item label="Jenis"><x-ui.status-badge :value="$naskah->jenis" /></x-ui.info-item>
                         <x-ui.info-item label="Tentang">{{ $naskah->tentang }}</x-ui.info-item>
                         <x-ui.info-item label="Tanggal Pengajuan">{{ $naskah->diajukan_at ? tanggal($naskah->diajukan_at, true) : 'Belum diajukan' }}</x-ui.info-item>

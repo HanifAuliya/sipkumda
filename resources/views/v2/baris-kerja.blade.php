@@ -7,6 +7,9 @@
     $status = $baris->status;
     $judul = $penanda ?: App\Support\TemplateNaskah::BAGIAN[$baris->bagian];
     $bisaDiatur = in_array($baris->bagian, B::BAGIAN_BERULANG, true);
+    // Lampiran bisa ditambah (Lampiran I, II), tetapi lampiran terakhir tidak bisa dihapus.
+    $bisaDitambah = in_array($baris->bagian, B::BAGIAN_BISA_DITAMBAH, true);
+    $bisaDihapus = $bisaDiatur || $lampiranTambahan;
     $pasal = $baris->bagian === 'batang_tubuh';
     // Pasal dan lampiran memakai editor bernomor dan bertabel; lampiran biasanya berupa daftar dan tabel.
     $pakaiEditor = $pasal || $baris->bagian === 'lampiran';
@@ -54,7 +57,6 @@
         kembalikan() { this.teks = this.semula = @js($awal); },
         {{-- Diberi event input supaya simpan otomatis saat menyusun ikut berjalan. --}}
         setel(nilai) { this.teks = nilai; this.$nextTick(() => this.$refs.editor.dispatchEvent(new Event('input'))); },
-        rapikan() { this.$wire.rapikanNomor(this.teks).then((hasil) => this.setel(hasil)); },
         {{--
             Simpan otomatis saat menyusun: 0,8 detik setelah berhenti mengetik, atau langsung saat kursor keluar
             dari isian. Yang kedua mencegah ketikan terakhir hilang bila pengguna langsung pindah bagian.
@@ -108,19 +110,14 @@
                         class="{{ $bidang }} {{ $serif }} mt-1.5"></textarea>
                 @endif
 
-                @if ($bisaDiatur)
-                    <div class="mt-3 flex flex-wrap items-center justify-between gap-2">
-                        <div class="flex flex-wrap gap-2">
-                            @if ($pasal)
-                                <x-ui.button size="rapat" variant="ghost" icon="list-ol" x-on:click="rapikan()">Rapikan Nomor</x-ui.button>
-                            @endif
-                        </div>
-                        <div class="flex flex-wrap items-center gap-2">
-                            <x-ui.button size="rapat" variant="outline-primary" icon="plus-lg" wire:click="tambah">Tambah Baris</x-ui.button>
-                            <x-ui.button size="rapat" square variant="outline" icon="arrow-up" title="Pindah ke atas" aria-label="Pindah ke atas" wire:click="geser(-1)" />
-                            <x-ui.button size="rapat" square variant="outline" icon="arrow-down" title="Pindah ke bawah" aria-label="Pindah ke bawah" wire:click="geser(1)" />
+                @if ($bisaDitambah)
+                    <div class="mt-3 flex flex-wrap items-center justify-end gap-2">
+                        <x-ui.button size="rapat" variant="outline-primary" icon="plus-lg" wire:click="tambah">{{ $baris->bagian === 'lampiran' ? 'Tambah Lampiran' : 'Tambah Baris' }}</x-ui.button>
+                        <x-ui.button size="rapat" square variant="outline" icon="arrow-up" title="Pindah ke atas" aria-label="Pindah ke atas" wire:click="geser(-1)" />
+                        <x-ui.button size="rapat" square variant="outline" icon="arrow-down" title="Pindah ke bawah" aria-label="Pindah ke bawah" wire:click="geser(1)" />
+                        @if ($bisaDihapus)
                             <x-ui.button size="rapat" square variant="soft-danger" icon="trash" title="Hapus baris ini" aria-label="Hapus baris ini" wire:click="buang" wire:confirm="Hapus baris ini?" />
-                        </div>
+                        @endif
                     </div>
                 @endif
             </div>
@@ -226,12 +223,12 @@
         @if ($mode === A::MODE_TELITI || $mode === A::MODE_KOREKSI)
             <div class="mt-4 flex flex-wrap items-center justify-between gap-2" x-show="!ubah && !minta">
                 <div class="flex flex-wrap gap-2">
-                    @if ($mode === A::MODE_TELITI && $bisaDiatur)
-                        <x-ui.button size="rapat" variant="ghost" icon="plus-lg" wire:click="tambah">Sisipkan Baris</x-ui.button>
+                    @if ($mode === A::MODE_TELITI && $bisaDitambah)
+                        <x-ui.button size="rapat" variant="ghost" icon="plus-lg" wire:click="tambah">{{ $baris->bagian === 'lampiran' ? 'Sisipkan Lampiran' : 'Sisipkan Baris' }}</x-ui.button>
                     @endif
                     @if ($bisaDibuang)
                         <x-ui.button size="rapat" variant="ghost" icon="trash" wire:click="buangSisipan" wire:confirm="Hapus baris sisipan ini?">Hapus Baris</x-ui.button>
-                    @elseif ($bisaDiatur)
+                    @elseif ($bisaDihapus)
                         <x-ui.button size="rapat" variant="ghost" icon="trash" x-on:click="$wire.hapus(ket).then(() => kembalikan())">Hapus Rumusan</x-ui.button>
                     @endif
                 </div>
@@ -258,9 +255,6 @@
         @if (in_array($mode, [A::MODE_TELITI, A::MODE_KOREKSI, A::MODE_SESUAIKAN], true))
             <div class="mt-4 flex flex-wrap items-center justify-between gap-2" x-show="ubah" x-cloak>
                 <div class="flex flex-wrap gap-2">
-                    @if ($pakaiEditor)
-                        <x-ui.button size="rapat" variant="ghost" icon="list-ol" x-on:click="rapikan()">Rapikan Nomor</x-ui.button>
-                    @endif
                     @if ($bisaDibuang)
                         <x-ui.button size="rapat" variant="ghost" icon="trash" wire:click="buangSisipan" wire:confirm="Hapus baris sisipan ini?">Hapus Baris</x-ui.button>
                     @endif

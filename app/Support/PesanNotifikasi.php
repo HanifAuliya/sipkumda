@@ -105,7 +105,7 @@ class PesanNotifikasi
         return [
             'kategori' => $kategori,
             'title' => $judul,
-            'message' => "{$naskah->nomor} · {$naskah->tentang}",
+            'message' => "{$naskah->nomor_tampil} · {$naskah->tentang}",
             'catatan' => filled($catatan) ? $catatan : null,
             'pelaku' => $pelaku->nama_user,
             'tahap' => $naskah->tahap->value,

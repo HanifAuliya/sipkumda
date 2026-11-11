@@ -18,6 +18,7 @@ use App\Support\TemplateNaskah;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
@@ -243,11 +244,13 @@ class LayarKerja extends Component
 
     public function buangDraf(AlurNaskah $alur)
     {
-        $nomor = $this->naskah->nomor;
+        $nama = $this->naskah->nomor === null
+            ? 'Draf "' . Str::limit($this->naskah->tentang, 60) . '"'
+            : "Rancangan {$this->naskah->nomor}";
 
         $alur->buangDraf($this->naskah, auth()->user());
 
-        session()->flash('pesan', "Draf {$nomor} sudah dibuang.");
+        session()->flash('pesan', "{$nama} sudah dihapus.");
 
         return $this->redirectRoute('v2.beranda');
     }
@@ -371,6 +374,7 @@ class LayarKerja extends Component
             'banding' => $banding,
             'bisaUnduh' => $bisaUnduh,
             'mode' => $mode,
+            'bolehBuang' => $alur->bolehBuang($this->naskah, $user),
             'filterAktif' => $filter,
             'perId' => $perId,
             'daftarBlok' => $daftarBlok,
@@ -405,6 +409,6 @@ class LayarKerja extends Component
             'berkas' => $this->tab === 'berkas' ? $this->naskah->berkas()->with('pengunggah:id,nama_user')->get() : collect(),
             'riwayat' => $this->tab === 'riwayat' ? $this->naskah->riwayat()->with(['user:id,nama_user', 'baris:id,label,bagian'])->limit(200)->get() : collect(),
             'versi' => $this->tab === 'riwayat' ? $this->naskah->versi()->with('user:id,nama_user')->get(['id', 'naskah_id', 'versi', 'tahap', 'user_id', 'created_at']) : collect(),
-        ])->title($this->naskah->nomor);
+        ])->title($this->naskah->nomor_tampil);
     }
 }

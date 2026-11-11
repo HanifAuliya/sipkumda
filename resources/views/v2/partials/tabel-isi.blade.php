@@ -8,7 +8,7 @@
         <tr>
             @foreach ($b['sel'] as $s)
                 <td colspan="{{ $s['bentang'] }}" style="text-align: {{ $s['rata'] }}"
-                    @class(['border px-2 py-1 align-top', $garis ?? 'border-black', 'font-semibold' => $s['tebal']])>{{ $s['isi'] }}</td>
+                    @class(['border px-2 py-1 align-middle', $garis ?? 'border-black', 'font-semibold' => $s['tebal']])>{{ $s['isi'] }}</td>
             @endforeach
         </tr>
     @endforeach

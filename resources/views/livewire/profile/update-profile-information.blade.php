@@ -18,6 +18,14 @@
                 <x-form.input type="email" id="email" wire:model="email" icon="envelope" required />
             </x-form.field>
 
+            {{-- Kata sandi hanya diminta bila email diganti: email dipakai untuk mengatur ulang kata sandi. --}}
+            <div x-data="{ emailAwal: @js($akun->email) }" x-show="$wire.email !== emailAwal" x-cloak>
+                <x-form.field label="Kata Sandi Saat Ini" for="sandiSekarang" error="sandiSekarang" required
+                    hint="Diminta karena email dipakai untuk mengatur ulang kata sandi.">
+                    <x-form.password id="sandiSekarang" name="sandiSekarang" wire:model="sandiSekarang" autocomplete="current-password" />
+                </x-form.field>
+            </div>
+
             <p class="text-sm text-slate-500 dark:text-slate-400">NIP, perangkat daerah, dan role hanya bisa diubah oleh admin.</p>
 
             <div class="flex justify-end gap-2">

@@ -40,6 +40,12 @@ class NaskahBaris extends Model
     /** Bagian yang barisnya bisa lebih dari satu. Judul, Penutup, dan Lampiran selalu satu baris. */
     public const BAGIAN_BERULANG = ['menimbang', 'mengingat', 'memperhatikan', 'diktum', 'batang_tubuh'];
 
+    /**
+     * Bagian yang barisnya bisa ditambah. Lampiran wajib ada, tetapi satu baris berarti satu lampiran,
+     * jadi Lampiran I, II, dst. ditambah per baris; baris lampiran terakhir tidak bisa dihapus.
+     */
+    public const BAGIAN_BISA_DITAMBAH = [...self::BAGIAN_BERULANG, 'lampiran'];
+
     protected $table = 'naskah_baris';
 
     protected $fillable = [
@@ -72,7 +78,7 @@ class NaskahBaris extends Model
     /** Baris tanpa rumusan awal: tambahan saat penelitian, jadi boleh dibuang tanpa menghilangkan usulan PD. */
     public function sisipan(): bool
     {
-        return blank($this->rumusan_awal) && in_array($this->bagian, self::BAGIAN_BERULANG, true);
+        return blank($this->rumusan_awal) && in_array($this->bagian, self::BAGIAN_BISA_DITAMBAH, true);
     }
 
     /** Teks yang masuk ke naskah: kolom 4 kalau terisi, selain itu kolom 3; baris dihapus tidak dicetak. */

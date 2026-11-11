@@ -13,6 +13,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use RuntimeException;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Rancangan contoh milik akun "perangkatdaerah" di berbagai tahap, untuk melihat format
@@ -262,7 +263,7 @@ class V2RancanganPdSeeder extends Seeder
 
     private function buat(AlurNaskah $alur, string $jenis, string $tentang, array $contoh): Naskah
     {
-        return Naskah::denganNomorTerkunci(function () use ($alur, $jenis, $tentang, $contoh) {
+        return DB::transaction(function () use ($alur, $jenis, $tentang, $contoh) {
             $naskah = Naskah::create([
                 'jenis' => $jenis,
                 'tentang' => $tentang,

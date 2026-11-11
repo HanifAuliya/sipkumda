@@ -61,13 +61,6 @@ class BarisKerja extends Component
         $this->jalankan(fn () => $alur->sesuaikan($this->baris, auth()->user(), $teks));
     }
 
-    /** Hanya mengolah teks di editor; tersimpan saat pengguna menyimpan barisnya. */
-    #[Renderless]
-    public function rapikanNomor(?string $teks): string
-    {
-        return TataLetakNaskah::rapikanNomor($teks);
-    }
-
     public function tambah(AlurNaskah $alur): void
     {
         Gate::authorize('view', $this->naskah);
@@ -128,6 +121,8 @@ class BarisKerja extends Component
         // Setiap aksi tetap memeriksa giliran terbaru di AlurNaskah.
         return view('v2.baris-kerja', [
             'mode' => $alur->modeBaris($this->naskah, auth()->user()),
+            // Lampiran wajib ada: tombol hapus hanya untuk lampiran tambahan.
+            'lampiranTambahan' => $this->baris->bagian === 'lampiran' && $alur->lampiranTambahan($this->baris),
         ]);
     }
 }
