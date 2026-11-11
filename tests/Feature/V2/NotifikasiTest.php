@@ -165,10 +165,10 @@ describe('keadaan belum dibaca', function () {
     });
 
     it('notifikasi format lama tetap tampil', function () {
-        $this->pd->notify(new NaskahNotification(['title' => 'NPB-2026-001: Penelitian', 'message' => 'Naskah kini pada tahap Penelitian.']));
+        $this->pd->notify(new NaskahNotification(['title' => 'PB-2026-001: Penelitian', 'message' => 'Naskah kini pada tahap Penelitian.']));
 
         Livewire::actingAs($this->pd)->test(Lonceng::class)
-            ->assertSee('NPB-2026-001: Penelitian')
+            ->assertSee('PB-2026-001: Penelitian')
             ->assertSee('Naskah kini pada tahap Penelitian.');
     });
 
@@ -177,7 +177,7 @@ describe('keadaan belum dibaca', function () {
 
         $lonceng->call('periksa')->assertNotDispatched('swal:toast');
 
-        $this->pd->notify(new NaskahNotification(['kategori' => 'tugas', 'title' => 'Sesuaikan rumusan rancangan', 'message' => 'NPB-1 · Uji']));
+        $this->pd->notify(new NaskahNotification(['kategori' => 'tugas', 'title' => 'Sesuaikan rumusan rancangan', 'message' => 'PB-1 · Uji']));
 
         $lonceng->call('periksa')->assertDispatched('swal:toast');
         $lonceng->call('periksa')->assertNotDispatched('swal:toast');

@@ -142,9 +142,9 @@ it('naskah yang sudah dibuang mengarah ke Dashboard dengan pesan, bukan halaman 
         ->assertRedirect(route('v2.beranda'))
         ->assertSessionHas('pesan', 'Naskah yang Anda buka sudah dibuang atau tidak ditemukan.');
 
-    $this->actingAs($pd)->withSession(['pesan' => 'Draf NPB-1 sudah dibuang.'])->get(route('v2.beranda'))
+    $this->actingAs($pd)->withSession(['pesan' => 'Draf PB-1 sudah dibuang.'])->get(route('v2.beranda'))
         ->assertOk()
-        ->assertSee('Draf NPB-1 sudah dibuang.');
+        ->assertSee('Draf PB-1 sudah dibuang.');
 });
 
 it('daftar kosong menawarkan ajukan rancangan, dan pencarian kosong menawarkan hapus filter', function () {

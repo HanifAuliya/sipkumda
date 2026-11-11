@@ -65,9 +65,6 @@
             @elseif ($giliran)
                 {{-- Langsung ke halaman yang dikerjakan pada tahap ini: matriks, atau Nota Dinas & Tanda Tangan. --}}
                 <x-ui.button size="rapat" :icon="$tahap->tahapAkhir() ? 'vector-pen' : 'pencil-square'" :href="$naskah->tautanUntuk(auth()->user())" class="max-lg:flex-1">{{ $tahap->labelKerjakan() }}</x-ui.button>
-            @else
-                {{-- Bukan giliran pengguna: tetap bisa langsung membuka untuk dibaca, tanpa lewat modal Detail. --}}
-                <x-ui.button size="rapat" variant="outline" :icon="$tahap->tahapAkhir() ? 'vector-pen' : 'table'" :href="$naskah->tautanUntuk(auth()->user())" class="max-lg:flex-1">{{ $tahap->tahapAkhir() ? 'Nota Dinas & TTD' : 'Lihat Matriks' }}</x-ui.button>
             @endif
         </div>
     </div>

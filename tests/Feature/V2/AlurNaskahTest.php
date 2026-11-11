@@ -147,9 +147,9 @@ describe('nomor rancangan', function () {
         $this->alur->jalankan($pertama, $this->pd, 'ajukan');
 
         // Urutan nomor mengikuti urutan pengajuan, bukan urutan pembuatan draf.
-        expect($kedua->fresh()->nomor)->toBe("NPB-{$tahun}-001")
-            ->and($pertama->fresh()->nomor)->toBe("NPB-{$tahun}-002")
-            ->and($pertama->nomor)->toBe("NPB-{$tahun}-002");
+        expect($kedua->fresh()->nomor)->toBe("PB-{$tahun}-001")
+            ->and($pertama->fresh()->nomor)->toBe("PB-{$tahun}-002")
+            ->and($pertama->nomor)->toBe("PB-{$tahun}-002");
     });
 
     it('tetap sama saat dikembalikan dan diajukan ulang, dan hanya Admin yang bisa menghapusnya', function () {
