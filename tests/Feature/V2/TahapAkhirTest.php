@@ -428,6 +428,35 @@ describe('arsip ke JDIH', function () {
         expect($this->n->fresh()->tahap)->toBe(T::Arsip);
     });
 
+    it('Keputusan Bupati bernomor lengkap mengikuti pola; hanya nomor urut yang wajib diisi', function () {
+        $sk = $this->alur->terbitkanNota(naskahFinal($this, 'Keputusan Bupati', 'Tim Uji'), $this->admin, '13', 'Sekda', $this->ttd->id);
+        foreach (AlurNaskah::TAHAPAN_TTD as $_) {
+            $sk = $this->alur->tandaiTahapan($sk, $this->admin);
+        }
+
+        // Bagian selain nomor urut terisi dari pola di Format Dokumen dan bisa diganti per naskah.
+        Livewire::actingAs($this->admin)->test(PantauNaskah::class, ['naskah' => $sk])
+            ->assertSee('Nomor keputusan')
+            ->assertSet('bagianNomorArsip', [0 => '140', 4 => '412.1.6'])
+            ->set('nomorArsip', '1')->set('tanggalPenetapan', '2025-03-04')->set('fileArsip', $this->pdf)
+            ->set('bagianNomorArsip.0', ' ')->call('arsipkan')->assertHasErrors('nomorArsip')
+            ->set('bagianNomorArsip.0', '800')->call('arsipkan')->assertHasNoErrors();
+
+        $d = DokumentasiProdukHukum::findOrFail($sk->fresh()->dokumentasi_id);
+
+        expect($d->nomor)->toBe('1')
+            ->and($d->pola_nomor)->toBe('800/{nomor}/412.1.6/TAHUN {tahun}')
+            ->and($d->nomor_formatted)->toBe('Nomor 800/1/412.1.6/TAHUN 2025');
+
+        // Nomor urut yang dibetulkan lewat Daftar Dokumentasi ikut mengubah nomor lengkapnya.
+        $d->update(['nomor' => '9']);
+        expect($d->fresh()->nomor_lengkap)->toBe('800/9/412.1.6/TAHUN 2025');
+
+        // Peraturan Bupati tetap "Nomor 7 Tahun 2026", dan nomor urut tetap unik per tahun.
+        $n = $this->alur->arsipkan($this->n, $this->admin, '7', '2026-11-01', null, null, $this->pdf);
+        expect(DokumentasiProdukHukum::find($n->dokumentasi_id)->nomor_formatted)->toBe('Nomor 7 Tahun 2026');
+    });
+
     it('PD tidak bisa mengarsipkan', function () {
         expect(fn () => $this->alur->arsipkan($this->n, $this->pd, '7', '2026-11-01', null, null, $this->pdf))->toThrow(HttpException::class);
     });

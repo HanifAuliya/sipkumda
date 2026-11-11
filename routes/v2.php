@@ -10,8 +10,10 @@ use App\Livewire\V2\Notifikasi;
 use App\Livewire\V2\PantauNaskah;
 use App\Livewire\V2\PengaturanFormat;
 use App\Livewire\V2\PengaturanNaskah;
+use App\Livewire\V2\PengaturanPerangkatDaerah;
 use App\Support\FormatDokumen;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 
 /*
 |--------------------------------------------------------------------------
@@ -50,6 +52,7 @@ Route::middleware(['auth', 'verified', TandaiAplikasiV2::class])->prefix('v2')->
 
     Route::middleware('role:Admin|Verifikator|Super Admin')->group(function () {
         Route::livewire('/pengaturan/format', PengaturanFormat::class)->name('format');
+        Route::livewire('/pengaturan/perangkat-daerah', PengaturanPerangkatDaerah::class)->name('perangkat-daerah');
 
         // Lambang kop naskah atau logo kop nota yang sedang dipakai, untuk pratinjau di menu Format Dokumen.
         Route::get('/pengaturan/format/gambar/{bagian}', function (string $bagian) {
@@ -59,6 +62,19 @@ Route::middleware(['auth', 'verified', TandaiAplikasiV2::class])->prefix('v2')->
 
             return response()->file($path, ['X-Content-Type-Options' => 'nosniff', 'Cache-Control' => 'private, max-age=31536000, immutable']);
         })->whereIn('bagian', ['kepbup', 'perbup', 'nota'])->name('format.gambar');
+
+        // PDF pratinjau milik pengguna yang sedang membuka menu Format Dokumen, ditampilkan di samping formulir.
+        Route::get('/pengaturan/format/pratinjau/{bagian}', function (string $bagian) {
+            $path = PengaturanFormat::pathPratinjau(auth()->id(), $bagian);
+            abort_unless(Storage::disk('local')->exists($path), 404);
+
+            return response(Storage::disk('local')->get($path), 200, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'inline; filename="pratinjau.pdf"',
+                'Cache-Control' => 'private, no-store',
+                'X-Content-Type-Options' => 'nosniff',
+            ]);
+        })->whereIn('bagian', ['kepbup', 'perbup', 'nota'])->middleware('throttle:120,1')->name('format.pratinjau');
     });
 
     Route::livewire('/pengaturan', PengaturanNaskah::class)

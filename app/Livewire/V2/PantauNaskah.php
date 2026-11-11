@@ -55,6 +55,9 @@ class PantauNaskah extends Component
     public string $tahunBerita = '';
     public $fileArsip;
 
+    /** Bagian nomor Keputusan Bupati selain nomor urut (mis. 140 dan 412.1.6), per urutan potongan polanya. */
+    public array $bagianNomorArsip = [];
+
     public function mount(Naskah $naskah): void
     {
         Gate::authorize('view', $naskah);
@@ -65,6 +68,51 @@ class PantauNaskah extends Component
         $pd = $naskah->pemrakarsa?->perangkatDaerah?->nama_perangkat_daerah;
         $this->kepada = $pd ? "Kepala {$pd}" : '';
         $this->isiPembetulanNota();
+
+        // Terisi dari pola di menu Format Dokumen; bisa diganti bila naskah ini memakai kode lain.
+        foreach ($this->potonganNomorArsip() as $i => $potongan) {
+            if ($potongan['jenis'] === 'teks') {
+                $this->bagianNomorArsip[$i] = $potongan['isi'];
+            }
+        }
+    }
+
+    /** Potongan pola nomor Keputusan Bupati; kosong untuk Peraturan Bupati atau bila polanya dikosongkan. */
+    private function potonganNomorArsip(): array
+    {
+        $pola = $this->naskah->jenis === FormatDokumen::KEPBUP ? FormatDokumen::naskah(FormatDokumen::KEPBUP)['nomor_arsip'] : '';
+
+        return filled($pola) ? FormatDokumen::potonganNomorArsip($pola) : [];
+    }
+
+    /** Pola nomor naskah ini dari potongan yang diisi di formulir, mis. "140/{nomor}/412.1.6/TAHUN {tahun}". */
+    private function polaNomorArsip(): ?string
+    {
+        $potongan = $this->potonganNomorArsip();
+
+        if (! $potongan) {
+            return null;
+        }
+
+        $pola = '';
+
+        foreach ($potongan as $i => $bagian) {
+            if ($bagian['jenis'] !== 'teks') {
+                $pola .= $bagian['isi'];
+
+                continue;
+            }
+
+            $isi = trim((string) ($this->bagianNomorArsip[$i] ?? ''));
+
+            if ($isi === '' || mb_strlen($isi) > 30 || ! preg_match('/^[A-Za-z0-9 .\-]+$/', $isi)) {
+                throw ValidationException::withMessages(['nomorArsip' => 'Bagian nomor wajib diisi; hanya huruf, angka, titik, dan tanda hubung, paling banyak 30 karakter.']);
+            }
+
+            $pola .= $isi;
+        }
+
+        return $pola;
     }
 
     /** Formulir terbit ulang berangkat dari penandatangan dan tujuan yang sekarang tercatat. */
@@ -134,7 +182,7 @@ class PantauNaskah extends Component
             'fileArsip' => 'file bertanda tangan',
         ]);
 
-        $this->naskah = $alur->arsipkan($this->naskah, auth()->user(), $this->nomorArsip, $this->tanggalPenetapan, $this->nomorBerita ?: null, $this->tahunBerita ?: null, $this->fileArsip);
+        $this->naskah = $alur->arsipkan($this->naskah, auth()->user(), $this->nomorArsip, $this->tanggalPenetapan, $this->nomorBerita ?: null, $this->tahunBerita ?: null, $this->fileArsip, $this->polaNomorArsip());
 
         $this->reset('nomorArsip', 'tanggalPenetapan', 'nomorBerita', 'tahunBerita', 'fileArsip');
         $this->dispatch('swal:toast', ['type' => 'success', 'message' => 'Naskah diarsipkan ke JDIH.']);
@@ -166,6 +214,7 @@ class PantauNaskah extends Component
             'bolehKelola' => $alur->bolehKelolaTtd($this->naskah, $user),
             'bolehTerbit' => $bolehTerbit,
             'bolehArsip' => isset($aksi['arsipkan']),
+            'potonganArsip' => isset($aksi['arsipkan']) ? $this->potonganNomorArsip() : [],
             'bolehBukaKunci' => isset($aksi['buka_kunci']) || isset($aksi['buka_kunci_ttd']),
             'bolehTerbitUlang' => $alur->bolehTerbitUlangNota($this->naskah, $user),
             // Versi terbaru di atas; yang aktif adalah yang berlaku, sisanya sudah diganti.

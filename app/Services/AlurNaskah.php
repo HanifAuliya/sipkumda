@@ -453,7 +453,11 @@ class AlurNaskah
     }
 
     /** Naskah bertanda tangan basah masuk ke tabel arsip yang sama dengan JDIH. */
-    public function arsipkan(Naskah $naskah, User $user, ?string $nomor, ?string $tanggalPenetapan, ?string $nomorBerita, ?string $tahunBerita, UploadedFile $file): Naskah
+    /**
+     * $polaNomor: pola nomor lengkap Keputusan Bupati dari formulir arsip (bagian selain nomor urut bisa diganti
+     * per naskah). Tanpa itu dipakai pola di menu Format Dokumen. Peraturan Bupati tidak berpola.
+     */
+    public function arsipkan(Naskah $naskah, User $user, ?string $nomor, ?string $tanggalPenetapan, ?string $nomorBerita, ?string $tahunBerita, UploadedFile $file, ?string $polaNomor = null): Naskah
     {
         if (! ctype_digit((string) $nomor) || strlen((string) $nomor) > 3) {
             $this->gagal('nomorArsip', 'Nomor produk hukum berupa angka, paling banyak 3 digit.');
@@ -462,7 +466,15 @@ class AlurNaskah
             $this->gagal('tanggalPenetapan', 'Tanggal penetapan wajib diisi.');
         }
 
-        return DokumentasiProdukHukum::denganNomorTerkunci(function () use ($naskah, $user, $nomor, $tanggalPenetapan, $nomorBerita, $tahunBerita, $file) {
+        $polaNomor = $naskah->jenis === FormatDokumen::KEPBUP
+            ? trim($polaNomor ?? FormatDokumen::naskah(FormatDokumen::KEPBUP)['nomor_arsip'])
+            : '';
+
+        if ($polaNomor !== '' && (! str_contains($polaNomor, '{nomor}') || mb_strlen($polaNomor) > 100)) {
+            $this->gagal('nomorArsip', 'Susunan nomor keputusan tidak sah.');
+        }
+
+        return DokumentasiProdukHukum::denganNomorTerkunci(function () use ($naskah, $user, $nomor, $tanggalPenetapan, $nomorBerita, $tahunBerita, $file, $polaNomor) {
             $naskah = $this->kunciUntukAksi($naskah, $user, 'arsipkan');
             $tahun = (int) date('Y', strtotime($tanggalPenetapan));
             $perangkatDaerah = $naskah->pemrakarsa->perangkat_daerah_id;
@@ -479,6 +491,7 @@ class AlurNaskah
             $dokumentasi = DokumentasiProdukHukum::create([
                 'nomor' => $nomor,
                 'tahun' => $tahun,
+                'pola_nomor' => $polaNomor !== '' ? $polaNomor : null,
                 'tanggal_pengarsipan' => now(),
                 'tanggal_penetapan' => $tanggalPenetapan,
                 'nomor_tahun_berita' => ($nomorBerita ?: '-') . '/' . ($tahunBerita ?: '-'),

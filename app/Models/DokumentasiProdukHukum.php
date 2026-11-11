@@ -25,6 +25,7 @@ class DokumentasiProdukHukum extends Model
         'rancangan_id',
         'nomor',
         'tahun',
+        'pola_nomor',
         'tanggal_pengarsipan',
         'file_produk_hukum',
         'nomor_tahun_berita',
@@ -84,8 +85,24 @@ class DokumentasiProdukHukum extends Model
      */
     public function getNomorFormattedAttribute()
     {
+        // Keputusan Bupati bernomor lengkap, mis. "Nomor 140/1/412.1.6/TAHUN 2025".
+        if ($lengkap = $this->nomor_lengkap) {
+            return "Nomor {$lengkap}";
+        }
+
         // return "Nomor " . str_pad($this->nomor, 3, '0', STR_PAD_LEFT) . " Tahun " . $this->tahun;
         return "Nomor " . $this->nomor . " Tahun " . $this->tahun;
+    }
+
+    /**
+     * Nomor lengkap dari pola yang disimpan saat diarsipkan, mis. "140/1/412.1.6/TAHUN 2025".
+     * Disusun saat ditampilkan, jadi tetap benar bila nomor urut atau tahunnya dibetulkan. Null bila tanpa pola.
+     */
+    public function getNomorLengkapAttribute(): ?string
+    {
+        return filled($this->pola_nomor)
+            ? \App\Support\FormatDokumen::nomorArsip($this->pola_nomor, (string) $this->nomor, (int) $this->tahun)
+            : null;
     }
 
 

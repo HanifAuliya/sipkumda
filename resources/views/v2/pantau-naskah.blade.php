@@ -196,9 +196,35 @@
                 <x-ui.card title="Arsipkan ke JDIH" description="Tanda tangan sudah lengkap. Isi nomor dan tanggal penetapan, lalu unggah naskah yang sudah ditandatangani." class="order-2">
                     <form wire:submit="arsipkan" class="space-y-4">
                         <div class="grid gap-4 sm:grid-cols-2">
-                            <x-form.field label="Nomor produk hukum" for="nomorArsip" error="nomorArsip" required>
-                                <input id="nomorArsip" type="text" inputmode="numeric" maxlength="3" wire:model="nomorArsip" class="{{ $isian }}">
-                            </x-form.field>
+                            @if ($potonganArsip)
+                                {{-- Keputusan Bupati: nomor lengkap mengikuti pola di Format Dokumen. Nomor urut diisi; bagian lain terisi dan bisa diganti. --}}
+                                <x-form.field label="Nomor keputusan" for="nomorArsip" error="nomorArsip" required class="sm:col-span-2"
+                                    hint="Isi nomor urutnya. Bagian lain sudah terisi dari menu Format Dokumen dan bisa diganti bila naskah ini memakai kode lain. Tahun mengikuti tanggal penetapan.">
+                                    <div class="flex flex-wrap items-center gap-1.5">
+                                        @foreach ($potonganArsip as $i => $p)
+                                            @if ($p['jenis'] === 'nomor')
+                                                <input id="nomorArsip" type="text" inputmode="numeric" maxlength="3" placeholder="000" autocomplete="off"
+                                                    wire:model="nomorArsip" x-on:input="$el.value = $el.value.replace(/\D/g, '')"
+                                                    class="w-20 rounded-lg border-0 text-center text-sm font-semibold ring-2 ring-primary-300 focus:ring-primary-500 dark:bg-navy-800 dark:ring-primary-500/50">
+                                            @elseif ($p['jenis'] === 'pemisah')
+                                                <span class="text-lg text-slate-400" aria-hidden="true">/</span>
+                                            @elseif ($p['jenis'] === 'tahun')
+                                                <span title="Mengikuti tanggal penetapan" x-data
+                                                    x-text="@js($p['isi']).replace('{tahun}', ($wire.tanggalPenetapan || '').slice(0, 4) || '…')"
+                                                    class="cursor-not-allowed rounded-lg bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-500 ring-1 ring-slate-200 ring-inset select-none dark:bg-navy-800 dark:text-slate-400 dark:ring-navy-700">{{ str_replace('{tahun}', '…', $p['isi']) }}</span>
+                                            @else
+                                                <input type="text" maxlength="30" autocomplete="off" aria-label="Bagian nomor ke-{{ $loop->iteration }}"
+                                                    wire:model="bagianNomorArsip.{{ $i }}" size="{{ max(4, mb_strlen($bagianNomorArsip[$i] ?? $p['isi']) + 1) }}"
+                                                    class="rounded-lg border-0 text-center text-sm font-semibold text-slate-600 ring-1 ring-slate-200 focus:ring-2 focus:ring-primary-300 dark:bg-navy-800 dark:text-slate-300 dark:ring-navy-700">
+                                            @endif
+                                        @endforeach
+                                    </div>
+                                </x-form.field>
+                            @else
+                                <x-form.field label="Nomor produk hukum" for="nomorArsip" error="nomorArsip" required>
+                                    <input id="nomorArsip" type="text" inputmode="numeric" maxlength="3" wire:model="nomorArsip" class="{{ $isian }}">
+                                </x-form.field>
+                            @endif
                             <x-form.field label="Tanggal penetapan" for="tanggalPenetapan" error="tanggalPenetapan" required>
                                 <input id="tanggalPenetapan" type="date" wire:model="tanggalPenetapan" class="{{ $isian }}">
                             </x-form.field>

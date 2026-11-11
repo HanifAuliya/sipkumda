@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\TahapNaskah;
 use App\Models\Naskah;
 use App\Models\NaskahBaris;
 use App\Models\NaskahBerkas;
@@ -699,6 +700,51 @@ class CetakNaskah
     public function pdfContohNaskah(string $jenis, array $format): string
     {
         return $this->pdfNaskahDari(new Naskah(['jenis' => $jenis]), self::barisContoh($jenis), $format);
+    }
+
+    /**
+     * Naskah sungguhan untuk pratinjau menu Format Dokumen: yang sudah selesai lebih dulu, lalu yang isinya
+     * sudah terkunci, lalu yang paling jauh tahapnya. Draf tidak dipakai karena isinya belum tentu lengkap.
+     * Dengan $bernota, hanya naskah yang nota dinasnya sudah terbit.
+     */
+    public function naskahUntukPratinjau(?string $jenis, bool $bernota = false): ?Naskah
+    {
+        return Naskah::query()
+            ->when($jenis, fn ($q) => $q->where('jenis', $jenis))
+            ->when($bernota, fn ($q) => $q->whereHas('notaDinas'))
+            ->where('tahap', '!=', TahapNaskah::Draf)
+            ->latest('updated_at')
+            ->limit(50)
+            ->get()
+            ->sortByDesc(fn (Naskah $n) => $n->tahap->langkah())
+            ->first();
+    }
+
+    /**
+     * Pratinjau format naskah memakai naskah sungguhan bila ada, supaya perubahan terlihat pada isi yang nyata.
+     * Mengembalikan [isi PDF, naskah yang dipakai atau null bila memakai contoh titik-titik].
+     */
+    public function pdfPratinjauNaskah(string $jenis, array $format): array
+    {
+        $naskah = $this->naskahUntukPratinjau($jenis);
+
+        return $naskah
+            ? [$this->pdfNaskahDari($naskah, $naskah->baris()->get(), $format), $naskah]
+            : [$this->pdfContohNaskah($jenis, $format), null];
+    }
+
+    /** Sama untuk nota dinas: nota dinas sungguhan yang sudah terbit, atau data contoh bila belum ada. */
+    public function pdfPratinjauNota(array $format): array
+    {
+        $naskah = $this->naskahUntukPratinjau(null, bernota: true);
+
+        if (! $naskah) {
+            return [$this->pdfContohNota($format), null];
+        }
+
+        $naskah->loadMissing('pemrakarsa.perangkatDaerah');
+
+        return [$this->pdfNota($naskah, $naskah->notaDinas()->with('tandaTangan')->firstOrFail(), $format), $naskah];
     }
 
     /** Tinggi satu baris kotak paraf hierarki (cm), untuk ruang yang disisihkan di halaman pertama PDF. */

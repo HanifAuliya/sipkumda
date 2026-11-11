@@ -9,7 +9,7 @@
     // [label, nilai, lebar penuh?]
     $metadata = [
         ['Jenis', $jenis, false],
-        ['Nomor', $dokumen->nomor, false],
+        ['Nomor', $dokumen->nomor_lengkap ?? $dokumen->nomor, false],
         ['Tahun', $dokumen->tahun, false],
         ['Tanggal penetapan', tanggal($dokumen->tanggal_penetapan), false],
         ['Berita Daerah', $dokumen->nomor_tahun_berita ?: '-', false],

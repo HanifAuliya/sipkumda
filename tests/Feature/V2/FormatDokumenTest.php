@@ -117,6 +117,75 @@ describe('pengaturan mengubah hasil cetak', function () {
     });
 });
 
+it('pratinjau di samping formulir dibuat dari isian yang belum disimpan', function () {
+    Storage::fake('local');
+    $admin = tap(User::factory()->create())->assignRole('Admin');
+    $lain = tap(User::factory()->create())->assignRole('Verifikator');
+
+    // Sebelum dibuat belum ada berkasnya.
+    $this->actingAs($admin)->get(route('v2.format.pratinjau', 'nota'))->assertNotFound();
+
+    $halaman = Livewire::actingAs($admin)->test(PengaturanFormat::class)
+        ->set('nota.penutup', 'Kalimat penutup yang belum disimpan.')
+        ->call('pratinjau', 'nota')
+        ->assertSet('versiPratinjau', 1)
+        ->assertSet('pratinjauGagal', false);
+
+    $pdf = $this->actingAs($admin)->get(route('v2.format.pratinjau', 'nota'))->assertOk()->assertHeader('Content-Type', 'application/pdf')->getContent();
+    $teks = preg_replace('/\s+/', '', (new Smalot\PdfParser\Parser())->parseContent($pdf)->getText());
+
+    expect($teks)->toContain('Kalimatpenutupyangbelumdisimpan')
+        ->and(FormatDokumen::nota()['penutup'])->not->toContain('belum disimpan');
+
+    // Pratinjau milik pengguna lain tidak terbuka.
+    $this->actingAs($lain)->get(route('v2.format.pratinjau', 'nota'))->assertNotFound();
+
+    // Isian yang belum sah tidak memunculkan galat; pratinjau lama dibiarkan.
+    $this->actingAs($admin);
+    $halaman->set('nota.nomor', 'tanpa pola')->call('pratinjau', 'nota')
+        ->assertHasNoErrors()->assertSet('pratinjauGagal', true)->assertSet('versiPratinjau', 1);
+
+    $halaman->call('pratinjau', 'kepbup')->assertSet('versiPratinjau', 2)->assertSet('sumberPratinjau', '');
+    $this->actingAs($admin)->get(route('v2.format.pratinjau', 'kepbup'))->assertOk();
+});
+
+it('pratinjau memakai naskah sungguhan, yang sudah selesai lebih dulu', function () {
+    Storage::fake('local');
+    $admin = tap(User::factory()->create())->assignRole('Admin');
+    $pd = tap(User::factory()->create())->assignRole('Perangkat Daerah');
+    $alur = app(AlurNaskah::class);
+
+    $buat = function (string $tentang, string $tahap) use ($pd, $alur) {
+        $n = Naskah::create(['jenis' => 'Keputusan Bupati', 'tentang' => $tentang, 'pemrakarsa_id' => $pd->id]);
+        $alur->isiBaris($n, [
+            ['bagian' => 'judul', 'label' => null, 'teks' => 'JUDUL'],
+            ['bagian' => 'diktum', 'label' => 'KESATU', 'teks' => "Isi diktum {$tentang}."],
+        ]);
+        $n->forceFill(['tahap' => $tahap])->save();
+
+        return $n;
+    };
+
+    // Draf tidak dipakai: tanpa naskah lain, pratinjau tetap contoh titik-titik.
+    $buat('Naskah Draf', 'draf');
+    expect(app(CetakNaskah::class)->naskahUntukPratinjau('Keputusan Bupati'))->toBeNull();
+
+    $buat('Naskah Berjalan', 'penelitian');
+    $selesai = $buat('Naskah Selesai', 'selesai');
+    $buat('Naskah Berjalan Terbaru', 'penelitian');
+
+    Livewire::actingAs($admin)->test(PengaturanFormat::class)
+        ->call('pratinjau', 'kepbup')
+        ->assertSet('sumberPratinjau', "{$selesai->fresh()->nomor_tampil} · Naskah Selesai (Selesai)")
+        ->assertSee('Memakai naskah');
+
+    $teks = preg_replace('/\s+/', '', (new Smalot\PdfParser\Parser())->parseContent(
+        $this->actingAs($admin)->get(route('v2.format.pratinjau', 'kepbup'))->getContent()
+    )->getText());
+
+    expect($teks)->toContain('IsidiktumNaskahSelesai');
+});
+
 describe('menu Format Dokumen', function () {
     it('hanya untuk Admin, Verifikator, dan Super Admin', function () {
         $pd = tap(User::factory()->create())->assignRole('Perangkat Daerah');

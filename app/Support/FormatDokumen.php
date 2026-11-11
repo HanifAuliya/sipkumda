@@ -56,6 +56,8 @@ class FormatDokumen
             // rapat: "Menimbang:" dan "MEMUTUSKAN:"; kolom: "Menimbang :" dengan titik dua sejajar.
             'konsiderans' => ['titik_dua' => $sk ? 'rapat' : 'kolom', 'lebar_label' => 2.85],
             'penutup' => ['tempat' => 'Barabai', 'kiri' => 8.0],
+            // Pola nomor saat diarsipkan. {nomor} nomor urut, {tahun} tahun penetapan. Kosong = "Nomor 1 Tahun 2025".
+            'nomor_arsip' => $sk ? '140/{nomor}/412.1.6/TAHUN {tahun}' : '',
             'paraf' => [
                 'tampil' => $sk,
                 'judul' => 'Paraf Hierarki',
@@ -226,6 +228,32 @@ class FormatDokumen
         ]);
     }
 
+    /** Nomor lengkap produk hukum dari polanya, mis. 140/{nomor}/412.1.6/TAHUN {tahun} menjadi 140/1/412.1.6/TAHUN 2025. */
+    public static function nomorArsip(string $pola, string $nomor, int $tahun): string
+    {
+        return strtr($pola, ['{nomor}' => $nomor, '{tahun}' => (string) $tahun]);
+    }
+
+    /**
+     * Pola nomor produk hukum dipecah untuk formulir arsip. Tiap potongan: ['jenis' => ..., 'isi' => ...] dengan jenis
+     * nomor (diisi), pemisah ("/"), tahun (memuat {tahun}, mengikuti tanggal penetapan), atau teks (terisi, bisa diganti).
+     */
+    public static function potonganNomorArsip(string $pola): array
+    {
+        $potongan = [];
+
+        foreach (preg_split('/(\{nomor\}|\/)/', $pola, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY) as $bagian) {
+            $potongan[] = ['isi' => $bagian, 'jenis' => match (true) {
+                $bagian === '{nomor}' => 'nomor',
+                $bagian === '/' => 'pemisah',
+                str_contains($bagian, '{tahun}') => 'tahun',
+                default => 'teks',
+            }];
+        }
+
+        return $potongan;
+    }
+
     /**
      * Pola nomor nota dinas dipecah untuk formulir penerbitan: bagian tetap (100.3, ND, KUM, tahun)
      * tampil terkunci dan hanya {nomor} yang diisi. Tiap potongan: ['jenis' => teks|pemisah|nomor, 'isi' => ...].
@@ -277,6 +305,7 @@ class FormatDokumen
             'konsiderans.lebar_label' => 'required|numeric|between:1.5,6',
             'penutup.tempat' => 'required|string|max:60',
             'penutup.kiri' => 'required|numeric|between:0,15',
+            'nomor_arsip' => ['nullable', 'string', 'max:80', 'regex:/\{nomor\}/'],
             'paraf.tampil' => 'boolean',
             'paraf.judul' => 'nullable|string|max:60',
             'paraf.jabatan' => 'array|max:8',

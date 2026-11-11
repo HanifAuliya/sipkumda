@@ -133,6 +133,12 @@
             <x-form.field label="Tempat penetapan" for="{{ $b }}-tempat" :error="$angka('penutup.tempat')" hint="Untuk naskah yang dibuat sesudah disimpan.">
                 <x-form.input id="{{ $b }}-tempat" wire:model="{{ $b }}.penutup.tempat" />
             </x-form.field>
+            @if ($b === 'kepbup')
+                <x-form.field label="Pola nomor keputusan" for="{{ $b }}-nomor-arsip" :error="$angka('nomor_arsip')" class="sm:col-span-2"
+                    hint="Dipakai saat naskah diarsipkan. {nomor} diisi nomor urut, {tahun} mengikuti tanggal penetapan. Bagian lain terisi di formulir arsip dan masih bisa diganti per naskah.">
+                    <x-form.input id="{{ $b }}-nomor-arsip" wire:model="{{ $b }}.nomor_arsip" maxlength="80" placeholder="140/{nomor}/412.1.6/TAHUN {tahun}" />
+                </x-form.field>
+            @endif
         </div>
     </x-ui.card>
 
