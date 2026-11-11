@@ -65,6 +65,10 @@ class DaftarNaskah extends Component
     #[Url(except: '')]
     public string $tahap = '';
 
+    /** Peraturan Bupati | Keputusan Bupati; kosong = semua. */
+    #[Url(except: '')]
+    public string $jenis = '';
+
     public int $perPage = 10;
 
     public function mount(string $kelompok): void
@@ -81,7 +85,7 @@ class DaftarNaskah extends Component
 
     public function updated(string $nama): void
     {
-        if (in_array($nama, ['search', 'tahap', 'perPage'], true)) {
+        if (in_array($nama, ['search', 'tahap', 'jenis', 'perPage'], true)) {
             $this->resetPage();
         }
     }
@@ -105,6 +109,7 @@ class DaftarNaskah extends Component
                 ->where('tentang', 'like', "%{$this->search}%")
                 ->orWhere('nomor', 'like', "%{$this->search}%")))
             ->when(T::tryFrom($this->tahap), fn ($q, T $tahap) => $q->where('tahap', $tahap))
+            ->when(in_array($this->jenis, ['Peraturan Bupati', 'Keputusan Bupati'], true), fn ($q) => $q->where('jenis', $this->jenis))
             ->latest('updated_at')
             ->paginate(max(3, min(50, $this->perPage)));
 

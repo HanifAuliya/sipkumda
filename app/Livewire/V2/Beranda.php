@@ -22,6 +22,15 @@ class Beranda extends Component
     #[Url(except: '')]
     public string $tahap = '';
 
+    /** Peraturan Bupati | Keputusan Bupati; kosong = semua. */
+    #[Url(except: '')]
+    public string $jenis = '';
+
+    public function updatedJenis(): void
+    {
+        $this->resetPage();
+    }
+
     public function updatedCari(): void
     {
         $this->resetPage();
@@ -57,6 +66,7 @@ class Beranda extends Component
             ],
             'halaman' => (clone $semua)
                 ->when(TahapNaskah::tryFrom($this->tahap), fn ($q, $tahap) => $q->where('tahap', $tahap))
+                ->when(in_array($this->jenis, ['Peraturan Bupati', 'Keputusan Bupati'], true), fn ($q) => $q->where('jenis', $this->jenis))
                 ->latest('updated_at')
                 ->paginate(20),
             'giliranSaya' => (clone $semua)->menunggu($user)->latest('updated_at')->limit(50)->get(),

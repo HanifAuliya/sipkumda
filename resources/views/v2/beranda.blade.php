@@ -67,7 +67,8 @@
     <x-ui.card title="Semua Naskah" description="Seluruh naskah yang bisa Anda lihat">
         <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center">
             <x-form.input wire:model.live.debounce.400ms="cari" icon="search" class="sm:flex-1" placeholder="Cari nomor atau tentang..." aria-label="Cari naskah" />
-            <x-form.select wire:model.live="tahap" icon="funnel" class="sm:w-56" aria-label="Tahap">
+            @include('v2.partials.filter-jenis')
+            <x-form.select wire:model.live="tahap" icon="funnel" class="sm:w-52" aria-label="Tahap">
                 <option value="">Semua tahap</option>
                 @foreach (App\Enums\TahapNaskah::cases() as $pilihan)
                     <option value="{{ $pilihan->value }}">{{ $pilihan->label() }}</option>
@@ -80,33 +81,15 @@
                 <th><span class="sm:hidden">Naskah</span><span class="max-sm:hidden">Nomor</span></th>
                 <th class="max-sm:hidden">Tentang</th>
                 <th class="max-sm:hidden">Tahap</th>
-                <th class="max-sm:hidden">Diperbarui</th>
+                <th class="max-lg:hidden">Diperbarui</th>
                 <th class="text-right">Aksi</th>
             </x-slot:head>
 
             @forelse ($halaman as $naskah)
-                <tr wire:key="naskah-{{ $naskah->id }}" class="cursor-pointer"
-                    x-on:click="$event.target.closest('a, button') || Livewire.dispatch('bukaDetailNaskah', { slug: {{ \Illuminate\Support\Js::from($naskah->slug) }} })">
-                    <td class="sm:whitespace-nowrap">
-                        <p class="sel-utama">{{ $naskah->nomor_tampil }}</p>
-                        <div class="mt-1 flex flex-wrap gap-1.5">
-                            <x-ui.status-badge :value="$naskah->jenis" />
-                            <x-ui.badge :color="$naskah->tahap->warna()" class="sm:hidden">{{ $naskah->tahap->label() }}</x-ui.badge>
-                        </div>
-                        <p class="sel-judul mt-1.5 max-sm:line-clamp-3 sm:hidden">{{ $naskah->tentang }}</p>
-                    </td>
-                    <td class="min-w-64 max-sm:hidden"><p class="sel-judul" title="{{ $naskah->tentang }}">{{ $naskah->tentang }}</p></td>
-                    <td class="whitespace-nowrap max-sm:hidden"><x-ui.badge :color="$naskah->tahap->warna()">{{ $naskah->tahap->label() }}</x-ui.badge></td>
-                    <td class="sel-kedua whitespace-nowrap max-sm:hidden">{{ $naskah->updated_at->diffForHumans() }}</td>
-                    <td>
-                        <div class="flex justify-end">
-                            <x-naskah.detail-button :naskah="$naskah" />
-                        </div>
-                    </td>
-                </tr>
+                @include('v2.partials.baris-naskah', ['kolomPd' => false, 'kolomWaktu' => true])
             @empty
-                <x-ui.empty-row colspan="5" :message="$cari !== '' || $tahap !== '' ? 'Tidak ada naskah yang cocok dengan pencarian atau filter.' : 'Belum ada naskah.'">
-                    <x-ui.reset-filter :aktif="$cari !== '' || $tahap !== ''" :nilai="['cari' => '', 'tahap' => '']" />
+                <x-ui.empty-row colspan="5" :message="$cari !== '' || $tahap !== '' || $jenis !== '' ? 'Tidak ada naskah yang cocok dengan pencarian atau filter.' : 'Belum ada naskah.'">
+                    <x-ui.reset-filter :aktif="$cari !== '' || $tahap !== '' || $jenis !== ''" :nilai="['cari' => '', 'tahap' => '', 'jenis' => '']" />
                 </x-ui.empty-row>
             @endforelse
         </x-ui.table>
