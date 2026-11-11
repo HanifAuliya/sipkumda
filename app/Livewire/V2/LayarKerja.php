@@ -3,11 +3,9 @@
 namespace App\Livewire\V2;
 
 use App\Enums\TahapNaskah;
-use App\Livewire\V2\Concerns\KelolaTahapanTtd;
 use App\Models\Naskah;
 use App\Models\NaskahBaris as B;
 use App\Models\NaskahBerkas;
-use App\Models\TandaTangan;
 use App\Models\User;
 use App\Services\AlurNaskah;
 use App\Support\BandingNaskah;
@@ -29,10 +27,12 @@ use Livewire\WithFileUploads;
 #[Layout('layouts.kerja')]
 class LayarKerja extends Component
 {
-    use KelolaTahapanTtd;
     use WithFileUploads;
 
     private const FILTER = ['semua', 'belum', 'perlu', 'diubah', 'berubah'];
+
+    /** Aksi yang formulirnya ada di halaman Nota Dinas & Tanda Tangan (PantauNaskah). */
+    public const AKSI_TAHAP_AKHIR = ['terbitkan_nota', 'tandai_tahapan', 'arsipkan'];
 
     #[Locked]
     public Naskah $naskah;
@@ -61,21 +61,9 @@ class LayarKerja extends Component
     public ?int $penelitiId = null;
 
     /** Isian nota dinas. */
-    public string $nomorInputan = '';
-    public string $kepada = '';
-    public ?int $tandaTanganId = null;
 
-    /** Alasan Admin menerbitkan ulang nota dinas dari pengaturan Format Dokumen terbaru. */
-    public string $alasanTerbitUlang = '';
-
-    public string $tanggalTahapan = '';
 
     /** Isian arsip. */
-    public string $nomorArsip = '';
-    public string $tanggalPenetapan = '';
-    public string $nomorBerita = '';
-    public string $tahunBerita = '';
-    public $fileArsip;
 
     #[Locked]
     public ?int $versiTerpilih = null;
@@ -110,7 +98,8 @@ class LayarKerja extends Component
         return match (true) {
             // Baris yang sudah diperiksa tetap terlihat; penanda selesainya ada di panel kiri.
             $mode === AlurNaskah::MODE_TELITI => isset($hitung[B::BELUM]) ? 'semua' : 'berubah',
-            $mode === AlurNaskah::MODE_SESUAIKAN => 'perlu',
+            // Naskah bisa dikembalikan hanya dengan catatan, tanpa baris yang ditandai; layar jangan sampai kosong.
+            $mode === AlurNaskah::MODE_SESUAIKAN => isset($hitung[B::PERLU_PD]) ? 'perlu' : 'semua',
             ($mode === AlurNaskah::MODE_KOREKSI || $memvalidasi) && $adaPerubahan => 'diubah',
             default => 'semua',
         };
@@ -192,9 +181,15 @@ class LayarKerja extends Component
         $tersedia = app(AlurNaskah::class)->aksiTersedia($this->naskah->fresh(), auth()->user());
         abort_unless(isset($tersedia[$aksi]), 403);
 
+        // Nota dinas dan tahapan tanda tangan dikerjakan di halamannya sendiri, bukan di atas matriks.
+        if (in_array($aksi, self::AKSI_TAHAP_AKHIR, true)) {
+            $this->redirectRoute('v2.naskah.pantau', $this->naskah);
+
+            return;
+        }
+
         $this->resetIsianAksi();
         $this->aksiTerpilih = $aksi;
-        $this->tanggalTahapan = now()->toDateString();
         $this->resetValidation();
         $this->dispatch('openModal', 'modalAksi');
     }
@@ -208,10 +203,7 @@ class LayarKerja extends Component
         $this->resetValidation();
 
         $this->naskah = match ($this->aksiTerpilih) {
-            'terbitkan_nota' => $alur->terbitkanNota($this->naskah, $user, $this->nomorInputan, $this->kepada, $this->tandaTanganId),
-            'tandai_tahapan' => $alur->tandaiTahapan($this->naskah, $user, $this->tanggalTahapan),
             'ganti_peneliti' => $alur->gantiPeneliti($this->naskah, $user, $this->penelitiId, $this->catatan ?: null),
-            'arsipkan' => $this->arsipkan($alur),
             default => $alur->jalankan($this->naskah, $user, $this->aksiTerpilih, $this->catatan ?: null, $this->penelitiId),
         };
 
@@ -220,40 +212,9 @@ class LayarKerja extends Component
         $this->dispatch('closeModal', 'modalAksi');
     }
 
-    private function arsipkan(AlurNaskah $alur): Naskah
-    {
-        $this->validate([
-            'nomorArsip' => 'required|numeric|digits_between:1,3',
-            'tanggalPenetapan' => 'required|date',
-            'nomorBerita' => 'nullable|numeric|digits_between:1,3',
-            'tahunBerita' => 'nullable|numeric|digits:4',
-            'fileArsip' => 'required|file|mimes:pdf|max:20480',
-        ], [], [
-            'nomorArsip' => 'nomor',
-            'tanggalPenetapan' => 'tanggal penetapan',
-            'nomorBerita' => 'nomor berita daerah',
-            'tahunBerita' => 'tahun berita daerah',
-            'fileArsip' => 'file bertanda tangan',
-        ]);
-
-        return $alur->arsipkan($this->naskah, auth()->user(), $this->nomorArsip, $this->tanggalPenetapan, $this->nomorBerita ?: null, $this->tahunBerita ?: null, $this->fileArsip);
-    }
-
     private function resetIsianAksi(): void
     {
-        $this->reset('aksiTerpilih', 'catatan', 'penelitiId', 'nomorInputan', 'kepada', 'tandaTanganId', 'tanggalTahapan',
-            'nomorArsip', 'tanggalPenetapan', 'nomorBerita', 'tahunBerita', 'fileArsip');
-    }
-
-    public function terbitUlangNota(AlurNaskah $alur): void
-    {
-        Gate::authorize('view', $this->naskah);
-        $berkas = $alur->terbitUlangNota($this->naskah, auth()->user(), $this->alasanTerbitUlang);
-
-        $this->reset('alasanTerbitUlang');
-        $this->naskah->refresh();
-        $this->dispatch('nota-terbit-ulang');
-        $this->dispatch('swal:toast', ['type' => 'success', 'message' => "Nota dinas diterbitkan ulang ({$berkas->nama_asli})."]);
+        $this->reset('aksiTerpilih', 'catatan', 'penelitiId');
     }
 
     public function buangDraf(AlurNaskah $alur)
@@ -407,16 +368,11 @@ class LayarKerja extends Component
             'peneliti' => in_array($this->aksiTerpilih, ['tugaskan_peneliti', 'ganti_peneliti'], true)
                 ? User::role('Peneliti')->whereKeyNot($this->naskah->peneliti_id ?? 0)->orderBy('nama_user')->get(['id', 'nama_user'])
                 : collect(),
-            'bolehKelolaTtd' => $alur->bolehKelolaTtd($this->naskah, $user),
-            'daftarTtd' => $this->aksiTerpilih === 'terbitkan_nota' ? TandaTangan::where('status', 'Aktif')->get(['id', 'nama_ttd', 'jabatan']) : collect(),
             'peringatan' => $this->tab === 'kerja' && $bertugas
                 ? PemeriksaPenomoran::periksa($this->naskah->baris()->where('bagian', 'batang_tubuh')->get())
                 : [],
             'nota' => $this->naskah->tahap->langkah() >= 4 || $this->naskah->tahap === TahapNaskah::ValidasiFasilitasi ? $this->naskah->notaDinas()->first() : null,
-            // Versi PDF nota dinas yang berlaku; versi yang diganti ada di tab Berkas.
-            'notaBerlaku' => $this->naskah->berkas()->where('jenis', NaskahBerkas::NOTA_DINAS)->where('aktif', true)->latest('id')->first(),
-            'versiNota' => $this->naskah->berkas()->where('jenis', NaskahBerkas::NOTA_DINAS)->count(),
-            'bolehTerbitUlang' => $alur->bolehTerbitUlangNota($this->naskah, $user),
+            'ttdSelesai' => count(array_intersect_key($this->naskah->tahapan_ttd ?? [], AlurNaskah::TAHAPAN_TTD)),
             'isiVersi' => $this->versiTerpilih ? $this->naskah->versi()->find($this->versiTerpilih) : null,
             'bolehUnggah' => $this->bolehUnggah($alur),
             'blokNaskah' => match (true) {

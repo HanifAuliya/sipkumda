@@ -193,10 +193,16 @@ class Naskah extends Model
         $user->notifikasiNaskah()->whereNull('read_at')->where('data->slug', $this->slug)->update(['read_at' => now()]);
     }
 
-    /** Tamu hanya memantau tanda tangan, jadi dibawa ke halaman pantau, bukan layar kerja matriks. */
+    /**
+     * Halaman yang dikerjakan pada tahap sekarang. Sesudah isi dikunci yang tersisa adalah nota dinas,
+     * tanda tangan, dan arsip, jadi tautannya ke halaman Nota Dinas & Tanda Tangan, bukan matriks.
+     * Tamu selalu ke halaman itu; naskah yang sudah selesai kembali dibuka sebagai matriks untuk dibaca.
+     */
     public function tautanUntuk(User $user): string
     {
-        return $user->pemantau() ? route('v2.naskah.pantau', $this) : route('v2.naskah.kerja', $this);
+        return $user->pemantau() || $this->tahap->tahapAkhir()
+            ? route('v2.naskah.pantau', $this)
+            : route('v2.naskah.kerja', $this);
     }
 
     public function giliranMilik(User $user): bool

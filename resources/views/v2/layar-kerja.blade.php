@@ -313,22 +313,47 @@
 
             <div class="ml-auto flex flex-wrap items-center justify-end gap-2">
                 <x-ui.button variant="outline" icon="layout-sidebar-reverse" x-cloak x-show="! pratinjau && $wire.tab === 'kerja'" x-on:click="pratinjau = true">Pratinjau Naskah</x-ui.button>
-                @if ($bolehBuang)
-                    {{-- Draf yang belum diajukan dibuang PD sendiri; rancangan bernomor hanya bisa dihapus Admin. --}}
-                    @if ($naskah->nomor === null)
-                        <x-ui.button variant="outline-danger" icon="trash" wire:click="buangDraf" loading="buangDraf"
-                            wire:confirm="Buang draf ini beserta semua barisnya? Tindakan ini tidak bisa dibatalkan.">Buang Draf</x-ui.button>
-                    @else
-                        <x-ui.button variant="outline-danger" icon="trash" wire:click="buangDraf" loading="buangDraf"
-                            wire:confirm="Hapus rancangan {{ $naskah->nomor_tampil }} beserta seluruh baris, berkas, dan riwayatnya? Nomornya tidak akan dipakai lagi. Tindakan ini tidak bisa dibatalkan.">Hapus Rancangan</x-ui.button>
-                    @endif
+                @php
+                    // Satu tombol utama untuk maju; mundur dan tindakan sampingan dikumpulkan supaya kepala halaman tidak penuh.
+                    // Buka kunci tidak ditampilkan di sini: tempatnya di halaman Nota Dinas & Tanda Tangan.
+                    $aksiLain = collect($aksi)->filter(fn ($t, $k) => (! empty($t['mundur']) && ! str_starts_with($k, 'buka_kunci')) || $k === 'ganti_peneliti');
+                    $aksiUtama = collect($aksi)->reject(fn ($t, $k) => ! empty($t['mundur']) || $k === 'ganti_peneliti');
+                @endphp
+                @if ($aksiLain->isNotEmpty() || $bolehBuang)
+                    <x-ui.dropdown width="w-80">
+                        <x-slot:trigger>
+                            <x-ui.button variant="outline" icon="chevron-down">Lainnya</x-ui.button>
+                        </x-slot:trigger>
+                        @foreach ($aksiLain as $kunci => $tombol)
+                            <x-ui.dropdown-item :icon="$tombol['ikon']" :danger="! empty($tombol['mundur'])" wire:click="pilihAksi('{{ $kunci }}')" wire:key="lain-{{ $kunci }}"
+                                :description="isset($tombol['ke']) ? 'Naskah kembali ke tahap ' . $tombol['ke']->label() . '. Giliran ' . $tombol['ke']->peran() . '.' : 'Tahap naskah tidak berubah.'">
+                                {{ $tombol['label'] }}
+                            </x-ui.dropdown-item>
+                        @endforeach
+                        @if ($bolehBuang)
+                            {{-- Draf yang belum diajukan dibuang PD sendiri; rancangan bernomor hanya bisa dihapus Admin. --}}
+                            @if ($naskah->nomor === null)
+                                <x-ui.dropdown-item icon="trash" danger wire:click="buangDraf" description="Draf dan semua barisnya dihapus."
+                                    wire:confirm="Buang draf ini beserta semua barisnya? Tindakan ini tidak bisa dibatalkan.">Buang Draf</x-ui.dropdown-item>
+                            @else
+                                <x-ui.dropdown-item icon="trash" danger wire:click="buangDraf" description="Seluruh baris, berkas, dan riwayat dihapus. Nomornya tidak dipakai lagi."
+                                    wire:confirm="Hapus rancangan {{ $naskah->nomor_tampil }} beserta seluruh baris, berkas, dan riwayatnya? Nomornya tidak akan dipakai lagi. Tindakan ini tidak bisa dibatalkan.">Hapus Rancangan</x-ui.dropdown-item>
+                            @endif
+                        @endif
+                    </x-ui.dropdown>
                 @endif
-                @foreach ($aksi as $kunci => $tombol)
+                @foreach ($aksiUtama as $kunci => $tombol)
                     <span @if ($tombol['hambatan']) title="{{ $tombol['hambatan'] }}" @endif wire:key="aksi-{{ $kunci }}">
-                        <x-ui.button :variant="$tombol['varian']" :icon="$tombol['ikon']"
-                            wire:click="pilihAksi('{{ $kunci }}')" :disabled="(bool) $tombol['hambatan']" loading="pilihAksi">
-                            {{ $tombol['label'] }}
-                        </x-ui.button>
+                        @if (in_array($kunci, \App\Livewire\V2\LayarKerja::AKSI_TAHAP_AKHIR, true))
+                            {{-- Formulirnya ada di halaman Nota Dinas & Tanda Tangan. --}}
+                            <x-ui.button :variant="$tombol['varian']" :icon="$tombol['ikon']" :href="route('v2.naskah.pantau', $naskah)">{{ $tombol['label'] }}</x-ui.button>
+                        @else
+                            {{-- Target memuat parameternya, supaya spinner hanya muncul di tombol yang ditekan. --}}
+                            <x-ui.button :variant="$tombol['varian']" :icon="$tombol['ikon']"
+                                wire:click="pilihAksi('{{ $kunci }}')" :disabled="(bool) $tombol['hambatan']" loading="pilihAksi('{{ $kunci }}')">
+                                {{ $tombol['label'] }}
+                            </x-ui.button>
+                        @endif
                     </span>
                 @endforeach
             </div>
@@ -350,56 +375,33 @@
                 @endif
 
                 @if ($tahap->terkunci())
-                    <x-ui.card title="Isi naskah terkunci" description="Isi tidak bisa diubah lagi. Yang berjalan sekarang adalah proses tanda tangan dan arsip.">
-                        <dl class="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
-                            <div class="lg:col-span-2">
-                                <dt class="text-sm text-slate-500 dark:text-slate-400">Nota Dinas</dt>
-                                <dd class="mt-1 text-sm font-semibold">
-                                    @if ($nota && $bisaUnduh)
-                                        <x-ui.file-link :href="route('v2.naskah.cetak', [$naskah, 'nota-dinas'])" path="nota.pdf" :label="$nota->nomor_nota" />
-                                    @elseif ($nota)
-                                        {{ $nota->nomor_nota }}
-                                    @else
-                                        Belum terbit
-                                    @endif
-                                </dd>
-                                @if ($nota && $notaBerlaku)
-                                    {{-- PDF dibekukan saat terbit; versi sebelumnya ada di tab Berkas. --}}
-                                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                                        Versi {{ $versiNota }}{{ $versiNota > 1 ? ' · diterbitkan ulang ' . $notaBerlaku->created_at->translatedFormat('d M Y') : '' }}
-                                    </p>
+                    {{-- Nota dinas dan tanda tangan dikerjakan di halamannya sendiri; di sini cukup ringkasannya. --}}
+                    <div class="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-2xl bg-white p-4 shadow-card sm:px-5 dark:bg-navy-900 dark:shadow-none dark:ring-1 dark:ring-white/5">
+                        <span class="grid size-10 shrink-0 place-items-center rounded-xl bg-slate-100 text-lg text-slate-500 dark:bg-navy-800 dark:text-slate-300" aria-hidden="true">
+                            <i class="bi bi-lock"></i>
+                        </span>
+                        <div class="min-w-0 flex-1 basis-64">
+                            <p class="font-semibold text-navy-900 dark:text-white">Isi naskah terkunci</p>
+                            <p class="text-sm text-slate-500 dark:text-slate-400">
+                                Nota dinas: <strong class="font-semibold text-slate-700 dark:text-slate-200">{{ $nota->nomor_nota ?? 'belum terbit' }}</strong>
+                                @if ($nota)
+                                    · Tanda tangan: <strong class="font-semibold text-slate-700 dark:text-slate-200">{{ $ttdSelesai }} dari {{ count(A::TAHAPAN_TTD) }} selesai</strong>
                                 @endif
-                                @if ($bolehTerbitUlang)
-                                    <div x-data="{ buka: false }" x-on:nota-terbit-ulang.window="buka = false" class="mt-2">
-                                        <x-ui.button size="rapat" variant="outline" icon="arrow-clockwise" x-show="!buka" x-on:click="buka = true; $nextTick(() => $refs.alasan.focus())">Terbitkan Ulang</x-ui.button>
-                                        <form x-show="buka" x-cloak wire:submit="terbitUlangNota" class="space-y-2">
-                                            <x-form.field label="Alasan penerbitan ulang" for="alasanTerbitUlang" error="alasanTerbitUlang" required
-                                                hint="Nota dinas dibuat lagi dari pengaturan Format Dokumen terbaru dengan nomor dan tanggal yang sama. Versi sekarang tetap disimpan di tab Berkas.">
-                                                <textarea id="alasanTerbitUlang" x-ref="alasan" wire:model="alasanTerbitUlang" rows="2" maxlength="500"
-                                                    placeholder="Contoh: kop surat diperbarui"
-                                                    class="w-full rounded-lg border-slate-200 text-sm dark:border-navy-700 dark:bg-navy-950"></textarea>
-                                            </x-form.field>
-                                            <div class="flex gap-2">
-                                                <x-ui.button type="submit" size="rapat" icon="arrow-clockwise" loading="terbitUlangNota">Terbitkan Ulang</x-ui.button>
-                                                <x-ui.button size="rapat" variant="outline" x-on:click="buka = false">Batal</x-ui.button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                @endif
-                            </div>
-                        </dl>
-                        @if ($tahap !== TahapNaskah::Final)
-                            <div class="mt-5 border-t border-slate-100 pt-5 dark:border-navy-800">
-                                <h3 class="mb-3 text-sm font-bold text-navy-900 dark:text-white">Tahapan Tanda Tangan</h3>
-                                @include('v2.partials.tahapan-ttd', ['bolehKelola' => $bolehKelolaTtd])
-                            </div>
-                        @endif
-                        @if ($naskah->dokumentasi_id)
-                            <div class="mt-4 text-sm">
-                                <x-ui.file-link :href="route('jdih.show', $naskah->dokumentasi_id)" label="Lihat di JDIH" />
-                            </div>
-                        @endif
-                    </x-ui.card>
+                            </p>
+                        </div>
+                        <div class="flex flex-wrap gap-2 max-sm:w-full">
+                            @if ($naskah->dokumentasi_id)
+                                <x-ui.button variant="outline" icon="box-arrow-up-right" :href="route('jdih.show', $naskah->dokumentasi_id)" target="_blank" rel="noopener" class="max-sm:flex-1">Lihat di JDIH</x-ui.button>
+                            @endif
+                            <x-ui.button variant="outline-primary" icon="vector-pen" :href="route('v2.naskah.pantau', $naskah)" class="max-sm:flex-1">Nota Dinas &amp; Tanda Tangan</x-ui.button>
+                        </div>
+                    </div>
+                @endif
+
+                @if ($mode === A::MODE_SESUAIKAN && empty($hitung[B::PERLU_PD]))
+                    <x-ui.alert type="primary">
+                        Tidak ada baris yang ditandai untuk diperbaiki. Baca catatan di atas, periksa naskahnya, lalu kirim kembali bila sudah sesuai.
+                    </x-ui.alert>
                 @endif
 
                 @if ($peringatan)
@@ -656,6 +658,14 @@
             <x-ui.alert color="danger">{{ $message }}</x-ui.alert>
         @enderror
 
+        @if (isset($aksiModal['ke']))
+            {{-- Setiap perpindahan menyebut asal, tujuan, dan pemegang giliran berikutnya. --}}
+            <x-ui.alert :type="! empty($aksiModal['mundur']) ? 'warning' : 'primary'" :icon="! empty($aksiModal['mundur']) ? 'arrow-return-left' : 'arrow-right'" class="mb-4">
+                Naskah berpindah dari <strong>{{ $tahap->label() }}</strong> ke <strong>{{ $aksiModal['ke']->label() }}</strong>.
+                Giliran berikutnya: <strong>{{ $aksiModal['ke']->peran() }}</strong>.
+            </x-ui.alert>
+        @endif
+
         @if ($aksiTerpilih === 'ganti_peneliti')
             <p class="mb-4 text-sm text-slate-600 dark:text-slate-300">
                 Peneliti sekarang: <strong class="text-navy-900 dark:text-white">{{ $naskah->peneliti->nama_user ?? '-' }}</strong>.
@@ -676,59 +686,15 @@
 
         @php
             $isian = 'w-full rounded-lg border-0 text-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-primary-300 dark:bg-navy-800 dark:ring-navy-700';
-            $bentuk = $aksiModal['form'] ?? null;
         @endphp
 
-        @if ($bentuk === 'nota')
-            <div class="space-y-3">
-                <x-form.field label="Nomor nota dinas" for="nomorInputan" error="nomorInputan" required hint="Menjadi {{ App\Support\FormatDokumen::nomorNota(App\Support\FormatDokumen::nota()['nomor'], '…', $naskah->jenis, now()->year) }} (pola nomor di menu Format Dokumen).">
-                    <input id="nomorInputan" type="text" inputmode="numeric" maxlength="3" wire:model="nomorInputan" class="{{ $isian }}">
-                </x-form.field>
-                <x-form.field label="Kepada" for="kepada" error="kepada" required>
-                    <input id="kepada" type="text" wire:model="kepada" class="{{ $isian }}">
-                </x-form.field>
-                <x-form.field label="Tanda tangan" for="tandaTanganId" error="tandaTanganId" required hint="Nomor dan tanda tangan ini otomatis masuk ke matriks.">
-                    <select id="tandaTanganId" wire:model="tandaTanganId" class="{{ $isian }}">
-                        <option value="">Pilih tanda tangan</option>
-                        @foreach ($daftarTtd as $ttd)
-                            <option value="{{ $ttd->id }}">{{ $ttd->nama_ttd }} ({{ $ttd->jabatan }})</option>
-                        @endforeach
-                    </select>
-                </x-form.field>
-            </div>
-        @elseif ($bentuk === 'tahapan')
-            <x-form.field label="Tanggal selesai" for="tanggalTahapan" error="tanggalTahapan" required>
-                <input id="tanggalTahapan" type="date" max="{{ now()->toDateString() }}" wire:model="tanggalTahapan" class="{{ $isian }}">
-            </x-form.field>
-        @elseif ($bentuk === 'arsip')
-            <div class="space-y-3">
-                <div class="grid gap-3 sm:grid-cols-2">
-                    <x-form.field label="Nomor produk hukum" for="nomorArsip" error="nomorArsip" required>
-                        <input id="nomorArsip" type="text" inputmode="numeric" maxlength="3" wire:model="nomorArsip" class="{{ $isian }}">
-                    </x-form.field>
-                    <x-form.field label="Tanggal penetapan" for="tanggalPenetapan" error="tanggalPenetapan" required>
-                        <input id="tanggalPenetapan" type="date" wire:model="tanggalPenetapan" class="{{ $isian }}">
-                    </x-form.field>
-                    <x-form.field label="Nomor Berita Daerah" for="nomorBerita" error="nomorBerita">
-                        <input id="nomorBerita" type="text" inputmode="numeric" maxlength="3" wire:model="nomorBerita" class="{{ $isian }}">
-                    </x-form.field>
-                    <x-form.field label="Tahun Berita Daerah" for="tahunBerita" error="tahunBerita">
-                        <input id="tahunBerita" type="text" inputmode="numeric" maxlength="4" wire:model="tahunBerita" class="{{ $isian }}">
-                    </x-form.field>
-                </div>
-                <x-form.field label="PDF bertanda tangan basah" for="fileArsip" error="fileArsip" required hint="Dokumen ini langsung tampil untuk umum di JDIH.">
-                    <input id="fileArsip" type="file" accept="application/pdf" wire:model="fileArsip" class="block min-h-10 w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-sm file:font-semibold dark:file:bg-navy-800 dark:file:text-slate-200">
-                </x-form.field>
-            </div>
-        @else
-            <x-form.field :label="! empty($aksiModal['catatan']) ? 'Alasan' : 'Catatan (opsional)'" for="catatan" error="catatan" :required="! empty($aksiModal['catatan'])" class="mt-3">
-                <textarea id="catatan" wire:model="catatan" rows="3" class="{{ $isian }}"></textarea>
-            </x-form.field>
-        @endif
+        <x-form.field :label="! empty($aksiModal['catatan']) ? 'Alasan' : 'Catatan (opsional)'" for="catatan" error="catatan" :required="! empty($aksiModal['catatan'])" class="mt-3">
+            <textarea id="catatan" wire:model="catatan" rows="3" class="{{ $isian }}"></textarea>
+        </x-form.field>
 
         <x-slot:footer>
             <x-ui.button variant="ghost" x-on:click="close()">Batal</x-ui.button>
-            <x-ui.button icon="check2" wire:click="jalankanAksi" loading="jalankanAksi,fileArsip">Lanjutkan</x-ui.button>
+            <x-ui.button icon="check2" wire:click="jalankanAksi" loading="jalankanAksi">Lanjutkan</x-ui.button>
         </x-slot:footer>
     </x-ui.modal>
 

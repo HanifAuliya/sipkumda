@@ -226,6 +226,25 @@ class FormatDokumen
         ]);
     }
 
+    /**
+     * Pola nomor nota dinas dipecah untuk formulir penerbitan: bagian tetap (100.3, ND, KUM, tahun)
+     * tampil terkunci dan hanya {nomor} yang diisi. Tiap potongan: ['jenis' => teks|pemisah|nomor, 'isi' => ...].
+     */
+    public static function potonganNomorNota(string $pola, string $jenis, int $tahun): array
+    {
+        $potongan = [];
+
+        foreach (preg_split('/(\{nomor\}|\/)/', $pola, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY) as $bagian) {
+            $potongan[] = match ($bagian) {
+                '{nomor}' => ['jenis' => 'nomor', 'isi' => ''],
+                '/' => ['jenis' => 'pemisah', 'isi' => '/'],
+                default => ['jenis' => 'teks', 'isi' => self::nomorNota($bagian, '', $jenis, $tahun)],
+            };
+        }
+
+        return $potongan;
+    }
+
     public static function cmKeTwip(float $cm): int
     {
         return (int) round($cm * 1440 / 2.54);

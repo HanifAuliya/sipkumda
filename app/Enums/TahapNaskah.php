@@ -133,6 +133,23 @@ enum TahapNaskah: string
         };
     }
 
+    /** Isi sudah dikunci dan masih ada yang dikerjakan: nota dinas, tanda tangan, atau arsip. */
+    public function tahapAkhir(): bool
+    {
+        return in_array($this, [self::Final, self::Penandatanganan, self::Arsip], true);
+    }
+
+    /** Nama tombol pembuka naskah bagi yang sedang mendapat giliran. */
+    public function labelKerjakan(): string
+    {
+        return match ($this) {
+            self::Final => 'Terbitkan Nota Dinas',
+            self::Penandatanganan => 'Catat Tanda Tangan',
+            self::Arsip => 'Arsipkan',
+            default => 'Kerjakan',
+        };
+    }
+
     public function terkunci(): bool
     {
         return in_array($this, self::TERKUNCI, true);

@@ -1,6 +1,7 @@
 {{--
     Daftar tahapan tanda tangan basah (Paraf Koordinasi → Asisten → Sekda → Bupati) beserta tombolnya.
     Komponen pemakainya memakai trait KelolaTahapanTtd. Variabel: $naskah, $bolehKelola.
+    Target loading tiap tombol memuat parameternya, supaya spinner hanya muncul di tombol yang ditekan.
 --}}
 @php
     use App\Enums\TahapNaskah;
@@ -63,12 +64,12 @@
                 @if ($bolehKelola)
                     <div class="flex w-full shrink-0 flex-wrap justify-end gap-2 sm:w-auto">
                         @if ($tanggal)
-                            <x-ui.button size="sm" variant="ghost" icon="calendar-event" wire:click="bukaTahapan('{{ $kunci }}', 'ubah')" loading="bukaTahapan">Ubah Tanggal</x-ui.button>
+                            <x-ui.button size="sm" variant="ghost" icon="calendar-event" wire:click="bukaTahapan('{{ $kunci }}', 'ubah')" loading="bukaTahapan('{{ $kunci }}', 'ubah')">Ubah Tanggal</x-ui.button>
                             <x-ui.button size="sm" variant="ghost" icon="arrow-counterclockwise" class="hover:text-rose-600 dark:hover:text-rose-300"
-                                wire:click="batalkanTahapan('{{ $kunci }}')" loading="batalkanTahapan"
+                                wire:click="batalkanTahapan('{{ $kunci }}')" loading="batalkanTahapan('{{ $kunci }}')"
                                 wire:confirm="Batalkan tanda {{ $nama }}?{{ $naskah->tahap === TahapNaskah::Arsip ? ' Naskah akan kembali ke tahap Penandatanganan.' : '' }}">Batalkan</x-ui.button>
                         @elseif ($bisaTandai)
-                            <x-ui.button size="sm" :variant="$giliran ? 'primary' : 'outline'" icon="check2" wire:click="bukaTahapan('{{ $kunci }}', 'tandai')" loading="bukaTahapan">Tandai Selesai</x-ui.button>
+                            <x-ui.button size="sm" :variant="$giliran ? 'primary' : 'outline'" icon="check2" wire:click="bukaTahapan('{{ $kunci }}', 'tandai')" loading="bukaTahapan('{{ $kunci }}', 'tandai')">Tandai Selesai</x-ui.button>
                         @endif
                     </div>
                 @endif
@@ -84,7 +85,7 @@
 
     @if ($bolehKelola)
         @php
-            $namaDipilih = A::TAHAPAN_TTD[$tahapanDipilih] ?? '';
+            $namaDipilih = A::TAHAPAN_TTD[$tahapanDipilih ?? ''] ?? '';
             $lompat = $modeTahapan === 'tandai' && $tahapanDipilih && $tahapanDipilih !== $berikutnya;
         @endphp
         <x-ui.modal id="modalTahapan" :title="$modeTahapan === 'ubah' ? 'Ubah tanggal ' . $namaDipilih : 'Tandai ' . $namaDipilih . ' selesai'" size="md">

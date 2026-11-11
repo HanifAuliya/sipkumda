@@ -49,8 +49,10 @@ class Beranda extends Component
         return view('v2.beranda', [
             'statistik' => [
                 'rancangan' => $jumlah(TahapNaskah::RANCANGAN),
-                'fasilitasi' => $jumlah(array_filter(TahapNaskah::SETELAH_RANCANGAN, fn (TahapNaskah $t) => ! $t->terkunci())),
-                'ttd' => $jumlah([TahapNaskah::Final, TahapNaskah::Penandatanganan, TahapNaskah::Arsip]),
+                // Menunggu nota dinas masih urusan fasilitasi (menu Daftar Nota Dinas ada di kelompok itu).
+                'fasilitasi' => $jumlah([...array_filter(TahapNaskah::SETELAH_RANCANGAN, fn (TahapNaskah $t) => ! $t->terkunci()), TahapNaskah::Final]),
+                // Sama dengan isi menu Penandatanganan: yang sedang berjalan dan yang menunggu arsip.
+                'ttd' => $jumlah([TahapNaskah::Penandatanganan, TahapNaskah::Arsip]),
                 'selesai' => $jumlah([TahapNaskah::Selesai]),
             ],
             'halaman' => (clone $semua)

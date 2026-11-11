@@ -39,9 +39,9 @@
         <x-ui.stat-card rapat label="Fasilitasi" :value="$statistik['fasilitasi']" suffix="naskah" icon="file-text" color="orange"
             :href="route('v2.daftar', $pd ? 'fasilitasiku' : 'fasilitasi')" wire:navigate />
         @if ($user->hasAnyRole(['Admin', 'Tamu']))
-            <x-ui.stat-card rapat label="Penandatanganan" :value="$statistik['ttd']" suffix="naskah" icon="pen" color="emerald" :href="route('v2.daftar', 'penandatanganan')" wire:navigate />
+            <x-ui.stat-card rapat label="Tanda Tangan & Arsip" :value="$statistik['ttd']" suffix="naskah" icon="pen" color="emerald" :href="route('v2.daftar', 'penandatanganan')" wire:navigate />
         @else
-            <x-ui.stat-card rapat label="Penandatanganan" :value="$statistik['ttd']" suffix="naskah" icon="pen" color="emerald" />
+            <x-ui.stat-card rapat label="Tanda Tangan & Arsip" :value="$statistik['ttd']" suffix="naskah" icon="pen" color="emerald" />
         @endif
         <x-ui.stat-card rapat label="Selesai" :value="$statistik['selesai']" suffix="naskah" icon="folder2-open" color="sky" />
     </div>

@@ -106,6 +106,10 @@
             @if ($naskah)
                 @if (auth()->user()->pemantau())
                     <x-ui.button icon="vector-pen" :href="route('v2.naskah.pantau', $naskah)">Pantau Tanda Tangan</x-ui.button>
+                @elseif ($naskah->tahap->tahapAkhir())
+                    {{-- Isi sudah terkunci: yang dikerjakan tinggal nota dinas, tanda tangan, dan arsip. --}}
+                    <x-ui.button variant="outline" icon="table" :href="route('v2.naskah.kerja', $naskah)">Lihat Matriks</x-ui.button>
+                    <x-ui.button :variant="$giliranSaya ? 'primary' : 'outline-primary'" icon="vector-pen" :href="route('v2.naskah.pantau', $naskah)">{{ $giliranSaya ? $naskah->tahap->labelKerjakan() : 'Nota Dinas & Tanda Tangan' }}</x-ui.button>
                 @elseif ($giliranSaya)
                     <x-ui.button icon="pencil-square" :href="route('v2.naskah.kerja', $naskah)">Kerjakan Naskah</x-ui.button>
                 @else

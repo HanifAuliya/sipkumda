@@ -40,27 +40,29 @@ class AlurNaskah
     /**
      * Daftar perpindahan tahap.
      * dari, ke, label tombol, varian tombol, catatan wajib?, kepada siapa diberitahukan.
+     * mundur: naskah kembali ke tahap sebelumnya; labelnya selalu menyebut tahap tujuan.
      */
     private const AKSI = [
         'ajukan' => ['dari' => T::Draf, 'ke' => T::PersetujuanBerkas, 'label' => 'Ajukan', 'ikon' => 'send', 'varian' => 'primary'],
         'setujui_berkas' => ['dari' => T::PersetujuanBerkas, 'ke' => T::PilihPeneliti, 'label' => 'Berkas lengkap', 'ikon' => 'check2', 'varian' => 'success'],
-        'tolak_berkas' => ['dari' => T::PersetujuanBerkas, 'ke' => T::Draf, 'label' => 'Kembalikan ke PD', 'ikon' => 'arrow-return-left', 'varian' => 'outline-danger', 'catatan' => true],
+        'tolak_berkas' => ['dari' => T::PersetujuanBerkas, 'ke' => T::Draf, 'label' => 'Kembalikan ke Penyusunan (PD)', 'ikon' => 'arrow-return-left', 'varian' => 'outline-danger', 'catatan' => true, 'mundur' => true],
         'tugaskan_peneliti' => ['dari' => T::PilihPeneliti, 'ke' => T::Penelitian, 'label' => 'Tugaskan Peneliti', 'ikon' => 'person-check', 'varian' => 'primary', 'peneliti' => true],
         'kirim_ke_pd' => ['dari' => T::Penelitian, 'ke' => T::PerbaikanPd, 'label' => 'Kirim ke PD', 'ikon' => 'send', 'varian' => 'primary'],
         'teruskan_ke_verifikator' => ['dari' => T::Penelitian, 'ke' => T::ValidasiRancangan, 'label' => 'Selesai, teruskan ke Verifikator', 'ikon' => 'check2-all', 'varian' => 'success'],
         'kembali_ke_peneliti' => ['dari' => T::PerbaikanPd, 'ke' => T::Penelitian, 'label' => 'Kirim tindak lanjut', 'ikon' => 'send', 'varian' => 'primary'],
         'setujui_rancangan' => ['dari' => T::ValidasiRancangan, 'ke' => T::Disetujui, 'label' => 'Setuju', 'ikon' => 'check2', 'varian' => 'success'],
-        'tolak_rancangan' => ['dari' => T::ValidasiRancangan, 'ke' => T::Penelitian, 'label' => 'Tidak setuju, kembali ke Peneliti', 'ikon' => 'arrow-return-left', 'varian' => 'outline-danger', 'catatan' => true],
+        'tolak_rancangan' => ['dari' => T::ValidasiRancangan, 'ke' => T::Penelitian, 'label' => 'Kembalikan ke Penelitian (Peneliti)', 'ikon' => 'arrow-return-left', 'varian' => 'outline-danger', 'catatan' => true, 'mundur' => true],
         'ajukan_fasilitasi' => ['dari' => T::Disetujui, 'ke' => T::PersetujuanFasilitasi, 'label' => 'Ajukan fasilitasi', 'ikon' => 'send', 'varian' => 'primary'],
         'setujui_fasilitasi' => ['dari' => T::PersetujuanFasilitasi, 'ke' => T::ValidasiFasilitasi, 'label' => 'Berkas fasilitasi lengkap', 'ikon' => 'check2', 'varian' => 'success'],
-        'tolak_fasilitasi' => ['dari' => T::PersetujuanFasilitasi, 'ke' => T::Disetujui, 'label' => 'Kembalikan ke PD', 'ikon' => 'arrow-return-left', 'varian' => 'outline-danger', 'catatan' => true],
+        'tolak_fasilitasi' => ['dari' => T::PersetujuanFasilitasi, 'ke' => T::Disetujui, 'label' => 'Kembalikan berkas fasilitasi ke PD', 'ikon' => 'arrow-return-left', 'varian' => 'outline-danger', 'catatan' => true, 'mundur' => true],
         'finalkan' => ['dari' => T::ValidasiFasilitasi, 'ke' => T::Final, 'label' => 'Setuju', 'ikon' => 'patch-check', 'varian' => 'success'],
-        'tolak_validasi' => ['dari' => T::ValidasiFasilitasi, 'ke' => T::PerbaikanFasilitasi, 'label' => 'Tidak setuju, kembali ke PD', 'ikon' => 'arrow-return-left', 'varian' => 'outline-danger', 'catatan' => true],
+        'tolak_validasi' => ['dari' => T::ValidasiFasilitasi, 'ke' => T::PerbaikanFasilitasi, 'label' => 'Kembalikan ke Perbaikan Fasilitasi (PD)', 'ikon' => 'arrow-return-left', 'varian' => 'outline-danger', 'catatan' => true, 'mundur' => true],
         'perbaikan_ke_peneliti' => ['dari' => T::PerbaikanFasilitasi, 'ke' => T::CekPeneliti, 'label' => 'Kirim ke Peneliti', 'ikon' => 'send', 'varian' => 'primary'],
         'cek_ke_pd' => ['dari' => T::CekPeneliti, 'ke' => T::PerbaikanFasilitasi, 'label' => 'Kirim ke PD', 'ikon' => 'send', 'varian' => 'primary'],
         'cek_ke_verifikator' => ['dari' => T::CekPeneliti, 'ke' => T::ValidasiFasilitasi, 'label' => 'Selesai, teruskan ke Verifikator', 'ikon' => 'check2-all', 'varian' => 'success'],
-        'buka_kunci' => ['dari' => T::Final, 'ke' => T::ValidasiFasilitasi, 'label' => 'Buka kunci', 'ikon' => 'unlock', 'varian' => 'outline-danger', 'catatan' => true, 'peran' => 'Verifikator'],
-        'buka_kunci_ttd' => ['dari' => T::Penandatanganan, 'ke' => T::ValidasiFasilitasi, 'label' => 'Buka kunci', 'ikon' => 'unlock', 'varian' => 'outline-danger', 'catatan' => true, 'peran' => 'Verifikator'],
+        // Buka kunci: isi naskah bisa diubah lagi. Tombolnya ada di halaman Nota Dinas & Tanda Tangan.
+        'buka_kunci' => ['dari' => T::Final, 'ke' => T::ValidasiFasilitasi, 'label' => 'Kembalikan ke Validasi Fasilitasi', 'ikon' => 'unlock', 'varian' => 'outline-danger', 'catatan' => true, 'peran' => 'Verifikator', 'mundur' => true],
+        'buka_kunci_ttd' => ['dari' => T::Penandatanganan, 'ke' => T::ValidasiFasilitasi, 'label' => 'Kembalikan ke Validasi Fasilitasi', 'ikon' => 'unlock', 'varian' => 'outline-danger', 'catatan' => true, 'peran' => 'Verifikator', 'mundur' => true],
         // Tiga aksi ini punya isian sendiri, jadi dijalankan lewat metodenya masing-masing.
         'terbitkan_nota' => ['dari' => T::Final, 'ke' => T::Penandatanganan, 'label' => 'Terbitkan nota dinas', 'ikon' => 'file-earmark-text', 'varian' => 'primary', 'form' => 'nota'],
         'tandai_tahapan' => ['dari' => T::Penandatanganan, 'ke' => T::Arsip, 'label' => 'Tandai tahapan selesai', 'ikon' => 'check2-square', 'varian' => 'primary', 'form' => 'tahapan'],
@@ -251,8 +253,10 @@ class AlurNaskah
     /**
      * Admin menerbitkan ulang nota dinas dari pengaturan Format Dokumen terbaru, misalnya karena kop
      * atau pejabat berganti. Nomor dan tanggalnya tetap; versi sebelumnya disimpan sebagai "diganti".
+     * Penandatangan dan tujuan yang salah dipilih saat terbit bisa sekaligus dibetulkan di sini;
+     * perubahannya ikut tercatat di keterangan versi dan riwayat.
      */
-    public function terbitUlangNota(Naskah $naskah, User $user, ?string $alasan): NaskahBerkas
+    public function terbitUlangNota(Naskah $naskah, User $user, ?string $alasan, ?int $tandaTanganId = null, ?string $kepada = null): NaskahBerkas
     {
         if (! $user->hasAnyRole(['Admin', 'Super Admin'])) {
             abort(403, 'Hanya Admin yang bisa menerbitkan ulang nota dinas.');
@@ -261,15 +265,35 @@ class AlurNaskah
             $this->gagal('alasanTerbitUlang', 'Tulis alasan penerbitan ulang.');
         }
 
-        return DB::transaction(function () use ($naskah, $user, $alasan) {
+        $ttdBaru = $tandaTanganId ? TandaTangan::where('status', 'Aktif')->find($tandaTanganId) : null;
+
+        if ($tandaTanganId && ! $ttdBaru) {
+            $this->gagal('ttdUlangId', 'Pilih tanda tangan yang aktif.');
+        }
+
+        return DB::transaction(function () use ($naskah, $user, $alasan, $ttdBaru, $kepada) {
             $naskah = Naskah::whereKey($naskah->id)->lockForUpdate()->firstOrFail();
 
             if (! $this->bolehTerbitUlangNota($naskah, $user)) {
                 abort(403, 'Nota dinas tidak bisa diterbitkan ulang pada tahap ini.');
             }
 
-            $berkas = $this->simpanPdfNota($naskah, $user, trim($alasan));
-            $this->catat($naskah, $user, 'terbit_ulang_nota', trim($alasan), null, $berkas->nama_asli);
+            $nota = $naskah->notaDinas()->with('tandaTangan')->firstOrFail();
+            $perubahan = [];
+
+            if ($ttdBaru && $ttdBaru->id !== $nota->tanda_tangan_id) {
+                $perubahan[] = 'penandatangan: ' . ($nota->tandaTangan->nama_ttd ?? '-') . ' → ' . $ttdBaru->nama_ttd;
+                $nota->tanda_tangan_id = $ttdBaru->id;
+            }
+            if (filled($kepada) && trim($kepada) !== $nota->kepada) {
+                $perubahan[] = "kepada: {$nota->kepada} → " . trim($kepada);
+                $nota->kepada = trim($kepada);
+            }
+            $nota->save();
+
+            $keterangan = Str::limit(trim($alasan) . ($perubahan ? ' (' . implode('; ', $perubahan) . ')' : ''), 497);
+            $berkas = $this->simpanPdfNota($naskah, $user, $keterangan);
+            $this->catat($naskah, $user, 'terbit_ulang_nota', $keterangan, null, $berkas->nama_asli);
 
             return $berkas;
         });

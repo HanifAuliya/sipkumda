@@ -353,6 +353,33 @@ describe('penandatanganan', function () {
             ->assertSeeHtml($cetak);
     });
 
+    it('buka kunci ada di halaman Nota Dinas & Tanda Tangan dengan nama dan akibat yang jelas', function () {
+        $n = $this->alur->tandaiTahapan($this->n, $this->admin);
+
+        // Di layar kerja tidak ada lagi; Admin tidak punya tombolnya.
+        Livewire::actingAs($this->verifikator)->test(LayarKerja::class, ['naskah' => $n])->assertDontSee('Kembalikan ke Validasi Fasilitasi');
+        Livewire::actingAs($this->admin)->test(PantauNaskah::class, ['naskah' => $n])->assertDontSee('Isi naskah perlu diubah?');
+
+        Livewire::actingAs($this->verifikator)->test(PantauNaskah::class, ['naskah' => $n])
+            ->assertSee('Isi naskah perlu diubah?')
+            ->assertSee('Kembalikan ke Validasi Fasilitasi')
+            ->assertSee('harus dicatat ulang')
+            ->call('bukaKunci')
+            ->assertHasErrors('alasanBukaKunci')
+            ->set('alasanBukaKunci', 'Koreksi dari Sekda')
+            ->call('bukaKunci')
+            ->assertRedirect(route('v2.naskah.kerja', $n));
+
+        expect($n->fresh()->tahap)->toBe(T::ValidasiFasilitasi)->and($n->fresh()->tahapan_ttd)->toBeNull();
+
+        // Tombol mundur menyebut tahap tujuannya, dan konfirmasinya menyebut asal, tujuan, serta giliran.
+        Livewire::actingAs($this->verifikator)->test(LayarKerja::class, ['naskah' => $n->fresh()])
+            ->assertSee('Lainnya')
+            ->assertSee('Kembalikan ke Perbaikan Fasilitasi (PD)')
+            ->call('pilihAksi', 'tolak_validasi')
+            ->assertSeeInOrder(['Naskah berpindah dari', 'Validasi Fasilitasi', 'Perbaikan Fasilitasi', 'Giliran berikutnya', 'Perangkat Daerah']);
+    });
+
     it('buka kunci mengulang tanda tangan tanpa menerbitkan nota dinas baru', function () {
         $n = $this->alur->tandaiTahapan($this->n, $this->admin);
 
@@ -413,40 +440,96 @@ describe('arsip ke JDIH', function () {
         expect(fn () => $this->alur->tetapkan($n->baris()->first(), $this->verifikator))->toThrow(HttpException::class);
     });
 
-    it('seluruh tahap akhir berjalan lewat layar', function () {
+    it('arsip dikerjakan di halaman Nota Dinas & Tanda Tangan, dan tombol Kerjakan langsung ke sana', function () {
         $this->actingAs($this->admin);
+        $halaman = route('v2.naskah.pantau', $this->n);
 
-        Livewire::test(LayarKerja::class, ['naskah' => $this->n])
-            ->call('pilihAksi', 'arsipkan')
+        expect($this->n->tautanUntuk($this->admin))->toBe($halaman)
+            ->and(T::Arsip->labelKerjakan())->toBe('Arsipkan')
+            ->and(T::Final->labelKerjakan())->toBe('Terbitkan Nota Dinas')
+            ->and(T::Penelitian->labelKerjakan())->toBe('Kerjakan');
+
+        Livewire::test(LayarKerja::class, ['naskah' => $this->n])->call('pilihAksi', 'arsipkan')->assertRedirect($halaman);
+
+        Livewire::test(PantauNaskah::class, ['naskah' => $this->n])
+            ->assertSee('Arsipkan ke JDIH')
             ->set('nomorArsip', '8')
             ->set('tanggalPenetapan', '2026-11-01')
-            ->call('jalankanAksi')
+            ->call('arsipkan')
             ->assertHasErrors('fileArsip')
             ->set('fileArsip', UploadedFile::fake()->create('ttd.pdf', 10, 'application/pdf'))
-            ->call('jalankanAksi')
-            ->assertHasNoErrors();
+            ->call('arsipkan')
+            ->assertHasNoErrors()
+            ->assertDontSee('PDF bertanda tangan basah');
 
-        expect($this->n->fresh()->tahap)->toBe(T::Selesai);
+        expect($this->n->fresh()->tahap)->toBe(T::Selesai)
+            // Sesudah selesai, naskah dibuka lagi sebagai matriks untuk dibaca.
+            ->and($this->n->fresh()->tautanUntuk($this->admin))->toBe(route('v2.naskah.kerja', $this->n));
     });
 });
 
-it('layar menerbitkan nota dinas dan mencatat tahapan', function () {
+it('halaman Nota Dinas & Tanda Tangan menerbitkan nota dinas dan mencatat tahapan', function () {
     $n = naskahFinal($this);
     $this->actingAs($this->admin);
+    $pd = $n->pemrakarsa->perangkatDaerah->nama_perangkat_daerah;
 
-    $layar = Livewire::test(LayarKerja::class, ['naskah' => $n])
+    // Dari layar kerja, tombol aksinya membawa ke halaman tersendiri; matriks tidak lagi memuat formulirnya.
+    Livewire::test(LayarKerja::class, ['naskah' => $n])
+        ->assertSeeHtml(route('v2.naskah.pantau', $n))
+        ->assertDontSee('Tahapan Tanda Tangan')
         ->call('pilihAksi', 'terbitkan_nota')
-        ->call('jalankanAksi')
+        ->assertRedirect(route('v2.naskah.pantau', $n));
+
+    $halaman = Livewire::test(PantauNaskah::class, ['naskah' => $n])
+        ->assertSee('Nota Dinas & Tanda Tangan')
+        // Tujuan diisi dari Perangkat Daerah pengaju; bagian nomor selain nomor urut tampil terkunci.
+        ->assertSet('kepada', "Kepala {$pd}")
+        ->assertSeeInOrder(['100.3', 'id="nomorInputan"', 'ND', 'KUM', (string) now()->year], false)
+        ->call('terbitkanNota')
         ->assertHasErrors('nomorInputan')
-        ->set('nomorInputan', '15')->set('kepada', 'Sekda')->set('tandaTanganId', $this->ttd->id)
-        ->call('jalankanAksi')
-        ->assertHasNoErrors();
+        ->set('nomorInputan', '15')->set('tandaTanganId', $this->ttd->id)
+        ->call('terbitkanNota')
+        ->assertHasNoErrors()
+        ->assertSee('100.3/15/ND/KUM/' . now()->year)
+        ->assertSee('Versi 1')
+        ->assertSee('Berlaku');
 
-    expect($n->fresh()->tahap)->toBe(T::Penandatanganan);
+    expect($n->fresh()->tahap)->toBe(T::Penandatanganan)
+        ->and($n->notaDinas()->first()->kepada)->toBe("Kepala {$pd}");
 
-    $layar->call('pilihAksi', 'tandai_tahapan')->assertSet('tanggalTahapan', now()->toDateString())->call('jalankanAksi')->assertHasNoErrors();
+    $halaman->call('bukaTahapan', 'paraf_koordinasi', 'tandai')->assertSet('tanggalTtd', now()->toDateString())->call('simpanTahapan')->assertHasNoErrors();
 
     expect($n->fresh()->tahapan_ttd)->toHaveKey('paraf_koordinasi');
+
+    // Terbit ulang: kedua versi tampil dan bisa diunduh.
+    $halaman->call('terbitUlangNota')->assertHasErrors('alasanTerbitUlang')
+        ->set('alasanTerbitUlang', 'Kop diperbarui')->call('terbitUlangNota')->assertHasNoErrors()
+        ->assertSee('Versi 2')->assertSee('Diganti')->assertSee('Alasan: Kop diperbarui');
+
+    // Salah pilih tanda tangan atau tujuan dibetulkan lewat terbit ulang; nomor tetap, perubahannya tercatat.
+    $lain = TandaTangan::create([
+        'nama_ttd' => 'NAMA SEKDA', 'nip_ttd' => '19700101', 'jabatan' => 'Pembina Utama',
+        'file_ttd' => 'tanda_tangan/ttd/y.png', 'dibuat_oleh' => $this->verifikator->id, 'status' => 'Aktif',
+    ]);
+
+    $halaman->assertSet('ttdUlangId', $this->ttd->id)->assertSet('kepadaUlang', "Kepala {$pd}")
+        ->set('ttdUlangId', $lain->id)->set('kepadaUlang', 'Kepala Dinas Lain')->set('alasanTerbitUlang', 'Salah pilih tanda tangan')
+        ->call('terbitUlangNota')->assertHasNoErrors()
+        ->assertSee('Versi 3')
+        ->assertSee('penandatangan: NAMA KABAG → NAMA SEKDA')
+        ->assertSee('kepada: Kepala Dinas Uji → Kepala Dinas Lain');
+
+    $nota = $n->notaDinas()->first();
+
+    expect($nota->tanda_tangan_id)->toBe($lain->id)
+        ->and($nota->kepada)->toBe('Kepala Dinas Lain')
+        ->and($nota->nomor_nota)->toBe('100.3/15/ND/KUM/' . now()->year)
+        ->and(teksPdfAkhir(app(CetakNaskah::class)->pdfNotaDinas($n)))->toContain('NAMASEKDA');
+
+    foreach ($n->berkas()->where('jenis', NaskahBerkas::NOTA_DINAS)->get() as $versi) {
+        $halaman->assertSeeHtml(route('v2.naskah.berkas', [$n, $versi]));
+        $this->get(route('v2.naskah.berkas', [$n, $versi]))->assertOk();
+    }
 });
 
 describe('kelengkapan layar', function () {
@@ -823,10 +906,10 @@ describe('tahapan tanda tangan bisa dibetulkan', function () {
         expect($this->alur->bolehKelolaTtd($n, $this->admin))->toBeFalse();
     });
 
-    it('Admin mengubah tanggal dan membatalkan dari layar kerja', function () {
+    it('Admin mengubah tanggal dan membatalkan dari halaman Nota Dinas & Tanda Tangan', function () {
         $n = $this->alur->tandaiTahapan($this->n, $this->admin, now()->subDay()->toDateString());
 
-        Livewire::actingAs($this->admin)->test(LayarKerja::class, ['naskah' => $n])
+        Livewire::actingAs($this->admin)->test(PantauNaskah::class, ['naskah' => $n])
             ->assertSee('Tahapan Tanda Tangan')
             ->assertSee('Ubah Tanggal')
             ->call('bukaTahapan', 'paraf_koordinasi', 'ubah')
@@ -840,7 +923,7 @@ describe('tahapan tanda tangan bisa dibetulkan', function () {
 
         expect($n->fresh()->tahapan_ttd['paraf_koordinasi'])->toBe(now()->subDays(2)->toDateString());
 
-        Livewire::actingAs($this->admin)->test(LayarKerja::class, ['naskah' => $n])->call('batalkanTahapan', 'paraf_koordinasi');
+        Livewire::actingAs($this->admin)->test(PantauNaskah::class, ['naskah' => $n])->call('batalkanTahapan', 'paraf_koordinasi');
 
         expect($n->fresh()->tahapan_ttd)->toBeNull();
     });
