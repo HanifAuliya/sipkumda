@@ -99,7 +99,7 @@ class Dokumentasi extends Component
     {
         $this->authorize('viewAny', DokumentasiProdukHukum::class);
 
-        $dokumentasiList = DokumentasiProdukHukum::with('rancangan', 'perangkatDaerah')
+        $dokumentasiList = DokumentasiProdukHukum::with('perangkatDaerah')
             ->filter($this->search, $this->jenisRancangan, $this->tahun)
             ->orderByDesc('tanggal_pengarsipan')
             ->get();
@@ -217,7 +217,7 @@ class Dokumentasi extends Component
 
     public function delete($id)
     {
-        $dokumentasi = DokumentasiProdukHukum::with('rancangan')->findOrFail($id);
+        $dokumentasi = DokumentasiProdukHukum::with('naskah')->findOrFail($id);
         $this->authorize('delete', $dokumentasi);
 
         if ($dokumentasi->file_produk_hukum && Storage::exists($dokumentasi->file_produk_hukum)) {
@@ -230,10 +230,9 @@ class Dokumentasi extends Component
             'title' => 'Dokumentasi Produk Hukum Dihapus',
             'message' => "Dokumentasi dengan {$dokumentasi->nomor_formatted} telah dihapus dari sistem.",
             'type' => 'dokumentasi_dihapus',
-            'slug' => $dokumentasi->rancangan?->slug,
+            'slug' => $dokumentasi->naskah?->slug,
         ]));
 
-        // Daftar rancangan pada form tambah perlu dimuat ulang.
         $this->dispatch('loadData');
         $this->dispatch('swal:toast', [
             'type' => 'success',
@@ -257,7 +256,7 @@ class Dokumentasi extends Component
             ? Naskah::terlihatOleh(auth()->user())->where('tahap', TahapNaskah::Arsip)
             : null;
 
-        $dokumentasiList = DokumentasiProdukHukum::with('rancangan', 'perangkatDaerah')
+        $dokumentasiList = DokumentasiProdukHukum::with('perangkatDaerah')
             ->filter($this->search, $this->jenisRancangan, $this->tahun)
             ->orderBy(in_array($this->sortColumn, self::SORTABLE, true) ? $this->sortColumn : 'tanggal_pengarsipan', $this->sortDirection === 'asc' ? 'asc' : 'desc')
             ->orderByDesc('created_at')

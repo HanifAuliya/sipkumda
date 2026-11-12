@@ -2,8 +2,6 @@
 
 use App\Exports\DokumentasiExport;
 use App\Livewire\Profile\UpdateProfileInformation;
-use App\Models\RancanganProdukHukum;
-use App\Models\Revisi;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -23,32 +21,24 @@ function akun(string $role): User
     return tap(User::factory()->create())->assignRole($role);
 }
 
-function rancanganMilik(User $pemilik, array $atribut = []): RancanganProdukHukum
-{
-    return RancanganProdukHukum::factory()->create(['id_user' => $pemilik->id] + $atribut);
-}
-
 describe('file privat', function () {
     beforeEach(function () {
         $this->pemilik = akun('Perangkat Daerah');
-        $this->rancangan = rancanganMilik($this->pemilik, ['rancangan' => 'rancangan/rancangan/berkas.docx']);
-        Storage::disk('local')->put('rancangan/rancangan/berkas.docx', 'isi');
+        Storage::disk('local')->put('dokumentasi/file_produk_hukum/perbup.pdf', '%PDF');
         Storage::disk('local')->put('tanda_tangan/ttd/ttd.png', 'png');
-        $this->url = '/view-private/rancangan/rancangan/berkas.docx';
+        Storage::disk('local')->put('rancangan/rancangan/berkas.docx', 'isi');
     });
 
-    it('bisa dibuka pemiliknya dan verifikator', function () {
-        $this->actingAs($this->pemilik)->get($this->url)->assertOk();
-        $this->actingAs(akun('Verifikator'))->get($this->url)->assertOk();
+    it('produk hukum bisa dibuka pengguna yang login', function () {
+        $this->actingAs($this->pemilik)->get('/view-private/dokumentasi/file_produk_hukum/perbup.pdf')->assertOk();
     });
 
-    it('tidak bisa dibuka perangkat daerah lain atau tamu', function () {
-        $this->actingAs(akun('Perangkat Daerah'))->get($this->url)->assertForbidden();
-        $this->actingAs(akun('Tamu'))->get($this->url)->assertForbidden();
+    it('folder alur lama tidak lagi bisa dibuka', function () {
+        $this->actingAs(akun('Admin'))->get('/view-private/rancangan/rancangan/berkas.docx')->assertForbidden();
     });
 
     it('mengarahkan pengunjung yang belum login ke halaman login', function () {
-        $this->get($this->url)->assertRedirect('/login');
+        $this->get('/view-private/dokumentasi/file_produk_hukum/perbup.pdf')->assertRedirect('/login');
     });
 
     it('membatasi gambar tanda tangan untuk pengelola nota dinas', function () {

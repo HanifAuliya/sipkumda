@@ -34,7 +34,7 @@ class DokumentasiExport implements FromCollection, WithHeadings, WithTitle, With
 
     public function collection(): Collection
     {
-        return DokumentasiProdukHukum::with(['rancangan', 'perangkatDaerah'])
+        return DokumentasiProdukHukum::with(['naskah', 'perangkatDaerah'])
             ->filter($this->search, $this->jenisRancangan, $this->tahun)
             ->orderByDesc('tanggal_pengarsipan')
             ->get()
@@ -42,7 +42,7 @@ class DokumentasiExport implements FromCollection, WithHeadings, WithTitle, With
                 return [
                     'No' => $index + 1,
                     'Nomor Produk Hukum' => $dokumentasi->nomor_formatted,
-                    'Nomor Fasilitasi Rancangan' => $dokumentasi->rancangan->no_rancangan ?? 'Dokumen sebelum ada sistem',
+                    'Nomor Rancangan' => $dokumentasi->naskah->nomor ?? 'Dokumen sebelum ada sistem',
                     'Jenis Produk Hukum' => Status::label($dokumentasi->jenis_dokumentasi),
                     'Tentang' => $dokumentasi->tentang_dokumentasi,
                     'Perangkat Daerah' => $dokumentasi->perangkatDaerah->nama_perangkat_daerah ?? '-',

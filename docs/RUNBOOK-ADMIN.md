@@ -112,7 +112,7 @@ Menu: **Dokumentasi**.
   Tekan **Arsipkan**, isi nomor, tanggal penetapan, Berita Daerah, dan unggah PDF bertanda tangan basah.
   Keputusan Bupati memakai nomor berformat `[140] / [nomor] / [412.1.6] / TAHUN [tahun]`; hanya nomor
   urut yang wajib diisi, bagian lain bisa diganti bila memakai kode lain.
-- Tab **Terarsip** berisi semua dokumen. **Tambah Arsip › Dokumen lama** untuk produk hukum yang
+- Tab **Terarsip** berisi semua dokumen. **Tambah Arsip** untuk produk hukum yang
   ditetapkan sebelum ada sistem.
 - Dokumen yang sudah diarsipkan langsung tampil untuk umum di halaman JDIH (`/produk-hukum`).
 

@@ -83,16 +83,6 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->belongsTo(PerangkatDaerah::class, 'perangkat_daerah_id', 'id');
     }
 
-    // Relasi ke Rancangan Produk Hukum
-    public function rancangan()
-    {
-        return $this->hasMany(RancanganProdukHukum::class, 'id_user');
-    }
-
-    public function revisi()
-    {
-        return $this->hasMany(Revisi::class, 'id_user', 'id');
-    }
 
 
 

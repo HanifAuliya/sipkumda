@@ -5,7 +5,6 @@ use App\Http\Controllers\JdihController;
 use App\Http\Controllers\PrivateFileController;
 use App\Http\Controllers\TandaTanganSayaController;
 use App\Livewire\Dokumentasi\Dokumentasi;
-use App\Livewire\Dokumentasi\MasterData;
 use App\Livewire\ProfileManagement;
 use App\Livewire\Rancangan\TambahBahanPenting;
 use App\Livewire\UserManagement;
@@ -46,7 +45,7 @@ Route::middleware('auth')->group(function () {
         Route::livewire('/user-management', UserManagement::class)->name('user.management');
     });
 
-    // Berkas privat (dokumentasi, bahan penting, tanda tangan).
+    // Berkas privat (produk hukum dan gambar tanda tangan).
     Route::get('/view-private/{folder}/{subfolder}/{filename}', PrivateFileController::class)
         ->where(['folder' => '[a-z_]+', 'subfolder' => '[a-z_]+', 'filename' => '[^/\\\\]+'])
         ->name('private-file');
@@ -61,12 +60,6 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware(['role:Admin|Verifikator|Perangkat Daerah|Peneliti'])->group(function () {
         Route::livewire('/dokumentasi-produk-hukum', Dokumentasi::class)->name('dokumentasi.main');
-    });
-
-    // Master Data juga menjadi arsip baca untuk rancangan, revisi, dan fasilitasi dari alur sebelumnya.
-    Route::middleware(['role:Admin|Verifikator|Peneliti|Super Admin'])->group(function () {
-        Route::livewire('/master-data', MasterData::class)->name('masterdata.main');
-        Route::get('/export-master-data', [MasterData::class, 'export'])->name('export.masterdata');
     });
 });
 

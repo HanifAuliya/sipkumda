@@ -93,9 +93,6 @@
 
                 <p class="mt-6 flex animate-naik flex-wrap items-center gap-x-5 gap-y-2 text-sm text-white/60 [animation-delay:480ms]">
                     <span class="inline-flex items-center gap-1.5"><i class="bi bi-shield-check text-brand-500"></i> Akses khusus perangkat daerah</span>
-                    <a href="{{ asset('assets/document/SIFKUMDA-PanduanLogin.pdf') }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 hover:text-white">
-                        <i class="bi bi-book"></i> Panduan login
-                    </a>
                 </p>
             </div>
 

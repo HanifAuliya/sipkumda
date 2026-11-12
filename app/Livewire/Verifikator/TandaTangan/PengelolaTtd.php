@@ -111,10 +111,9 @@ class PengelolaTtd extends Component
 
     public function delete($id)
     {
-        $ttd = TandaTangan::withCount(['notaDinas', 'naskahNotaDinas'])->findOrFail($id);
-        $dipakai = $ttd->nota_dinas_count + $ttd->naskah_nota_dinas_count;
+        $ttd = TandaTangan::withCount('naskahNotaDinas')->findOrFail($id);
+        $dipakai = $ttd->naskah_nota_dinas_count;
 
-        // Relasi nota_dinas memakai cascade: menghapus TTD akan ikut menghapus Nota Dinas.
         if ($dipakai > 0) {
             $this->dispatch('swal:modal', [
                 'type' => 'warning',
@@ -141,7 +140,7 @@ class PengelolaTtd extends Component
 
     public function render()
     {
-        $ttdList = TandaTangan::withCount(['notaDinas', 'naskahNotaDinas'])
+        $ttdList = TandaTangan::withCount('naskahNotaDinas')
             ->where(function ($query) {
                 $query->where('nama_ttd', 'like', "%{$this->search}%")
                     ->orWhere('nip_ttd', 'like', "%{$this->search}%")

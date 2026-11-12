@@ -147,15 +147,15 @@ describe('keadaan belum dibaca', function () {
         expect($this->admin->notifikasiNaskah()->count())->toBe(0);
     });
 
-    it('lonceng hanya memuat notifikasi naskah, bukan sisa notifikasi alur sebelumnya', function () {
+    it('lonceng hanya memuat notifikasi naskah', function () {
         $this->pd->notify(new NaskahNotification(['kategori' => 'kabar', 'title' => 'Kabar naskah v2', 'message' => '-']));
         DatabaseNotification::create([
-            'id' => (string) str()->uuid(), 'type' => 'App\Notifications\ValidationResultNotification',
-            'notifiable_type' => User::class, 'notifiable_id' => $this->pd->id, 'data' => ['title' => 'Kabar alur lama', 'message' => '-'],
+            'id' => (string) str()->uuid(), 'type' => 'App\Notifications\JenisLain',
+            'notifiable_type' => User::class, 'notifiable_id' => $this->pd->id, 'data' => ['title' => 'Kabar lain', 'message' => '-'],
         ]);
 
         Livewire::actingAs($this->pd)->test(Lonceng::class)
-            ->assertSee('Kabar naskah v2')->assertDontSee('Kabar alur lama')
+            ->assertSee('Kabar naskah v2')->assertDontSee('Kabar lain')
             ->assertViewHas('belumDibaca', 1);
     });
 

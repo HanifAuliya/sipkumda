@@ -71,8 +71,8 @@
                 <tr>
                     <td>{{ $index + 1 }}</td>
                     <td>{{ $dokumentasi->nomor_formatted }}</td>
-                    <td class="{{ empty($dokumentasi->rancangan->no_rancangan) ? 'text-danger' : '' }}">
-                        {{ $dokumentasi->rancangan->no_rancangan ?? 'Dokumen sebelum ada sistem' }}
+                    <td class="{{ empty($dokumentasi->naskah?->nomor) ? 'text-danger' : '' }}">
+                        {{ $dokumentasi->naskah?->nomor ?? 'Dokumen sebelum ada sistem' }}
                     </td>
                     <td>{{ \App\Support\Status::label($dokumentasi->jenis_dokumentasi) }}</td>
                     <td class="wrap-text">{{ $dokumentasi->tentang_dokumentasi }}</td>

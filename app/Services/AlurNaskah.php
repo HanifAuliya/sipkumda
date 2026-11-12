@@ -10,7 +10,6 @@ use App\Models\NaskahBaris as B;
 use App\Models\NaskahBerkas;
 use App\Models\NaskahNotaDinas;
 use App\Models\NaskahRiwayat;
-use App\Models\NotaDinas;
 use App\Models\TandaTangan;
 use App\Models\User;
 use App\Notifications\NaskahNotification;
@@ -215,8 +214,7 @@ class AlurNaskah
     }
 
     /**
-     * Menerbitkan nota dinas. Nomornya berbagi urutan dengan nota dinas alur lama,
-     * jadi selama keduanya berjalan tidak ada nomor ganda.
+     * Menerbitkan nota dinas. Nomor urutnya unik per tahun (dan per jenis bila polanya memakai {kode}).
      */
     public function terbitkanNota(Naskah $naskah, User $user, ?string $nomorInputan, ?string $kepada, ?int $tandaTanganId): Naskah
     {
@@ -343,17 +341,10 @@ class AlurNaskah
 
     private function nomorNotaDipakai(int $nomor, string $jenis, int $tahun, bool $perJenis = true): bool
     {
-        // Alur lama masih menyimpan Keputusan Bupati dengan nama "Surat Keputusan".
-        $jenisLama = $jenis === 'Keputusan Bupati' ? 'Surat Keputusan' : $jenis;
-
         return NaskahNotaDinas::whereRaw('CAST(nomor_inputan AS UNSIGNED) = ?', [$nomor])
             ->whereYear('tanggal_nota', $tahun)
             ->when($perJenis, fn ($q) => $q->whereHas('naskah', fn ($q) => $q->where('jenis', $jenis)))
-            ->exists()
-            || NotaDinas::whereRaw('CAST(nomor_inputan AS UNSIGNED) = ?', [$nomor])
-                ->whereYear('tanggal_nota', $tahun)
-                ->when($perJenis, fn ($q) => $q->whereHas('fasilitasi.rancangan', fn ($q) => $q->where('jenis_rancangan', $jenisLama)))
-                ->exists();
+            ->exists();
     }
 
     /**

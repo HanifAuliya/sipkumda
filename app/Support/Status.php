@@ -10,35 +10,9 @@ namespace App\Support;
  */
 class Status
 {
-    /**
-     * Nama di database => nama resmi yang ditampilkan. Alur lama dan sebagian arsip
-     * masih menyimpan "Surat Keputusan"; nilainya dibiarkan karena dipakai penomoran.
-     */
-    private const NAMA_JENIS = ['Surat Keputusan' => 'Keputusan Bupati'];
-
     private const COLORS = [
-        // Selesai / berhasil
-        'Disetujui' => 'success',
-        'Diterima' => 'success',
-        'Direvisi' => 'success',
-        'Selesai' => 'success',
         'Aktif' => 'success',
-
-        // Ditolak / belum dimulai
-        'Ditolak' => 'danger',
-        'Belum Tahap Revisi' => 'danger',
-        'Belum Tahap Validasi' => 'danger',
         'Tidak Aktif' => 'danger',
-        'Belum' => 'danger',
-
-        // Menunggu pihak lain
-        'Menunggu Peneliti' => 'info',
-
-        // Sedang berjalan
-        'Menunggu Persetujuan' => 'warning',
-        'Menunggu Validasi' => 'warning',
-        'Proses Revisi' => 'warning',
-        'Dalam Proses' => 'warning',
 
         // Jenis produk hukum
         'Peraturan Bupati' => 'primary',
@@ -50,16 +24,15 @@ class Status
         return self::COLORS[self::label($value)] ?? 'slate';
     }
 
+    /** Nama yang ditampilkan; sama dengan yang tersimpan. */
     public static function label(?string $value): ?string
     {
-        return self::NAMA_JENIS[$value ?? ''] ?? $value;
+        return $value;
     }
 
-    /** Semua nama di database untuk satu jenis, dipakai saat memfilter data. */
+    /** Nilai di database untuk satu jenis, dipakai saat memfilter data. */
     public static function varianJenis(string $jenis): array
     {
-        $label = self::label($jenis);
-
-        return [$label, ...array_keys(self::NAMA_JENIS, $label, true)];
+        return [$jenis];
     }
 }

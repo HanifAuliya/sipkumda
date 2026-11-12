@@ -18,8 +18,4 @@ class PerangkatDaerah extends Model
     {
         return $this->hasMany(User::class, 'perangkat_daerah_id', 'id');
     }
-    public function rancanganProdukHukum()
-    {
-        return $this->hasMany(RancanganProdukHukum::class, 'perangkat_daerah_id', 'id');
-    }
 }

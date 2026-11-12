@@ -11,7 +11,7 @@ juga **Runbook Admin** (`docs/RUNBOOK-ADMIN.md`).
 | Persetujuan Berkas | Pengajuan baru yang menunggu pemeriksaan |
 | Daftar Rancangan, Daftar Fasilitasi | Semua naskah |
 | Daftar Nota Dinas, Penandatanganan | Naskah pada tahap akhir |
-| Dokumentasi, Master Data | Arsip produk hukum dan rekap data |
+| Dokumentasi | Arsip produk hukum; tab Menunggu Arsip |
 | Akun › Daftar Pengguna | Akun pengguna |
 | Pengaturan | Pengaturan Naskah, Format Dokumen, Template Bahan Penting, Perangkat Daerah |
 
@@ -39,7 +39,7 @@ Urutan tahapan diatur di **Pengaturan › Pengaturan Naskah › Urutan Tanda Tan
 ## 4. Mengarsipkan
 
 **Dokumentasi › Menunggu Arsip › Arsipkan**, lalu isi nomor, tanggal penetapan, Berita Daerah, dan unggah PDF
-bertanda tangan basah. Produk hukum lama yang belum ada di sistem: **Tambah Arsip › Dokumen lama**.
+bertanda tangan basah. Produk hukum lama yang belum ada di sistem: **Tambah Arsip**.
 
 ## 5. Pengguna
 

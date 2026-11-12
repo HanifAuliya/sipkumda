@@ -1,6 +1,6 @@
 {{--
     Badge untuk nilai status/jenis; warnanya diambil dari App\Support\Status.
-    <x-ui.status-badge :value="$rancangan->status_berkas" />
+    <x-ui.status-badge :value="$naskah->jenis" />
     Jenis produk hukum: biru untuk Peraturan Bupati, kuning untuk Keputusan Bupati.
 --}}
 @props(['value' => null, 'empty' => 'N/A'])

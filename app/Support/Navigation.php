@@ -68,7 +68,6 @@ class Navigation
                 'items' => [
                     // Antrean arsip menjadi tab di halaman Dokumentasi (khusus Bagian Hukum).
                     ['label' => 'Dokumentasi', 'route' => 'dokumentasi.main', 'icon' => 'folder-check', 'roles' => ['Admin', 'Verifikator', 'Perangkat Daerah', 'Peneliti']],
-                    ['label' => 'Master Data', 'route' => 'masterdata.main', 'icon' => 'journals', 'roles' => ['Admin', 'Verifikator', 'Peneliti', 'Super Admin']],
                 ],
             ],
             [

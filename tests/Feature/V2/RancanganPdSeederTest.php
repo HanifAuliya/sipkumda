@@ -4,7 +4,6 @@ use App\Enums\TahapNaskah as T;
 use App\Models\Naskah;
 use App\Models\NaskahBaris as B;
 use App\Models\PerangkatDaerah;
-use App\Models\RancanganProdukHukum;
 use App\Models\TandaTangan;
 use App\Models\User;
 use App\Services\CetakNaskah;
@@ -118,13 +117,11 @@ it('tabel Word tidak terbelah antarhalaman dan kolomnya mengikuti isi', function
         ->and($kolom[0])->toBeLessThan($kolom[1]);
 });
 
-it('migrasi mengganti jenis lama pada naskah v2 saja', function () {
+it('migrasi mengganti nama jenis lama pada naskah', function () {
     $lama = Naskah::create(['jenis' => 'Keputusan Bupati', 'tentang' => 'Uji', 'pemrakarsa_id' => $this->pd->id, 'nomor_nota' => 'ND-1', 'tanggal_nota' => now()]);
     DB::table('naskah')->where('id', $lama->id)->update(['jenis' => 'Surat Keputusan']);
-    $rancanganLama = RancanganProdukHukum::factory()->create(['id_user' => $this->pd->id, 'jenis_rancangan' => 'Surat Keputusan']);
 
     (require database_path('migrations/2026_11_05_000000_ganti_jenis_naskah_keputusan_bupati.php'))->up();
 
-    expect($lama->refresh()->jenis)->toBe('Keputusan Bupati')
-        ->and($rancanganLama->refresh()->jenis_rancangan)->toBe('Surat Keputusan');
+    expect($lama->refresh()->jenis)->toBe('Keputusan Bupati');
 });

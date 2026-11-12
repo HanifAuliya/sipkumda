@@ -121,9 +121,8 @@ ada** (sesudah `php artisan config:cache`), karena tes bisa memakai database uta
 
 Nama folder dan namespace `V2` adalah sisa masa peralihan dan tidak terlihat oleh pengguna.
 
-**Data alur sebelumnya.** Tabel `rancangan_produk_hukum`, `revisi`, `fasilitasi_produk_hukum`, dan
-`nota_dinas` berisi data aplikasi sebelum alur ini. Datanya hanya dibaca lewat Master Data dan Daftar
-Dokumentasi; kode aplikasi lamanya disimpan di cabang `v1/cadangan`.
+**Aplikasi sebelumnya.** Alur lama (rancangan, revisi, fasilitasi, nota dinas) sudah dihapus beserta
+tabelnya (migrasi `2026_11_12_000001_hapus_tabel_alur_lama`). Kodenya disimpan di cabang `v1/cadangan`.
 
 ## Lisensi
 

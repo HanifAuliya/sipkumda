@@ -138,7 +138,6 @@
                     <li><a href="{{ $beranda }}#alur" class="transition hover:text-brand-500">Alur fasilitasi</a></li>
                     <li><a href="{{ $beranda }}#layanan" class="transition hover:text-brand-500">Layanan</a></li>
                     <li><a href="{{ route('jdih.index') }}" class="transition hover:text-brand-500">Produk hukum (JDIH)</a></li>
-                    <li><a href="{{ asset('assets/document/SIFKUMDA-PanduanLogin.pdf') }}" target="_blank" rel="noopener" class="transition hover:text-brand-500">Panduan login</a></li>
                     <li><a href="{{ route('login') }}" class="transition hover:text-brand-500">Masuk</a></li>
                 </ul>
             </div>

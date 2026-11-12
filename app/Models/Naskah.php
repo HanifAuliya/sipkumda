@@ -49,11 +49,9 @@ class Naskah extends Model
     }
 
     /** Awalan nomor rancangan per jenis; berbeda dari alur lama. */
-    /** Awalan nomor sama dengan aplikasi lama (PB-2026-001 / SK-2026-001), supaya penomorannya bersambung. */
+    /** Awalan nomor rancangan: PB-2026-001 / SK-2026-001. */
     private const AWALAN = ['Peraturan Bupati' => 'PB', 'Keputusan Bupati' => 'SK'];
 
-    /** Nama jenis yang sama di tabel rancangan aplikasi lama. */
-    private const JENIS_LAMA = ['Peraturan Bupati' => 'Peraturan Bupati', 'Keputusan Bupati' => 'Surat Keputusan'];
 
     protected static function booted(): void
     {
@@ -76,8 +74,6 @@ class Naskah extends Model
 
     /**
      * Memberi nomor PB-2026-001 / SK-2026-001 saat pertama kali diajukan, berurutan per jenis per tahun.
-     * Formatnya sama dengan aplikasi lama dan urutannya melanjutkan nomor tertinggi di sana, jadi tidak ada
-     * dua rancangan bernomor sama di tahun yang sama.
      *
      * Baris penghitung di naskah_nomor_urut dikunci (SELECT ... FOR UPDATE) sampai transaksinya selesai,
      * jadi pengajuan yang bersamaan dari beberapa Perangkat Daerah antre di database dan masing-masing
@@ -100,24 +96,11 @@ class Naskah extends Model
             DB::table('naskah_nomor_urut')->insertOrIgnore($kunci + ['terakhir' => 0, 'created_at' => now(), 'updated_at' => now()]);
 
             $terakhir = (int) DB::table('naskah_nomor_urut')->where($kunci)->lockForUpdate()->value('terakhir');
-            $berikutnya = max($terakhir, self::nomorLamaTertinggi($this->jenis, $tahun)) + 1;
+            $berikutnya = $terakhir + 1;
             DB::table('naskah_nomor_urut')->where($kunci)->update(['terakhir' => $berikutnya, 'updated_at' => now()]);
 
             return sprintf('%s-%d-%03d', $awalan, $tahun, $berikutnya);
         });
-    }
-
-    /** Nomor urut tertinggi yang sudah dipakai aplikasi lama untuk jenis dan tahun ini. */
-    public static function nomorLamaTertinggi(string $jenis, int $tahun): int
-    {
-        $awalan = self::AWALAN[$jenis] . "-{$tahun}-";
-
-        return (int) DB::table('rancangan_produk_hukum')
-            ->where('jenis_rancangan', self::JENIS_LAMA[$jenis])
-            ->where('no_rancangan', 'like', "{$awalan}%")
-            ->pluck('no_rancangan')
-            ->map(fn (string $nomor) => (int) substr($nomor, strlen($awalan)))
-            ->max();
     }
 
     /** Nomor untuk ditampilkan: draf yang belum diajukan belum bernomor. */

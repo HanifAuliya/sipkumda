@@ -22,7 +22,6 @@ class DokumentasiProdukHukum extends Model
     protected $table = 'dokumentasi_produk_hukum';
 
     protected $fillable = [
-        'rancangan_id',
         'nomor',
         'tahun',
         'pola_nomor',
@@ -35,13 +34,7 @@ class DokumentasiProdukHukum extends Model
         'tentang_dokumentasi'
     ];
 
-    // Relasi ke Rancangan Produk Hukum
-    public function rancangan()
-    {
-        return $this->belongsTo(RancanganProdukHukum::class, 'rancangan_id');
-    }
-
-    /** Naskah v2 yang diarsipkan menjadi dokumentasi ini (kosong untuk rancangan aplikasi lama dan dokumen terdahulu). */
+    /** Naskah yang diarsipkan menjadi dokumentasi ini (kosong untuk dokumen yang ditetapkan sebelum ada sistem). */
     public function naskah()
     {
         return $this->hasOne(Naskah::class, 'dokumentasi_id');
@@ -55,15 +48,13 @@ class DokumentasiProdukHukum extends Model
 
     /**
      * Filter daftar dokumentasi; dipakai tabel, ekspor PDF, dan ekspor Excel.
-     * Pencarian mencakup arsip manual (tanpa rancangan) lewat kolom tentang_dokumentasi.
      */
     public function scopeFilter($query, ?string $search, ?string $jenis, $tahun)
     {
         return $query
             ->when($search, fn ($q) => $q->where(fn ($sub) => $sub
                 ->where('tentang_dokumentasi', 'like', "%{$search}%")
-                ->orWhere('nomor', $search)
-                ->orWhereHas('rancangan', fn ($r) => $r->where('no_rancangan', 'like', "%{$search}%"))))
+                ->orWhere('nomor', $search)))
             ->when($jenis, fn ($q) => $q->whereIn('jenis_dokumentasi', Status::varianJenis($jenis)))
             ->when($tahun, fn ($q) => $q->where('tahun', $tahun));
     }

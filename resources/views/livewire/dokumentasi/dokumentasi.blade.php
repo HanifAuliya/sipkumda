@@ -11,17 +11,8 @@
                     x-on:click="showLoading('Menyiapkan PDF...'); $wire.exportPDF()"><span class="max-sm:hidden">Unduh</span> PDF</x-ui.button>
             @endcan
             @can('create', App\Models\DokumentasiProdukHukum::class)
-                <x-ui.dropdown width="w-80 max-w-[calc(100vw-2rem)]">
-                    <x-slot:trigger>
-                        <x-ui.button icon="folder-plus">Tambah Arsip <i class="bi bi-chevron-down text-xs"></i></x-ui.button>
-                    </x-slot:trigger>
-                    <x-ui.dropdown-item icon="file-earmark-check" description="Rancangan yang fasilitasinya sudah diterima." x-on:click="Livewire.dispatch('tambahDokumentasi', { mode: 'rancangan' })">
-                        Dari rancangan di sistem
-                    </x-ui.dropdown-item>
-                    <x-ui.dropdown-item icon="archive" description="Produk hukum yang ditetapkan sebelum ada sistem ini." x-on:click="Livewire.dispatch('tambahDokumentasi', { mode: 'manual' })">
-                        Dokumen lama
-                    </x-ui.dropdown-item>
-                </x-ui.dropdown>
+                {{-- Produk hukum dari naskah diarsipkan lewat tab Menunggu Arsip; tombol ini untuk yang ditetapkan sebelum ada sistem. --}}
+                <x-ui.button icon="folder-plus" x-on:click="Livewire.dispatch('tambahDokumentasi')">Tambah Arsip</x-ui.button>
             @endcan
         </x-slot:actions>
     </x-ui.page-header>
@@ -130,9 +121,7 @@
                         </div>
                         <p class="sel-judul mt-1 max-sm:line-clamp-3" title="{{ $dokumentasi->tentang_dokumentasi }}">{{ $dokumentasi->tentang_dokumentasi }}</p>
                         <p class="sel-kedua mt-1 max-sm:hidden">
-                            @if ($dokumentasi->rancangan)
-                                <i class="bi bi-link-45deg"></i> Rancangan {{ $dokumentasi->rancangan->no_rancangan }}
-                            @elseif ($dokumentasi->naskah)
+                            @if ($dokumentasi->naskah)
                                 {{-- Diarsipkan dari naskah v2: yang berhak melihat naskahnya bisa langsung membukanya. --}}
                                 <i class="bi bi-link-45deg"></i>
                                 @can('view', $dokumentasi->naskah)

@@ -3,7 +3,6 @@
 use App\Livewire\Dokumentasi\AjukanDokumentasiProdukHukum;
 use App\Models\DokumentasiProdukHukum;
 use App\Models\PerangkatDaerah;
-use App\Models\RancanganProdukHukum;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Http\UploadedFile;
@@ -18,7 +17,7 @@ beforeEach(function () {
 function formArsipManual(User $user, string $tentang)
 {
     return Livewire::actingAs($user)->test(AjukanDokumentasiProdukHukum::class)
-        ->call('open', 'manual')
+        ->call('open')
         ->set('tentang_dokumentasi', $tentang)
         ->set('jenis_dokumentasi', 'Peraturan Bupati')
         ->set('perangkat_daerah_id', PerangkatDaerah::factory()->create()->id)
@@ -48,12 +47,6 @@ it('arsip manual menolak judul yang melewati batas dengan pesan, bukan error dat
         ->assertHasErrors(['tentang_dokumentasi' => 'max']);
 
     expect(DokumentasiProdukHukum::count())->toBe(0);
-});
-
-it('data rancangan dari alur sebelumnya bisa memuat judul panjang sampai batas kolom', function () {
-    $rancangan = RancanganProdukHukum::factory()->create(['tentang' => str_repeat('a', DokumentasiProdukHukum::TENTANG_MAKS)]);
-
-    expect(mb_strlen($rancangan->refresh()->tentang))->toBe(DokumentasiProdukHukum::TENTANG_MAKS);
 });
 
 it('arsip manual menyimpan judul tempelan Word menjadi satu baris', function () {

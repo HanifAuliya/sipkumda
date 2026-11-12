@@ -11,7 +11,7 @@ naskah yang diajukan untuk fasilitasi.
 | Penelitian Rancangan | Rancangan yang ditugaskan kepada Anda |
 | Persetujuan Fasilitasi | Naskah yang diajukan untuk fasilitasi |
 | Pengecekan Fasilitasi | Perbaikan Perangkat Daerah yang perlu Anda cek |
-| Daftar Rancangan, Daftar Fasilitasi, Dokumentasi, Master Data | Untuk dibaca |
+| Daftar Rancangan, Daftar Fasilitasi, Dokumentasi | Untuk dibaca |
 
 ## 1. Meneliti rancangan
 

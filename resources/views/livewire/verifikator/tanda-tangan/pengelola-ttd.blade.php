@@ -42,7 +42,7 @@
                         @endif
                     </td>
                     <td class="max-sm:hidden"><x-ui.badge :color="$ttd->status === 'Aktif' ? 'success' : 'danger'">{{ $ttd->status }}</x-ui.badge></td>
-                    <td class="sel-kedua whitespace-nowrap max-sm:hidden">{{ $ttd->nota_dinas_count + $ttd->naskah_nota_dinas_count }} nota dinas</td>
+                    <td class="sel-kedua whitespace-nowrap max-sm:hidden">{{ $ttd->naskah_nota_dinas_count }} nota dinas</td>
                     <td>
                         <div class="flex justify-end gap-1.5">
                             <x-ui.button variant="outline" size="sm" icon="pencil" class="max-sm:size-10 max-sm:px-0" title="Ubah" aria-label="Ubah tanda tangan {{ $ttd->nama_ttd }}"

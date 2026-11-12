@@ -65,20 +65,6 @@ it('memfilter jenis dan tahun serta mengabaikan nilai yang tidak dikenal', funct
     $this->get('/produk-hukum?q=%25%25%25_')->assertOk();
 });
 
-it('menyatukan "Surat Keputusan" dan "Keputusan Bupati" sebagai satu jenis', function () {
-    DokumentasiProdukHukum::create([
-        'nomor' => 30, 'tahun' => 2025, 'jenis_dokumentasi' => 'Surat Keputusan', 'tentang_dokumentasi' => 'Pembentukan Forum Kota Layak Anak',
-        'tanggal_pengarsipan' => '2025-07-01', 'tanggal_penetapan' => '2025-06-25',
-        'perangkat_daerah_id' => $this->stunting->perangkat_daerah_id,
-    ]);
-
-    $this->get('/produk-hukum?jenis=Keputusan+Bupati')->assertOk()
-        ->assertSee('Pembentukan Forum Kota Layak Anak')
-        ->assertSee('Tim Percepatan Penurunan Stunting');
-
-    $this->get('/produk-hukum')->assertDontSee('>Surat Keputusan<', false);
-});
-
 it('menampilkan detail dan dokumen PDF', function () {
     $this->get("/produk-hukum/{$this->sampah->id}")->assertOk()
         ->assertSee('Peraturan Bupati Nomor 12 Tahun 2025')

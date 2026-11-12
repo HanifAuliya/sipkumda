@@ -10,13 +10,10 @@ use App\Support\FormatDokumen;
 use App\Support\TandaTanganPeneliti;
 use App\Livewire\Verifikator\TandaTangan\PengelolaTtd;
 use App\Models\DokumentasiProdukHukum;
-use App\Models\FasilitasiProdukHukum;
 use App\Models\Naskah;
 use App\Models\NaskahBaris as B;
 use App\Models\NaskahBerkas;
-use App\Models\NotaDinas;
 use App\Models\PerangkatDaerah;
-use App\Models\RancanganProdukHukum;
 use App\Models\TandaTangan;
 use App\Models\User;
 use App\Services\AlurNaskah;
@@ -114,22 +111,6 @@ describe('nota dinas', function () {
         FormatDokumen::simpanNota([...FormatDokumen::nota(), 'nomor' => '180/{nomor}/{kode}/KUM/{tahun}']);
         $sk = $this->alur->terbitkanNota(naskahFinal($this, 'Keputusan Bupati'), $this->admin, '12', 'Sekda', $this->ttd->id);
         expect($sk->tahap)->toBe(T::Penandatanganan);
-    });
-
-    it('menolak nomor yang sudah dipakai nota dinas alur lama', function () {
-        $rancangan = RancanganProdukHukum::factory()->create(['id_user' => $this->pd->id, 'jenis_rancangan' => 'Peraturan Bupati']);
-        $fasilitasi = FasilitasiProdukHukum::create(['rancangan_id' => $rancangan->id_rancangan, 'tanggal_fasilitasi' => now(), 'file_rancangan' => 'x.pdf', 'status_berkas_fasilitasi' => 'Disetujui', 'status_validasi_fasilitasi' => 'Diterima']);
-        NotaDinas::create(['fasilitasi_id' => $fasilitasi->id, 'nomor_inputan' => '20', 'nomor_nota' => 'x', 'tanggal_nota' => now(), 'tanda_tangan_id' => $this->ttd->id, 'kepada' => 'Sekda']);
-
-        expect(fn () => $this->alur->terbitkanNota(naskahFinal($this), $this->admin, '20', 'Sekda', $this->ttd->id))->toThrow(ValidationException::class);
-    });
-
-    it('nomor Keputusan Bupati tetap bentrok dengan "Surat Keputusan" pada nota dinas alur lama', function () {
-        $rancangan = RancanganProdukHukum::factory()->create(['id_user' => $this->pd->id, 'jenis_rancangan' => 'Surat Keputusan']);
-        $fasilitasi = FasilitasiProdukHukum::create(['rancangan_id' => $rancangan->id_rancangan, 'tanggal_fasilitasi' => now(), 'file_rancangan' => 'x.pdf', 'status_berkas_fasilitasi' => 'Disetujui', 'status_validasi_fasilitasi' => 'Diterima']);
-        NotaDinas::create(['fasilitasi_id' => $fasilitasi->id, 'nomor_inputan' => '21', 'nomor_nota' => 'x', 'tanggal_nota' => now(), 'tanda_tangan_id' => $this->ttd->id, 'kepada' => 'Sekda']);
-
-        expect(fn () => $this->alur->terbitkanNota(naskahFinal($this, 'Keputusan Bupati'), $this->admin, '21', 'Sekda', $this->ttd->id))->toThrow(ValidationException::class);
     });
 
     it('isian wajib dan hak akses diperiksa', function () {
