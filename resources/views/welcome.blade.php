@@ -99,47 +99,52 @@
                 </p>
             </div>
 
-            {{-- Ilustrasi pelacakan status (dekoratif) --}}
-            <div class="relative mx-auto w-full max-w-md min-w-0 animate-naik [animation-delay:300ms] lg:max-w-none" aria-hidden="true">
-                <div class="absolute -inset-4 rounded-[2rem] bg-linear-to-br from-primary-500/30 to-brand-500/20 blur-2xl"></div>
-                {{-- Ruang ekstra atas/bawah (sm:pt-12 / sm:pb-14) untuk chip & kartu notifikasi yang menempel, agar tidak menutupi isi. --}}
-                <div class="relative rounded-3xl bg-white/95 p-6 shadow-2xl ring-1 ring-white/20 backdrop-blur sm:pt-12 sm:pb-14 dark:bg-navy-900/95">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-xs font-semibold tracking-wider text-slate-400 uppercase">Rancangan Peraturan Bupati</p>
-                            <p class="mt-1 font-bold text-navy-900 dark:text-white">Pengelolaan Barang Milik Daerah</p>
-                        </div>
-                        <span class="rounded-full bg-orange-50 px-2.5 py-1 text-xs font-semibold text-orange-600 ring-1 ring-orange-200 dark:bg-orange-500/10 dark:text-orange-300 dark:ring-orange-500/30">Penelitian</span>
-                    </div>
-
-                    <ol class="mt-6 space-y-4">
-                        @foreach ([['Diajukan perangkat daerah', 'selesai'], ['Berkas diperiksa', 'selesai'], ['Diteliti per rumusan', 'aktif'], ['Validasi verifikator', 'menunggu'], ['Fasilitasi & nota dinas', 'menunggu']] as [$langkah, $status])
-                            <li class="flex animate-naik items-center gap-3" style="animation-delay: {{ 600 + $loop->index * 140 }}ms">
-                                <span @class([
-                                    'grid size-8 shrink-0 place-items-center rounded-full text-sm',
-                                    'bg-emerald-500 text-white' => $status === 'selesai',
-                                    'bg-primary-500 text-white ring-4 ring-primary-100 dark:ring-primary-500/20' => $status === 'aktif',
-                                    'bg-slate-100 text-slate-400 dark:bg-navy-800' => $status === 'menunggu',
-                                ])>
-                                    <i @class(['bi', 'bi-check-lg' => $status === 'selesai', 'bi-hourglass-split' => $status === 'aktif', 'bi-circle' => $status === 'menunggu'])></i>
-                                </span>
-                                <span @class(['text-sm', 'font-semibold text-navy-900 dark:text-white' => $status !== 'menunggu', 'text-slate-400' => $status === 'menunggu'])>{{ $langkah }}</span>
-                            </li>
-                        @endforeach
-                    </ol>
-
-                    <div class="mt-6 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-navy-800">
-                        <div class="h-full w-1/2 origin-left animate-isi rounded-full bg-linear-to-r from-emerald-500 to-primary-500"></div>
-                    </div>
-                </div>
-
-                <div class="absolute -bottom-7 -left-6 hidden animate-apung items-center gap-3 rounded-2xl bg-white p-3 pr-5 shadow-xl ring-1 ring-slate-100 [animation-delay:1.2s] sm:flex dark:bg-navy-900 dark:ring-navy-800">
-                    <span class="grid size-10 place-items-center rounded-xl bg-emerald-50 text-xl text-emerald-600 dark:bg-emerald-500/15"><i class="bi bi-bell"></i></span>
-                    <span class="text-xs leading-tight"><strong class="block text-navy-900 dark:text-white">Notifikasi baru</strong><span class="text-slate-500">Hasil penelitian siap divalidasi</span></span>
-                </div>
-                <div class="absolute -top-5 right-6 hidden animate-apung items-center gap-2 rounded-2xl bg-white px-4 py-2.5 shadow-xl ring-1 ring-slate-100 sm:flex dark:bg-navy-900 dark:ring-navy-800">
+            {{--
+                Ilustrasi pelacakan status (dekoratif). Dua kartu kecil berada di luar kartu utama, satu di atas
+                dan satu di bawahnya, dengan jarak; tidak ada yang menumpuk di atas isi kartu.
+            --}}
+            <div class="relative mx-auto flex w-full max-w-sm min-w-0 animate-naik flex-col [animation-delay:300ms] lg:mr-0" aria-hidden="true">
+                <div class="mr-3 mb-4 hidden animate-apung items-center gap-2 self-end rounded-2xl bg-white px-4 py-2.5 shadow-xl ring-1 ring-slate-100 sm:flex dark:bg-navy-900 dark:ring-navy-800">
                     <i class="bi bi-patch-check-fill text-primary-500"></i>
                     <span class="text-xs font-semibold text-navy-900 dark:text-white">Berkas lengkap</span>
+                </div>
+
+                <div class="relative">
+                    <div class="absolute -inset-4 rounded-[2rem] bg-linear-to-br from-primary-500/30 to-brand-500/20 blur-2xl"></div>
+                    <div class="relative rounded-3xl bg-white/95 p-5 shadow-2xl ring-1 ring-white/20 backdrop-blur dark:bg-navy-900/95">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="min-w-0">
+                                <p class="text-xs font-semibold tracking-wider text-slate-400 uppercase">Rancangan Peraturan Bupati</p>
+                                <p class="mt-1 text-sm font-bold text-navy-900 dark:text-white">Pengelolaan Barang Milik Daerah</p>
+                            </div>
+                            <span class="shrink-0 rounded-full bg-orange-50 px-2.5 py-1 text-xs font-semibold text-orange-600 ring-1 ring-orange-200 dark:bg-orange-500/10 dark:text-orange-300 dark:ring-orange-500/30">Penelitian</span>
+                        </div>
+
+                        <ol class="mt-5 space-y-3">
+                            @foreach ([['Diajukan perangkat daerah', 'selesai'], ['Berkas diperiksa', 'selesai'], ['Diteliti per rumusan', 'aktif'], ['Validasi verifikator', 'menunggu'], ['Fasilitasi & nota dinas', 'menunggu']] as [$langkah, $status])
+                                <li class="flex animate-naik items-center gap-3" style="animation-delay: {{ 600 + $loop->index * 140 }}ms">
+                                    <span @class([
+                                        'grid size-7 shrink-0 place-items-center rounded-full text-xs',
+                                        'bg-emerald-500 text-white' => $status === 'selesai',
+                                        'bg-primary-500 text-white ring-4 ring-primary-100 dark:ring-primary-500/20' => $status === 'aktif',
+                                        'bg-slate-100 text-slate-400 dark:bg-navy-800' => $status === 'menunggu',
+                                    ])>
+                                        <i @class(['bi', 'bi-check-lg' => $status === 'selesai', 'bi-hourglass-split' => $status === 'aktif', 'bi-circle' => $status === 'menunggu'])></i>
+                                    </span>
+                                    <span @class(['text-sm', 'font-semibold text-navy-900 dark:text-white' => $status !== 'menunggu', 'text-slate-400' => $status === 'menunggu'])>{{ $langkah }}</span>
+                                </li>
+                            @endforeach
+                        </ol>
+
+                        <div class="mt-5 h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-navy-800">
+                            <div class="h-full w-1/2 origin-left animate-isi rounded-full bg-linear-to-r from-emerald-500 to-primary-500"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 ml-3 hidden animate-apung items-center gap-3 self-start rounded-2xl bg-white p-3 pr-5 shadow-xl ring-1 ring-slate-100 [animation-delay:1.2s] sm:flex dark:bg-navy-900 dark:ring-navy-800">
+                    <span class="grid size-10 place-items-center rounded-xl bg-emerald-50 text-xl text-emerald-600 dark:bg-emerald-500/15"><i class="bi bi-bell"></i></span>
+                    <span class="text-xs leading-tight"><strong class="block text-navy-900 dark:text-white">Notifikasi baru</strong><span class="text-slate-500">Hasil penelitian siap divalidasi</span></span>
                 </div>
             </div>
         </div>
