@@ -136,7 +136,7 @@
                         <p class="sel-kedua mt-1 sm:hidden">Ditetapkan {{ tanggal_singkat($dokumentasi->tanggal_penetapan) }}</p>
                     </td>
                     <td class="min-w-36 max-sm:hidden"><p class="sel-judul">{{ $dokumentasi->perangkatDaerah->nama_perangkat_daerah ?? '-' }}</p></td>
-                    <td class="whitespace-nowrap max-sm:hidden">{{ $dokumentasi->nomor_tahun_berita ?: '-' }}</td>
+                    <td class="whitespace-nowrap max-sm:hidden">{{ $dokumentasi->berita_daerah ?? '-' }}</td>
                     <td class="whitespace-nowrap max-sm:hidden" title="{{ tanggal($dokumentasi->tanggal_penetapan) }}">{{ tanggal_singkat($dokumentasi->tanggal_penetapan) }}</td>
                     <td class="whitespace-nowrap max-sm:hidden" title="{{ tanggal($dokumentasi->tanggal_pengarsipan) }}">{{ tanggal_singkat($dokumentasi->tanggal_pengarsipan) }}</td>
                     <td>
@@ -174,7 +174,7 @@
     <x-ui.modal id="modalEditDokumentasi" title="Ubah Dokumentasi" description="Perbarui nomor, berita daerah, atau file produk hukum."
         size="2xl" static on-close="resetForm">
         <form id="editDokumentasiForm" wire:submit="update" class="space-y-5">
-            @include('livewire.dokumentasi.partials.nomor-fields', ['tahunTetap' => $editTahun])
+            @include('livewire.dokumentasi.partials.nomor-fields', ['tahunTetap' => null, 'beritaWajib' => ! $editKeputusan])
 
             <x-form.field label="Tanggal Penetapan" for="edit_tanggal_penetapan" error="tanggal_penetapan" required>
                 <x-form.input type="date" id="edit_tanggal_penetapan" wire:model="tanggal_penetapan" />

@@ -48,7 +48,7 @@ class DokumentasiExport implements FromCollection, WithHeadings, WithTitle, With
                     'Perangkat Daerah' => $dokumentasi->perangkatDaerah->nama_perangkat_daerah ?? '-',
                     'File Rancangan' => $dokumentasi->file_produk_hukum ? '=HYPERLINK("' . private_file_url('dokumentasi/file_produk_hukum', $dokumentasi->file_produk_hukum) . '", "Lihat Produk Hukum")' : 'Tidak Ada',
                     'Tanggal Penetapan' => \Carbon\Carbon::parse($dokumentasi->tanggal_penetapan)->translatedFormat('d F Y'),
-                    'Nomor Tahun Berita Daerah' => $dokumentasi->nomor_tahun_berita,
+                    'Nomor Tahun Berita Daerah' => $dokumentasi->berita_daerah ?? '-',
                     'Tanggal Pengarsipan' => \Carbon\Carbon::parse($dokumentasi->tanggal_pengarsipan)->translatedFormat('d F Y'),
                 ];
             });

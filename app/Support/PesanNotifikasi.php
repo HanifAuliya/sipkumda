@@ -58,6 +58,20 @@ class PesanNotifikasi
             : self::susun($naskah, self::KABAR, "Naskah masuk tahap {$naskah->tahap->label()}", $pelaku, $catatan);
     }
 
+    /** Pengingat otomatis untuk naskah yang tertahan di satu tahap. */
+    public static function pengingat(Naskah $naskah, int $hari): array
+    {
+        return [
+            'kategori' => self::TUGAS,
+            'title' => 'Pengingat: ' . self::judulTugas($naskah->tahap, $naskah->tahap),
+            'message' => "{$naskah->nomor_tampil} · {$naskah->tentang}",
+            'catatan' => "Naskah ini sudah {$hari} hari di tahap {$naskah->tahap->label()}.",
+            'pelaku' => null,
+            'tahap' => $naskah->tahap->value,
+            'slug' => $naskah->slug,
+        ];
+    }
+
     /** Satu langkah paraf atau tanda tangan basah sudah dicatat. */
     public static function tahapanTtd(Naskah $naskah, User $pelaku, string $tahapan): array
     {

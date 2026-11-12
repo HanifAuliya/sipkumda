@@ -960,6 +960,18 @@ class AlurNaskah
         }
     }
 
+    /** Semua orang yang boleh bertindak pada tahap naskah sekarang; tahap Selesai diberitahukan ke Admin. */
+    public function pemegangGiliran(Naskah $naskah): \Illuminate\Support\Collection
+    {
+        $tahap = $naskah->tahap;
+
+        return match ($tahap->peran()) {
+            'Perangkat Daerah' => User::whereKey($naskah->pemrakarsa_id)->get(),
+            'Peneliti' => User::whereKey($naskah->peneliti_id)->get(),
+            default => User::role($tahap->pemegang() ?: $tahap->peran())->get(),
+        };
+    }
+
     private function beriTahu(Naskah $naskah, T $dari, User $pelaku, ?string $catatan): void
     {
         $tahap = $naskah->tahap;
@@ -969,14 +981,7 @@ class AlurNaskah
             ->whereIn('data->kategori', [PesanNotifikasi::TUGAS, PesanNotifikasi::KEMBALI])
             ->update(['read_at' => now()]);
 
-        // Semua peran yang boleh bertindak ikut diberi tahu; tahap Selesai diberitahukan ke Admin.
-        $pemegang = match ($tahap->peran()) {
-            'Perangkat Daerah' => User::whereKey($naskah->pemrakarsa_id)->get(),
-            'Peneliti' => User::whereKey($naskah->peneliti_id)->get(),
-            default => User::role($tahap->pemegang() ?: $tahap->peran())->get(),
-        };
-
-        $pemegang = $pemegang->reject(fn ($u) => $u->id === $pelaku->id);
+        $pemegang = $this->pemegangGiliran($naskah)->reject(fn ($u) => $u->id === $pelaku->id);
 
         Notification::send($pemegang, new NaskahNotification(PesanNotifikasi::untukPemegang($naskah, $dari, $pelaku, $catatan)));
 

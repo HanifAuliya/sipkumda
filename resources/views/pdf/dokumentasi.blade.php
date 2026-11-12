@@ -78,7 +78,7 @@
                     <td class="wrap-text">{{ $dokumentasi->tentang_dokumentasi }}</td>
                     <td class="wrap-text">{{ optional($dokumentasi->perangkatDaerah)->nama_perangkat_daerah }}</td>
                     <td>{{ $dokumentasi->tanggal_penetapan }}</td>
-                    <td>{{ $dokumentasi->nomor_tahun_berita }}</td>
+                    <td>{{ $dokumentasi->berita_daerah ?? '-' }}</td>
                     <td>{{ \Carbon\Carbon::parse($dokumentasi->tanggal_pengarsipan)->translatedFormat('d F Y') }}</td>
                 </tr>
             @endforeach

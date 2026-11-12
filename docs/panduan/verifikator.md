@@ -12,6 +12,7 @@ mengelola pejabat penanda tangan.
 | Validasi Fasilitasi | Naskah fasilitasi yang menunggu persetujuan |
 | Daftar Nota Dinas | Naskah yang menunggu nota dinas dan yang sudah terbit |
 | Dokumentasi | Arsip produk hukum; tab **Menunggu Arsip** berisi naskah yang siap diarsipkan |
+| Laporan | Rekap naskah, lama tiap tahap, naskah yang tertahan, unduh Excel |
 | Pengaturan | Pengaturan Naskah, Format Dokumen, Kelola TTD |
 
 ## 1. Menugaskan peneliti
@@ -49,7 +50,8 @@ terhapus.
 
 Menu **Dokumentasi › Menunggu Arsip › Arsipkan**. Isi nomor produk hukum, tanggal penetapan, Berita
 Daerah, dan unggah PDF bertanda tangan basah. Untuk Keputusan Bupati nomornya berformat
-`[140] / [nomor] / [412.1.6] / TAHUN [tahun]`.
+`[140] / [nomor] / [412.1.6] / TAHUN [tahun]` dan Berita Daerah boleh dikosongkan. Tahunnya mengikuti
+tanggal penetapan.
 
 ## 6. Kelola TTD
 

@@ -1,7 +1,7 @@
 {{--
     Field nomor produk hukum + nomor berita daerah, dipakai form tambah dan edit dokumentasi.
-    - tahunTetap   : tahun produk hukum (teks); null = tahun diisi lewat properti "tahun"
-    - beritaWajib  : nomor/tahun berita daerah wajib diisi
+    - tahunTetap   : tahun produk hukum (teks); null = mengikuti tahun tanggal penetapan (properti "tanggal_penetapan")
+    - beritaWajib  : nomor/tahun berita daerah wajib diisi (Peraturan Bupati); Keputusan Bupati boleh tanpa Berita Daerah
     Keputusan Bupati memakai nomor berformat (trait IsiNomorKeputusan): [140] / [nomor] / [412.1.6] / TAHUN [tahun].
 --}}
 @php
@@ -12,12 +12,14 @@
     $isian = 'w-16 min-w-0 flex-1 border-0 bg-white px-3 py-2.5 text-center font-mono text-sm focus:ring-0 dark:bg-navy-900';
     $grup = 'flex items-stretch overflow-hidden rounded-lg ring-1 ring-slate-200 focus-within:ring-2 focus-within:ring-primary-400 dark:ring-navy-700';
     $kotak = 'rounded-lg border-0 py-2 text-center text-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-primary-300 dark:bg-navy-800 dark:ring-navy-700';
+    // Tahun tidak diketik: diambil dari tanggal penetapan supaya keduanya tidak bisa berbeda.
+    $tahunOtomatis = 'x-data x-text="($wire.tanggal_penetapan || \'\').slice(0, 4) || \'…\'" title="Mengikuti tanggal penetapan"';
 @endphp
 
 <div class="grid gap-5 sm:grid-cols-2">
     @if ($potongan)
         <x-form.field label="Nomor Keputusan Bupati" for="nomor_produk_hukum" :error="['nomor', 'tahun']" required class="sm:col-span-2"
-            hint="Isi nomor urutnya. Bagian lain terisi dari menu Format Dokumen dan bisa diganti bila memakai kode lain.">
+            hint="Isi nomor urutnya. Bagian lain terisi dari menu Format Dokumen dan bisa diganti bila memakai kode lain. Tahun mengikuti tanggal penetapan.">
             <div class="flex flex-wrap items-center gap-1.5">
                 @foreach ($potongan as $i => $p)
                     @if ($p['jenis'] === 'nomor')
@@ -30,12 +32,8 @@
                         @if (trim($depan) !== '')
                             <span class="text-sm font-semibold text-slate-500 dark:text-slate-400">{{ trim($depan) }}</span>
                         @endif
-                        @if ($tahunTetap)
-                            <span class="rounded-lg bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-500 dark:bg-navy-800 dark:text-slate-400">{{ $tahunTetap }}</span>
-                        @else
-                            <input wire:model="tahun" inputmode="numeric" maxlength="4" placeholder="YYYY" aria-label="Tahun produk hukum"
-                                x-on:input="{{ $angka(4) }}" class="{{ $kotak }} w-24">
-                        @endif
+                        <span class="min-w-14 rounded-lg bg-slate-100 px-3 py-2 text-center text-sm font-semibold text-slate-500 dark:bg-navy-800 dark:text-slate-400"
+                            @unless ($tahunTetap) {!! $tahunOtomatis !!} @endunless>{{ $tahunTetap ?: '…' }}</span>
                         @if (trim($belakang) !== '')
                             <span class="text-sm font-semibold text-slate-500 dark:text-slate-400">{{ trim($belakang) }}</span>
                         @endif
@@ -47,24 +45,18 @@
             </div>
         </x-form.field>
     @else
-        <x-form.field label="Nomor Produk Hukum" for="nomor_produk_hukum" :error="['nomor', 'tahun']" required>
+        <x-form.field label="Nomor Produk Hukum" for="nomor_produk_hukum" :error="['nomor', 'tahun']" required hint="Tahun mengikuti tanggal penetapan.">
             <div class="{{ $grup }}">
                 <span class="{{ $segmen }}">Nomor</span>
                 <input id="nomor_produk_hukum" wire:model="nomor" inputmode="numeric" maxlength="3" placeholder="###"
                     x-on:input="{{ $angka(3) }}" class="{{ $isian }}">
-                @if ($tahunTetap)
-                    <span class="{{ $segmen }}">Tahun {{ $tahunTetap }}</span>
-                @else
-                    <span class="{{ $segmen }}">Tahun</span>
-                    <input wire:model="tahun" inputmode="numeric" maxlength="4" placeholder="YYYY" aria-label="Tahun produk hukum"
-                        x-on:input="{{ $angka(4) }}" class="{{ $isian }}">
-                @endif
+                <span class="{{ $segmen }}">Tahun&nbsp;<span @unless ($tahunTetap) {!! $tahunOtomatis !!} @endunless>{{ $tahunTetap ?: '…' }}</span></span>
             </div>
         </x-form.field>
     @endif
 
     <x-form.field label="Nomor Berita Daerah" for="nomor_berita" :error="['nomor_berita', 'tahun_berita']"
-        :required="$beritaWajib" :hint="$beritaWajib ? null : 'Opsional.'">
+        :required="$beritaWajib" :hint="$beritaWajib ? null : 'Opsional; Keputusan Bupati biasanya tidak dimuat dalam Berita Daerah.'">
         <div class="{{ $grup }}">
             <input id="nomor_berita" wire:model="nomor_berita" inputmode="numeric" maxlength="3" placeholder="No"
                 x-on:input="{{ $angka(3) }}" class="{{ $isian }}">

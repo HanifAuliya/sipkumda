@@ -20,7 +20,7 @@
         </div>
         <div>
             <dt class="sr-only">Berita daerah</dt>
-            <dd class="flex items-center gap-1.5"><i class="bi bi-journal-text"></i> BD {{ $dokumen->nomor_tahun_berita ?: '-' }}</dd>
+            <dd class="flex items-center gap-1.5"><i class="bi bi-journal-text"></i> BD {{ $dokumen->berita_daerah ?? '-' }}</dd>
         </div>
         <div class="col-span-2">
             <dt class="sr-only">Pemrakarsa</dt>

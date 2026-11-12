@@ -12,6 +12,7 @@ juga **Runbook Admin** (`docs/RUNBOOK-ADMIN.md`).
 | Daftar Rancangan, Daftar Fasilitasi | Semua naskah |
 | Daftar Nota Dinas, Penandatanganan | Naskah pada tahap akhir |
 | Dokumentasi | Arsip produk hukum; tab Menunggu Arsip |
+| Laporan | Rekap naskah per tahap dan per Perangkat Daerah, naskah yang tertahan, unduh Excel |
 | Akun › Daftar Pengguna | Akun pengguna |
 | Pengaturan | Pengaturan Naskah, Format Dokumen, Template Bahan Penting, Perangkat Daerah |
 
@@ -39,7 +40,12 @@ Urutan tahapan diatur di **Pengaturan › Pengaturan Naskah › Urutan Tanda Tan
 ## 4. Mengarsipkan
 
 **Dokumentasi › Menunggu Arsip › Arsipkan**, lalu isi nomor, tanggal penetapan, Berita Daerah, dan unggah PDF
-bertanda tangan basah. Produk hukum lama yang belum ada di sistem: **Tambah Arsip**.
+bertanda tangan basah. Produk hukum lama yang belum ada di sistem: **Tambah Arsip**. Tahun nomor
+mengikuti tanggal penetapan. Berita Daerah wajib untuk Peraturan Bupati dan boleh dikosongkan untuk
+Keputusan Bupati.
+
+Naskah yang tertahan lama terlihat di menu **Laporan**. Pemegang gilirannya juga mendapat notifikasi
+pengingat otomatis setiap 7 hari.
 
 ## 5. Pengguna
 

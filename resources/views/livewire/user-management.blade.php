@@ -82,6 +82,7 @@
                                     <x-ui.button variant="soft-primary" size="sm" square icon="send" title="Kirim Ulang Aktivasi" aria-label="Kirim ulang aktivasi"
                                         wire:click="kirimUlangAktivasi({{ $user->id }})" loading="kirimUlangAktivasi({{ $user->id }})" />
                                 @endunless
+                                @if ($bolehKelola($user))
                                 @unless ($user->is(auth()->user()))
                                     <x-ui.button variant="soft-primary" size="sm" square icon="key" title="Buat kata sandi sementara" aria-label="Buat kata sandi sementara untuk {{ $user->nama_user }}"
                                         x-on:click="$confirm({ title: 'Buat kata sandi sementara?', text: {{ \Illuminate\Support\Js::from('Kata sandi ' . $user->nama_user . ' saat ini tidak berlaku lagi. Kata sandi sementara ditampilkan sekali; sampaikan langsung kepada yang bersangkutan.') }}, confirmText: 'Ya, buat' })
@@ -92,6 +93,9 @@
                                 <x-ui.button variant="soft-danger" size="sm" icon="trash" class="max-sm:size-10 max-sm:px-0" title="Hapus" aria-label="Hapus {{ $user->nama_user }}"
                                     x-on:click="$confirm({ text: {{ \Illuminate\Support\Js::from('Pengguna ' . $user->nama_user . ' akan dihapus permanen.') }}, confirmText: 'Ya, hapus' })
                                         .then(ok => ok && $wire.delete({{ $user->id }}))"><span class="max-sm:hidden">Hapus</span></x-ui.button>
+                                @else
+                                    <span class="sel-kedua py-2 whitespace-nowrap">Diatur oleh Super Admin</span>
+                                @endif
                         </div>
                     </td>
                     @endif
@@ -125,7 +129,7 @@
             <x-form.field label="Role" for="role" error="role" required>
                 <x-form.select id="role" wire:model="role" icon="shield-check">
                     <option value="" hidden>Pilih role</option>
-                    @foreach ($roles as $roleName)
+                    @foreach ($peranDiberi as $roleName)
                         <option value="{{ $roleName }}">{{ $roleName }}</option>
                     @endforeach
                 </x-form.select>

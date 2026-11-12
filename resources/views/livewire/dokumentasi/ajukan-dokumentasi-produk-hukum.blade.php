@@ -24,14 +24,14 @@
                     <x-form.judul id="tentang_dokumentasi" wire:model="tentang_dokumentasi" placeholder="Contoh: Pengelolaan Sampah" />
                 </x-form.field>
 
-                @include('livewire.dokumentasi.partials.nomor-fields', ['tahunTetap' => null, 'beritaWajib' => true])
+                @include('livewire.dokumentasi.partials.nomor-fields', ['tahunTetap' => null, 'beritaWajib' => $beritaWajib])
 
                 <x-form.field label="Tanggal Penetapan" for="tanggal_penetapan" error="tanggal_penetapan" required>
                     <x-form.input type="date" id="tanggal_penetapan" wire:model="tanggal_penetapan" />
                 </x-form.field>
 
                 <x-form.upload model="file_produk_hukum" :file="$file_produk_hukum" label="File Produk Hukum" accept="application/pdf"
-                    hint="Berita daerah dalam PDF, maks. 20MB." required />
+                    hint="Produk hukum bertanda tangan dalam PDF, maks. 20MB." required />
                 <x-ui.loading target="file_produk_hukum">Mengunggah file...</x-ui.loading>
             </form>
 

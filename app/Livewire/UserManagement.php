@@ -12,8 +12,10 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Spatie\Permission\Models\Role;
 
 class UserManagement extends Component
 {
@@ -26,15 +28,21 @@ class UserManagement extends Component
     public $sortDirection = 'asc';
     public $roleFilter = ''; // Filter berdasarkan role
 
-    public $isAdmin = false; // Menandai apakah user adalah Admin
-    public $isVerifier = false; // Menandai apakah user adalah Verifikator
+    // Hanya untuk tampilan. Hak akses tiap aksi selalu dicek ulang dari peran pengguna yang masuk
+    // (adminSekarang), bukan dari properti ini, karena properti publik Livewire bisa diubah dari peramban.
+    #[Locked]
+    public $isAdmin = false;
+    #[Locked]
+    public $isVerifier = false;
 
 
     public $nama_user, $NIP, $email, $password, $role, $perangkat_daerah_id;
     public $daftar_perangkat_daerah;
+    #[Locked]
     public $userIdToEdit = null;
 
-    public $canManageUsers = false; // Hak akses admin
+    private const URUTAN = ['id', 'nama_user', 'NIP'];
+    private const PER_HALAMAN = [5, 10, 20, 50];
 
     protected $queryString = [
         'search' => ['except' => ''],
@@ -56,6 +64,28 @@ class UserManagement extends Component
         if (!$this->isAdmin && !$this->isVerifier) {
             abort(403, 'Anda tidak memiliki akses ke halaman ini.');
         }
+    }
+
+    private function adminSekarang(): bool
+    {
+        return (bool) Auth::user()?->hasRole(['Super Admin', 'Admin']);
+    }
+
+    /**
+     * Akun Super Admin hanya boleh diubah, dihapus, atau diberi kata sandi sementara oleh Super Admin,
+     * supaya Admin tidak bisa mengambil alih akun darurat itu.
+     */
+    private function bolehKelola(User $user): bool
+    {
+        return ! $user->hasRole('Super Admin') || Auth::user()->hasRole('Super Admin');
+    }
+
+    /** Peran yang boleh diberikan oleh pengguna yang masuk; Super Admin hanya oleh Super Admin. */
+    private function peranBisaDiberi()
+    {
+        return Role::orderBy('name')->pluck('name')
+            ->when(! Auth::user()->hasRole('Super Admin'), fn ($r) => $r->reject(fn ($n) => $n === 'Super Admin'))
+            ->values();
     }
 
     public function updatingSearch()
@@ -80,7 +110,7 @@ class UserManagement extends Component
     public function sortBy($field)
     {
         // Hanya kolom yang memang bisa diurutkan
-        if (! in_array($field, ['id', 'nama_user', 'NIP'], true)) {
+        if (! in_array($field, self::URUTAN, true)) {
             return;
         }
 
@@ -94,7 +124,7 @@ class UserManagement extends Component
 
     public function store()
     {
-        if (!$this->isAdmin) {
+        if (! $this->adminSekarang()) {
             abort(403, 'Anda tidak memiliki izin untuk menambah pengguna.');
         }
         try {
@@ -102,7 +132,7 @@ class UserManagement extends Component
                 'nama_user' => 'required|string|max:255',
                 'NIP' => 'required|string|size:18|unique:users,NIP',
                 'email' => 'required|email:rfc,dns|lowercase|max:100|unique:users,email',
-                'role' => 'required|exists:roles,name',
+                'role' => ['required', Rule::in($this->peranBisaDiberi()->all())],
                 'perangkat_daerah_id' => 'required|exists:perangkat_daerah,id',
             ]);
 
@@ -156,7 +186,7 @@ class UserManagement extends Component
      */
     public function buatSandiSementara($id)
     {
-        if (! $this->isAdmin) {
+        if (! $this->adminSekarang()) {
             abort(403, 'Anda tidak memiliki izin untuk mengatur kata sandi pengguna.');
         }
 
@@ -165,9 +195,10 @@ class UserManagement extends Component
         if ($user->is(Auth::user())) {
             abort(403, 'Kata sandi sendiri diganti lewat halaman Profil.');
         }
+        abort_unless($this->bolehKelola($user), 403, 'Akun Super Admin hanya bisa diatur oleh Super Admin.');
 
         // Tanpa huruf yang mudah tertukar (O/0, l/1) supaya bisa dibacakan atau ditulis tangan.
-        $sandi = collect(range(1, 3))->map(fn () => substr(str_shuffle('abcdefghjkmnpqrstuvwxyz23456789'), 0, 4))->implode('-');
+        $sandi = User::buatSandiSementara();
 
         $user->forceFill([
             'password' => Hash::make($sandi),
@@ -192,7 +223,7 @@ class UserManagement extends Component
 
     public function kirimUlangAktivasi($id)
     {
-        if (!$this->isAdmin) {
+        if (! $this->adminSekarang()) {
             abort(403, 'Anda tidak memiliki izin untuk mengirim aktivasi.');
         }
 
@@ -223,7 +254,7 @@ class UserManagement extends Component
 
     public function edit($id)
     {
-        if (!$this->isAdmin) {
+        if (! $this->adminSekarang()) {
             abort(403, 'Anda tidak memiliki izin untuk mengedit pengguna.');
         }
         // Reset error validasi sebelumnya
@@ -231,6 +262,7 @@ class UserManagement extends Component
         $this->resetValidation();
 
         $user = User::findOrFail($id);
+        abort_unless($this->bolehKelola($user), 403, 'Akun Super Admin hanya bisa diubah oleh Super Admin.');
         $this->userIdToEdit = $user->id;
         $this->nama_user = $user->nama_user;
         $this->NIP = $user->NIP;
@@ -244,7 +276,7 @@ class UserManagement extends Component
 
     public function create()
     {
-        if (!$this->isAdmin) {
+        if (! $this->adminSekarang()) {
             abort(403, 'Anda tidak memiliki izin untuk menambah pengguna.');
         }
 
@@ -254,12 +286,13 @@ class UserManagement extends Component
 
     public function update()
     {
-        if (!$this->isAdmin) {
+        if (! $this->adminSekarang()) {
             abort(403, 'Anda tidak memiliki izin untuk mengubah pengguna.');
         }
 
         try {
             $user = User::findOrFail($this->userIdToEdit);
+            abort_unless($this->bolehKelola($user), 403, 'Akun Super Admin hanya bisa diubah oleh Super Admin.');
 
             // Validasi input
             $validated = $this->validate([
@@ -278,7 +311,7 @@ class UserManagement extends Component
                     'unique:users,email,' . $user->id, // Pastikan email unik, kecuali untuk user yang sedang diedit
                 ],
                 'perangkat_daerah_id' => 'required|exists:perangkat_daerah,id',
-                'role' => 'required|string|exists:roles,name', // Pastikan role ada di tabel roles
+                'role' => ['required', 'string', Rule::in($this->peranBisaDiberi()->all())],
             ]);
 
             // Perbarui data pengguna
@@ -317,7 +350,7 @@ class UserManagement extends Component
     public function delete($id)
     {
         // Pastikan hanya admin yang bisa menghapus
-        if (!$this->isAdmin) {
+        if (! $this->adminSekarang()) {
             abort(403, 'Anda tidak memiliki izin untuk menghapus pengguna.');
         }
 
@@ -326,6 +359,7 @@ class UserManagement extends Component
         if ($user->is(Auth::user())) {
             abort(403, 'Akun sendiri tidak bisa dihapus.');
         }
+        abort_unless($this->bolehKelola($user), 403, 'Akun Super Admin hanya bisa dihapus oleh Super Admin.');
 
         // Akun yang sudah punya naskah atau rancangan tetap disimpan, supaya riwayatnya tidak hilang.
         try {
@@ -366,6 +400,17 @@ class UserManagement extends Component
 
     public function render()
     {
+        // Nilai dari URL atau peramban dibatasi ke pilihan yang ada.
+        if (! in_array($this->sortField, self::URUTAN, true)) {
+            $this->sortField = 'id';
+        }
+        if (! in_array($this->sortDirection, ['asc', 'desc'], true)) {
+            $this->sortDirection = 'asc';
+        }
+        if (! in_array((int) $this->perPage, self::PER_HALAMAN, true)) {
+            $this->perPage = 10;
+        }
+
         $users = User::with(['roles', 'perangkatDaerah']) // Eager loading relasi roles dan perangkat daerah
             ->when($this->search, function ($query) {
                 // Dikelompokkan agar tidak "membatalkan" filter role
@@ -383,6 +428,10 @@ class UserManagement extends Component
             ->orderBy($this->sortField, $this->sortDirection)
             ->paginate($this->perPage);
 
-        return view('livewire.user-management', compact('users'))->layout('layouts.app');
+        return view('livewire.user-management', [
+            'users' => $users,
+            'peranDiberi' => $this->isAdmin ? $this->peranBisaDiberi() : collect(),
+            'bolehKelola' => fn (User $u) => $this->bolehKelola($u),
+        ])->layout('layouts.app');
     }
 }

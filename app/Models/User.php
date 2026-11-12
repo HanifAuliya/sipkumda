@@ -51,6 +51,19 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /** Tamu memantau tahapan tanda tangan; akun yang juga punya peran kerja tetap memakai layar kerja. */
+    /**
+     * Kata sandi sementara yang mudah dibacakan, mis. "k7mp-x3qa-9vtd": 12 huruf/angka dari 31 pilihan
+     * (tanpa O/0, l/1, i) dengan pengacak kriptografis, sekitar 59 bit.
+     */
+    public static function buatSandiSementara(): string
+    {
+        $huruf = 'abcdefghjkmnpqrstuvwxyz23456789';
+
+        return collect(range(1, 3))
+            ->map(fn () => implode('', array_map(fn () => $huruf[random_int(0, strlen($huruf) - 1)], range(1, 4))))
+            ->implode('-');
+    }
+
     public function pemantau(): bool
     {
         return $this->hasRole('Tamu') && ! $this->hasAnyRole(['Admin', 'Super Admin', 'Verifikator', 'Peneliti', 'Perangkat Daerah']);

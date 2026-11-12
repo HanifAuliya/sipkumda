@@ -48,10 +48,8 @@ class Naskah extends Model
         ];
     }
 
-    /** Awalan nomor rancangan per jenis; berbeda dari alur lama. */
     /** Awalan nomor rancangan: PB-2026-001 / SK-2026-001. */
     private const AWALAN = ['Peraturan Bupati' => 'PB', 'Keputusan Bupati' => 'SK'];
-
 
     protected static function booted(): void
     {

@@ -114,6 +114,8 @@ Menu: **Dokumentasi**.
   urut yang wajib diisi, bagian lain bisa diganti bila memakai kode lain.
 - Tab **Terarsip** berisi semua dokumen. **Tambah Arsip** untuk produk hukum yang
   ditetapkan sebelum ada sistem.
+- Tahun nomor selalu mengikuti tanggal penetapan. Bila tahunnya salah, betulkan tanggal penetapannya
+  lewat **Ubah**. Berita Daerah wajib untuk Peraturan Bupati dan boleh kosong untuk Keputusan Bupati.
 - Dokumen yang sudah diarsipkan langsung tampil untuk umum di halaman JDIH (`/produk-hukum`).
 
 ---
@@ -122,7 +124,9 @@ Menu: **Dokumentasi**.
 
 | Kapan | Yang diperiksa |
 |---|---|
-| Setiap hari kerja | Dashboard › **Giliran Anda**. Naskah yang lama tertahan bisa ditanyakan ke pemegang gilirannya. |
+| Setiap hari kerja | Dashboard › **Giliran Anda**. |
+| Setiap minggu | Menu **Laporan** › *Tertahan lebih dari 7 hari*. Pemegang gilirannya sudah diingatkan otomatis setiap 7 hari (pukul 08.00); bila tetap tertahan, tanyakan langsung. |
+| Akhir bulan atau tahun | Menu **Laporan** › **Unduh Excel** untuk bahan laporan pimpinan. |
 | Bila muncul notifikasi *cadangan gagal* | Laporkan ke pengelola server hari itu juga. |
 | Setiap bulan | Daftar Pengguna: akun pegawai yang sudah pindah tugas. |
 | Setiap pergantian pejabat | Nama Bupati/Sekda, Kelola TTD, urutan tanda tangan, dan paraf hierarki di Format Dokumen. |

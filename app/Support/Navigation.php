@@ -64,10 +64,12 @@ class Navigation
                 ],
             ],
             [
-                'title' => 'Dokumentasi Produk Hukum',
+                'title' => 'Dokumentasi dan Laporan',
                 'items' => [
                     // Antrean arsip menjadi tab di halaman Dokumentasi (khusus Bagian Hukum).
                     ['label' => 'Dokumentasi', 'route' => 'dokumentasi.main', 'icon' => 'folder-check', 'roles' => ['Admin', 'Verifikator', 'Perangkat Daerah', 'Peneliti']],
+                    // Pengganti Master Data: rekap naskah, lama proses, dan naskah tertahan.
+                    ['label' => 'Laporan', 'route' => 'laporan', 'icon' => 'bar-chart', 'roles' => ['Admin', 'Verifikator', 'Super Admin']],
                 ],
             ],
             [

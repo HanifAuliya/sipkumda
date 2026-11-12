@@ -50,7 +50,7 @@ class AkunSuperAdmin extends Command
             $this->info("Akun {$user->nama_user} ({$user->getRoleNames()->join(', ')}) ditemukan; kata sandinya diganti dengan kata sandi sementara.");
         }
 
-        $sandi = collect(range(1, 3))->map(fn () => substr(str_shuffle('abcdefghjkmnpqrstuvwxyz23456789'), 0, 4))->implode('-');
+        $sandi = User::buatSandiSementara();
 
         $user->forceFill([
             'password' => Hash::make($sandi),

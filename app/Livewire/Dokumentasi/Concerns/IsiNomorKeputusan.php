@@ -8,8 +8,8 @@ use Livewire\Attributes\Locked;
 
 /**
  * Isian nomor Keputusan Bupati yang berformat, mis. [140] / [nomor] / [412.1.6] / TAHUN 2025.
- * Pola dipecah menjadi potongan; bagian teks terisi dan bisa diganti, nomor urut dan tahun memakai
- * properti "nomor" dan "tahun" milik komponen. Peraturan Bupati tidak berpola (Nomor 1 Tahun 2025).
+ * Pola dipecah menjadi potongan; bagian teks terisi dan bisa diganti, nomor urut memakai properti
+ * "nomor" milik komponen, dan tahunnya mengikuti tanggal penetapan. Peraturan Bupati tidak berpola (Nomor 1 Tahun 2025).
  */
 trait IsiNomorKeputusan
 {

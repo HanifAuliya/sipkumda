@@ -27,8 +27,8 @@
 
         <p class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
             <span class="inline-flex items-center gap-1.5"><i class="bi bi-calendar-check"></i> {{ tanggal($dokumen->tanggal_penetapan) }}</span>
-            @if ($dokumen->nomor_tahun_berita)
-                <span class="inline-flex items-center gap-1.5"><i class="bi bi-journal-text"></i> BD {{ $dokumen->nomor_tahun_berita }}</span>
+            @if ($dokumen->berita_daerah)
+                <span class="inline-flex items-center gap-1.5"><i class="bi bi-journal-text"></i> BD {{ $dokumen->berita_daerah }}</span>
             @endif
             <span class="inline-flex min-w-0 items-center gap-1.5"><i class="bi bi-building"></i>
                 <span class="truncate">{{ $dokumen->perangkatDaerah->nama_perangkat_daerah ?? 'Pemerintah Kabupaten HST' }}</span>

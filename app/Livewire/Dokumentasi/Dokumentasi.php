@@ -51,7 +51,7 @@ class Dokumentasi extends Component
     #[Locked]
     public $editId;
     #[Locked]
-    public $editTahun;
+    public bool $editKeputusan = false;
     public $nomor;
     public $nomor_berita;
     public $tahun_berita;
@@ -129,11 +129,11 @@ class Dokumentasi extends Component
         $this->resetForm();
 
         $this->editId = $dokumentasi->id;
-        $this->editTahun = $dokumentasi->tahun;
         $this->nomor = $dokumentasi->nomor;
         // Keputusan Bupati selalu bernomor berformat; yang lama tanpa pola mendapat pola dari Format Dokumen.
         $this->siapkanNomor($this->keputusan($dokumentasi) ? ($dokumentasi->pola_nomor ?: $this->polaKeputusanBawaan()) : null);
-        [$this->nomor_berita, $this->tahun_berita] = array_pad(explode('/', (string) $dokumentasi->nomor_tahun_berita, 2), 2, '');
+        [$this->nomor_berita, $this->tahun_berita] = array_map(fn ($v) => $v === '-' ? '' : $v, array_pad(explode('/', (string) $dokumentasi->nomor_tahun_berita, 2), 2, ''));
+        $this->editKeputusan = $this->keputusan($dokumentasi);
         $this->tanggal_penetapan = $dokumentasi->tanggal_penetapan
             ? \Illuminate\Support\Carbon::parse($dokumentasi->tanggal_penetapan)->format('Y-m-d')
             : null;
@@ -153,8 +153,8 @@ class Dokumentasi extends Component
 
         $this->validate([
             'nomor' => 'required|numeric|digits_between:1,3',
-            'nomor_berita' => 'required|numeric',
-            'tahun_berita' => 'required|numeric|digits:4',
+            'nomor_berita' => ($this->keputusan($dokumentasi) ? 'nullable' : 'required') . '|numeric',
+            'tahun_berita' => ($this->keputusan($dokumentasi) ? 'nullable' : 'required') . '|numeric|digits:4',
             'tanggal_penetapan' => 'required|date',
             'file_produk_hukum' => 'nullable|mimes:pdf|max:20480',
         ]);
@@ -165,14 +165,18 @@ class Dokumentasi extends Component
 
         $data = DokumentasiProdukHukum::denganNomorTerkunci(function () use ($dokumentasi, $pola) {
             // Cek nomor ganda sebelum menyentuh file agar file lama tidak hilang saat gagal.
-            if (DokumentasiProdukHukum::nomorDipakai($this->nomor, $dokumentasi->tahun, $dokumentasi->id)) {
-                throw ValidationException::withMessages(['nomor' => "Nomor {$this->nomor} untuk tahun {$dokumentasi->tahun} sudah digunakan."]);
+            // Tahun mengikuti tanggal penetapan, juga saat tanggalnya dibetulkan.
+            $tahun = (int) date('Y', strtotime($this->tanggal_penetapan));
+
+            if (DokumentasiProdukHukum::nomorDipakai($this->nomor, $tahun, $dokumentasi->id)) {
+                throw ValidationException::withMessages(['nomor' => "Nomor {$this->nomor} untuk tahun {$tahun} sudah digunakan."]);
             }
 
             $data = [
                 'nomor' => $this->nomor,
+                'tahun' => $tahun,
                 'pola_nomor' => $pola,
-                'nomor_tahun_berita' => "{$this->nomor_berita}/{$this->tahun_berita}",
+                'nomor_tahun_berita' => ($this->nomor_berita ?: '-') . '/' . ($this->tahun_berita ?: '-'),
                 'tanggal_penetapan' => $this->tanggal_penetapan,
             ];
 
@@ -205,7 +209,7 @@ class Dokumentasi extends Component
 
     public function resetForm()
     {
-        $this->reset(['editId', 'editTahun', 'nomor', 'polaDasar', 'bagianNomor', 'nomor_berita', 'tahun_berita', 'tanggal_penetapan', 'file_produk_hukum']);
+        $this->reset(['editId', 'editKeputusan', 'nomor', 'polaDasar', 'bagianNomor', 'nomor_berita', 'tahun_berita', 'tanggal_penetapan', 'file_produk_hukum']);
         $this->resetValidation();
     }
 

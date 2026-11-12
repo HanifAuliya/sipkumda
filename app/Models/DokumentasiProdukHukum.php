@@ -80,6 +80,14 @@ class DokumentasiProdukHukum extends Model
     /**
      * ✅ Mutator untuk menampilkan nomor dalam format: "Nomor 003 Tahun 2025"
      */
+    /** Nomor/tahun Berita Daerah, atau null bila tidak dimuat (tersimpan "-/-", umumnya Keputusan Bupati). */
+    public function getBeritaDaerahAttribute(): ?string
+    {
+        $isi = trim((string) $this->nomor_tahun_berita);
+
+        return $isi === '' || trim($isi, '-/ ') === '' ? null : $isi;
+    }
+
     public function getNomorFormattedAttribute()
     {
         // Keputusan Bupati bernomor lengkap, mis. "Nomor 140/1/412.1.6/TAHUN 2025".

@@ -103,3 +103,45 @@ it('panduan di aplikasi sesuai peran; Admin bisa membaca semua', function () {
 
     $this->actingAs($this->admin)->get(route('panduan', 'verifikator'))->assertOk()->assertSee('Panduan Verifikator')->assertSee('Perangkat Daerah');
 });
+
+it('Verifikator tidak bisa menjadi Admin dengan mengubah isAdmin dari peramban', function () {
+    $verifikator = tap(User::factory()->create())->assignRole('Verifikator');
+
+    // Properti terkunci: perubahan dari peramban ditolak.
+    expect(fn () => Livewire::actingAs($verifikator)->test(UserManagement::class)->set('isAdmin', true))
+        ->toThrow(\Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException::class);
+
+    expect(Hash::check('x', $this->pengguna->fresh()->password))->toBeFalse()
+        ->and($this->pengguna->fresh()->wajib_ganti_sandi)->toBeFalse();
+});
+
+it('Admin tidak bisa mengambil alih atau membuat akun Super Admin', function () {
+    $super = tap(User::factory()->create())->assignRole('Super Admin');
+    $sandiLama = $super->password;
+
+    $halaman = fn () => Livewire::actingAs($this->admin)->test(UserManagement::class);
+
+    $halaman()->assertDontSeeHtml("buatSandiSementara({$super->id})");
+    foreach (['buatSandiSementara', 'edit', 'delete'] as $aksi) {
+        $halaman()->call($aksi, $super->id)->assertForbidden();
+    }
+    expect($super->fresh()->password)->toBe($sandiLama)
+        ->and($super->fresh())->not->toBeNull();
+
+    // Peran Super Admin tidak bisa diberikan Admin.
+    $halaman()->call('edit', $this->pengguna->id)->set('role', 'Super Admin')->call('update')->assertHasErrors('role');
+    expect($this->pengguna->fresh()->hasRole('Super Admin'))->toBeFalse();
+
+    // Super Admin sendiri tetap bisa (isian lain pada akun uji tidak ikut dinilai di sini).
+    Livewire::actingAs($super)->test(UserManagement::class)
+        ->call('edit', $this->pengguna->id)->set('role', 'Super Admin')->call('update')->assertHasNoErrors('role');
+});
+
+it('urutan dan jumlah per halaman dari URL dibatasi ke pilihan yang ada', function () {
+    Livewire::actingAs($this->admin)->withQueryParams(['sortField' => 'password', 'sortDirection' => 'x', 'perPage' => 100000])
+        ->test(UserManagement::class)
+        ->assertOk()
+        ->assertSet('sortField', 'id')
+        ->assertSet('sortDirection', 'asc')
+        ->assertSet('perPage', 10);
+});

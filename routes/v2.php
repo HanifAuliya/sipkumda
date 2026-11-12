@@ -50,6 +50,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('template');
 
     Route::middleware('role:Admin|Verifikator|Super Admin')->group(function () {
+        Route::livewire('/laporan', \App\Livewire\V2\Laporan::class)->name('laporan');
         Route::livewire('/pengaturan/format', PengaturanFormat::class)->name('format');
 
         // Lambang kop naskah atau logo kop nota yang sedang dipakai, untuk pratinjau di menu Format Dokumen.

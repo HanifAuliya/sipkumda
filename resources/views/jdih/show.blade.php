@@ -12,7 +12,7 @@
         ['Nomor', $dokumen->nomor_lengkap ?? $dokumen->nomor, false],
         ['Tahun', $dokumen->tahun, false],
         ['Tanggal penetapan', tanggal($dokumen->tanggal_penetapan), false],
-        ['Berita Daerah', $dokumen->nomor_tahun_berita ?: '-', false],
+        ['Berita Daerah', $dokumen->berita_daerah ?? '-', false],
         ['Tempat penetapan', 'Barabai', false],
         ['Tentang', $dokumen->tentang_dokumentasi, true],
         ['Pemrakarsa', $dokumen->perangkatDaerah->nama_perangkat_daerah ?? '-', true],

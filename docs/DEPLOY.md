@@ -89,7 +89,17 @@ php artisan queue:work --tries=3     # dijalankan terus (Supervisor / NSSM di Wi
 php artisan schedule:run             # setiap menit (cron / Task Scheduler)
 ```
 
-Tanpa `schedule:run`, backup otomatis tidak pernah berjalan.
+Tanpa `schedule:run`, tugas terjadwal tidak pernah berjalan:
+
+| Tugas | Waktu | Isi |
+|---|---|---|
+| `backup:jalankan` | 01.00 | Cadangan database dan berkas (bagian 6) |
+| `naskah:ingatkan` | 08.00 | Notifikasi pengingat untuk pemegang giliran naskah yang tertahan |
+| `notifications:clear` | harian | Membersihkan notifikasi lama |
+
+Batas hari naskah dianggap tertahan diatur `SIFKUMDA_HARI_TERTAHAN` di `.env` (bawaan `7`). Pengingat
+dikirim saat lamanya tepat kelipatan batas itu (hari ke-7, 14, 21, ...). Tahap Penandatanganan tidak
+diingatkan. Angka yang sama dipakai di menu Laporan.
 
 ## 6. Backup
 

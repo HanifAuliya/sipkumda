@@ -25,7 +25,6 @@ class AjukanDokumentasiProdukHukum extends Component
     use WithFileUploads;
 
     public $nomor;
-    public $tahun;
     public $nomor_berita;
     public $tahun_berita;
     public $tanggal_penetapan;
@@ -72,9 +71,9 @@ class AjukanDokumentasiProdukHukum extends Component
 
         $this->validate([
             'nomor' => 'required|numeric|digits_between:1,3',
-            'tahun' => 'required|numeric|digits:4',
-            'nomor_berita' => 'required|numeric|digits_between:1,3',
-            'tahun_berita' => 'required|numeric|digits:4',
+            // Berita Daerah wajib untuk Peraturan Bupati; Keputusan Bupati biasanya tidak dimuat di sana.
+            'nomor_berita' => ($this->beritaWajib() ? 'required' : 'nullable') . '|numeric|digits_between:1,3',
+            'tahun_berita' => ($this->beritaWajib() ? 'required' : 'nullable') . '|numeric|digits:4',
             'tanggal_penetapan' => 'required|date',
             'file_produk_hukum' => 'required|mimes:pdf|max:20480',
             'perangkat_daerah_id' => 'required|exists:perangkat_daerah,id',
@@ -83,7 +82,8 @@ class AjukanDokumentasiProdukHukum extends Component
         ]);
 
         $data = [
-            'tahun' => $this->tahun,
+            // Tahun mengikuti tanggal penetapan, supaya keduanya tidak bisa berbeda.
+            'tahun' => (int) date('Y', strtotime($this->tanggal_penetapan)),
             'perangkat_daerah_id' => $this->perangkat_daerah_id,
             'jenis_dokumentasi' => $this->jenis_dokumentasi,
             'tentang_dokumentasi' => $this->tentang_dokumentasi,
@@ -130,10 +130,15 @@ class AjukanDokumentasiProdukHukum extends Component
     public function resetForm()
     {
         $this->reset([
-            'nomor', 'polaDasar', 'bagianNomor', 'tahun', 'nomor_berita', 'tahun_berita', 'tanggal_penetapan',
+            'nomor', 'polaDasar', 'bagianNomor', 'nomor_berita', 'tahun_berita', 'tanggal_penetapan',
             'file_produk_hukum', 'perangkat_daerah_id', 'jenis_dokumentasi', 'tentang_dokumentasi',
         ]);
         $this->resetValidation();
+    }
+
+    private function beritaWajib(): bool
+    {
+        return $this->jenis_dokumentasi !== FormatDokumen::KEPBUP;
     }
 
     public function removeFile()
@@ -149,6 +154,7 @@ class AjukanDokumentasiProdukHukum extends Component
         return view('livewire.dokumentasi.ajukan-dokumentasi-produk-hukum', [
             'bisaTambah' => $bisaTambah,
             'perangkatList' => $bisaTambah ? PerangkatDaerah::orderBy('nama_perangkat_daerah')->get() : collect(),
+            'beritaWajib' => $this->beritaWajib(),
         ]);
     }
 }

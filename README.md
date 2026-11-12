@@ -51,6 +51,7 @@ Aturan perpindahan tahap ada di `app/Services/AlurNaskah.php` (konstanta `AKSI`)
 | Pengaturan › Template Bahan Penting | Berkas yang bisa diunduh Perangkat Daerah |
 | Pengaturan › Perangkat Daerah | Daftar instansi |
 | Akun › Daftar Pengguna | Akun, peran, aktivasi, kata sandi sementara |
+| `.env` `SIFKUMDA_HARI_TERTAHAN` | Batas hari naskah dianggap tertahan (Laporan dan pengingat otomatis), bawaan 7 |
 
 ## Teknologi
 
@@ -116,6 +117,8 @@ ada** (sesudah `php artisan config:cache`), karena tes bisa memakai database uta
 | Format Dokumen | `app/Support/FormatDokumen.php`, `app/Livewire/V2/PengaturanFormat.php` |
 | Menu | `app/Support/Navigation.php` |
 | Dokumentasi dan JDIH | `app/Livewire/Dokumentasi/`, `app/Http/Controllers/JdihController.php`, `resources/views/jdih/` |
+| Laporan | `app/Support/LaporanNaskah.php`, `app/Livewire/V2/Laporan.php`, `app/Exports/LaporanNaskahExport.php` |
+| Pengingat naskah tertahan | `app/Console/Commands/IngatkanNaskahTertahan.php` (setiap pukul 08.00) |
 | Cadangan | `app/Console/Commands/BackupAplikasi.php` (setiap pukul 01.00) |
 | Akun darurat | `app/Console/Commands/AkunSuperAdmin.php` (`php artisan akun:super-admin`) |
 
