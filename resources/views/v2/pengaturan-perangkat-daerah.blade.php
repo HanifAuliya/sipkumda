@@ -1,5 +1,5 @@
 <div class="mx-auto max-w-4xl">
-    <x-ui.page-header title="Perangkat Daerah" description="Daftar instansi yang bisa dipilih pada akun pengguna dan dokumen." icon="building" :back="route('v2.beranda')">
+    <x-ui.page-header title="Perangkat Daerah" description="Daftar instansi yang bisa dipilih pada akun pengguna dan dokumen." icon="building" :back="route('dashboard')">
         <x-slot:actions>
             <x-ui.button icon="plus-lg" wire:click="tambah" loading="tambah">Tambah Perangkat Daerah</x-ui.button>
         </x-slot:actions>

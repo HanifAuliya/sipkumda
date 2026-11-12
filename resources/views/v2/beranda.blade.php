@@ -29,11 +29,11 @@
     {{-- Statistik --}}
     <div class="grid grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-4">
         <x-ui.stat-card rapat label="Rancangan" :value="$statistik['rancangan']" suffix="naskah" icon="clipboard2-data" color="rose"
-            :href="route('v2.daftar', $pd ? 'rancanganku' : 'rancangan')" wire:navigate />
+            :href="route('daftar', $pd ? 'rancanganku' : 'rancangan')" wire:navigate />
         <x-ui.stat-card rapat label="Fasilitasi" :value="$statistik['fasilitasi']" suffix="naskah" icon="file-text" color="orange"
-            :href="route('v2.daftar', $pd ? 'fasilitasiku' : 'fasilitasi')" wire:navigate />
+            :href="route('daftar', $pd ? 'fasilitasiku' : 'fasilitasi')" wire:navigate />
         @if ($user->hasAnyRole(['Admin', 'Tamu']))
-            <x-ui.stat-card rapat label="Tanda Tangan & Arsip" :value="$statistik['ttd']" suffix="naskah" icon="pen" color="emerald" :href="route('v2.daftar', 'penandatanganan')" wire:navigate />
+            <x-ui.stat-card rapat label="Tanda Tangan & Arsip" :value="$statistik['ttd']" suffix="naskah" icon="pen" color="emerald" :href="route('daftar', 'penandatanganan')" wire:navigate />
         @else
             <x-ui.stat-card rapat label="Tanda Tangan & Arsip" :value="$statistik['ttd']" suffix="naskah" icon="pen" color="emerald" />
         @endif

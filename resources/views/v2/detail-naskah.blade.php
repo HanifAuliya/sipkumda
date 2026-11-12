@@ -50,7 +50,7 @@
                         <x-ui.info-item label="Perlu Perbaikan PD">{{ $perlu }} baris</x-ui.info-item>
                         <x-ui.info-item label="Nota Dinas">
                             @if ($naskah->notaDinas && $tahap->langkah() >= 4 && $bisaUnduh)
-                                <x-ui.file-link :href="route('v2.naskah.cetak', [$naskah, 'nota-dinas'])" path="nota.pdf" :label="$naskah->notaDinas->nomor_nota" />
+                                <x-ui.file-link :href="route('naskah.cetak', [$naskah, 'nota-dinas'])" path="nota.pdf" :label="$naskah->notaDinas->nomor_nota" />
                             @elseif ($naskah->notaDinas && $tahap->langkah() >= 4)
                                 {{ $naskah->notaDinas->nomor_nota }}
                             @else
@@ -79,17 +79,17 @@
                 <x-ui.info-list class="px-4">
                     @foreach ($berkas as $file)
                         <x-ui.info-item :label="NaskahBerkas::LABEL[$file->jenis]" wire:key="berkas-{{ $file->id }}">
-                            <x-ui.file-link :href="route('v2.naskah.berkas', [$naskah, $file])" :path="$file->nama_asli" :label="$file->nama_asli" />
+                            <x-ui.file-link :href="route('naskah.berkas', [$naskah, $file])" :path="$file->nama_asli" :label="$file->nama_asli" />
                         </x-ui.info-item>
                     @endforeach
                     <x-ui.info-item label="Naskah Saat Ini">
                         <span class="flex flex-wrap gap-x-4 gap-y-1">
-                            <x-ui.file-link :href="route('v2.naskah.cetak', [$naskah, 'naskah-word'])" path="naskah.docx" label="Word" />
-                            <x-ui.file-link :href="route('v2.naskah.cetak', [$naskah, 'naskah-pdf'])" path="naskah.pdf" label="PDF" />
+                            <x-ui.file-link :href="route('naskah.cetak', [$naskah, 'naskah-word'])" path="naskah.docx" label="Word" />
+                            <x-ui.file-link :href="route('naskah.cetak', [$naskah, 'naskah-pdf'])" path="naskah.pdf" label="PDF" />
                         </span>
                     </x-ui.info-item>
                     <x-ui.info-item label="Matriks Saat Ini">
-                        <x-ui.file-link :href="route('v2.naskah.cetak', [$naskah, 'matriks-pdf'])" path="matriks.pdf" label="PDF" />
+                        <x-ui.file-link :href="route('naskah.cetak', [$naskah, 'matriks-pdf'])" path="matriks.pdf" label="PDF" />
                     </x-ui.info-item>
                 </x-ui.info-list>
             </section>
@@ -105,15 +105,15 @@
             <x-ui.button variant="outline" x-on:click="close()">Tutup</x-ui.button>
             @if ($naskah)
                 @if (auth()->user()->pemantau())
-                    <x-ui.button icon="vector-pen" :href="route('v2.naskah.pantau', $naskah)">Pantau Tanda Tangan</x-ui.button>
+                    <x-ui.button icon="vector-pen" :href="route('naskah.pantau', $naskah)">Pantau Tanda Tangan</x-ui.button>
                 @elseif ($naskah->tahap->tahapAkhir())
                     {{-- Isi sudah terkunci: yang dikerjakan tinggal nota dinas, tanda tangan, dan arsip. --}}
-                    <x-ui.button variant="outline" icon="table" :href="route('v2.naskah.kerja', $naskah)">Lihat Matriks</x-ui.button>
-                    <x-ui.button :variant="$giliranSaya ? 'primary' : 'outline-primary'" icon="vector-pen" :href="route('v2.naskah.pantau', $naskah)">{{ $giliranSaya ? $naskah->tahap->labelKerjakan() : 'Nota Dinas & Tanda Tangan' }}</x-ui.button>
+                    <x-ui.button variant="outline" icon="table" :href="route('naskah.kerja', $naskah)">Lihat Matriks</x-ui.button>
+                    <x-ui.button :variant="$giliranSaya ? 'primary' : 'outline-primary'" icon="vector-pen" :href="route('naskah.pantau', $naskah)">{{ $giliranSaya ? $naskah->tahap->labelKerjakan() : 'Nota Dinas & Tanda Tangan' }}</x-ui.button>
                 @elseif ($giliranSaya)
-                    <x-ui.button icon="pencil-square" :href="route('v2.naskah.kerja', $naskah)">Kerjakan Naskah</x-ui.button>
+                    <x-ui.button icon="pencil-square" :href="route('naskah.kerja', $naskah)">Kerjakan Naskah</x-ui.button>
                 @else
-                    <x-ui.button variant="outline-primary" icon="table" :href="route('v2.naskah.kerja', $naskah)">Lihat Matriks</x-ui.button>
+                    <x-ui.button variant="outline-primary" icon="table" :href="route('naskah.kerja', $naskah)">Lihat Matriks</x-ui.button>
                 @endif
             @endif
         </x-slot:footer>

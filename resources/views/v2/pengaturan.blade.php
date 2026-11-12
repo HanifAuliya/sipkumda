@@ -1,5 +1,5 @@
 <div class="mx-auto max-w-3xl">
-    <x-ui.page-header title="Pengaturan Naskah" description="Nama pejabat yang dicetak pada bagian penutup naskah baru." icon="gear" :back="route('v2.beranda')" />
+    <x-ui.page-header title="Pengaturan Naskah" description="Nama pejabat yang dicetak pada bagian penutup naskah baru." icon="gear" :back="route('dashboard')" />
 
     <x-ui.card title="Nama Pejabat">
         @unless ($mengubah)

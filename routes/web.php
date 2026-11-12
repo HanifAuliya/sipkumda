@@ -32,10 +32,6 @@ Route::withoutMiddleware([
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/foto-profil', FotoProfilController::class)->name('foto-profil');
     Route::get('/tanda-tangan-saya', TandaTanganSayaController::class)->name('tanda-tangan-saya');
-
-    // Alamat lama (dashboard dan pilihan aplikasi sebelum alur naskah menjadi satu-satunya) diarahkan ke Dashboard.
-    Route::redirect('/dashboard', '/v2');
-    Route::redirect('/pilih-aplikasi', '/v2');
 });
 
 Route::middleware('auth')->group(function () {

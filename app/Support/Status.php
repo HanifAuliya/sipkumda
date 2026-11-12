@@ -16,16 +16,6 @@ class Status
      */
     private const NAMA_JENIS = ['Surat Keputusan' => 'Keputusan Bupati'];
 
-    /** Warna titik penanda jenis produk hukum; null bila nilainya bukan jenis. */
-    public static function titikJenis(?string $jenis): ?string
-    {
-        return match (self::label((string) $jenis)) {
-            'Peraturan Bupati' => 'bg-primary-500',
-            'Keputusan Bupati' => 'bg-accent-500',
-            default => null,
-        };
-    }
-
     private const COLORS = [
         // Selesai / berhasil
         'Disetujui' => 'success',

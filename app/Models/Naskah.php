@@ -221,8 +221,8 @@ class Naskah extends Model
     public function tautanUntuk(User $user): string
     {
         return $user->pemantau() || $this->tahap->tahapAkhir()
-            ? route('v2.naskah.pantau', $this)
-            : route('v2.naskah.kerja', $this);
+            ? route('naskah.pantau', $this)
+            : route('naskah.kerja', $this);
     }
 
     public function giliranMilik(User $user): bool

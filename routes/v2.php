@@ -18,10 +18,10 @@ use Illuminate\Support\Facades\Storage;
 |--------------------------------------------------------------------------
 | Alur naskah (matriks sebagai sumber naskah)
 |--------------------------------------------------------------------------
-| Awalan /v2 dan nama rute v2.* dipertahankan supaya tautan dan notifikasi yang sudah beredar tetap berlaku.
+| Halaman kerja sesudah login. Halaman publik (JDIH) ada di routes/web.php.
 */
-Route::middleware(['auth', 'verified'])->prefix('v2')->name('v2.')->group(function () {
-    Route::livewire('/', Beranda::class)->name('beranda');
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::livewire('/dashboard', Beranda::class)->name('dashboard');
 
     Route::livewire('/daftar/{kelompok}', DaftarNaskah::class)->name('daftar');
 
@@ -29,11 +29,11 @@ Route::middleware(['auth', 'verified'])->prefix('v2')->name('v2.')->group(functi
 
     // Naskah bisa saja sudah dibuang, misalnya saat pengguna menekan Back atau membuka tautan lama.
     Route::livewire('/naskah/{naskah}', LayarKerja::class)
-        ->missing(fn () => redirect()->route('v2.beranda')->with('pesan', 'Naskah yang Anda buka sudah dibuang atau tidak ditemukan.'))
+        ->missing(fn () => redirect()->route('dashboard')->with('pesan', 'Naskah yang Anda buka sudah dibuang atau tidak ditemukan.'))
         ->name('naskah.kerja');
 
     Route::livewire('/naskah/{naskah}/pantau', PantauNaskah::class)
-        ->missing(fn () => redirect()->route('v2.beranda')->with('pesan', 'Naskah yang Anda buka sudah dibuang atau tidak ditemukan.'))
+        ->missing(fn () => redirect()->route('dashboard')->with('pesan', 'Naskah yang Anda buka sudah dibuang atau tidak ditemukan.'))
         ->name('naskah.pantau');
 
     Route::get('/naskah/{naskah}/berkas/{berkas}', BerkasNaskahController::class)->name('naskah.berkas');

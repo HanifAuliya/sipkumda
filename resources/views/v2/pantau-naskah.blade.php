@@ -19,10 +19,10 @@
 
 <div class="mx-auto max-w-6xl">
     <x-ui.page-header :title="$judul" :description="$naskah->nomor_tampil . ' · ' . $naskah->jenis" icon="vector-pen"
-        :back="$pemantau ? route('v2.daftar', 'penandatanganan') : false">
+        :back="$pemantau ? route('daftar', 'penandatanganan') : false">
         @unless ($pemantau)
             <x-slot:actions>
-                <x-ui.button variant="outline" icon="table" :href="route('v2.naskah.kerja', $naskah)">Buka Matriks</x-ui.button>
+                <x-ui.button variant="outline" icon="table" :href="route('naskah.kerja', $naskah)">Buka Matriks</x-ui.button>
             </x-slot:actions>
         @endunless
     </x-ui.page-header>
@@ -77,7 +77,7 @@
                                     </div>
                                     @if ($bisaUnduh)
                                         <x-ui.button size="sm" :variant="$v->aktif ? 'outline-primary' : 'outline'" icon="download" class="max-sm:w-full"
-                                            :href="route('v2.naskah.berkas', [$naskah, $v])">Unduh</x-ui.button>
+                                            :href="route('naskah.berkas', [$naskah, $v])">Unduh</x-ui.button>
                                     @endif
                                 </li>
                             @empty
@@ -90,7 +90,7 @@
                                     </div>
                                     @if ($bisaUnduh)
                                         <x-ui.button size="sm" variant="outline-primary" icon="download" class="max-sm:w-full"
-                                            :href="route('v2.naskah.cetak', [$naskah, 'nota-dinas'])">Unduh</x-ui.button>
+                                            :href="route('naskah.cetak', [$naskah, 'nota-dinas'])">Unduh</x-ui.button>
                                     @endif
                                 </li>
                             @endforelse

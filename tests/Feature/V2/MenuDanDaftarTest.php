@@ -22,7 +22,7 @@ beforeEach(function () {
 
 describe('menu', function () {
     it('menu Peneliti memuat pekerjaannya', function () {
-        $this->actingAs(($this->peran)('Peneliti'))->get(route('v2.beranda'))
+        $this->actingAs(($this->peran)('Peneliti'))->get(route('dashboard'))
             ->assertOk()
             ->assertSee('Penelitian Rancangan')
             ->assertSee('Pengecekan Fasilitasi')
@@ -35,8 +35,8 @@ describe('menu', function () {
     });
 
     it('setiap peran hanya melihat menu pekerjaannya', function (string $peran, array $ada, array $tidak) {
-        // Bukan Dashboard, karena dropdown filternya memuat nama semua tahap.
-        $halaman = $this->actingAs(($this->peran)($peran))->get(route('v2.daftar', 'arsip'))->assertOk();
+        // Halaman Notifikasi: tidak memuat filter tahap, jadi nama yang terlihat hanya dari menu.
+        $halaman = $this->actingAs(($this->peran)($peran))->get(route('notifikasi'))->assertOk();
 
         foreach ($ada as $label) {
             $halaman->assertSee($label);
@@ -54,7 +54,7 @@ describe('menu', function () {
 
     it('semua menu bisa dibuka oleh perannya', function (string $peran) {
         $user = ($this->peran)($peran);
-        $this->actingAs($user)->get(route('v2.beranda'))->assertOk();
+        $this->actingAs($user)->get(route('dashboard'))->assertOk();
 
         foreach (Navigation::sections() as $bagian) {
             foreach ($bagian['items'] as $item) {
@@ -66,7 +66,7 @@ describe('menu', function () {
     })->with(['Perangkat Daerah', 'Peneliti', 'Admin', 'Verifikator', 'Super Admin', 'Tamu']);
 
     it('daftar yang tidak dikenal menghasilkan 404', function () {
-        $this->actingAs(($this->peran)('Admin'))->get('/v2/daftar/tidak-ada')->assertNotFound();
+        $this->actingAs(($this->peran)('Admin'))->get('/daftar/tidak-ada')->assertNotFound();
     });
 });
 
@@ -83,14 +83,14 @@ describe('daftar naskah', function () {
         $buat($pd, 'selesai', 'Sudah Selesai Milik Saya');
         $buat($lain, 'penelitian', 'Milik Dinas Lain');
 
-        $this->actingAs($pd)->get(route('v2.daftar', 'rancanganku'))
+        $this->actingAs($pd)->get(route('daftar', 'rancanganku'))
             ->assertSee('Rancangan Milik Saya')
             ->assertDontSee('Sudah Selesai Milik Saya')
             ->assertDontSee('Milik Dinas Lain');
 
-        $this->get(route('v2.daftar', 'fasilitasiku'))->assertDontSee('Sudah Selesai Milik Saya');
-        $this->get(route('v2.daftar', ['fasilitasiku', 'tab' => 'riwayat']))->assertSee('Sudah Selesai Milik Saya');
-        $this->actingAs(($this->peran)('Admin'))->get(route('v2.daftar', 'rancangan'))
+        $this->get(route('daftar', 'fasilitasiku'))->assertDontSee('Sudah Selesai Milik Saya');
+        $this->get(route('daftar', ['fasilitasiku', 'tab' => 'riwayat']))->assertSee('Sudah Selesai Milik Saya');
+        $this->actingAs(($this->peran)('Admin'))->get(route('daftar', 'rancangan'))
             ->assertSee('Rancangan Milik Saya')->assertSee('Milik Dinas Lain');
     });
 
@@ -119,9 +119,9 @@ describe('daftar naskah', function () {
             'nomor_nota' => uniqid(), 'tanggal_nota' => now(),
         ]);
 
-        $this->actingAs($pd)->get(route('v2.daftar', $kelompok))
+        $this->actingAs($pd)->get(route('daftar', $kelompok))
             ->assertOk()->assertSee($n->nomor)->assertSee('bukaDetailNaskah', false)
-            ->assertDontSee(route('v2.naskah.kerja', $n));
+            ->assertDontSee(route('naskah.kerja', $n));
     })->with(['rancanganku', 'rancangan']);
 });
 
@@ -142,7 +142,7 @@ describe('detail naskah', function () {
             ->assertDispatched('openModal', 'modalDetailNaskah')
             ->assertSee('Tentang Uji')->assertSee('NOTA-UJI')
             ->assertSee('Kerjakan Naskah')->assertDontSee('Lihat Matriks')
-            ->assertSee(route('v2.naskah.kerja', $this->naskah));
+            ->assertSee(route('naskah.kerja', $this->naskah));
     });
 
     it('hanya lihat matriks saat bukan giliran pengguna', function () {
@@ -174,7 +174,7 @@ describe('detail naskah', function () {
     it('modal detail tersedia di semua halaman dalam', function () {
         $admin = ($this->peran)('Admin');
 
-        $this->actingAs($admin)->get(route('v2.beranda'))->assertSeeLivewire(DetailNaskah::class);
+        $this->actingAs($admin)->get(route('dashboard'))->assertSeeLivewire(DetailNaskah::class);
         $this->get(route('user.management'))->assertSeeLivewire(DetailNaskah::class);
     });
 });
@@ -205,10 +205,10 @@ describe('layar kerja', function () {
             'jenis' => 'Keputusan Bupati', 'tentang' => 'Uji', 'pemrakarsa_id' => $pd->id,
             'nomor_nota' => uniqid(), 'tanggal_nota' => now(),
         ]);
-        $daftar = route('v2.daftar', 'rancanganku');
+        $daftar = route('daftar', 'rancanganku');
 
-        $this->actingAs($pd)->withHeader('referer', $daftar)->get(route('v2.naskah.kerja', $n))->assertSee('href="'.$daftar.'"', false);
-        $this->withHeader('referer', 'https://contoh.test/jahat')->get(route('v2.naskah.kerja', $n))->assertDontSee('contoh.test');
+        $this->actingAs($pd)->withHeader('referer', $daftar)->get(route('naskah.kerja', $n))->assertSee('href="'.$daftar.'"', false);
+        $this->withHeader('referer', 'https://contoh.test/jahat')->get(route('naskah.kerja', $n))->assertDontSee('contoh.test');
     });
 });
 

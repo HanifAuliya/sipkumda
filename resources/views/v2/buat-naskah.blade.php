@@ -35,8 +35,8 @@
 
             <x-ui.alert type="warning" title="Perhatikan:">
                 Naskah paling akurat terbaca bila ditulis mengikuti template
-                <a class="font-semibold underline" href="{{ route('v2.template', 'peraturan-bupati') }}">Peraturan Bupati</a> atau
-                <a class="font-semibold underline" href="{{ route('v2.template', 'keputusan-bupati') }}">Keputusan Bupati</a>.
+                <a class="font-semibold underline" href="{{ route('template', 'peraturan-bupati') }}">Peraturan Bupati</a> atau
+                <a class="font-semibold underline" href="{{ route('template', 'keputusan-bupati') }}">Keputusan Bupati</a>.
                 Tanpa file Word, isi rancangan bisa diketik langsung.
             </x-ui.alert>
 

@@ -61,7 +61,7 @@
         <div class="flex shrink-0 gap-2 max-lg:w-full lg:justify-end">
             <x-naskah.detail-button :naskah="$naskah" label="Detail" class="max-lg:flex-1" />
             @if (auth()->user()->pemantau())
-                <x-ui.button size="rapat" icon="vector-pen" :href="route('v2.naskah.pantau', $naskah)" class="max-lg:flex-1">Pantau</x-ui.button>
+                <x-ui.button size="rapat" icon="vector-pen" :href="route('naskah.pantau', $naskah)" class="max-lg:flex-1">Pantau</x-ui.button>
             @elseif ($giliran)
                 {{-- Langsung ke halaman yang dikerjakan pada tahap ini: matriks, atau Nota Dinas & Tanda Tangan. --}}
                 <x-ui.button size="rapat" :icon="$tahap->tahapAkhir() ? 'vector-pen' : 'pencil-square'" :href="$naskah->tautanUntuk(auth()->user())" class="max-lg:flex-1">{{ $tahap->labelKerjakan() }}</x-ui.button>

@@ -19,7 +19,7 @@
         <x-auth.submit loading-text="Memeriksa...">Konfirmasi</x-auth.submit>
     </form>
 
-    <a href="{{ route('v2.beranda') }}" class="mt-4 flex min-h-10 items-center justify-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-primary-600 dark:text-slate-300">
+    <a href="{{ route('dashboard') }}" class="mt-4 flex min-h-10 items-center justify-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-primary-600 dark:text-slate-300">
         <i class="bi bi-arrow-left"></i> Kembali ke dashboard
     </a>
 </x-guest-layout>

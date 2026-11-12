@@ -77,16 +77,16 @@ class LayarKerja extends Component
 
         // Tamu memantau tanda tangan, bukan mengerjakan matriks.
         if (auth()->user()->pemantau()) {
-            return $this->redirectRoute('v2.naskah.pantau', $naskah);
+            return $this->redirectRoute('naskah.pantau', $naskah);
         }
 
         $this->naskah = $naskah;
         $naskah->tandaiNotifikasiDibaca(auth()->user());
 
         $asal = url()->previous();
-        $this->kembali = str_starts_with($asal, url('/v2')) && ! str_contains($asal, '/naskah/')
+        $this->kembali = str_starts_with($asal, url('/')) && preg_match('#^/(dashboard|daftar/|notifikasi)#', (string) parse_url($asal, PHP_URL_PATH))
             ? $asal
-            : route('v2.beranda');
+            : route('dashboard');
     }
 
     /** Tiap peran langsung melihat pekerjaannya, kecuali memilih filter lain. */
@@ -183,7 +183,7 @@ class LayarKerja extends Component
 
         // Nota dinas dan tahapan tanda tangan dikerjakan di halamannya sendiri, bukan di atas matriks.
         if (in_array($aksi, self::AKSI_TAHAP_AKHIR, true)) {
-            $this->redirectRoute('v2.naskah.pantau', $this->naskah);
+            $this->redirectRoute('naskah.pantau', $this->naskah);
 
             return;
         }
@@ -227,7 +227,7 @@ class LayarKerja extends Component
 
         session()->flash('pesan', "{$nama} sudah dihapus.");
 
-        return $this->redirectRoute('v2.beranda');
+        return $this->redirectRoute('dashboard');
     }
 
     public function lihatVersi(int $id): void

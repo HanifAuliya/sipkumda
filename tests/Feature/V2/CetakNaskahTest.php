@@ -346,18 +346,18 @@ describe('akses', function () {
         $lain = tap(User::factory()->create())->assignRole('Perangkat Daerah');
 
         foreach (['naskah-word', 'naskah-pdf', 'matriks-pdf'] as $berkas) {
-            $this->actingAs($lain)->get(route('v2.naskah.cetak', [$n, $berkas]))->assertForbidden();
-            $this->actingAs($this->pd)->get(route('v2.naskah.cetak', [$n, $berkas]))->assertOk()->assertDownload();
+            $this->actingAs($lain)->get(route('naskah.cetak', [$n, $berkas]))->assertForbidden();
+            $this->actingAs($this->pd)->get(route('naskah.cetak', [$n, $berkas]))->assertOk()->assertDownload();
         }
 
-        $this->actingAs($this->pd)->get("/v2/naskah/{$n->slug}/cetak/lainnya")->assertNotFound();
+        $this->actingAs($this->pd)->get("/naskah/{$n->slug}/cetak/lainnya")->assertNotFound();
     });
 
     it('pengaturan hanya untuk Bagian Hukum dan tersimpan', function () {
-        $this->actingAs($this->pd)->get(route('v2.pengaturan'))->assertForbidden();
+        $this->actingAs($this->pd)->get(route('pengaturan'))->assertForbidden();
 
         $admin = tap(User::factory()->create())->assignRole('Admin');
-        $this->actingAs($admin)->get(route('v2.pengaturan'))->assertOk();
+        $this->actingAs($admin)->get(route('pengaturan'))->assertOk();
 
         Livewire::test(PengaturanNaskah::class)
             ->set('namaBupati', '')->call('simpan')->assertHasErrors('namaBupati')

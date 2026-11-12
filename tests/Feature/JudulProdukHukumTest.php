@@ -65,3 +65,27 @@ it('arsip manual menyimpan judul tempelan Word menjadi satu baris', function () 
 
     expect(DokumentasiProdukHukum::first()->tentang_dokumentasi)->toBe('Perubahan Atas Peraturan Tentang Dana Desa');
 });
+
+it('memilih Keputusan Bupati mengganti isian nomor ke format SK yang bisa disesuaikan', function () {
+    $admin = tap(User::factory()->create())->assignRole('Verifikator');
+
+    $form = formArsipManual($admin, 'Penetapan Desa Wisata')
+        ->assertDontSee('Nomor Keputusan Bupati')
+        ->set('jenis_dokumentasi', 'Keputusan Bupati')
+        ->assertSee('Nomor Keputusan Bupati')
+        ->assertSet('polaDasar', '140/{nomor}/412.1.6/TAHUN {tahun}')
+        ->assertSet('bagianNomor', [0 => '140', 4 => '412.1.6']);
+
+    // Bagian kode wajib diisi.
+    $form->set('bagianNomor.0', ' ')->call('store')->assertHasErrors('nomor');
+
+    $form->set('bagianNomor.0', '800')->call('store')->assertHasNoErrors();
+
+    expect(DokumentasiProdukHukum::first()->nomor_formatted)->toBe('Nomor 800/7/412.1.6/TAHUN 2020');
+
+    // Kembali ke Peraturan Bupati: nomor biasa, tanpa pola.
+    formArsipManual($admin, 'Pedoman Lain')->set('nomor', '8')->set('jenis_dokumentasi', 'Keputusan Bupati')
+        ->set('jenis_dokumentasi', 'Peraturan Bupati')->assertSet('polaDasar', '')->call('store')->assertHasNoErrors();
+
+    expect(DokumentasiProdukHukum::where('nomor', 8)->first()->nomor_formatted)->toBe('Nomor 8 Tahun 2020');
+});

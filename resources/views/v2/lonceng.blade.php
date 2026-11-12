@@ -29,7 +29,7 @@
         </div>
 
         <div class="border-t border-slate-100 pt-1.5 dark:border-navy-700">
-            <a href="{{ route('v2.notifikasi') }}" class="flex min-h-10 items-center justify-center gap-1.5 rounded-lg text-sm font-semibold text-primary-600 transition hover:bg-primary-50 dark:text-primary-300 dark:hover:bg-primary-500/10">
+            <a href="{{ route('notifikasi') }}" class="flex min-h-10 items-center justify-center gap-1.5 rounded-lg text-sm font-semibold text-primary-600 transition hover:bg-primary-50 dark:text-primary-300 dark:hover:bg-primary-500/10">
                 Lihat semua notifikasi <i class="bi bi-arrow-right" aria-hidden="true"></i>
             </a>
         </div>

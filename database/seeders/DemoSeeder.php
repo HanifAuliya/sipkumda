@@ -246,6 +246,7 @@ class DemoSeeder extends Seeder
                 'rancangan_id' => $rancangan->id_rancangan,
                 'nomor' => $i + 1,
                 'tahun' => $tgl->year,
+                'pola_nomor' => $this->polaNomor($jenis),
                 'nomor_tahun_berita' => sprintf('%d/%d', 20 + $i, $tgl->year),
                 'tanggal_penetapan' => $hari(28),
                 'tanggal_pengarsipan' => $hari(30),
@@ -299,6 +300,12 @@ class DemoSeeder extends Seeder
         ]);
     }
 
+    /** Keputusan Bupati bernomor lengkap (140/1/412.1.6/TAHUN 2025); Peraturan Bupati tanpa pola. */
+    private function polaNomor(string $jenis): ?string
+    {
+        return \App\Support\Status::label($jenis) === 'Keputusan Bupati' ? '140/{nomor}/412.1.6/TAHUN {tahun}' : null;
+    }
+
     /** Arsip produk hukum sebelum ada sistem (tanpa rancangan). */
     private function buatArsipManual(): void
     {
@@ -315,6 +322,7 @@ class DemoSeeder extends Seeder
             DokumentasiProdukHukum::create([
                 'nomor' => $nomor,
                 'tahun' => $tahun,
+                'pola_nomor' => $this->polaNomor($jenis),
                 'nomor_tahun_berita' => "{$nomor}/{$tahun}",
                 'tanggal_penetapan' => $ditetapkan,
                 'tanggal_pengarsipan' => Carbon::create(2025, 1, 20)->addDays($nomor),

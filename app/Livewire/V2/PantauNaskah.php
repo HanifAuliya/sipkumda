@@ -162,7 +162,7 @@ class PantauNaskah extends Component
 
         $alur->jalankan($this->naskah, auth()->user(), $kunci, trim($this->alasanBukaKunci));
 
-        return $this->redirectRoute('v2.naskah.kerja', $this->naskah);
+        return $this->redirectRoute('naskah.kerja', $this->naskah);
     }
 
     public function arsipkan(AlurNaskah $alur): void

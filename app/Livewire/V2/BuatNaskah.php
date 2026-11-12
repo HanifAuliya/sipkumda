@@ -105,7 +105,7 @@ class BuatNaskah extends Component
             $this->simpanBerkas($naskah, NaskahBerkas::WORD_ASLI, $this->word);
         }
 
-        return $this->redirectRoute('v2.naskah.kerja', $naskah);
+        return $this->redirectRoute('naskah.kerja', $naskah);
     }
 
     private function simpanBerkas(Naskah $naskah, string $jenis, $file): void

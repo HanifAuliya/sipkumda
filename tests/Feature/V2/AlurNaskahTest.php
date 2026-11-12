@@ -497,13 +497,13 @@ describe('hak akses tampilan', function () {
         $n = naskahPenelitian($this);
 
         $this->actingAs(tap(User::factory()->create())->assignRole('Perangkat Daerah'))
-            ->get(route('v2.naskah.kerja', $n))->assertForbidden();
+            ->get(route('naskah.kerja', $n))->assertForbidden();
         $this->actingAs(tap(User::factory()->create())->assignRole('Peneliti'))
-            ->get(route('v2.naskah.kerja', $n))->assertForbidden();
+            ->get(route('naskah.kerja', $n))->assertForbidden();
 
-        $this->actingAs($this->pd)->get(route('v2.naskah.kerja', $n))->assertOk();
-        $this->actingAs($this->peneliti)->get(route('v2.naskah.kerja', $n))->assertOk();
-        $this->actingAs($this->admin)->get(route('v2.naskah.kerja', $n))->assertOk();
+        $this->actingAs($this->pd)->get(route('naskah.kerja', $n))->assertOk();
+        $this->actingAs($this->peneliti)->get(route('naskah.kerja', $n))->assertOk();
+        $this->actingAs($this->admin)->get(route('naskah.kerja', $n))->assertOk();
     });
 
     it('berkas hanya bisa diunduh yang berhak dan milik naskah itu', function () {
@@ -513,20 +513,20 @@ describe('hak akses tampilan', function () {
         $berkas = $n->berkas()->first();
 
         $this->actingAs(tap(User::factory()->create())->assignRole('Perangkat Daerah'))
-            ->get(route('v2.naskah.berkas', [$n, $berkas]))->assertForbidden();
-        $this->actingAs($this->pd)->get(route('v2.naskah.berkas', [$lain, $berkas]))->assertNotFound();
-        $this->actingAs($this->pd)->get(route('v2.naskah.berkas', [$n, $berkas]))->assertOk();
+            ->get(route('naskah.berkas', [$n, $berkas]))->assertForbidden();
+        $this->actingAs($this->pd)->get(route('naskah.berkas', [$lain, $berkas]))->assertNotFound();
+        $this->actingAs($this->pd)->get(route('naskah.berkas', [$n, $berkas]))->assertOk();
     });
 
     it('ajukan rancangan baru hanya untuk PD, lewat modal di Rancanganku', function () {
         $this->actingAs($this->peneliti);
         Livewire::test(BuatNaskah::class)->assertForbidden();
 
-        $this->actingAs($this->pd)->get(route('v2.daftar', 'rancanganku'))
+        $this->actingAs($this->pd)->get(route('daftar', 'rancanganku'))
             ->assertOk()->assertSeeLivewire(BuatNaskah::class)->assertSee('Ajukan Rancangan Baru');
         Livewire::test(BuatNaskah::class)->assertOk();
 
-        $this->actingAs($this->admin)->get(route('v2.daftar', 'rancangan'))->assertOk()->assertDontSeeLivewire(BuatNaskah::class);
+        $this->actingAs($this->admin)->get(route('daftar', 'rancangan'))->assertOk()->assertDontSeeLivewire(BuatNaskah::class);
     });
 
     it('modal ajukan bisa dikosongkan dan filenya bisa dibuang', function () {
@@ -594,8 +594,8 @@ describe('hak akses tampilan', function () {
         $lain = tap(User::factory()->create())->assignRole('Perangkat Daerah');
 
         // Draf belum bernomor, jadi dikenali dari judulnya.
-        $this->actingAs($lain)->get(route('v2.beranda'))->assertOk()->assertDontSee($n->tentang);
-        $this->actingAs($this->pd)->get(route('v2.beranda'))->assertOk()->assertSee($n->tentang);
+        $this->actingAs($lain)->get(route('dashboard'))->assertOk()->assertDontSee($n->tentang);
+        $this->actingAs($this->pd)->get(route('dashboard'))->assertOk()->assertSee($n->tentang);
     });
 });
 
@@ -831,13 +831,13 @@ describe('bagian wajib dan lembar kerja', function () {
     it('lembar kerja memakai header jalur dengan badge jenis dokumen', function () {
         $n = naskahPenelitian($this);
 
-        $this->actingAs($this->peneliti)->get(route('v2.naskah.kerja', $n))->assertOk()
+        $this->actingAs($this->peneliti)->get(route('naskah.kerja', $n))->assertOk()
             ->assertDontSeeHtml('sticky top-0 z-30')
             ->assertSeeInOrder([$n->nomor, 'Dana Desa', 'Peraturan Bupati', 'Penelitian'])
             ->assertSee(['Ganti tema', 'Notifikasi', 'Keluar', 'Buka daftar bagian'], false)
             ->assertDontSee('Pindah Aplikasi');
 
-        $this->actingAs($this->peneliti)->get(route('v2.beranda'))->assertOk()->assertSeeHtml('sticky top-0 z-30');
+        $this->actingAs($this->peneliti)->get(route('dashboard'))->assertOk()->assertSeeHtml('sticky top-0 z-30');
     });
 
     it('lembar kerja memuat lonceng notifikasi dan tetap bisa dirender ulang', function () {
@@ -853,7 +853,7 @@ describe('bagian wajib dan lembar kerja', function () {
     it('badge Keputusan Bupati berbeda warna dari Peraturan Bupati', function () {
         $sk = naskahDraf($this->pd, 'Keputusan Bupati');
 
-        $this->actingAs($this->pd)->get(route('v2.naskah.kerja', $sk))->assertOk()
+        $this->actingAs($this->pd)->get(route('naskah.kerja', $sk))->assertOk()
             ->assertSee('Keputusan Bupati')
             ->assertSeeHtml('bg-accent-500');
     });

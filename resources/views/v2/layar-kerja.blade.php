@@ -94,7 +94,7 @@
             <i class="bi bi-list text-2xl" aria-hidden="true"></i>
         </button>
 
-        <a href="{{ route('v2.beranda') }}" class="hidden size-9 shrink-0 place-items-center rounded-lg transition hover:bg-slate-100 sm:grid dark:hover:bg-navy-800" aria-label="Dashboard" title="Dashboard">
+        <a href="{{ route('dashboard') }}" class="hidden size-9 shrink-0 place-items-center rounded-lg transition hover:bg-slate-100 sm:grid dark:hover:bg-navy-800" aria-label="Dashboard" title="Dashboard">
             <x-ui.logo class="size-7" />
         </a>
 
@@ -346,7 +346,7 @@
                     <span @if ($tombol['hambatan']) title="{{ $tombol['hambatan'] }}" @endif wire:key="aksi-{{ $kunci }}">
                         @if (in_array($kunci, \App\Livewire\V2\LayarKerja::AKSI_TAHAP_AKHIR, true))
                             {{-- Formulirnya ada di halaman Nota Dinas & Tanda Tangan. --}}
-                            <x-ui.button :variant="$tombol['varian']" :icon="$tombol['ikon']" :href="route('v2.naskah.pantau', $naskah)">{{ $tombol['label'] }}</x-ui.button>
+                            <x-ui.button :variant="$tombol['varian']" :icon="$tombol['ikon']" :href="route('naskah.pantau', $naskah)">{{ $tombol['label'] }}</x-ui.button>
                         @else
                             {{-- Target memuat parameternya, supaya spinner hanya muncul di tombol yang ditekan. --}}
                             <x-ui.button :variant="$tombol['varian']" :icon="$tombol['ikon']"
@@ -393,7 +393,7 @@
                             @if ($naskah->dokumentasi_id)
                                 <x-ui.button variant="outline" icon="box-arrow-up-right" :href="route('jdih.show', $naskah->dokumentasi_id)" target="_blank" rel="noopener" class="max-sm:flex-1">Lihat di JDIH</x-ui.button>
                             @endif
-                            <x-ui.button variant="outline-primary" icon="vector-pen" :href="route('v2.naskah.pantau', $naskah)" class="max-sm:flex-1">Nota Dinas &amp; Tanda Tangan</x-ui.button>
+                            <x-ui.button variant="outline-primary" icon="vector-pen" :href="route('naskah.pantau', $naskah)" class="max-sm:flex-1">Nota Dinas &amp; Tanda Tangan</x-ui.button>
                         </div>
                     </div>
                 @endif
@@ -469,11 +469,11 @@
                 @endif
                 @if ($bisaUnduh)
                     <div class="ml-auto flex flex-wrap justify-end gap-2">
-                        <x-ui.button size="rapat" variant="outline" icon="file-earmark-word" :href="route('v2.naskah.cetak', [$naskah, 'naskah-word'])">Naskah Word</x-ui.button>
-                        <x-ui.button size="rapat" variant="outline" icon="file-earmark-pdf" :href="route('v2.naskah.cetak', [$naskah, 'naskah-pdf'])">Naskah PDF</x-ui.button>
-                        <x-ui.button size="rapat" variant="outline" icon="table" :href="route('v2.naskah.cetak', [$naskah, 'matriks-pdf'])">Matriks PDF</x-ui.button>
+                        <x-ui.button size="rapat" variant="outline" icon="file-earmark-word" :href="route('naskah.cetak', [$naskah, 'naskah-word'])">Naskah Word</x-ui.button>
+                        <x-ui.button size="rapat" variant="outline" icon="file-earmark-pdf" :href="route('naskah.cetak', [$naskah, 'naskah-pdf'])">Naskah PDF</x-ui.button>
+                        <x-ui.button size="rapat" variant="outline" icon="table" :href="route('naskah.cetak', [$naskah, 'matriks-pdf'])">Matriks PDF</x-ui.button>
                         @if ($nota)
-                            <x-ui.button size="rapat" variant="outline" icon="file-earmark-text" :href="route('v2.naskah.cetak', [$naskah, 'nota-dinas'])">Nota Dinas</x-ui.button>
+                            <x-ui.button size="rapat" variant="outline" icon="file-earmark-text" :href="route('naskah.cetak', [$naskah, 'nota-dinas'])">Nota Dinas</x-ui.button>
                         @endif
                     </div>
                 @endif
@@ -504,7 +504,7 @@
                                     <p class="text-sm text-slate-500 italic dark:text-slate-400">Alasan: {{ $file->keterangan }}</p>
                                 @endif
                             </div>
-                            <x-ui.button size="rapat" variant="outline" icon="download" :href="route('v2.naskah.berkas', [$naskah, $file])">Unduh</x-ui.button>
+                            <x-ui.button size="rapat" variant="outline" icon="download" :href="route('naskah.berkas', [$naskah, $file])">Unduh</x-ui.button>
                         </div>
                     @empty
                         <p class="px-5 py-10 text-center text-sm text-slate-500">Belum ada berkas.</p>

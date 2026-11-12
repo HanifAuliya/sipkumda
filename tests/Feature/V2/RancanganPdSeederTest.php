@@ -80,7 +80,7 @@ it('semua rancangan bisa dibuka dan dicetak', function () {
     $cetak = app(CetakNaskah::class);
 
     foreach (Naskah::all() as $naskah) {
-        $this->actingAs($this->pd)->get(route('v2.naskah.kerja', $naskah))->assertOk()->assertSee($naskah->jenis);
+        $this->actingAs($this->pd)->get(route('naskah.kerja', $naskah))->assertOk()->assertSee($naskah->jenis);
 
         $word = $cetak->wordNaskah($naskah);
         expect(filesize($word))->toBeGreaterThan(1000);

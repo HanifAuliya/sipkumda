@@ -1,7 +1,7 @@
 {{--
     Tombol / link bergaya tombol.
     <x-ui.button variant="primary" icon="plus-lg" wire:click="simpan" loading="simpan">Simpan</x-ui.button>
-    <x-ui.button href="{{ route('v2.beranda') }}" variant="outline">Kembali</x-ui.button>
+    <x-ui.button href="{{ route('dashboard') }}" variant="outline">Kembali</x-ui.button>
 
     - variant : primary | navy | success | danger | warning | info | outline | outline-primary | outline-danger | soft-primary | soft-danger | ghost
     - size    : xs | sm | rapat | md | lg (rapat: teks sama dengan md, dipakai pada baris kerja)

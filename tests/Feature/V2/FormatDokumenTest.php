@@ -123,7 +123,7 @@ it('pratinjau di samping formulir dibuat dari isian yang belum disimpan', functi
     $lain = tap(User::factory()->create())->assignRole('Verifikator');
 
     // Sebelum dibuat belum ada berkasnya.
-    $this->actingAs($admin)->get(route('v2.format.pratinjau', 'nota'))->assertNotFound();
+    $this->actingAs($admin)->get(route('format.pratinjau', 'nota'))->assertNotFound();
 
     $halaman = Livewire::actingAs($admin)->test(PengaturanFormat::class)
         ->set('nota.penutup', 'Kalimat penutup yang belum disimpan.')
@@ -131,14 +131,14 @@ it('pratinjau di samping formulir dibuat dari isian yang belum disimpan', functi
         ->assertSet('versiPratinjau', 1)
         ->assertSet('pratinjauGagal', false);
 
-    $pdf = $this->actingAs($admin)->get(route('v2.format.pratinjau', 'nota'))->assertOk()->assertHeader('Content-Type', 'application/pdf')->getContent();
+    $pdf = $this->actingAs($admin)->get(route('format.pratinjau', 'nota'))->assertOk()->assertHeader('Content-Type', 'application/pdf')->getContent();
     $teks = preg_replace('/\s+/', '', (new Smalot\PdfParser\Parser())->parseContent($pdf)->getText());
 
     expect($teks)->toContain('Kalimatpenutupyangbelumdisimpan')
         ->and(FormatDokumen::nota()['penutup'])->not->toContain('belum disimpan');
 
     // Pratinjau milik pengguna lain tidak terbuka.
-    $this->actingAs($lain)->get(route('v2.format.pratinjau', 'nota'))->assertNotFound();
+    $this->actingAs($lain)->get(route('format.pratinjau', 'nota'))->assertNotFound();
 
     // Isian yang belum sah tidak memunculkan galat; pratinjau lama dibiarkan.
     $this->actingAs($admin);
@@ -146,7 +146,7 @@ it('pratinjau di samping formulir dibuat dari isian yang belum disimpan', functi
         ->assertHasNoErrors()->assertSet('pratinjauGagal', true)->assertSet('versiPratinjau', 1);
 
     $halaman->call('pratinjau', 'kepbup')->assertSet('versiPratinjau', 2)->assertSet('sumberPratinjau', '');
-    $this->actingAs($admin)->get(route('v2.format.pratinjau', 'kepbup'))->assertOk();
+    $this->actingAs($admin)->get(route('format.pratinjau', 'kepbup'))->assertOk();
 });
 
 it('pratinjau memakai naskah sungguhan, yang sudah selesai lebih dulu', function () {
@@ -180,7 +180,7 @@ it('pratinjau memakai naskah sungguhan, yang sudah selesai lebih dulu', function
         ->assertSee('Memakai naskah');
 
     $teks = preg_replace('/\s+/', '', (new Smalot\PdfParser\Parser())->parseContent(
-        $this->actingAs($admin)->get(route('v2.format.pratinjau', 'kepbup'))->getContent()
+        $this->actingAs($admin)->get(route('format.pratinjau', 'kepbup'))->getContent()
     )->getText());
 
     expect($teks)->toContain('IsidiktumNaskahSelesai');
@@ -190,10 +190,10 @@ describe('menu Format Dokumen', function () {
     it('hanya untuk Admin, Verifikator, dan Super Admin', function () {
         $pd = tap(User::factory()->create())->assignRole('Perangkat Daerah');
 
-        $this->actingAs($pd)->get(route('v2.format'))->assertForbidden();
-        $this->actingAs($pd)->get(route('v2.format.gambar', 'kepbup'))->assertForbidden();
-        $this->actingAs($this->verifikator)->get(route('v2.format'))->assertOk()->assertSee('Format Dokumen')->assertSee('Paraf Hierarki');
-        $this->actingAs($this->verifikator)->get(route('v2.format.gambar', 'nota'))->assertOk();
+        $this->actingAs($pd)->get(route('format'))->assertForbidden();
+        $this->actingAs($pd)->get(route('format.gambar', 'kepbup'))->assertForbidden();
+        $this->actingAs($this->verifikator)->get(route('format'))->assertOk()->assertSee('Format Dokumen')->assertSee('Paraf Hierarki');
+        $this->actingAs($this->verifikator)->get(route('format.gambar', 'nota'))->assertOk();
     });
 
     it('menyimpan isian dengan tipe yang benar dan menolak isian tidak sah', function () {

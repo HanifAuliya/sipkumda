@@ -9,7 +9,7 @@
 @props(['title', 'description' => null, 'icon' => null, 'back' => null])
 
 @php
-    $back = $back === false ? null : ($back ?? route('v2.beranda'));
+    $back = $back === false ? null : ($back ?? route('dashboard'));
     // Berpindah halaman tanpa memuat ulang, sama seperti menu di sidebar.
     $tautanKembali = new \Illuminate\View\ComponentAttributeBag(['wire:navigate' => '']);
 @endphp

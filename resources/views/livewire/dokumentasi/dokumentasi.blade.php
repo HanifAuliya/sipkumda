@@ -27,7 +27,16 @@
     </x-ui.page-header>
 
     <x-ui.card>
+        @if ($bolehAntre)
+            {{-- Arsip dan antreannya di satu halaman: yang sudah terarsip, dan naskah yang tinggal diarsipkan. --}}
+            <x-ui.tabs class="mb-5">
+                <x-ui.tab :active="$tab === 'terarsip'" icon="folder-check" :count="$totalDokumentasi" wire:click="$set('tab', 'terarsip')">Terarsip</x-ui.tab>
+                <x-ui.tab :active="$tab === 'menunggu'" icon="hourglass-split" :count="$jumlahAntre" wire:click="$set('tab', 'menunggu')">Menunggu Arsip</x-ui.tab>
+            </x-ui.tabs>
+        @endif
+
         <x-ui.list-toolbar placeholder="Cari tentang atau nomor..." :options="[5, 10, 20, 50]">
+            @if ($tab === 'terarsip')
             <x-form.select wire:model.live="tahun" icon="calendar3" class="sm:w-44" aria-label="Tahun">
                 <option value="">Semua tahun</option>
                 @foreach ($tahunOptions as $year)
@@ -40,7 +49,48 @@
                     <option value="{{ $jenis }}">{{ $jenis }}</option>
                 @endforeach
             </x-form.select>
+            @else
+                <x-form.select wire:model.live="jenisRancangan" icon="tags" class="sm:w-56" aria-label="Jenis produk hukum">
+                    <option value="">Semua jenis</option>
+                    <option value="Peraturan Bupati">Peraturan Bupati</option>
+                    <option value="Keputusan Bupati">Keputusan Bupati</option>
+                </x-form.select>
+            @endif
         </x-ui.list-toolbar>
+
+        @if ($tab === 'menunggu')
+            <x-ui.table>
+                <x-slot:head>
+                    <th>Naskah</th>
+                    <th class="max-sm:hidden">Tentang</th>
+                    <th class="max-sm:hidden">Perangkat Daerah</th>
+                    <th class="max-sm:hidden">Tanda Tangan Bupati</th>
+                    <th class="text-right">Aksi</th>
+                </x-slot:head>
+
+                @forelse ($antrean as $naskah)
+                    <tr wire:key="antre-{{ $naskah->id }}">
+                        <td class="sm:whitespace-nowrap">
+                            <p class="sel-utama">{{ $naskah->nomor_tampil }}</p>
+                            <x-ui.status-badge :value="$naskah->jenis" class="mt-1" />
+                            <p class="sel-judul mt-1.5 sm:hidden">{{ $naskah->tentang }}</p>
+                        </td>
+                        <td class="min-w-64 max-sm:hidden"><p class="sel-judul">{{ $naskah->tentang }}</p></td>
+                        <td class="min-w-44 max-sm:hidden"><p class="sel-judul">{{ $naskah->pemrakarsa->perangkatDaerah->nama_perangkat_daerah ?? $naskah->pemrakarsa->nama_user }}</p></td>
+                        <td class="whitespace-nowrap max-sm:hidden">{{ tanggal($naskah->tahapan_ttd['bupati'] ?? null) }}</td>
+                        <td>
+                            <div class="flex justify-end">
+                                <x-ui.button size="sm" variant="success" icon="archive" :href="route('naskah.pantau', $naskah)">Arsipkan</x-ui.button>
+                            </div>
+                        </td>
+                    </tr>
+                @empty
+                    <x-ui.empty-row colspan="5" icon="hourglass-split" :message="filled($search) || filled($jenisRancangan) ? 'Tidak ada naskah yang cocok.' : 'Tidak ada naskah yang menunggu diarsipkan.'">
+                        <x-ui.reset-filter :aktif="filled($search) || filled($jenisRancangan)" :nilai="['search' => '', 'jenisRancangan' => '']" />
+                    </x-ui.empty-row>
+                @endforelse
+            </x-ui.table>
+        @else
 
         @php
             $sortHeader = fn (string $kolom) => $sortColumn === $kolom
@@ -86,7 +136,7 @@
                                 {{-- Diarsipkan dari naskah v2: yang berhak melihat naskahnya bisa langsung membukanya. --}}
                                 <i class="bi bi-link-45deg"></i>
                                 @can('view', $dokumentasi->naskah)
-                                    <a href="{{ route('v2.naskah.kerja', $dokumentasi->naskah) }}" class="font-medium text-primary-600 underline-offset-2 hover:underline dark:text-primary-300">Naskah {{ $dokumentasi->naskah->nomor_tampil }}</a>
+                                    <a href="{{ route('naskah.kerja', $dokumentasi->naskah) }}" class="font-medium text-primary-600 underline-offset-2 hover:underline dark:text-primary-300">Naskah {{ $dokumentasi->naskah->nomor_tampil }}</a>
                                 @else
                                     Naskah {{ $dokumentasi->naskah->nomor_tampil }}
                                 @endcan
@@ -126,6 +176,7 @@
         </x-ui.table>
 
         <div class="mt-5">{{ $dokumentasiList->links() }}</div>
+        @endif
     </x-ui.card>
 
     <livewire:dokumentasi.ajukan-dokumentasi-produk-hukum />

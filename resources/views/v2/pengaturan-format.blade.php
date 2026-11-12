@@ -16,7 +16,7 @@
     x-on:change.debounce.900ms="segarkan()"
     x-on:livewire-upload-finish.debounce.300ms="segarkan()"
     x-on:segarkan-pratinjau.window="segarkan()">
-    <x-ui.page-header title="Format Dokumen" description="Kertas, margin, huruf, kop, dan isi dokumen yang dicetak. Berlaku untuk dokumen yang dicetak sesudah disimpan." icon="file-earmark-text" :back="route('v2.beranda')" />
+    <x-ui.page-header title="Format Dokumen" description="Kertas, margin, huruf, kop, dan isi dokumen yang dicetak. Berlaku untuk dokumen yang dicetak sesudah disimpan." icon="file-earmark-text" :back="route('dashboard')" />
 
     <x-ui.card :padding="false" class="mb-6">
         <div class="p-3">
@@ -66,7 +66,7 @@
                     @if ($versiPratinjau > 0)
                         {{-- Alamatnya berganti tiap pembaruan, supaya browser memuat PDF yang baru. --}}
                         <iframe wire:key="pratinjau-{{ $tab }}-{{ $versiPratinjau }}" title="Pratinjau {{ $judulTab }}"
-                            src="{{ route('v2.format.pratinjau', ['bagian' => $tab, 'v' => $versiPratinjau]) }}#toolbar=0&navpanes=0&view=FitH"
+                            src="{{ route('format.pratinjau', ['bagian' => $tab, 'v' => $versiPratinjau]) }}#toolbar=0&navpanes=0&view=FitH"
                             class="absolute inset-0 size-full border-0 transition-opacity duration-150" wire:loading.class="opacity-40" wire:target="pratinjau"></iframe>
                     @else
                         <div class="absolute inset-0 grid place-items-center text-sm text-slate-500 dark:text-slate-400">

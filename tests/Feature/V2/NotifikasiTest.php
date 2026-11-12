@@ -91,7 +91,7 @@ describe('membuka notifikasi', function () {
 
         Livewire::actingAs($this->pd)->test(Lonceng::class)
             ->call('buka', $id)
-            ->assertRedirect(route('v2.naskah.kerja', $n));
+            ->assertRedirect(route('naskah.kerja', $n));
 
         expect(DatabaseNotification::find($id)->read_at)->not->toBeNull();
     });
@@ -185,7 +185,7 @@ describe('halaman notifikasi', function () {
         $this->pd->notify(new NaskahNotification(['kategori' => 'kabar', 'title' => 'Kabar biasa', 'message' => '-']));
         $this->admin->notify(new NaskahNotification(['kategori' => 'tugas', 'title' => 'Milik admin', 'message' => '-']));
 
-        $this->actingAs($this->pd)->get(route('v2.notifikasi'))->assertOk();
+        $this->actingAs($this->pd)->get(route('notifikasi'))->assertOk();
 
         Livewire::actingAs($this->pd)->test(Notifikasi::class)
             ->assertSee('Tugas belum dikerjakan')->assertSee('Kabar biasa')->assertDontSee('Milik admin')

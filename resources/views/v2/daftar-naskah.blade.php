@@ -1,5 +1,5 @@
 <div>
-    <x-ui.page-header :title="$info['judul']" :description="$info['keterangan']" :icon="$info['ikon']" :back="route('v2.beranda')">
+    <x-ui.page-header :title="$info['judul']" :description="$info['keterangan']" :icon="$info['ikon']" :back="route('dashboard')">
         @if ($bisaBuat)
             <x-slot:actions>
                 <livewire:rancangan.bahan-penting-dropdown />

@@ -287,7 +287,7 @@ class PengaturanFormat extends Component
         return view('v2.pengaturan-format', [
             'unggahan' => array_map('boolval', $unggahan),
             // Alamatnya ikut berganti setiap gambar diganti, supaya browser tidak menampilkan yang lama.
-            'urlGambar' => collect($unggahan)->map(fn ($path, $bagian) => route('v2.format.gambar', ['bagian' => $bagian, 'v' => substr(md5((string) $path), 0, 8)]))->all(),
+            'urlGambar' => collect($unggahan)->map(fn ($path, $bagian) => route('format.gambar', ['bagian' => $bagian, 'v' => substr(md5((string) $path), 0, 8)]))->all(),
         ]);
     }
 }

@@ -49,8 +49,6 @@ class DaftarNaskah extends Component
             'tab' => [['hourglass-split', 'Menunggu Terbit'], ['check2-circle', 'Sudah Terbit']]],
         'penandatanganan' => ['judul' => 'Penandatanganan', 'keterangan' => 'Pencatatan paraf dan tanda tangan basah', 'ikon' => 'vector-pen', 'tahap' => [T::Penandatanganan],
             'tab' => [['hourglass-split', 'Sedang Berjalan'], ['check2-circle', 'Sudah Selesai']]],
-        'arsip' => ['judul' => 'Menunggu Arsip', 'keterangan' => 'Naskah bertanda tangan yang menunggu masuk arsip dan JDIH', 'ikon' => 'archive', 'tahap' => [T::Arsip],
-            'tab' => [['hourglass-split', 'Menunggu Arsip'], ['check2-circle', 'Sudah Diarsipkan']]],
     ];
 
     #[Locked]

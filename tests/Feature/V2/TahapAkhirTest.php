@@ -161,8 +161,8 @@ describe('nota dinas', function () {
         expect($teks)->toContain('100.3/12/ND/KUM')->toContain('DanaDesa')->toContain('DinasUji')->toContain('NAMAKABAG')
             ->toContain('KoreksiatasPeraturanBupatitentangDanaDesa.')->toContain('NOTADINAS');
 
-        $this->actingAs($this->pd)->get(route('v2.naskah.cetak', [$n, 'nota-dinas']))->assertOk()->assertDownload();
-        $this->actingAs(tap(User::factory()->create())->assignRole('Perangkat Daerah'))->get(route('v2.naskah.cetak', [$n, 'nota-dinas']))->assertForbidden();
+        $this->actingAs($this->pd)->get(route('naskah.cetak', [$n, 'nota-dinas']))->assertOk()->assertDownload();
+        $this->actingAs(tap(User::factory()->create())->assignRole('Perangkat Daerah'))->get(route('naskah.cetak', [$n, 'nota-dinas']))->assertForbidden();
     });
 
     it('dibekukan saat terbit; perubahan Format Dokumen baru berlaku setelah Admin menerbitkan ulang', function () {
@@ -232,7 +232,7 @@ describe('persetujuan fasilitasi', function () {
 
         expect(fn () => $this->alur->jalankan($this->n, $this->admin, 'setujui_fasilitasi'))->toThrow(HttpException::class);
 
-        $this->actingAs($this->peneliti)->get(route('v2.daftar', 'persetujuan-fasilitasi'))->assertOk()->assertSee('Dana Desa');
+        $this->actingAs($this->peneliti)->get(route('daftar', 'persetujuan-fasilitasi'))->assertOk()->assertSee('Dana Desa');
 
         expect($this->alur->jalankan($this->n, $this->peneliti, 'setujui_fasilitasi')->tahap)->toBe(T::ValidasiFasilitasi);
     });
@@ -282,7 +282,7 @@ describe('penandatanganan', function () {
         expect($n->tahapan_ttd)->toHaveKey('paraf_koordinasi');
 
         // Tamu memantau dari halaman pantau, bukan layar kerja matriks.
-        $this->actingAs($tamu)->get(route('v2.naskah.kerja', $n))->assertRedirect(route('v2.naskah.pantau', $n));
+        $this->actingAs($tamu)->get(route('naskah.kerja', $n))->assertRedirect(route('naskah.pantau', $n));
 
         Livewire::actingAs($tamu)->test(PantauNaskah::class, ['naskah' => $n])
             ->assertSee('Pantau Tanda Tangan')
@@ -311,8 +311,8 @@ describe('penandatanganan', function () {
 
         expect(fn () => $this->alur->terbitkanNota($final, $tamu, '77', 'Sekda', $this->ttd->id))->toThrow(HttpException::class);
 
-        $this->actingAs($tamu)->get(route('v2.naskah.kerja', $draf))->assertForbidden();
-        $this->actingAs($tamu)->get(route('v2.daftar', 'penandatanganan'))->assertOk()->assertSee($this->n->tentang)->assertDontSee('Belum Ada Nota');
+        $this->actingAs($tamu)->get(route('naskah.kerja', $draf))->assertForbidden();
+        $this->actingAs($tamu)->get(route('daftar', 'penandatanganan'))->assertOk()->assertSee($this->n->tentang)->assertDontSee('Belum Ada Nota');
 
         foreach (['paraf_koordinasi', 'asisten', 'sekda', 'bupati'] as $_) {
             $this->n = $this->alur->tandaiTahapan($this->n, $tamu);
@@ -329,13 +329,13 @@ describe('penandatanganan', function () {
         Storage::disk('local')->put($berkas->path, 'isi');
 
         foreach (['naskah-word', 'naskah-pdf', 'matriks-pdf', 'nota-dinas'] as $jenis) {
-            $this->actingAs($tamu)->get(route('v2.naskah.cetak', [$this->n, $jenis]))->assertForbidden();
+            $this->actingAs($tamu)->get(route('naskah.cetak', [$this->n, $jenis]))->assertForbidden();
         }
-        $this->actingAs($tamu)->get(route('v2.naskah.berkas', [$this->n, $berkas]))->assertForbidden();
-        $this->actingAs($this->admin)->get(route('v2.naskah.berkas', [$this->n, $berkas]))->assertOk();
+        $this->actingAs($tamu)->get(route('naskah.berkas', [$this->n, $berkas]))->assertForbidden();
+        $this->actingAs($this->admin)->get(route('naskah.berkas', [$this->n, $berkas]))->assertOk();
 
         $this->actingAs($tamu);
-        $cetak = route('v2.naskah.cetak', [$this->n, 'naskah-pdf']);
+        $cetak = route('naskah.cetak', [$this->n, 'naskah-pdf']);
 
         Livewire::test(PantauNaskah::class, ['naskah' => $this->n])
             ->set('lihatIsi', true)
@@ -370,7 +370,7 @@ describe('penandatanganan', function () {
             ->assertHasErrors('alasanBukaKunci')
             ->set('alasanBukaKunci', 'Koreksi dari Sekda')
             ->call('bukaKunci')
-            ->assertRedirect(route('v2.naskah.kerja', $n));
+            ->assertRedirect(route('naskah.kerja', $n));
 
         expect($n->fresh()->tahap)->toBe(T::ValidasiFasilitasi)->and($n->fresh()->tahapan_ttd)->toBeNull();
 
@@ -456,9 +456,25 @@ describe('arsip ke JDIH', function () {
         $d->update(['nomor' => '9']);
         expect($d->fresh()->nomor_lengkap)->toBe('800/9/412.1.6/TAHUN 2025');
 
+        // Ubah dokumentasi: isian nomor SK terpecah sesuai pola yang tersimpan.
+        Livewire::actingAs($this->admin)->test(\App\Livewire\Dokumentasi\Dokumentasi::class)
+            ->call('edit', $d->id)
+            ->assertSet('bagianNomor', [0 => '800', 4 => '412.1.6'])
+            ->assertSee('Nomor Keputusan Bupati');
+
         // Peraturan Bupati tetap "Nomor 7 Tahun 2026", dan nomor urut tetap unik per tahun.
         $n = $this->alur->arsipkan($this->n, $this->admin, '7', '2026-11-01', null, null, $this->pdf);
         expect(DokumentasiProdukHukum::find($n->dokumentasi_id)->nomor_formatted)->toBe('Nomor 7 Tahun 2026');
+    });
+
+    it('antrean arsip menjadi tab di halaman Dokumentasi, khusus Bagian Hukum', function () {
+        $this->actingAs($this->admin)->get(route('dokumentasi.main', ['tab' => 'menunggu']))
+            ->assertOk()->assertSee('Menunggu Arsip')->assertSeeHtml("\$set('tab', 'menunggu')")->assertSee($this->n->tentang)->assertSee(route('naskah.pantau', $this->n));
+
+        // Perangkat Daerah hanya melihat yang sudah terarsip.
+        $this->actingAs($this->pd)->get(route('dokumentasi.main', ['tab' => 'menunggu']))
+            // "Menunggu Arsip" bisa muncul di notifikasi sebagai nama tahap; yang diperiksa tombol tabnya.
+            ->assertOk()->assertDontSeeHtml("\$set('tab', 'menunggu')")->assertDontSee(route('naskah.pantau', $this->n));
     });
 
     it('PD tidak bisa mengarsipkan', function () {
@@ -475,7 +491,7 @@ describe('arsip ke JDIH', function () {
 
     it('arsip dikerjakan di halaman Nota Dinas & Tanda Tangan, dan tombol Kerjakan langsung ke sana', function () {
         $this->actingAs($this->admin);
-        $halaman = route('v2.naskah.pantau', $this->n);
+        $halaman = route('naskah.pantau', $this->n);
 
         expect($this->n->tautanUntuk($this->admin))->toBe($halaman)
             ->and(T::Arsip->labelKerjakan())->toBe('Arsipkan')
@@ -497,7 +513,7 @@ describe('arsip ke JDIH', function () {
 
         expect($this->n->fresh()->tahap)->toBe(T::Selesai)
             // Sesudah selesai, naskah dibuka lagi sebagai matriks untuk dibaca.
-            ->and($this->n->fresh()->tautanUntuk($this->admin))->toBe(route('v2.naskah.kerja', $this->n));
+            ->and($this->n->fresh()->tautanUntuk($this->admin))->toBe(route('naskah.kerja', $this->n));
     });
 });
 
@@ -508,10 +524,10 @@ it('halaman Nota Dinas & Tanda Tangan menerbitkan nota dinas dan mencatat tahapa
 
     // Dari layar kerja, tombol aksinya membawa ke halaman tersendiri; matriks tidak lagi memuat formulirnya.
     Livewire::test(LayarKerja::class, ['naskah' => $n])
-        ->assertSeeHtml(route('v2.naskah.pantau', $n))
+        ->assertSeeHtml(route('naskah.pantau', $n))
         ->assertDontSee('Tahapan Tanda Tangan')
         ->call('pilihAksi', 'terbitkan_nota')
-        ->assertRedirect(route('v2.naskah.pantau', $n));
+        ->assertRedirect(route('naskah.pantau', $n));
 
     $halaman = Livewire::test(PantauNaskah::class, ['naskah' => $n])
         ->assertSee('Nota Dinas & Tanda Tangan')
@@ -560,8 +576,8 @@ it('halaman Nota Dinas & Tanda Tangan menerbitkan nota dinas dan mencatat tahapa
         ->and(teksPdfAkhir(app(CetakNaskah::class)->pdfNotaDinas($n)))->toContain('NAMASEKDA');
 
     foreach ($n->berkas()->where('jenis', NaskahBerkas::NOTA_DINAS)->get() as $versi) {
-        $halaman->assertSeeHtml(route('v2.naskah.berkas', [$n, $versi]));
-        $this->get(route('v2.naskah.berkas', [$n, $versi]))->assertOk();
+        $halaman->assertSeeHtml(route('naskah.berkas', [$n, $versi]));
+        $this->get(route('naskah.berkas', [$n, $versi]))->assertOk();
     }
 });
 
@@ -607,9 +623,9 @@ describe('kelengkapan layar', function () {
     });
 
     it('template Word bisa diunduh dan terbaca kembali', function () {
-        $this->actingAs($this->pd)->get(route('v2.template', 'peraturan-bupati'))->assertOk()->assertDownload('Template Peraturan Bupati.docx');
-        $this->actingAs($this->pd)->get(route('v2.template', 'keputusan-bupati'))->assertOk();
-        $this->actingAs($this->pd)->get('/v2/template/lain')->assertNotFound();
+        $this->actingAs($this->pd)->get(route('template', 'peraturan-bupati'))->assertOk()->assertDownload('Template Peraturan Bupati.docx');
+        $this->actingAs($this->pd)->get(route('template', 'keputusan-bupati'))->assertOk();
+        $this->actingAs($this->pd)->get('/template/lain')->assertNotFound();
 
         foreach (['Peraturan Bupati', 'Keputusan Bupati'] as $jenis) {
             $path = app(CetakNaskah::class)->wordTemplate($jenis);
@@ -962,7 +978,7 @@ describe('tahapan tanda tangan bisa dibetulkan', function () {
     });
 
     it('halaman pantau Tamu: tombol hilang setelah naskah diarsipkan', function () {
-        $this->actingAs($this->tamu)->get(route('v2.naskah.pantau', $this->n))->assertOk()->assertSee('Pantau Tanda Tangan');
+        $this->actingAs($this->tamu)->get(route('naskah.pantau', $this->n))->assertOk()->assertSee('Pantau Tanda Tangan');
 
         $this->n->forceFill(['tahap' => T::Selesai])->save();
 
@@ -972,8 +988,8 @@ describe('tahapan tanda tangan bisa dibetulkan', function () {
             ->assertDontSee('Ubah Tanggal');
 
         // Akun dengan peran kerja tetap dibawa ke layar kerja.
-        expect($this->n->tautanUntuk($this->admin))->toBe(route('v2.naskah.kerja', $this->n))
-            ->and($this->n->tautanUntuk($this->tamu))->toBe(route('v2.naskah.pantau', $this->n));
+        expect($this->n->tautanUntuk($this->admin))->toBe(route('naskah.kerja', $this->n))
+            ->and($this->n->tautanUntuk($this->tamu))->toBe(route('naskah.pantau', $this->n));
     });
 });
 

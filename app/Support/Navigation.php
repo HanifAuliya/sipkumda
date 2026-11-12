@@ -19,7 +19,7 @@ class Navigation
     {
         $daftar = fn (string $label, string $kelompok, string $icon, ?array $roles = null) => array_filter([
             'label' => $label,
-            'route' => 'v2.daftar',
+            'route' => 'daftar',
             'params' => ['kelompok' => $kelompok],
             'icon' => $icon,
             'roles' => $roles,
@@ -29,7 +29,7 @@ class Navigation
             [
                 'title' => null,
                 'items' => [
-                    ['label' => 'Dashboard', 'route' => 'v2.beranda', 'icon' => 'grid-1x2'],
+                    ['label' => 'Dashboard', 'route' => 'dashboard', 'icon' => 'grid-1x2'],
                 ],
             ],
             [
@@ -65,20 +65,20 @@ class Navigation
             [
                 'title' => 'Dokumentasi Produk Hukum',
                 'items' => [
-                    $daftar('Menunggu Arsip', 'arsip', 'archive', ['Admin', 'Verifikator']),
-                    ['label' => 'Daftar Dokumentasi', 'route' => 'dokumentasi.main', 'icon' => 'folder-check', 'roles' => ['Admin', 'Verifikator', 'Perangkat Daerah', 'Peneliti']],
+                    // Antrean arsip menjadi tab di halaman Dokumentasi (khusus Bagian Hukum).
+                    ['label' => 'Dokumentasi', 'route' => 'dokumentasi.main', 'icon' => 'folder-check', 'roles' => ['Admin', 'Verifikator', 'Perangkat Daerah', 'Peneliti']],
                     ['label' => 'Master Data', 'route' => 'masterdata.main', 'icon' => 'journals', 'roles' => ['Admin', 'Verifikator', 'Peneliti', 'Super Admin']],
                 ],
             ],
             [
                 'title' => 'Pengaturan',
                 'items' => [
-                    ['label' => 'Pengaturan Naskah', 'route' => 'v2.pengaturan', 'icon' => 'gear', 'roles' => ['Admin', 'Verifikator', 'Super Admin']],
-                    ['label' => 'Format Dokumen', 'route' => 'v2.format', 'icon' => 'file-earmark-text', 'roles' => ['Admin', 'Verifikator', 'Super Admin']],
+                    ['label' => 'Pengaturan Naskah', 'route' => 'pengaturan', 'icon' => 'gear', 'roles' => ['Admin', 'Verifikator', 'Super Admin']],
+                    ['label' => 'Format Dokumen', 'route' => 'format', 'icon' => 'file-earmark-text', 'roles' => ['Admin', 'Verifikator', 'Super Admin']],
                     // Dipakai saat menerbitkan nota dinas dan saat PD menyusun rancangan, bukan tahap pekerjaan.
                     ['label' => 'Kelola TTD', 'route' => 'kelola-ttd.main', 'icon' => 'pen', 'roles' => ['Verifikator']],
                     ['label' => 'Template Bahan Penting', 'route' => 'bahan-penting', 'icon' => 'list-task', 'roles' => ['Admin']],
-                    ['label' => 'Perangkat Daerah', 'route' => 'v2.perangkat-daerah', 'icon' => 'building', 'roles' => ['Admin', 'Super Admin']],
+                    ['label' => 'Perangkat Daerah', 'route' => 'perangkat-daerah', 'icon' => 'building', 'roles' => ['Admin', 'Super Admin']],
                 ],
             ],
         ];
@@ -86,7 +86,7 @@ class Navigation
 
     public static function beranda(): string
     {
-        return route('v2.beranda');
+        return route('dashboard');
     }
 
     public static function aktif(array $item): bool
