@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\TahapNaskah as T;
 use App\Models\DokumentasiProdukHukum;
 use App\Models\Naskah;
+use App\Models\Pengaturan;
 use App\Models\NaskahBaris as B;
 use App\Models\NaskahBerkas;
 use App\Models\NaskahNotaDinas;
@@ -72,7 +73,10 @@ class AlurNaskah
     /** Yang menerbitkan nota dinas juga boleh membetulkan dan menerbitkannya ulang. */
     private const PENERBIT_ULANG_NOTA = ['Admin', 'Verifikator', 'Super Admin'];
 
-    /** Urutan penandatanganan di luar sistem, dicatat satu per satu. */
+    /**
+     * Urutan bawaan penandatanganan di luar sistem, dicatat satu per satu. Urutan yang berlaku diatur
+     * Admin di menu Pengaturan Naskah; lihat tahapanTtd().
+     */
     public const TAHAPAN_TTD = [
         'paraf_koordinasi' => 'Paraf Koordinasi',
         'asisten' => 'Asisten',
@@ -112,7 +116,7 @@ class AlurNaskah
             $hasil[$kunci] = $aksi + ['hambatan' => $this->hambatan($naskah, $kunci)];
 
             if ($kunci === 'tandai_tahapan') {
-                $hasil[$kunci]['label'] = 'Tandai ' . self::TAHAPAN_TTD[$this->tahapanBerikutnya($naskah)] . ' selesai';
+                $hasil[$kunci]['label'] = 'Tandai ' . self::tahapanTtd()[$this->tahapanBerikutnya($naskah)] . ' selesai';
             }
         }
 
@@ -168,10 +172,18 @@ class AlurNaskah
         });
     }
 
+    /** Urutan tahapan tanda tangan yang berlaku: [kunci => nama]. */
+    public static function tahapanTtd(): array
+    {
+        $tersimpan = json_decode(Pengaturan::ambil(Pengaturan::TAHAPAN_TTD), true);
+
+        return is_array($tersimpan) && $tersimpan !== [] ? $tersimpan : self::TAHAPAN_TTD;
+    }
+
     /** Kunci tahapan penandatanganan berikutnya yang belum selesai. */
     public function tahapanBerikutnya(Naskah $naskah): ?string
     {
-        return array_key_first(array_diff_key(self::TAHAPAN_TTD, $naskah->tahapan_ttd ?? []));
+        return array_key_first(array_diff_key(self::tahapanTtd(), $naskah->tahapan_ttd ?? []));
     }
 
     /** Peneliti hanya melihat satu tombol lanjut, sesuai ada tidaknya baris untuk PD. */
@@ -358,23 +370,23 @@ class AlurNaskah
             $berikutnya = $this->tahapanBerikutnya($naskah);
             $tahapan = $kunci ?? $berikutnya;
 
-            abort_unless(isset(self::TAHAPAN_TTD[$tahapan]), 404);
+            abort_unless(isset(self::tahapanTtd()[$tahapan]), 404);
 
             if (isset($naskah->tahapan_ttd[$tahapan])) {
-                $this->gagal('tahapan', self::TAHAPAN_TTD[$tahapan] . ' sudah ditandai. Ubah tanggalnya bila perlu.');
+                $this->gagal('tahapan', self::tahapanTtd()[$tahapan] . ' sudah ditandai. Ubah tanggalnya bila perlu.');
             }
 
             $naskah->tahapan_ttd = $this->urutkanTahapan(($naskah->tahapan_ttd ?? []) + [$tahapan => $tanggal]);
-            $catatan = $tahapan !== $berikutnya ? 'Tidak berurutan: ' . self::TAHAPAN_TTD[$berikutnya] . ' belum ditandai.' : null;
+            $catatan = $tahapan !== $berikutnya ? 'Tidak berurutan: ' . self::tahapanTtd()[$berikutnya] . ' belum ditandai.' : null;
 
-            $this->catat($naskah, $user, 'tahapan', $catatan, null, self::TAHAPAN_TTD[$tahapan]);
+            $this->catat($naskah, $user, 'tahapan', $catatan, null, self::tahapanTtd()[$tahapan]);
 
             if ($this->tahapanBerikutnya($naskah) === null) {
                 return $this->pindah($naskah, $user, T::Arsip);
             }
 
             $naskah->save();
-            $this->beriTahuPemrakarsa($naskah, $user, self::TAHAPAN_TTD[$tahapan]);
+            $this->beriTahuPemrakarsa($naskah, $user, self::tahapanTtd()[$tahapan]);
 
             return $naskah;
         });
@@ -398,7 +410,7 @@ class AlurNaskah
             if ($lama !== $tanggal) {
                 $naskah->tahapan_ttd = [...$naskah->tahapan_ttd, $kunci => $tanggal];
                 $naskah->save();
-                $this->catat($naskah, $user, 'tahapan_tanggal', self::TAHAPAN_TTD[$kunci], $lama, $tanggal);
+                $this->catat($naskah, $user, 'tahapan_tanggal', self::tahapanTtd()[$kunci], $lama, $tanggal);
             }
 
             return $naskah;
@@ -410,7 +422,7 @@ class AlurNaskah
     {
         return DB::transaction(function () use ($naskah, $user, $kunci) {
             $naskah = $this->kunciTahapan($naskah, $user, $kunci);
-            $nama = self::TAHAPAN_TTD[$kunci];
+            $nama = self::tahapanTtd()[$kunci];
 
             $naskah->tahapan_ttd = array_diff_key($naskah->tahapan_ttd, [$kunci => true]) ?: null;
             $this->catat($naskah, $user, 'tahapan_batal', null, $nama, null);
@@ -427,12 +439,12 @@ class AlurNaskah
 
     private function kunciTahapan(Naskah $naskah, User $user, string $kunci): Naskah
     {
-        abort_unless(isset(self::TAHAPAN_TTD[$kunci]), 404);
+        abort_unless(isset(self::tahapanTtd()[$kunci]), 404);
         $naskah = Naskah::whereKey($naskah->id)->lockForUpdate()->firstOrFail();
         abort_unless($this->bolehKelolaTtd($naskah, $user), 403, 'Tahapan tanda tangan tidak bisa diubah pada tahap ini.');
 
         if (! isset($naskah->tahapan_ttd[$kunci])) {
-            $this->gagal('tahapan', self::TAHAPAN_TTD[$kunci] . ' belum ditandai.');
+            $this->gagal('tahapan', self::tahapanTtd()[$kunci] . ' belum ditandai.');
         }
 
         return $naskah;
@@ -452,7 +464,7 @@ class AlurNaskah
     /** Disimpan menurut urutan resmi, apa pun urutan penandaannya. */
     private function urutkanTahapan(array $tahapan): array
     {
-        return array_intersect_key(array_replace(self::TAHAPAN_TTD, $tahapan), $tahapan);
+        return array_intersect_key(array_replace(self::tahapanTtd(), $tahapan), $tahapan);
     }
 
     /** Naskah bertanda tangan basah masuk ke tabel arsip yang sama dengan JDIH. */

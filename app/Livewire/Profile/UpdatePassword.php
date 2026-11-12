@@ -15,6 +15,12 @@ class UpdatePassword extends Component
 
     public bool $mengubah = false;
 
+    public function mount(): void
+    {
+        // Masuk dengan kata sandi sementara: formulir langsung terbuka.
+        $this->mengubah = (bool) Auth::user()->wajib_ganti_sandi;
+    }
+
     public function mulaiUbah(): void
     {
         $this->mengubah = true;
@@ -47,6 +53,7 @@ class UpdatePassword extends Component
             $user = Auth::user();
             $user->update([
                 'password' => Hash::make($this->password),
+                'wajib_ganti_sandi' => false,
             ]);
 
             // Reset input setelah berhasil

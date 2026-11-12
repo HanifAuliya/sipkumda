@@ -75,10 +75,10 @@
                         @if ($naskah->tahapan_ttd)
                             {{-- Tahapan tanda tangan diringkas dalam satu baris, bukan empat. --}}
                             <x-ui.info-item label="Tanda Tangan">
-                                {{ count(array_intersect_key($naskah->tahapan_ttd, AlurNaskah::TAHAPAN_TTD)) }} dari {{ count(AlurNaskah::TAHAPAN_TTD) }} selesai
-                                @php $terakhir = collect(AlurNaskah::TAHAPAN_TTD)->filter(fn ($n, $k) => isset($naskah->tahapan_ttd[$k]))->keys()->last(); @endphp
+                                {{ count(array_intersect_key($naskah->tahapan_ttd, AlurNaskah::tahapanTtd())) }} dari {{ count(AlurNaskah::tahapanTtd()) }} selesai
+                                @php $terakhir = collect(AlurNaskah::tahapanTtd())->filter(fn ($n, $k) => isset($naskah->tahapan_ttd[$k]))->keys()->last(); @endphp
                                 @if ($terakhir)
-                                    <span class="{{ $sekunder }}">Terakhir: {{ AlurNaskah::TAHAPAN_TTD[$terakhir] }}, {{ tanggal($naskah->tahapan_ttd[$terakhir]) }}</span>
+                                    <span class="{{ $sekunder }}">Terakhir: {{ AlurNaskah::tahapanTtd()[$terakhir] }}, {{ tanggal($naskah->tahapan_ttd[$terakhir]) }}</span>
                                 @endif
                             </x-ui.info-item>
                         @endif

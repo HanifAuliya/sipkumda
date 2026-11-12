@@ -39,6 +39,9 @@ Route::middleware('auth')->group(function () {
     // ganti kata sandi, ganti email, dan ganti gambar tanda tangan.
     Route::livewire('/profile', ProfileManagement::class)->name('profile.edit');
 
+    // Panduan pengguna per peran (isi dari docs/panduan/*.md).
+    Route::livewire('/panduan/{peran?}', \App\Livewire\Panduan::class)->name('panduan');
+
     Route::middleware(['role:Admin|Verifikator|Super Admin'])->group(function () {
         Route::livewire('/user-management', UserManagement::class)->name('user.management');
     });

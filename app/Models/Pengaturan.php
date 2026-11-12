@@ -10,6 +10,9 @@ class Pengaturan extends Model
     public const NAMA_BUPATI = 'nama_bupati';
     public const NAMA_SEKDA = 'nama_sekda';
 
+    /** JSON [kunci => nama] urutan paraf dan tanda tangan basah; kosong = urutan bawaan. */
+    public const TAHAPAN_TTD = 'tahapan_ttd';
+
     protected $table = 'pengaturan';
 
     protected $fillable = ['kunci', 'nilai'];

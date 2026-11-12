@@ -36,6 +36,7 @@ class Navigation
                 'title' => 'Akun',
                 'items' => [
                     ['label' => 'Profil', 'route' => 'profile.edit', 'icon' => 'person'],
+                    ['label' => 'Panduan', 'route' => 'panduan', 'icon' => 'book'],
                     ['label' => 'Daftar Pengguna', 'route' => 'user.management', 'icon' => 'people', 'roles' => ['Admin', 'Verifikator', 'Super Admin']],
                 ],
             ],

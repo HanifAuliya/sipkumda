@@ -59,6 +59,7 @@ class AktivasiAkunController extends Controller
         // Tautan dikirim ke email pengguna, jadi membukanya sekaligus membuktikan email itu miliknya.
         $user->forceFill([
             'password' => Hash::make($request->password),
+            'wajib_ganti_sandi' => false,
             'remember_token' => Str::random(60),
             'email_verified_at' => $user->email_verified_at ?? now(),
         ])->save();

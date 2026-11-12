@@ -248,6 +248,46 @@ describe('penandatanganan', function () {
         $this->n = $this->alur->terbitkanNota(naskahFinal($this), $this->admin, '12', 'Sekda', $this->ttd->id);
     });
 
+    it('urutan tanda tangan diatur Admin dari Pengaturan Naskah dan langsung berlaku', function () {
+        $verifikator = $this->verifikator;
+
+        // Verifikator boleh melihat, tidak boleh mengubah.
+        Livewire::actingAs($verifikator)->test(\App\Livewire\V2\PengaturanNaskah::class)
+            ->assertSee('Paraf Koordinasi')->assertSee('Hanya Admin yang bisa mengubah urutan ini.')
+            ->call('mulaiUbahTahapan')->assertForbidden();
+
+        $pengaturan = Livewire::actingAs($this->admin)->test(\App\Livewire\V2\PengaturanNaskah::class)
+            ->call('mulaiUbahTahapan')
+            ->assertSee('Ada 1 naskah yang sedang dalam tahap tanda tangan')
+            ->call('hapusTahapan', 1)                     // Asisten dihapus
+            ->call('tambahTahapan')
+            ->set('tahapan.3.nama', 'Paraf Wakil Bupati')
+            ->call('geserTahapan', 3, -1)                  // Wakil Bupati sebelum Bupati
+            ->call('simpanTahapan')->assertHasNoErrors();
+
+        expect(AlurNaskah::tahapanTtd())->toBe([
+            'paraf_koordinasi' => 'Paraf Koordinasi', 'sekda' => 'Sekda', 'paraf_wakil_bupati' => 'Paraf Wakil Bupati', 'bupati' => 'Bupati',
+        ]);
+
+        // Nama ganda dan daftar kosong ditolak.
+        $pengaturan->call('mulaiUbahTahapan')->set('tahapan.1.nama', 'paraf koordinasi')->call('simpanTahapan')->assertHasErrors('tahapan.1.nama');
+
+        // Urutan baru langsung berlaku: empat tahapan, lalu naskah menunggu arsip.
+        $n = $this->n;
+        foreach (['paraf_koordinasi', 'sekda', 'paraf_wakil_bupati'] as $kunci) {
+            expect($this->alur->tahapanBerikutnya($n))->toBe($kunci);
+            $n = $this->alur->tandaiTahapan($n, $this->admin);
+        }
+        expect($n->tahap)->toBe(T::Penandatanganan);
+        $n = $this->alur->tandaiTahapan($n, $this->admin);
+        expect($n->tahap)->toBe(T::Arsip);
+
+        // Kembali ke bawaan.
+        Livewire::actingAs($this->admin)->test(\App\Livewire\V2\PengaturanNaskah::class)
+            ->call('mulaiUbahTahapan')->call('bawaanTahapan')->call('simpanTahapan')->assertHasNoErrors();
+        expect(AlurNaskah::tahapanTtd())->toBe(AlurNaskah::TAHAPAN_TTD);
+    });
+
     it('tercatat berurutan lalu menuju arsip', function () {
         $n = $this->n;
         expect($this->alur->aksiTersedia($n, $this->admin)['tandai_tahapan']['label'])->toBe('Tandai Paraf Koordinasi selesai');

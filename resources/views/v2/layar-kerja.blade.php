@@ -385,7 +385,7 @@
                             <p class="text-sm text-slate-500 dark:text-slate-400">
                                 Nota dinas: <strong class="font-semibold text-slate-700 dark:text-slate-200">{{ $nota->nomor_nota ?? 'belum terbit' }}</strong>
                                 @if ($nota)
-                                    · Tanda tangan: <strong class="font-semibold text-slate-700 dark:text-slate-200">{{ $ttdSelesai }} dari {{ count(A::TAHAPAN_TTD) }} selesai</strong>
+                                    · Tanda tangan: <strong class="font-semibold text-slate-700 dark:text-slate-200">{{ $ttdSelesai }} dari {{ count(A::tahapanTtd()) }} selesai</strong>
                                 @endif
                             </p>
                         </div>

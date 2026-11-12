@@ -19,7 +19,7 @@ trait KelolaTahapanTtd
 
     public function bukaTahapan(string $kunci, string $mode): void
     {
-        abort_unless(isset(AlurNaskah::TAHAPAN_TTD[$kunci]) && in_array($mode, ['tandai', 'ubah'], true), 404);
+        abort_unless(isset(AlurNaskah::tahapanTtd()[$kunci]) && in_array($mode, ['tandai', 'ubah'], true), 404);
         abort_unless(app(AlurNaskah::class)->bolehKelolaTtd($this->naskah->fresh(), auth()->user()), 403);
 
         $this->tahapanDipilih = $kunci;
@@ -36,7 +36,7 @@ trait KelolaTahapanTtd
         abort_unless($this->tahapanDipilih, 400);
         $this->resetValidation();
         $alur = app(AlurNaskah::class);
-        $nama = AlurNaskah::TAHAPAN_TTD[$this->tahapanDipilih];
+        $nama = AlurNaskah::tahapanTtd()[$this->tahapanDipilih];
 
         $this->naskah = $this->modeTahapan === 'ubah'
             ? $alur->ubahTanggalTahapan($this->naskah, auth()->user(), $this->tahapanDipilih, $this->tanggalTtd)
@@ -51,6 +51,6 @@ trait KelolaTahapanTtd
     {
         $this->naskah = app(AlurNaskah::class)->batalkanTahapan($this->naskah, auth()->user(), $kunci);
 
-        $this->dispatch('swal:toast', ['type' => 'success', 'message' => 'Tanda ' . AlurNaskah::TAHAPAN_TTD[$kunci] . ' dibatalkan.']);
+        $this->dispatch('swal:toast', ['type' => 'success', 'message' => 'Tanda ' . AlurNaskah::tahapanTtd()[$kunci] . ' dibatalkan.']);
     }
 }

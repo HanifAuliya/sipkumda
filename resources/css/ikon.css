@@ -159,6 +159,7 @@
 .bi-journal-text::before { content: "\e8f2"; }
 .bi-journal-x::before { content: "\e34e"; }
 .bi-journals::before { content: "\e758"; }
+.bi-copy::before { content: "\e1ca"; }
 .bi-key::before { content: "\e2d6"; }
 .bi-layout-sidebar-reverse::before { content: "\ec24"; }
 .bi-layout-split::before { content: "\e546"; }

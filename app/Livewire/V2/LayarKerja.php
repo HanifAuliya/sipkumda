@@ -372,7 +372,7 @@ class LayarKerja extends Component
                 ? PemeriksaPenomoran::periksa($this->naskah->baris()->where('bagian', 'batang_tubuh')->get())
                 : [],
             'nota' => $this->naskah->tahap->langkah() >= 4 || $this->naskah->tahap === TahapNaskah::ValidasiFasilitasi ? $this->naskah->notaDinas()->first() : null,
-            'ttdSelesai' => count(array_intersect_key($this->naskah->tahapan_ttd ?? [], AlurNaskah::TAHAPAN_TTD)),
+            'ttdSelesai' => count(array_intersect_key($this->naskah->tahapan_ttd ?? [], AlurNaskah::tahapanTtd())),
             'isiVersi' => $this->versiTerpilih ? $this->naskah->versi()->find($this->versiTerpilih) : null,
             'bolehUnggah' => $this->bolehUnggah($alur),
             'blokNaskah' => match (true) {

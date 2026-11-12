@@ -149,6 +149,47 @@ class UserManagement extends Component
 
 
 
+    /**
+     * Jalan cadangan bila email tidak bisa dikirim: Admin membuat kata sandi sementara, menyampaikannya
+     * langsung kepada pengguna, dan pengguna wajib menggantinya saat pertama masuk. Kata sandi hanya
+     * ditampilkan sekali dan tidak disimpan dalam bentuk yang bisa dibaca.
+     */
+    public function buatSandiSementara($id)
+    {
+        if (! $this->isAdmin) {
+            abort(403, 'Anda tidak memiliki izin untuk mengatur kata sandi pengguna.');
+        }
+
+        $user = User::findOrFail($id);
+
+        if ($user->is(Auth::user())) {
+            abort(403, 'Kata sandi sendiri diganti lewat halaman Profil.');
+        }
+
+        // Tanpa huruf yang mudah tertukar (O/0, l/1) supaya bisa dibacakan atau ditulis tangan.
+        $sandi = collect(range(1, 3))->map(fn () => substr(str_shuffle('abcdefghjkmnpqrstuvwxyz23456789'), 0, 4))->implode('-');
+
+        $user->forceFill([
+            'password' => Hash::make($sandi),
+            'wajib_ganti_sandi' => true,
+            'email_verified_at' => $user->email_verified_at ?? now(),
+            'remember_token' => Str::random(60),
+        ])->save();
+
+        Log::notice('Admin membuat kata sandi sementara.', ['untuk' => $user->id, 'oleh' => Auth::id()]);
+
+        $this->sandiSementara = ['nama' => $user->nama_user, 'NIP' => $user->NIP, 'sandi' => $sandi];
+        $this->dispatch('openModal', 'modalSandiSementara');
+    }
+
+    /** Kata sandi sementara yang baru dibuat, untuk ditampilkan sekali; dikosongkan saat modal ditutup. */
+    public ?array $sandiSementara = null;
+
+    public function tutupSandiSementara(): void
+    {
+        $this->sandiSementara = null;
+    }
+
     public function kirimUlangAktivasi($id)
     {
         if (!$this->isAdmin) {
@@ -280,8 +321,24 @@ class UserManagement extends Component
             abort(403, 'Anda tidak memiliki izin untuk menghapus pengguna.');
         }
 
-        // Hapus user berdasarkan ID
-        User::destroy($id);
+        $user = User::findOrFail($id);
+
+        if ($user->is(Auth::user())) {
+            abort(403, 'Akun sendiri tidak bisa dihapus.');
+        }
+
+        // Akun yang sudah punya naskah atau rancangan tetap disimpan, supaya riwayatnya tidak hilang.
+        try {
+            $user->delete();
+        } catch (\Illuminate\Database\QueryException) {
+            $this->dispatch('swal:modal', [
+                'type' => 'warning',
+                'title' => 'Tidak bisa dihapus',
+                'message' => "{$user->nama_user} sudah tercatat pada naskah atau rancangan, jadi akunnya disimpan. Bila orangnya pindah tugas, buat kata sandi sementara baru agar akun lama tidak bisa dipakai lagi, lalu buat akun untuk penggantinya.",
+            ]);
+
+            return;
+        }
 
         // Kirim event ke frontend untuk menampilkan notifikasi sukses
         $this->dispatch('swal:user', [

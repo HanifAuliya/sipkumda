@@ -28,6 +28,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'email',
         'email_verified_at', // Pastikan kolom ini ada di properti fillable
         'password',
+        'wajib_ganti_sandi',
         'perangkat_daerah_id',
     ];
 
@@ -105,6 +106,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'wajib_ganti_sandi' => 'boolean',
         ];
     }
 }

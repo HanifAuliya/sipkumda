@@ -82,6 +82,11 @@
                                     <x-ui.button variant="soft-primary" size="sm" square icon="send" title="Kirim Ulang Aktivasi" aria-label="Kirim ulang aktivasi"
                                         wire:click="kirimUlangAktivasi({{ $user->id }})" loading="kirimUlangAktivasi({{ $user->id }})" />
                                 @endunless
+                                @unless ($user->is(auth()->user()))
+                                    <x-ui.button variant="soft-primary" size="sm" square icon="key" title="Buat kata sandi sementara" aria-label="Buat kata sandi sementara untuk {{ $user->nama_user }}"
+                                        x-on:click="$confirm({ title: 'Buat kata sandi sementara?', text: {{ \Illuminate\Support\Js::from('Kata sandi ' . $user->nama_user . ' saat ini tidak berlaku lagi. Kata sandi sementara ditampilkan sekali; sampaikan langsung kepada yang bersangkutan.') }}, confirmText: 'Ya, buat' })
+                                            .then(ok => ok && $wire.buatSandiSementara({{ $user->id }}))" />
+                                @endunless
                                 <x-ui.button variant="outline" size="sm" icon="pencil" class="max-sm:size-10 max-sm:px-0" title="Ubah" aria-label="Ubah {{ $user->nama_user }}"
                                     wire:click="edit({{ $user->id }})" loading="edit({{ $user->id }})"><span class="max-sm:hidden">Ubah</span></x-ui.button>
                                 <x-ui.button variant="soft-danger" size="sm" icon="trash" class="max-sm:size-10 max-sm:px-0" title="Hapus" aria-label="Hapus {{ $user->nama_user }}"
@@ -141,6 +146,34 @@
             <x-ui.button type="submit" form="userForm" variant="navy" icon="floppy" loading="store, update">
                 {{ $userIdToEdit ? 'Simpan Perubahan' : 'Tambah Pengguna' }}
             </x-ui.button>
+        </x-slot:footer>
+    </x-ui.modal>
+
+    {{-- Kata sandi sementara: tampil sekali, lalu hilang saat ditutup. --}}
+    <x-ui.modal id="modalSandiSementara" title="Kata Sandi Sementara" size="md" on-close="tutupSandiSementara">
+        @if ($sandiSementara)
+            <p class="text-sm text-slate-600 dark:text-slate-300">
+                Sampaikan langsung kepada <strong class="text-navy-900 dark:text-white">{{ $sandiSementara['nama'] }}</strong>, jangan lewat grup obrolan.
+                Saat masuk, ia wajib mengganti kata sandi ini.
+            </p>
+            <dl class="mt-4 space-y-3 rounded-xl bg-slate-50 p-4 dark:bg-navy-800">
+                <div>
+                    <dt class="text-sm text-slate-500 dark:text-slate-400">NIP</dt>
+                    <dd class="font-mono text-base font-semibold text-navy-900 dark:text-white">{{ $sandiSementara['NIP'] }}</dd>
+                </div>
+                <div>
+                    <dt class="text-sm text-slate-500 dark:text-slate-400">Kata sandi sementara</dt>
+                    <dd class="flex items-center gap-2">
+                        <span class="font-mono text-xl font-bold tracking-wider text-navy-900 select-all dark:text-white">{{ $sandiSementara['sandi'] }}</span>
+                        <x-ui.button size="sm" variant="ghost" square icon="copy" title="Salin" aria-label="Salin kata sandi"
+                            x-on:click="navigator.clipboard?.writeText(@js($sandiSementara['sandi']))" />
+                    </dd>
+                </div>
+            </dl>
+            <p class="mt-3 text-sm text-slate-500 dark:text-slate-400">Kata sandi ini tidak bisa dilihat lagi setelah jendela ditutup. Bila hilang, buat yang baru.</p>
+        @endif
+        <x-slot:footer>
+            <x-ui.button x-on:click="close()">Selesai</x-ui.button>
         </x-slot:footer>
     </x-ui.modal>
 </div>

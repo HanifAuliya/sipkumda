@@ -7,24 +7,25 @@
     use App\Enums\TahapNaskah;
     use App\Services\AlurNaskah as A;
 
+    $daftarTahapan = A::tahapanTtd();
     $tercatat = $naskah->tahapan_ttd ?? [];
     $berikutnya = app(A::class)->tahapanBerikutnya($naskah);
     $bisaTandai = $bolehKelola && $naskah->tahap === TahapNaskah::Penandatanganan;
-    $selesai = count(array_intersect_key($tercatat, A::TAHAPAN_TTD));
-    $urutan = implode(' → ', A::TAHAPAN_TTD);
+    $selesai = count(array_intersect_key($tercatat, $daftarTahapan));
+    $urutan = implode(' → ', $daftarTahapan);
 @endphp
 
 <div>
     <div class="mb-4 flex items-center gap-3">
         <div class="h-2 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-navy-800" role="progressbar"
-            aria-valuenow="{{ $selesai }}" aria-valuemin="0" aria-valuemax="{{ count(A::TAHAPAN_TTD) }}" aria-label="Tahapan tanda tangan selesai">
-            <div class="h-full rounded-full bg-emerald-500 transition-all" style="width: {{ $selesai / count(A::TAHAPAN_TTD) * 100 }}%"></div>
+            aria-valuenow="{{ $selesai }}" aria-valuemin="0" aria-valuemax="{{ count($daftarTahapan) }}" aria-label="Tahapan tanda tangan selesai">
+            <div class="h-full rounded-full bg-emerald-500 transition-all" style="width: {{ $selesai / count($daftarTahapan) * 100 }}%"></div>
         </div>
-        <span class="shrink-0 text-sm font-semibold text-slate-600 dark:text-slate-300">{{ $selesai }} dari {{ count(A::TAHAPAN_TTD) }} selesai</span>
+        <span class="shrink-0 text-sm font-semibold text-slate-600 dark:text-slate-300">{{ $selesai }} dari {{ count($daftarTahapan) }} selesai</span>
     </div>
 
     <ol class="space-y-2">
-        @foreach (A::TAHAPAN_TTD as $kunci => $nama)
+        @foreach ($daftarTahapan as $kunci => $nama)
             @php
                 $tanggal = $tercatat[$kunci] ?? null;
                 $giliran = ! $tanggal && $kunci === $berikutnya && $naskah->tahap === TahapNaskah::Penandatanganan;
@@ -85,7 +86,7 @@
 
     @if ($bolehKelola)
         @php
-            $namaDipilih = A::TAHAPAN_TTD[$tahapanDipilih ?? ''] ?? '';
+            $namaDipilih = $daftarTahapan[$tahapanDipilih ?? ''] ?? '';
             $lompat = $modeTahapan === 'tandai' && $tahapanDipilih && $tahapanDipilih !== $berikutnya;
         @endphp
         <x-ui.modal id="modalTahapan" :title="$modeTahapan === 'ubah' ? 'Ubah tanggal ' . $namaDipilih : 'Tandai ' . $namaDipilih . ' selesai'" size="md">
@@ -96,7 +97,7 @@
 
                 @if ($lompat)
                     <x-ui.alert type="warning" icon="exclamation-triangle-fill" title="Tidak sesuai urutan">
-                        {{ A::TAHAPAN_TTD[$berikutnya] }} belum ditandai. Urutan yang disarankan: {{ $urutan }}.
+                        {{ $daftarTahapan[$berikutnya] }} belum ditandai. Urutan yang disarankan: {{ $urutan }}.
                         Lanjutkan hanya bila di lapangan memang begitu kejadiannya; hal ini dicatat di riwayat.
                     </x-ui.alert>
                 @endif

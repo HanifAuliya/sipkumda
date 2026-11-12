@@ -2,6 +2,12 @@
     :description="$mengubah ? 'Gunakan password yang panjang dan acak agar akun tetap aman.' : 'Password dipakai untuk masuk ke SIFKUMDA.'">
     @if ($mengubah)
         <form wire:submit="updatePassword" class="space-y-5">
+            @if (auth()->user()->wajib_ganti_sandi)
+                <x-ui.alert type="warning" icon="exclamation-triangle">
+                    Anda masuk dengan <strong>kata sandi sementara</strong> dari Admin. Isi "Password Saat Ini" dengan kata sandi sementara itu,
+                    lalu buat password baru. Menu lain terbuka setelah password diganti.
+                </x-ui.alert>
+            @endif
             <x-form.field label="Password Saat Ini" for="current_password" error="current_password" required>
                 <x-form.password id="current_password" name="current_password" wire:model="current_password" autocomplete="current-password" required x-init="$el.focus()" />
             </x-form.field>
@@ -17,7 +23,9 @@
             </x-form.field>
 
             <div class="flex justify-end gap-2">
-                <x-ui.button variant="outline" wire:click="batal">Batal</x-ui.button>
+                @unless (auth()->user()->wajib_ganti_sandi)
+                    <x-ui.button variant="outline" wire:click="batal">Batal</x-ui.button>
+                @endunless
                 <x-ui.button type="submit" variant="navy" icon="shield-lock" loading="updatePassword">Perbarui Password</x-ui.button>
             </div>
         </form>

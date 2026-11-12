@@ -64,7 +64,7 @@
                     <th>Naskah</th>
                     <th class="max-sm:hidden">Tentang</th>
                     <th class="max-sm:hidden">Perangkat Daerah</th>
-                    <th class="max-sm:hidden">Tanda Tangan Bupati</th>
+                    <th class="max-sm:hidden">Tanda Tangan Terakhir</th>
                     <th class="text-right">Aksi</th>
                 </x-slot:head>
 
@@ -77,7 +77,7 @@
                         </td>
                         <td class="min-w-64 max-sm:hidden"><p class="sel-judul">{{ $naskah->tentang }}</p></td>
                         <td class="min-w-44 max-sm:hidden"><p class="sel-judul">{{ $naskah->pemrakarsa->perangkatDaerah->nama_perangkat_daerah ?? $naskah->pemrakarsa->nama_user }}</p></td>
-                        <td class="whitespace-nowrap max-sm:hidden">{{ tanggal($naskah->tahapan_ttd['bupati'] ?? null) }}</td>
+                        <td class="whitespace-nowrap max-sm:hidden">{{ tanggal(collect($naskah->tahapan_ttd ?? [])->sort()->last()) }}</td>
                         <td>
                             <div class="flex justify-end">
                                 <x-ui.button size="sm" variant="success" icon="archive" :href="route('naskah.pantau', $naskah)">Arsipkan</x-ui.button>
