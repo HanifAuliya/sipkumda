@@ -105,7 +105,8 @@
 
                 <div class="relative overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-white/20 dark:bg-navy-900">
                     {{-- Kepala: naskah yang sedang berjalan --}}
-                    <div class="flex items-start justify-between gap-3 px-6 pt-6">
+                    {{-- Ruang atas dan bawah dilebihkan di layar lebar: di situlah dua kartu kecil menempel, supaya tidak menabrak isi. --}}
+                    <div class="flex items-start justify-between gap-3 px-6 pt-6 sm:pt-12">
                         <div class="min-w-0">
                             <p class="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
                                 <span class="size-2 rounded-full bg-primary-500"></span> PB-2026-012 · Peraturan Bupati
@@ -139,7 +140,7 @@
                     </div>
 
                     {{-- Matriks: rumusan awal di kiri, penyempurnaan peneliti di kanan --}}
-                    <div class="mt-6 border-t border-slate-100 bg-slate-50/70 px-6 pt-5 pb-6 sm:pb-11 dark:border-navy-800 dark:bg-navy-950/40">
+                    <div class="mt-6 border-t border-slate-100 bg-slate-50/70 px-6 pt-5 pb-6 sm:pb-20 dark:border-navy-800 dark:bg-navy-950/40">
                         <div class="grid grid-cols-2 gap-3 text-xs font-semibold text-slate-500 dark:text-slate-400">
                             <span>Rumusan awal</span>
                             <span>Penyempurnaan</span>
@@ -173,11 +174,11 @@
                     </div>
                 </div>
 
-                <div class="absolute -bottom-7 -left-6 hidden animate-apung items-center gap-3 rounded-2xl bg-white p-3 pr-5 shadow-xl ring-1 ring-slate-100 [animation-delay:1.2s] sm:flex dark:bg-navy-900 dark:ring-navy-800">
+                <div class="absolute -bottom-8 -left-6 hidden animate-apung items-center gap-3 rounded-2xl bg-white p-3 pr-5 shadow-xl ring-1 ring-slate-100 [animation-delay:1.2s] sm:flex dark:bg-navy-900 dark:ring-navy-800">
                     <span class="grid size-10 place-items-center rounded-xl bg-emerald-50 text-xl text-emerald-600 dark:bg-emerald-500/15"><i class="bi bi-bell"></i></span>
                     <span class="text-xs leading-tight"><strong class="block text-navy-900 dark:text-white">Notifikasi baru</strong><span class="text-slate-500">Hasil penelitian siap divalidasi</span></span>
                 </div>
-                <div class="absolute -top-5 right-6 hidden animate-apung items-center gap-2 rounded-2xl bg-white px-4 py-2.5 shadow-xl ring-1 ring-slate-100 sm:flex dark:bg-navy-900 dark:ring-navy-800">
+                <div class="absolute -top-6 right-6 hidden animate-apung items-center gap-2 rounded-2xl bg-white px-4 py-2.5 shadow-xl ring-1 ring-slate-100 sm:flex dark:bg-navy-900 dark:ring-navy-800">
                     <i class="bi bi-patch-check-fill text-primary-500"></i>
                     <span class="text-xs font-semibold text-navy-900 dark:text-white">Berkas lengkap</span>
                 </div>
