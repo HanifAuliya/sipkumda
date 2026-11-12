@@ -8,21 +8,23 @@
         <x-ui.alert type="info" dismissible>{{ session('pesan') }}</x-ui.alert>
     @endif
 
-    {{-- Sambutan: sederhana, supaya mata langsung ke pekerjaan di bawahnya. --}}
-    <section class="flex items-center gap-4 rounded-2xl bg-white p-5 shadow-card sm:p-6 dark:bg-navy-900 dark:shadow-none dark:ring-1 dark:ring-white/5">
-        <img src="{{ $user->fotoUrl() }}" alt="" class="size-12 shrink-0 rounded-full object-cover sm:size-14">
-        <div class="min-w-0">
-            <p class="text-sm text-slate-500 dark:text-slate-400">Selamat datang kembali,</p>
-            <h1 class="truncate text-xl font-bold text-navy-900 sm:text-2xl dark:text-white">{{ $user->nama_user }}</h1>
-            <p class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500 dark:text-slate-400">
-                <span class="font-semibold text-slate-700 dark:text-slate-200">{{ $user->getRoleNames()->first() ?? 'Tanpa Role' }}</span>
-                <span class="max-sm:hidden" aria-hidden="true">·</span>
-                <span class="max-sm:hidden">NIP {{ $user->NIP }}</span>
-                @if ($user->perangkatDaerah)
-                    <span aria-hidden="true">·</span>
-                    <span>{{ $user->perangkatDaerah->nama_perangkat_daerah }}</span>
-                @endif
-            </p>
+    {{-- Sambutan --}}
+    <section class="relative overflow-hidden rounded-2xl bg-linear-to-br from-navy-900 via-navy-800 to-primary-700 p-5 text-white shadow-card sm:p-6">
+        <x-ui.bola />
+
+        <div class="relative flex items-center gap-4">
+            <img src="{{ $user->fotoUrl() }}" alt="" class="size-12 shrink-0 rounded-full object-cover ring-4 ring-white/15 sm:size-14">
+            <div class="min-w-0">
+                <p class="text-sm text-white/70">Selamat datang kembali,</p>
+                <h1 class="truncate text-xl font-bold text-white sm:text-2xl">{{ $user->nama_user }}</h1>
+                <div class="mt-1.5 flex flex-wrap items-center gap-2 text-sm">
+                    <span class="rounded-full bg-white/15 px-2.5 py-0.5 font-semibold">{{ $user->getRoleNames()->first() ?? 'Tanpa Role' }}</span>
+                    <span class="text-white/70 max-sm:hidden">NIP {{ $user->NIP }}</span>
+                    @if ($user->perangkatDaerah)
+                        <span class="text-white/70"><span class="max-sm:hidden">· </span>{{ $user->perangkatDaerah->nama_perangkat_daerah }}</span>
+                    @endif
+                </div>
+            </div>
         </div>
     </section>
 

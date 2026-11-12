@@ -1,21 +1,28 @@
 {{--
     Kartu statistik.
     <x-ui.stat-card label="Rancangan" :value="12" suffix="Data" icon="clipboard2-data" color="rose" />
-    color: dipertahankan untuk pemanggil lama; tampilannya kini netral
+    color: rose | orange | emerald | sky | primary | amber
     rapat: di HP kartunya ringkas dan muat dua kolom
 --}}
 @props(['label', 'value' => 0, 'suffix' => null, 'icon' => 'bar-chart', 'color' => 'primary', 'href' => null, 'rapat' => false])
 
 @php
-    // Satu gaya netral untuk semua kartu: angkanya yang dibaca, ikon hanya penanda. "color" tetap diterima supaya pemanggil lama tidak rusak.
+    $gradients = [
+        'rose' => 'from-rose-500 to-pink-500',
+        'orange' => 'from-orange-500 to-amber-400',
+        'emerald' => 'from-emerald-500 to-teal-400',
+        'sky' => 'from-sky-500 to-cyan-400',
+        'primary' => 'from-primary-500 to-violet-500',
+        'amber' => 'from-amber-500 to-yellow-400',
+    ];
     $tag = $href ? 'a' : 'div';
 @endphp
 
 <{{ $tag }} @if ($href) href="{{ $href }}" @endif
-    {{ $attributes->class('group flex items-start justify-between gap-4 rounded-2xl bg-white p-5 shadow-card transition dark:bg-navy-900 dark:shadow-none dark:ring-1 dark:ring-white/5' . ($href ? ' hover:bg-slate-50 dark:hover:bg-navy-800' : '') . ($rapat ? ' max-sm:relative max-sm:p-4' : '')) }}>
+    {{ $attributes->class('group flex items-start justify-between gap-4 rounded-2xl bg-white p-5 shadow-card transition dark:bg-navy-900 dark:shadow-none dark:ring-1 dark:ring-white/5' . ($href ? ' hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0' : '') . ($rapat ? ' max-sm:relative max-sm:p-4' : '')) }}>
     <div class="min-w-0">
-        <p class="text-sm font-medium text-slate-500 dark:text-slate-400">{{ $label }}</p>
-        <p class="mt-2 text-3xl font-bold tracking-tight text-navy-900 dark:text-white">
+        <p class="text-sm font-semibold text-slate-500 dark:text-slate-400">{{ $label }}</p>
+        <p class="mt-2 text-2xl font-bold text-navy-900 dark:text-white">
             @if (is_numeric($value))
                 {{-- Angka dihitung naik saat kartu pertama kali terlihat --}}
                 <span x-data="{ v: {{ (int) $value }}, to: {{ (int) $value }} }"
@@ -29,7 +36,8 @@
         {{ $slot }}
     </div>
     <span @class([
-        'grid size-10 shrink-0 place-items-center rounded-xl bg-slate-100 text-lg text-slate-500 dark:bg-navy-800 dark:text-slate-400',
+        'grid size-12 shrink-0 place-items-center rounded-full bg-linear-to-br text-xl text-white shadow-soft',
+        $gradients[$color] ?? $gradients['primary'],
         'max-sm:absolute max-sm:right-3 max-sm:bottom-3 max-sm:size-9 max-sm:text-base' => $rapat,
     ])>
         <i class="bi bi-{{ $icon }}"></i>
