@@ -13,7 +13,7 @@
     class="fixed inset-0 z-40 bg-navy-950/50 backdrop-blur-[2px] lg:hidden"></div>
 
 <aside data-menu-utama
-    class="fixed inset-y-0 left-0 z-50 flex w-72 -translate-x-full flex-col bg-white shadow-xl transition-transform duration-200 lg:translate-x-0 lg:shadow-card dark:bg-navy-900 dark:shadow-none dark:ring-1 dark:ring-white/5"
+    class="fixed inset-y-0 left-0 z-50 flex w-72 -translate-x-full flex-col bg-white shadow-xl transition-transform duration-200 lg:translate-x-0 lg:border-r lg:border-slate-200/70 lg:shadow-none dark:bg-navy-900 dark:lg:border-navy-800 dark:shadow-none dark:ring-1 dark:ring-white/5"
     x-bind:class="sidebarOpen && 'translate-x-0'"
     aria-label="Navigasi utama">
 

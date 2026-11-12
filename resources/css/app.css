@@ -47,8 +47,9 @@
 
     --color-surface: #f8f9fe;
 
-    --shadow-card: 0 0 2rem 0 rgb(136 152 170 / 0.15);
-    --shadow-soft: 0 4px 6px rgb(50 50 93 / 0.08), 0 1px 3px rgb(0 0 0 / 0.06);
+    /* Permukaan datar: garis tipis dan bayangan sangat halus, supaya isi yang menonjol, bukan kotaknya. */
+    --shadow-card: 0 0 0 1px rgb(15 23 42 / 0.06), 0 1px 2px rgb(15 23 42 / 0.04);
+    --shadow-soft: 0 1px 2px rgb(15 23 42 / 0.1);
 
     --animate-fade-in: fade-in 0.25s ease-out;
     --animate-marquee: marquee 30s linear infinite;
@@ -448,26 +449,27 @@
             dark:text-slate-300 dark:hover:bg-navy-800 dark:hover:text-white;
 
         & > i {
-            @apply text-lg text-primary-500 transition-transform duration-150 ease-out dark:text-primary-300;
+            @apply text-lg text-slate-400 transition-colors duration-150 ease-out dark:text-slate-500;
         }
 
         &:hover > i {
-            @apply scale-110;
+            @apply text-slate-600 dark:text-slate-300;
         }
 
+        /* Yang aktif cukup latar lembut dan teks berwarna; tidak perlu blok warna pekat. */
         &[aria-current="page"] {
-            @apply bg-accent-500 text-white shadow-soft hover:bg-accent-600 hover:text-white
-                dark:hover:bg-accent-600 dark:hover:text-white;
+            @apply bg-primary-50 font-semibold text-primary-700 hover:bg-primary-50 hover:text-primary-700
+                dark:bg-primary-500/15 dark:text-white dark:hover:bg-primary-500/15 dark:hover:text-white;
 
             & > i {
-                @apply text-white;
+                @apply text-primary-600 dark:text-primary-300;
             }
         }
     }
 
-    /* Latar oranye yang meluncur ke menu yang diklik (lihat resources/js/navigasi.js). */
+    /* Latar lembut yang meluncur ke menu yang diklik (lihat resources/js/navigasi.js). */
     .penanda-menu {
-        @apply pointer-events-none absolute top-0 right-3 left-3 rounded-lg bg-accent-500 opacity-0 shadow-soft;
+        @apply pointer-events-none absolute top-0 right-3 left-3 rounded-lg bg-primary-50 opacity-0 dark:bg-primary-500/15;
         transition:
             transform 240ms cubic-bezier(0.4, 0, 0.2, 1),
             height 240ms cubic-bezier(0.4, 0, 0.2, 1),
@@ -475,7 +477,7 @@
     }
 
     [data-penanda-siap] .menu-item[aria-current="page"] {
-        @apply bg-transparent shadow-none hover:bg-white/10 dark:hover:bg-white/10;
+        @apply bg-transparent hover:bg-transparent dark:bg-transparent dark:hover:bg-transparent;
     }
 
     /*

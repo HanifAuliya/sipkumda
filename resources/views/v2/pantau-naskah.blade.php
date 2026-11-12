@@ -315,8 +315,8 @@
 
         <x-ui.card title="Naskah">
             <p class="font-semibold text-navy-900 dark:text-white">{{ $naskah->tentang }}</p>
-            <div class="mt-2 flex flex-wrap gap-2">
-                <x-ui.badge :color="$naskah->jenis === 'Keputusan Bupati' ? 'warning' : 'primary'">{{ $naskah->jenis }}</x-ui.badge>
+            <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2">
+                <x-ui.status-badge :value="$naskah->jenis" />
                 <x-ui.badge :color="$tahap->warna()">{{ $tahap->label() }}</x-ui.badge>
             </div>
 

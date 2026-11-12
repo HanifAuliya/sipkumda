@@ -17,7 +17,7 @@
 <div {{ $attributes->class('mb-6 flex flex-col gap-4 rounded-2xl bg-white p-5 shadow-card sm:flex-row sm:items-center sm:justify-between sm:p-6 dark:bg-navy-900 dark:shadow-none dark:ring-1 dark:ring-white/5') }}>
     <div class="flex min-w-0 items-center gap-3 sm:gap-4">
         @if ($icon)
-            <span class="grid size-12 shrink-0 place-items-center rounded-xl bg-linear-to-br from-primary-500 to-primary-700 text-xl text-white shadow-soft">
+            <span class="grid size-11 shrink-0 place-items-center rounded-xl bg-primary-50 text-xl text-primary-600 dark:bg-primary-500/15 dark:text-primary-300">
                 <i class="bi bi-{{ $icon }}"></i>
             </span>
         @endif
