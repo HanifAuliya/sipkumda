@@ -4,7 +4,7 @@
 @endphp
 
 <div>
-    <x-ui.modal id="modalDetailNaskah" title="Detail Naskah" :description="$naskah?->nomor" size="6xl" on-close="tutup">
+    <x-ui.modal id="modalDetailNaskah" title="Detail Naskah" :description="$naskah?->nomor" size="5xl" on-close="tutup">
         @if ($naskah)
             @php $tahap = $naskah->tahap; @endphp
 
@@ -22,11 +22,10 @@
 
             <div class="mt-5 grid gap-5 lg:grid-cols-2">
                 <section class="rounded-xl ring-1 ring-slate-100 dark:ring-navy-800">
-                    <h4 class="flex items-center gap-2 border-b border-slate-100 px-4 py-3 text-sm font-semibold dark:border-navy-800">
-                        <i class="bi bi-file-earmark-text text-primary-500"></i> Informasi Utama
+                    <h4 class="flex items-center gap-2 border-b border-slate-100 px-5 py-3.5 text-sm font-semibold text-navy-900 dark:border-navy-800 dark:text-white">
+                        <i class="bi bi-file-earmark-text text-slate-400"></i> Informasi Utama
                     </h4>
-                    <x-ui.info-list class="px-4">
-                        <x-ui.info-item label="Nomor">{{ $naskah->nomor_tampil }}</x-ui.info-item>
+                    <x-ui.info-list class="px-5 [&>div]:sm:grid-cols-[10.5rem_minmax(0,1fr)]!">
                         <x-ui.info-item label="Jenis"><x-ui.status-badge :value="$naskah->jenis" /></x-ui.info-item>
                         <x-ui.info-item label="Tentang">{{ $naskah->tentang }}</x-ui.info-item>
                         <x-ui.info-item label="Tanggal Pengajuan">{{ $naskah->diajukan_at ? tanggal($naskah->diajukan_at, true) : 'Belum diajukan' }}</x-ui.info-item>
@@ -38,16 +37,27 @@
                 </section>
 
                 <section class="rounded-xl ring-1 ring-slate-100 dark:ring-navy-800">
-                    <h4 class="flex items-center gap-2 border-b border-slate-100 px-4 py-3 text-sm font-semibold dark:border-navy-800">
-                        <i class="bi bi-journal-check text-emerald-500"></i> Perkembangan
+                    <h4 class="flex items-center gap-2 border-b border-slate-100 px-5 py-3.5 text-sm font-semibold text-navy-900 dark:border-navy-800 dark:text-white">
+                        <i class="bi bi-activity text-slate-400"></i> Perkembangan
                     </h4>
-                    <x-ui.info-list class="px-4">
+                    <x-ui.info-list class="px-5 [&>div]:sm:grid-cols-[10.5rem_minmax(0,1fr)]!">
                         <x-ui.info-item label="Tahap Saat Ini"><x-ui.badge :color="$tahap->warna()">{{ $tahap->label() }}</x-ui.badge></x-ui.info-item>
                         <x-ui.info-item label="Peneliti">{{ $naskah->peneliti->nama_user ?? 'Belum ditentukan' }}</x-ui.info-item>
-                        <x-ui.info-item label="Baris Matriks">{{ $total }} baris</x-ui.info-item>
-                        <x-ui.info-item label="Belum Diperiksa">{{ $belum }} baris</x-ui.info-item>
-                        <x-ui.info-item label="Diubah Peneliti">{{ $diubah }} baris</x-ui.info-item>
-                        <x-ui.info-item label="Perlu Perbaikan PD">{{ $perlu }} baris</x-ui.info-item>
+                        {{-- Empat angka baris diringkas: kemajuan pemeriksaan, lalu hasilnya. --}}
+                        @if ($total)
+                            @php $persen = (int) round(($total - $belum) / $total * 100); @endphp
+                            <x-ui.info-item label="Pemeriksaan Rumusan">
+                                <span class="flex items-center gap-3">
+                                    <span class="h-1.5 w-24 shrink-0 overflow-hidden rounded-full bg-slate-100 dark:bg-navy-800">
+                                        <span class="block h-full rounded-full bg-emerald-500" style="width: {{ $persen }}%"></span>
+                                    </span>
+                                    {{ $total - $belum }} dari {{ $total }} baris
+                                </span>
+                            </x-ui.info-item>
+                            <x-ui.info-item label="Hasil">
+                                {{ $diubah }} diubah<span class="text-slate-400"> · </span>{{ $perlu }} perlu perbaikan PD
+                            </x-ui.info-item>
+                        @endif
                         <x-ui.info-item label="Nota Dinas">
                             @if ($naskah->notaDinas && $tahap->langkah() >= 4 && $bisaUnduh)
                                 <x-ui.file-link :href="route('naskah.cetak', [$naskah, 'nota-dinas'])" path="nota.pdf" :label="$naskah->notaDinas->nomor_nota" />
@@ -73,10 +83,10 @@
 
             @if ($bisaUnduh)
             <section class="mt-5 rounded-xl ring-1 ring-slate-100 dark:ring-navy-800">
-                <h4 class="flex items-center gap-2 border-b border-slate-100 px-4 py-3 text-sm font-semibold dark:border-navy-800">
-                    <i class="bi bi-paperclip text-amber-500"></i> Berkas
+                <h4 class="flex items-center gap-2 border-b border-slate-100 px-5 py-3.5 text-sm font-semibold text-navy-900 dark:border-navy-800 dark:text-white">
+                    <i class="bi bi-paperclip text-slate-400"></i> Berkas
                 </h4>
-                <x-ui.info-list class="px-4">
+                <x-ui.info-list class="px-5 [&>div]:sm:grid-cols-[10.5rem_minmax(0,1fr)]! [&>div]:items-center">
                     @foreach ($berkas as $file)
                         <x-ui.info-item :label="NaskahBerkas::LABEL[$file->jenis]" wire:key="berkas-{{ $file->id }}">
                             <x-ui.file-link :href="route('naskah.berkas', [$naskah, $file])" :path="$file->nama_asli" :label="$file->nama_asli" />
