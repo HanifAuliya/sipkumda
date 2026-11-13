@@ -75,11 +75,26 @@ tanggal penetapan.
 
 ## 6. Laporan & Pemantauan
 
-Menu **Laporan & Pemantauan** punya tiga tab. Filter **jenis** dan **Perangkat Daerah** di atasnya berlaku
-untuk ketiganya, dan **Unduh Excel** mengunduh daftar naskah sesuai filter.
+Menu **Laporan & Pemantauan** punya tiga tab. Filter di atasnya berlaku untuk ketiganya dan untuk unduhan:
 
-- **Ringkasan**: jumlah naskah, rata-rata lama proses, naskah yang tertahan lebih dari 7 hari, dan
-  rata-rata lama tiap tahap. Pemegang giliran naskah yang tertahan diingatkan otomatis lewat notifikasi.
+- **Tahun** dan **Periode**: setahun penuh, semester, triwulan, satu bulan, atau **Rentang tanggal** sendiri.
+  Naskah dihitung menurut tanggal diajukan, produk hukum menurut tanggal penetapan.
+- **Jenis** dan **Perangkat Daerah**.
+
+Tombol **Unduh** berisi:
+
+- **PDF laporan**: laporan berkop Sekretariat Daerah untuk pimpinan, berisi ringkasan, sebaran per
+  Perangkat Daerah, naskah tertahan, dan rata-rata lama per tahap.
+- **Excel lengkap**: sheet Ringkasan, Per Perangkat Daerah, Daftar Naskah, dan Aktivitas.
+
+Isi tiap tab:
+
+- **Ringkasan**: naskah diajukan, sedang berjalan, selesai, **produk hukum ditetapkan** (termasuk arsip
+  lama), dan rata-rata lama proses. Grafik **per bulan** menampilkan naskah diajukan atau produk hukum
+  ditetapkan (Perbup dan Kepbup), dan grafik **posisi naskah yang berjalan** menunjukkan di langkah mana
+  naskah menumpuk. Di bawahnya: naskah yang tertahan lebih dari 7 hari dan rata-rata lama tiap tahap.
+  Baris tahap bisa ditekan untuk melihat naskahnya. Pemegang giliran naskah yang tertahan diingatkan
+  otomatis lewat notifikasi.
 - **Per Perangkat Daerah**: siapa mengajukan apa dan sampai mana. Tiap baris satu Perangkat Daerah, tiap
   kolom satu langkah (Penyusunan sampai Selesai). Pilih jenis **Peraturan Bupati** untuk melihat
   Perangkat Daerah mana saja yang mengajukan Perbup. Tekan barisnya untuk melihat naskahnya, lalu
@@ -90,7 +105,7 @@ untuk ketiganya, dan **Unduh Excel** mengunduh daftar naskah sesuai filter.
   baris disembunyikan supaya ringkas; centang **Termasuk perubahan rumusan** bila perlu.
 
 ![Laporan & Pemantauan: ringkasan](../../public/img/panduan/verifikator-laporan.jpg)
-*Ringkasan: angka utama dan naskah yang tertahan*
+*Ringkasan: angka utama, grafik per bulan, dan posisi naskah yang berjalan*
 
 ![Per Perangkat Daerah](../../public/img/panduan/verifikator-pemantauan.jpg)
 *Per Perangkat Daerah: sebaran naskah tiap langkah, baris dibuka untuk melihat naskahnya*

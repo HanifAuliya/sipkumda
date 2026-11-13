@@ -124,7 +124,7 @@ ada** (sesudah `php artisan config:cache`), karena tes bisa memakai database uta
 | Format Dokumen | `app/Support/FormatDokumen.php`, `app/Livewire/V2/PengaturanFormat.php` |
 | Menu | `app/Support/Navigation.php` |
 | Dokumentasi dan JDIH | `app/Livewire/Dokumentasi/`, `app/Http/Controllers/JdihController.php`, `resources/views/jdih/` |
-| Laporan & Pemantauan | `app/Support/LaporanNaskah.php`, `app/Support/KalimatRiwayat.php` (kalimat Aktivitas), `app/Livewire/V2/Laporan.php`, `app/Exports/LaporanNaskahExport.php` |
+| Laporan & Pemantauan | `app/Support/LaporanNaskah.php`, `app/Support/PeriodeLaporan.php`, `app/Support/KalimatRiwayat.php` (kalimat Aktivitas), `app/Livewire/V2/Laporan.php`, `app/Exports/LaporanLengkapExport.php`, `resources/views/pdf/laporan.blade.php` |
 | Pengingat naskah tertahan | `app/Console/Commands/IngatkanNaskahTertahan.php` (setiap pukul 08.00) |
 | Cadangan | `app/Console/Commands/BackupAplikasi.php` (setiap pukul 01.00) |
 | Akun darurat | `app/Console/Commands/AkunSuperAdmin.php` (`php artisan akun:super-admin`) |

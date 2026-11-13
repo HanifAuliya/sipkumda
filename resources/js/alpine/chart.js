@@ -15,6 +15,30 @@ const palette = () => {
     };
 };
 
+/**
+ * Warna seri mengikuti tema: dataset boleh berisi warna: { terang, gelap } (dipilih dari palet yang
+ * sudah divalidasi), dan celah: true untuk garis 2px sewarna permukaan kartu di antara segmen.
+ */
+const warnai = (config) => {
+    const dark = document.documentElement.classList.contains('dark');
+    const permukaan = dark ? '#1a2233' : '#ffffff';
+
+    for (const ds of config.data?.datasets ?? []) {
+        if (ds.warna) {
+            ds.backgroundColor = dark ? ds.warna.gelap : ds.warna.terang;
+            ds.hoverBackgroundColor = ds.backgroundColor;
+            delete ds.warna;
+        }
+        if (ds.celah) {
+            ds.borderColor = permukaan;
+            ds.borderWidth = 2;
+            delete ds.celah;
+        }
+    }
+
+    return config;
+};
+
 export default (config) => {
     // Sengaja di luar data Alpine. Lewat proxy reaktif, destroy() tidak melepas grafik dari
     // daftar animasi Chart.js, sehingga grafik yang sudah dihancurkan tetap digambar dan memunculkan error.
@@ -46,7 +70,7 @@ export default (config) => {
             Chart.defaults.borderColor = grid;
 
             grafik?.destroy();
-            grafik = new Chart(this.$refs.canvas, structuredClone(config));
+            grafik = new Chart(this.$refs.canvas, warnai(structuredClone(config)));
         },
 
         destroy() {

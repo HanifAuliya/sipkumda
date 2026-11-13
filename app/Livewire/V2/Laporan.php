@@ -2,9 +2,12 @@
 
 namespace App\Livewire\V2;
 
-use App\Exports\LaporanNaskahExport;
+use App\Exports\LaporanLengkapExport;
 use App\Models\PerangkatDaerah;
+use App\Support\FormatDokumen;
 use App\Support\LaporanNaskah;
+use App\Support\PeriodeLaporan;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -14,10 +17,10 @@ use Maatwebsite\Excel\Facades\Excel;
 
 /**
  * Laporan & Pemantauan untuk Bagian Hukum, tiga tab:
- * - ringkasan  : jumlah, lama proses, naskah tertahan, rata-rata per tahap;
+ * - ringkasan  : angka utama, grafik per bulan dan per langkah, naskah tertahan, rata-rata per tahap;
  * - perangkat  : sebaran naskah per Perangkat Daerah dan langkah, bisa dibuka per PD;
  * - aktivitas  : catatan kegiatan semua naskah dari riwayat naskah.
- * Filter jenis dan Perangkat Daerah berlaku di semua tab.
+ * Periode, jenis, dan Perangkat Daerah berlaku di semua tab, Unduh Excel, dan Unduh PDF.
  */
 #[Layout('layouts.app')]
 #[Title('Laporan & Pemantauan')]
@@ -35,6 +38,16 @@ class Laporan extends Component
     #[Url(except: '')]
     public string $tahun = '';
 
+    /** Kunci PeriodeLaporan::PILIHAN; kosong = setahun penuh (atau semua waktu bila tahun kosong). */
+    #[Url(except: '')]
+    public string $periode = '';
+
+    #[Url(except: '')]
+    public string $dari = '';
+
+    #[Url(except: '')]
+    public string $sampai = '';
+
     #[Url(except: '')]
     public string $jenis = '';
 
@@ -49,51 +62,69 @@ class Laporan extends Component
     #[Url(except: '')]
     public string $peran = '';
 
-    #[Url(except: '')]
-    public string $dari = '';
-
-    #[Url(except: '')]
-    public string $sampai = '';
-
     #[Url(except: false)]
     public bool $rumusan = false;
 
     public function updated($properti): void
     {
-        if (in_array($properti, ['jenis', 'pd', 'peran', 'dari', 'sampai', 'rumusan', 'tab'], true)) {
-            $this->resetPage('halamanAktivitas');
-        }
+        $this->resetPage('halamanAktivitas');
     }
 
-    public function pilihPd(string $id): void
+    public function updatedPeriode(string $nilai): void
     {
-        $this->pd = $id;
-        $this->tab = 'ringkasan';
-        $this->resetPage('halamanAktivitas');
+        // Periode dalam tahun tanpa tahun terpilih: pakai tahun ini.
+        if ($nilai !== '' && $nilai !== 'rentang' && $this->tahun === '') {
+            $this->tahun = (string) now()->year;
+        }
     }
 
     /** Nilai dari URL dibatasi ke pilihan yang ada. */
     private function filter(): array
     {
-        $tahun = ctype_digit($this->tahun) ? (int) $this->tahun : null;
         $jenis = in_array($this->jenis, ['Peraturan Bupati', 'Keputusan Bupati'], true) ? $this->jenis : null;
         $pd = ctype_digit($this->pd) ? (int) $this->pd : null;
 
-        return [$tahun, $jenis, $pd];
+        return [PeriodeLaporan::dari($this->tahun, $this->periode, $this->dari, $this->sampai), $jenis, $pd];
     }
 
-    private function tanggal(string $nilai): ?string
+    private function namaBerkas(PeriodeLaporan $periode, ?string $jenis, ?string $namaPd, string $ekstensi): string
     {
-        return preg_match('/^\d{4}-\d{2}-\d{2}$/', $nilai) && strtotime($nilai) ? $nilai : null;
+        $nama = 'Laporan Naskah ' . $periode->label . ($jenis ? " {$jenis}" : '') . ($namaPd ? " {$namaPd}" : '');
+
+        return str_replace(['/', '\\', ':', '–'], '-', $nama) . ".{$ekstensi}";
     }
 
     public function unduhExcel()
     {
-        [$tahun, $jenis, $pd] = $this->filter();
+        [$periode, $jenis, $pd] = $this->filter();
         $namaPd = $pd ? PerangkatDaerah::find($pd)?->nama_perangkat_daerah : null;
-        $nama = 'Laporan Naskah' . ($tahun ? " {$tahun}" : '') . ($jenis ? " {$jenis}" : '') . ($namaPd ? " {$namaPd}" : '') . '.xlsx';
 
-        return Excel::download(new LaporanNaskahExport($tahun, $jenis, $pd), str_replace(['/', '\\'], '-', $nama));
+        return Excel::download(new LaporanLengkapExport($periode, $jenis, $pd, $namaPd), $this->namaBerkas($periode, $jenis, $namaPd, 'xlsx'));
+    }
+
+    public function unduhPdf()
+    {
+        [$periode, $jenis, $pd] = $this->filter();
+        $namaPd = $pd ? PerangkatDaerah::find($pd)?->nama_perangkat_daerah : null;
+        $data = LaporanNaskah::susun($periode->rentang(), $jenis, $pd);
+        $f = FormatDokumen::nota();
+
+        $pdf = Pdf::loadView('pdf.laporan', [
+            'periode' => $periode->label,
+            'jenis' => $jenis,
+            'namaPd' => $namaPd,
+            'ringkasan' => $data['ringkasan'],
+            'ditetapkan' => $data['ditetapkan'],
+            'matriks' => LaporanNaskah::matriksPd($data['baris'])->filter(fn ($b) => $b['total'] > 0),
+            'tertahan' => $data['tertahan'],
+            'batas' => $data['batas'],
+            'perTahap' => $data['perTahap'],
+            'logo' => $f['kop']['tampil'] ? FormatDokumen::pathLogoNota($f) : null,
+            'kop' => $f['kop']['tampil'] ? array_values(array_filter($f['kop']['baris'], fn ($b) => filled($b['teks'] ?? null))) : [],
+            'pencetak' => auth()->user()->nama_user,
+        ])->setPaper('A4', 'portrait');
+
+        return response()->streamDownload(fn () => print($pdf->output()), $this->namaBerkas($periode, $jenis, $namaPd, 'pdf'));
     }
 
     public function render()
@@ -104,9 +135,15 @@ class Laporan extends Component
         if (! in_array($this->peran, self::PERAN, true)) {
             $this->peran = '';
         }
+        if (! array_key_exists($this->periode, PeriodeLaporan::PILIHAN)) {
+            $this->periode = '';
+        }
 
-        [$tahun, $jenis, $pd] = $this->filter();
+        [$periode, $jenis, $pd] = $this->filter();
+        $rentang = $periode->rentang();
         $data = [
+            'labelPeriode' => $periode->label,
+            'tahunPenuh' => $periode->tahunPenuh(),
             'daftarTahun' => LaporanNaskah::daftarTahun(),
             'daftarPd' => PerangkatDaerah::orderBy('nama_perangkat_daerah')->get(['id', 'nama_perangkat_daerah']),
             'peranList' => self::PERAN,
@@ -114,15 +151,16 @@ class Laporan extends Component
 
         if ($this->tab === 'aktivitas') {
             return view('v2.laporan', $data + [
-                'aktivitas' => LaporanNaskah::aktivitas($jenis, $pd, $this->peran ?: null, $this->tanggal($this->dari), $this->tanggal($this->sampai), $this->rumusan),
+                'aktivitas' => LaporanNaskah::aktivitas($jenis, $pd, $this->peran ?: null, $rentang, $this->rumusan),
             ]);
         }
 
-        $susun = LaporanNaskah::susun($tahun, $jenis, $pd);
+        $susun = LaporanNaskah::susun($rentang, $jenis, $pd);
 
         if ($this->tab === 'perangkat') {
-            $susun['matriks'] = LaporanNaskah::matriksPd(LaporanNaskah::baris($tahun, $jenis, $pd), $this->semuaPd && ! $pd);
-            $susun['idPd'] = $data['daftarPd']->pluck('id', 'nama_perangkat_daerah');
+            $susun['matriks'] = LaporanNaskah::matriksPd($susun['baris'], $this->semuaPd && ! $pd);
+        } else {
+            $susun['grafik'] = LaporanNaskah::grafik($rentang, $jenis, $pd, $susun['baris']);
         }
 
         return view('v2.laporan', $data + $susun);

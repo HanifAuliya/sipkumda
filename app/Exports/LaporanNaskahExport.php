@@ -14,16 +14,16 @@ use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithTitle;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-/** Daftar naskah beserta tahap dan lama prosesnya, sesuai filter di halaman Laporan. */
+/** Sheet Daftar Naskah: naskah beserta tahap dan lama prosesnya, sesuai filter di halaman Laporan. */
 class LaporanNaskahExport implements FromCollection, WithHeadings, WithTitle, WithStyles, ShouldAutoSize, WithCustomValueBinder
 {
     use MencegahFormulaInjection;
 
-    public function __construct(private ?int $tahun, private ?string $jenis, private ?int $pd = null) {}
+    public function __construct(private ?array $rentang, private ?string $jenis, private ?int $pd = null) {}
 
     public function collection(): Collection
     {
-        return LaporanNaskah::baris($this->tahun, $this->jenis, $this->pd)->map(fn (array $b) => [
+        return LaporanNaskah::baris($this->rentang, $this->jenis, $this->pd)->map(fn (array $b) => [
             $b['naskah']->nomor_tampil,
             $b['naskah']->jenis,
             $b['naskah']->tentang,
@@ -43,7 +43,7 @@ class LaporanNaskahExport implements FromCollection, WithHeadings, WithTitle, Wi
 
     public function title(): string
     {
-        return 'Laporan Naskah';
+        return 'Daftar Naskah';
     }
 
     public function styles(Worksheet $sheet): array

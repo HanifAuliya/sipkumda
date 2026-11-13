@@ -178,7 +178,7 @@ it('tab Aktivitas menampilkan kegiatan semua naskah dengan kalimat yang jelas da
     $halaman->set('peran', 'Admin')->assertDontSee('menugaskan peneliti')->assertSee($this->admin->nama_user);
 
     // Rentang tanggal di masa depan: kosong.
-    $halaman->set('peran', '')->set('dari', now()->addDay()->toDateString())->assertSee('Belum ada aktivitas dengan filter ini.');
+    $halaman->set('peran', '')->set('periode', 'rentang')->set('dari', now()->addDay()->toDateString())->assertSee('Belum ada aktivitas dengan filter ini.');
 
     // Kalimat untuk perpindahan tahap yang umum.
     $kalimat = fn ($dari, $ke) => \App\Support\KalimatRiwayat::untuk(new \App\Models\NaskahRiwayat(['aksi' => 'tahap', 'sebelum' => $dari->label(), 'sesudah' => $ke->label()]))['teks'];
@@ -186,4 +186,71 @@ it('tab Aktivitas menampilkan kegiatan semua naskah dengan kalimat yang jelas da
         ->and($kalimat(T::Final, T::Penandatanganan))->toBe('menerbitkan nota dinas')
         ->and($kalimat(T::Arsip, T::Selesai))->toBe('mengarsipkan ke JDIH')
         ->and($kalimat(T::PersetujuanBerkas, T::Draf))->toStartWith('mengembalikan naskah');
+});
+
+
+it('periode laporan: setahun, semester, triwulan, bulan, rentang, dan semua waktu', function () {
+    $p = fn (...$a) => \App\Support\PeriodeLaporan::dari(...$a);
+
+    expect($p('', '')->rentang())->toBeNull()
+        ->and($p('', '')->label)->toBe('Semua waktu')
+        ->and($p('2025', '')->label)->toBe('Tahun 2025')
+        ->and($p('2025', '')->tahunPenuh())->toBe(2025)
+        ->and($p('2025', 's2')->mulai->toDateString())->toBe('2025-07-01')
+        ->and($p('2025', 's2')->akhir->toDateString())->toBe('2025-12-31')
+        ->and($p('2025', 't2')->label)->toBe('Triwulan II 2025')
+        ->and($p('2025', 't2')->mulai->toDateString())->toBe('2025-04-01')
+        ->and($p('2025', 't2')->akhir->toDateString())->toBe('2025-06-30')
+        ->and($p('2024', 'b2')->akhir->toDateString())->toBe('2024-02-29')
+        ->and($p('2024', 'b2')->tahunPenuh())->toBeNull()
+        ->and($p('', 'rentang', '2025-01-05', '2025-02-10')->label)->toBe('5 Jan 2025 – 10 Feb 2025')
+        ->and($p('', 'rentang', 'bukan-tanggal', '')->rentang())->toBeNull()
+        // Periode dalam tahun tanpa tahun: tahun ini.
+        ->and($p('', 't1')->tahun)->toBe(now()->year);
+});
+
+it('ringkasan menghitung produk hukum ditetapkan menurut tanggal penetapan, termasuk arsip lama', function () {
+    $pdId = $this->pd->perangkat_daerah_id;
+    $buat = fn ($jenis, $tanggal, $nomor) => \App\Models\DokumentasiProdukHukum::create([
+        'nomor' => $nomor, 'tahun' => substr($tanggal, 0, 4), 'tanggal_penetapan' => $tanggal, 'tanggal_pengarsipan' => now(),
+        'perangkat_daerah_id' => $pdId, 'jenis_dokumentasi' => $jenis, 'tentang_dokumentasi' => 'Uji ' . $nomor,
+    ]);
+    $buat('Peraturan Bupati', '2025-02-10', 1);
+    $buat('Keputusan Bupati', '2025-05-10', 2);
+    $buat('Peraturan Bupati', '2024-12-31', 3);
+
+    $tahun = \App\Support\PeriodeLaporan::dari('2025', '')->rentang();
+    expect(LaporanNaskah::ditetapkan($tahun))->toMatchArray(['total' => 2, 'peraturan' => 1, 'keputusan' => 1, 'dari_sistem' => 0])
+        ->and(LaporanNaskah::ditetapkan(\App\Support\PeriodeLaporan::dari('2025', 't1')->rentang())['total'])->toBe(1)
+        ->and(LaporanNaskah::ditetapkan(null, 'Peraturan Bupati')['total'])->toBe(2);
+
+    // Grafik per bulan dalam setahun: 12 batang, penetapan Februari dan Mei.
+    $g = LaporanNaskah::grafik($tahun, null, null, collect());
+    expect($g['label'])->toHaveCount(12)
+        ->and($g['ditetapkan']['Peraturan Bupati'][1])->toBe(1)
+        ->and($g['ditetapkan']['Keputusan Bupati'][4])->toBe(1);
+
+    Livewire::actingAs($this->admin)->test(Laporan::class)
+        ->set('tahun', '2025')
+        ->assertSee('Tahun 2025')
+        ->assertViewHas('ditetapkan', fn ($d) => $d['total'] === 2)
+        ->assertSee(route('dokumentasi.main', ['tahun' => 2025]), false)
+        ->set('periode', 'b5')
+        ->assertSee('Mei 2025')
+        ->assertViewHas('ditetapkan', fn ($d) => $d['total'] === 1);
+});
+
+it('unduh PDF berkop dan Excel lengkap sesuai periode', function () {
+    ($this->naskah)('Peraturan Bupati', 12, [T::Penelitian->label() => 0], T::Penelitian);
+
+    $halaman = Livewire::actingAs($this->admin)->test(Laporan::class)->set('periode', 't4')->set('tahun', (string) now()->year);
+    $halaman->call('unduhPdf')->assertFileDownloaded('Laporan Naskah Triwulan IV ' . now()->year . '.pdf');
+
+    \Maatwebsite\Excel\Facades\Excel::fake();
+    $halaman->call('unduhExcel');
+    \Maatwebsite\Excel\Facades\Excel::assertDownloaded('Laporan Naskah Triwulan IV ' . now()->year . '.xlsx', function (\App\Exports\LaporanLengkapExport $e) {
+        $sheet = collect($e->sheets());
+
+        return $sheet->map(fn ($s) => $s->title())->all() === ['Ringkasan', 'Per Perangkat Daerah', 'Daftar Naskah', 'Aktivitas'];
+    });
 });

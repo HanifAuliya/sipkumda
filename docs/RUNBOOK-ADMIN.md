@@ -128,7 +128,7 @@ Menu: **Dokumentasi**.
 |---|---|
 | Setiap hari kerja | Dashboard › **Giliran Anda**. |
 | Setiap minggu | Menu **Laporan & Pemantauan** › Ringkasan › *Tertahan lebih dari 7 hari*. Pemegang gilirannya sudah diingatkan otomatis setiap 7 hari (pukul 08.00); bila tetap tertahan, tanyakan langsung. |
-| Akhir bulan atau tahun | Menu **Laporan & Pemantauan** › **Unduh Excel** untuk bahan laporan pimpinan; tab **Per Perangkat Daerah** untuk melihat siapa mengajukan apa. |
+| Akhir bulan, triwulan, atau tahun | Menu **Laporan & Pemantauan**, pilih **Periode**, lalu **Unduh › PDF laporan** (berkop, untuk pimpinan) atau **Excel lengkap**. Tab **Per Perangkat Daerah** untuk melihat siapa mengajukan apa. |
 | Bila ada pertanyaan "siapa yang mengubah ini dan kapan" | Menu **Laporan & Pemantauan** › **Aktivitas**, saring per Perangkat Daerah atau tanggal. |
 | Bila muncul notifikasi *cadangan gagal* | Laporkan ke pengelola server hari itu juga. |
 | Setiap bulan | Daftar Pengguna: akun pegawai yang sudah pindah tugas. |
