@@ -108,14 +108,24 @@ enum TahapNaskah: string
         };
     }
 
+    /**
+     * Warna badge tahap: tiap langkah punya warna sendiri supaya posisi naskah terbaca sekilas.
+     * Perbaikan (dikembalikan ke Perangkat Daerah) selalu oranye; disetujui dan selesai hijau.
+     */
     public function warna(): string
     {
         return match ($this) {
             self::Draf => 'slate',
+            self::PersetujuanBerkas => 'sky',
+            self::PilihPeneliti, self::Penelitian => 'teal',
             self::PerbaikanPd, self::PerbaikanFasilitasi => 'warning',
-            self::Penelitian, self::CekPeneliti => 'info',
+            self::ValidasiRancangan, self::ValidasiFasilitasi => 'violet',
             self::Disetujui, self::Selesai => 'success',
-            default => 'primary',
+            self::PersetujuanFasilitasi, self::CekPeneliti => 'primary',
+            // Bukan amber: sudah dipakai badge Keputusan Bupati di kartu yang sama.
+            self::Final => 'info',
+            self::Penandatanganan => 'fuchsia',
+            self::Arsip => 'indigo',
         };
     }
 

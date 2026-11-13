@@ -1,7 +1,7 @@
 {{--
     Badge berwarna lembut.
     <x-ui.badge color="success" icon="check2">Disetujui</x-ui.badge>
-    color: primary | success | danger | warning | info | amber | navy | slate
+    color: primary | success | danger | warning | info | amber | sky | teal | violet | indigo | fuchsia | navy | slate
     size : sm | lg
 --}}
 @props(['color' => 'slate', 'icon' => null, 'size' => 'sm'])
@@ -14,7 +14,13 @@
         'warning' => 'bg-orange-50 text-orange-700 ring-orange-600/15 dark:bg-orange-500/15 dark:text-orange-300 dark:ring-orange-400/20',
         'info' => 'bg-cyan-50 text-cyan-700 ring-cyan-600/15 dark:bg-cyan-500/15 dark:text-cyan-300 dark:ring-cyan-400/20',
         'amber' => 'bg-amber-50 text-amber-700 ring-amber-600/20 dark:bg-amber-500/15 dark:text-amber-300 dark:ring-amber-400/20',
-        'navy' => 'bg-navy-900 text-white ring-navy-900 dark:bg-navy-700 dark:ring-navy-600',
+        // Warna tambahan untuk badge tahap naskah (TahapNaskah::warna).
+        'sky' => 'bg-sky-50 text-sky-700 ring-sky-600/15 dark:bg-sky-500/15 dark:text-sky-300 dark:ring-sky-400/20',
+        'teal' => 'bg-teal-50 text-teal-700 ring-teal-600/15 dark:bg-teal-500/15 dark:text-teal-300 dark:ring-teal-400/20',
+        'violet' => 'bg-violet-50 text-violet-700 ring-violet-600/15 dark:bg-violet-500/15 dark:text-violet-300 dark:ring-violet-400/20',
+        'indigo' => 'bg-indigo-50 text-indigo-700 ring-indigo-600/15 dark:bg-indigo-500/15 dark:text-indigo-300 dark:ring-indigo-400/20',
+        'fuchsia' => 'bg-fuchsia-50 text-fuchsia-700 ring-fuchsia-600/15 dark:bg-fuchsia-500/15 dark:text-fuchsia-300 dark:ring-fuchsia-400/20',
+        'navy' =>'bg-navy-900 text-white ring-navy-900 dark:bg-navy-700 dark:ring-navy-600',
         'slate' => 'bg-slate-100 text-slate-600 ring-slate-500/15 dark:bg-white/10 dark:text-slate-300 dark:ring-white/10',
     ];
 @endphp

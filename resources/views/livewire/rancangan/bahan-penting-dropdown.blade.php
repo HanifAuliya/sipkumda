@@ -1,5 +1,5 @@
 <div>
-    <x-ui.dropdown width="w-72">
+    <x-ui.dropdown width="w-80">
         <x-slot:trigger>
             <x-ui.button variant="outline-primary" icon="cloud-download">
                 Bahan Penting <i class="bi bi-chevron-down text-xs"></i>

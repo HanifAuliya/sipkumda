@@ -38,9 +38,13 @@ Di Dashboard, Giliran Anda diurutkan dari yang paling lama menunggu, dengan kete
 
 ## 1. Mengajukan rancangan baru
 
+Sebelum mulai, buka **Rancanganku › Bahan Penting**. Isinya: template naskah Peraturan Bupati dan
+Keputusan Bupati, **Template Matriks** keduanya, **Contoh Nota Dinas Pengajuan**, dan **Daftar Periksa
+Pengajuan** berisi apa saja yang perlu disiapkan.
+
 1. Buka **Rancanganku › Ajukan Rancangan Baru**.
 2. Isi **Jenis Rancangan** (Peraturan Bupati atau Keputusan Bupati), **Tentang**, serta **Nomor** dan **Tanggal Nota Dinas PD**.
-3. Unggah **Nota Dinas Perangkat Daerah** (PDF, wajib).
+3. Unggah **Nota Dinas Perangkat Daerah** (PDF yang sudah ditandatangani, wajib). Contohnya ada di Bahan Penting.
 4. Bila punya file Word rancangan, pilih **Bentuk File Rancangan**:
    - **Naskah Rancangan**: ditulis seperti naskah yang dicetak (judul, Menimbang, Mengingat, pasal atau diktum).
    - **Matriks**: tabel dengan kolom materi dan rumusan.

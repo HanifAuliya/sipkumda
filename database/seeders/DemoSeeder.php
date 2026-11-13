@@ -52,6 +52,9 @@ class DemoSeeder extends Seeder
 
         // Naskah di tahap lanjut (Menunggu Arsip, Selesai, tertahan) untuk Dokumentasi dan Laporan.
         $this->call(DemoAlurSeeder::class);
+
+        // Template matriks, contoh nota dinas, dan daftar periksa di tombol Bahan Penting.
+        $this->command?->call('bahan-penting:bawaan');
     }
 
     private function buatPerangkatDaerah(): array

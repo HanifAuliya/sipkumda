@@ -27,6 +27,17 @@ php artisan event:cache
 > Akibatnya, konfigurasi diambil dari file `.env`. Variabel lingkungan sistem operasi tidak terbaca
 > lewat `getenv()`, kecuali yang masuk ke `$_ENV` atau `$_SERVER` (misalnya `SetEnv` di Apache).
 
+### Bahan Penting bawaan (sekali saat pemasangan, dan setelah pembaruan template)
+
+```bash
+php artisan bahan-penting:bawaan
+```
+
+Mengisi tombol **Bahan Penting** milik Perangkat Daerah dengan Template Matriks Peraturan Bupati,
+Template Matriks Keputusan Bupati, Contoh Nota Dinas Pengajuan, dan Daftar Periksa Pengajuan. Aman
+dijalankan ulang: berkas bawaan diperbarui, berkas unggahan Admin tidak disentuh, dan bawaan yang
+sengaja dihapus Admin tidak dibuat lagi (kecuali dengan `--pulihkan`).
+
 ### Ekstensi PHP untuk foto profil
 
 Aktifkan `gd` (dengan JPEG, PNG, dan WebP) dan `exif` di `php.ini`. Tanpa `gd`, unggah foto ditolak

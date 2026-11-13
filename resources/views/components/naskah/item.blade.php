@@ -3,12 +3,15 @@
     <x-naskah.item :naskah="$naskah" />
     - menunggu : hari di tahap sekarang (Giliran Anda); null = tidak ditampilkan
     - batas    : mulai hari ke berapa lamanya ditandai oranye (LaporanNaskah::batasTertahan)
+    - kerja    : tampilkan tombol kerja (Kerjakan, Terbitkan Nota Dinas, Arsipkan). false di tab riwayat:
+                 tahap itu milik menu lain, jadi yang tampil tautan ke menu tersebut.
 --}}
-@props(['naskah', 'menunggu' => null, 'batas' => 7])
+@props(['naskah', 'menunggu' => null, 'batas' => 7, 'kerja' => true])
 
 @php
     $tahap = $naskah->tahap;
     $giliran = $naskah->giliranMilik(auth()->user());
+    $menuKerja = $giliran && ! $kerja ? App\Livewire\V2\DaftarNaskah::menuKerja($tahap) : null;
     // Warna hanya untuk yang perlu tindakan atau sudah selesai; keterangan biasa dibuat tenang.
     [$warnaPesan, $ikonPesan] = match ($tahap->warna()) {
         'warning' => ['text-orange-700 dark:text-orange-300', 'exclamation-circle'],
@@ -74,9 +77,12 @@
             <x-naskah.detail-button :naskah="$naskah" label="Detail" class="max-lg:flex-1" />
             @if (auth()->user()->pemantau())
                 <x-ui.button size="rapat" icon="vector-pen" :href="route('naskah.pantau', $naskah)" class="max-lg:flex-1">Pantau</x-ui.button>
-            @elseif ($giliran)
+            @elseif ($giliran && $kerja)
                 {{-- Langsung ke halaman yang dikerjakan pada tahap ini: matriks, atau Nota Dinas & Tanda Tangan. --}}
                 <x-ui.button size="rapat" :icon="$tahap->ikonKerjakan()" :href="$naskah->tautanUntuk(auth()->user())" class="max-lg:flex-1">{{ $tahap->labelKerjakan() }}</x-ui.button>
+            @elseif ($menuKerja)
+                <x-ui.button size="rapat" variant="outline-primary" icon="arrow-right" :href="$menuKerja[1]" wire:navigate
+                    title="Naskah ini sedang giliran Anda dan dikerjakan di menu {{ $menuKerja[0] }}" class="max-lg:flex-1">Ke {{ $menuKerja[0] }}</x-ui.button>
             @endif
         </div>
     </div>

@@ -25,7 +25,7 @@
 
                 <div class="space-y-4 transition-opacity duration-150" wire:loading.class="opacity-60">
                     @forelse ($halaman as $naskah)
-                        <x-naskah.item :naskah="$naskah" wire:key="naskah-{{ $naskah->id }}" />
+                        <x-naskah.item :naskah="$naskah" :kerja="$tabAktif !== 'riwayat'" wire:key="naskah-{{ $naskah->id }}" />
                     @empty
                         <x-ui.empty-state :icon="$info['ikon']" :title="$search !== '' || $jenis !== '' ? 'Tidak ada naskah yang cocok dengan pencarian atau filter.' : 'Daftar “'.$daftarTab[$tabAktif][1].'” masih kosong.'" class="py-12">
                             <x-ui.reset-filter :aktif="$search !== '' || $jenis !== ''" :nilai="['search' => '', 'jenis' => '']" />

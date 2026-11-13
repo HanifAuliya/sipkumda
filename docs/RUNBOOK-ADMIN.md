@@ -85,7 +85,13 @@ Nota dinas yang sudah terbit **tidak ikut berubah**. Bila perlu diperbarui, buka
 
 ### Template untuk Perangkat Daerah
 Menu: **Pengaturan › Template Bahan Penting** (Admin). Berkas di sini muncul di tombol **Bahan Penting**
-pada menu Rancanganku milik Perangkat Daerah.
+pada menu Rancanganku milik Perangkat Daerah, di bawah Template Peraturan Bupati dan Keputusan Bupati
+yang selalu ada.
+
+Berkas bawaan (Template Matriks Perbup dan Kepbup, Contoh Nota Dinas Pengajuan, Daftar Periksa
+Pengajuan) dibuat dengan `php artisan bahan-penting:bawaan`. Boleh diganti atau dihapus dari menu ini.
+Bawaan yang terhapus tidak sengaja bisa dipulihkan pengelola server dengan
+`php artisan bahan-penting:bawaan --pulihkan`.
 
 ---
 

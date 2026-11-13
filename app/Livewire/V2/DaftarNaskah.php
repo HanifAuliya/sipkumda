@@ -52,6 +52,38 @@ class DaftarNaskah extends Component
             'tab' => [['hourglass-split', 'Sedang Berjalan'], ['check2-circle', 'Sudah Selesai']]],
     ];
 
+    /**
+     * Menu tempat tahap ini dikerjakan, sebagai [label, url]. Tombol kerja hanya tampil di menu itu (dan
+     * Giliran Anda di Dashboard); di tab riwayat menu lain, naskah yang sedang giliran Anda diberi
+     * tautan ke menu ini supaya "Terbitkan Nota Dinas" tidak muncul di, misalnya, Pilih Peneliti.
+     */
+    public static function menuKerja(T $tahap): ?array
+    {
+        if ($tahap === T::Arsip) {
+            return ['Dokumentasi', route('dokumentasi.main', ['tab' => 'menunggu'])];
+        }
+
+        $kelompok = match ($tahap) {
+            T::Draf, T::PerbaikanPd => 'rancanganku',
+            T::PersetujuanBerkas => 'persetujuan-berkas',
+            T::PilihPeneliti => 'pilih-peneliti',
+            T::Penelitian => 'penelitian',
+            T::ValidasiRancangan => 'validasi-rancangan',
+            T::Disetujui, T::PerbaikanFasilitasi => 'fasilitasiku',
+            T::PersetujuanFasilitasi => 'persetujuan-fasilitasi',
+            T::CekPeneliti => 'cek-peneliti',
+            T::ValidasiFasilitasi => 'validasi-fasilitasi',
+            T::Final => 'nota-dinas',
+            T::Penandatanganan => 'penandatanganan',
+            T::Arsip, T::Selesai => null,
+        };
+
+        return $kelompok ? [
+            self::KELOMPOK[$kelompok]['judul'],
+            route('daftar', ['kelompok' => $kelompok, ...($tahap === T::Draf ? ['tab' => 'draf'] : [])]),
+        ] : null;
+    }
+
     #[Locked]
     public string $kelompok;
 

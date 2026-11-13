@@ -112,6 +112,29 @@ describe('daftar naskah', function () {
             ->assertSee('Sudah Lewat')->assertDontSee('Masih Menunggu')->assertDontSee('Belum Sampai');
     });
 
+    it('tombol kerja hanya di menu tahapnya; di riwayat menu lain diganti tautan ke menu itu', function () {
+        $pd = ($this->peran)('Perangkat Daerah');
+        $buat = fn (string $tahap, string $tentang) => Naskah::create([
+            'jenis' => 'Peraturan Bupati', 'tentang' => $tentang, 'pemrakarsa_id' => $pd->id, 'tahap' => $tahap,
+            'nomor_nota' => uniqid(), 'tanggal_nota' => now(),
+        ]);
+        $buat('final', 'Menunggu Nota');
+        $buat('arsip', 'Menunggu Arsip');
+        $this->actingAs(($this->peran)('Verifikator'));
+
+        Livewire::test(DaftarNaskah::class, ['kelompok' => 'pilih-peneliti'])
+            ->call('pilihTab', 'riwayat')
+            ->assertSee('Menunggu Nota')->assertSee('Menunggu Arsip')
+            ->assertDontSee('Terbitkan Nota Dinas')->assertDontSee('Arsipkan')
+            ->assertSee('Ke Daftar Nota Dinas')->assertSee('Ke Dokumentasi')
+            ->assertSee(route('dokumentasi.main', ['tab' => 'menunggu']), false);
+
+        Livewire::test(DaftarNaskah::class, ['kelompok' => 'nota-dinas'])
+            ->assertSee('Terbitkan Nota Dinas')
+            ->call('pilihTab', 'riwayat')
+            ->assertDontSee('Arsipkan')->assertSee('Ke Dokumentasi');
+    });
+
     it('daftar tidak langsung membuka layar kerja, hanya tombol detail', function (string $kelompok) {
         $pd = ($this->peran)('Perangkat Daerah');
         $n = Naskah::create([
