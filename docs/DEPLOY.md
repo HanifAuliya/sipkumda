@@ -99,7 +99,7 @@ Tanpa `schedule:run`, tugas terjadwal tidak pernah berjalan:
 
 Batas hari naskah dianggap tertahan diatur `SIFKUMDA_HARI_TERTAHAN` di `.env` (bawaan `7`). Pengingat
 dikirim saat lamanya tepat kelipatan batas itu (hari ke-7, 14, 21, ...). Tahap Penandatanganan tidak
-diingatkan. Angka yang sama dipakai di menu Laporan.
+diingatkan. Angka yang sama dipakai di menu Laporan & Pemantauan.
 
 ## 6. Backup
 

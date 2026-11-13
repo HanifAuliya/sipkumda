@@ -19,11 +19,11 @@ class LaporanNaskahExport implements FromCollection, WithHeadings, WithTitle, Wi
 {
     use MencegahFormulaInjection;
 
-    public function __construct(private ?int $tahun, private ?string $jenis) {}
+    public function __construct(private ?int $tahun, private ?string $jenis, private ?int $pd = null) {}
 
     public function collection(): Collection
     {
-        return LaporanNaskah::baris($this->tahun, $this->jenis)->map(fn (array $b) => [
+        return LaporanNaskah::baris($this->tahun, $this->jenis, $this->pd)->map(fn (array $b) => [
             $b['naskah']->nomor_tampil,
             $b['naskah']->jenis,
             $b['naskah']->tentang,

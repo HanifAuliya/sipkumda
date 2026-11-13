@@ -12,7 +12,7 @@ juga **Runbook Admin** (`docs/RUNBOOK-ADMIN.md`).
 | Daftar Rancangan, Daftar Fasilitasi | Semua naskah |
 | Daftar Nota Dinas, Penandatanganan | Naskah pada tahap akhir |
 | Dokumentasi | Arsip produk hukum; tab Menunggu Arsip |
-| Laporan | Rekap naskah per tahap dan per Perangkat Daerah, naskah yang tertahan, unduh Excel |
+| Laporan & Pemantauan | Rekap naskah, sebaran per Perangkat Daerah, aktivitas semua naskah, unduh Excel |
 | Akun › Daftar Pengguna | Akun pengguna |
 | Pengaturan | Pengaturan Naskah, Format Dokumen, Template Bahan Penting, Perangkat Daerah |
 
@@ -86,8 +86,8 @@ Keputusan Bupati.
 ![Dokumentasi: tab Menunggu Arsip dan tombol Arsipkan dari Sistem](../../public/img/panduan/admin-menunggu-arsip.jpg)
 *Dokumentasi: tab Menunggu Arsip dan tombol Arsipkan dari Sistem*
 
-Naskah yang tertahan lama terlihat di menu **Laporan**. Pemegang gilirannya juga mendapat notifikasi
-pengingat otomatis setiap 7 hari.
+Naskah yang tertahan lama terlihat di menu **Laporan & Pemantauan** (bagian 7). Pemegang gilirannya juga
+mendapat notifikasi pengingat otomatis setiap 7 hari.
 
 ## 5. Pengguna
 
@@ -110,3 +110,28 @@ pengingat otomatis setiap 7 hari.
 
 ![Format Dokumen: pengaturan di kiri, pratinjau di kanan](../../public/img/panduan/admin-format.jpg)
 *Format Dokumen: pengaturan di kiri, pratinjau di kanan*
+
+## 7. Laporan & Pemantauan
+
+Menu **Laporan & Pemantauan** punya tiga tab. Filter **jenis** dan **Perangkat Daerah** di atasnya berlaku
+untuk ketiganya, dan **Unduh Excel** mengunduh daftar naskah sesuai filter.
+
+- **Ringkasan**: jumlah naskah, rata-rata lama proses, naskah yang tertahan lebih dari 7 hari, dan
+  rata-rata lama tiap tahap. Pemegang giliran naskah yang tertahan diingatkan otomatis lewat notifikasi.
+- **Per Perangkat Daerah**: siapa mengajukan apa dan sampai mana. Tiap baris satu Perangkat Daerah, tiap
+  kolom satu langkah (Penyusunan sampai Selesai). Pilih jenis **Peraturan Bupati** untuk melihat
+  Perangkat Daerah mana saja yang mengajukan Perbup. Tekan barisnya untuk melihat naskahnya, lalu
+  **Detail**. Centang **Tampilkan yang belum mengajukan** untuk melihat Perangkat Daerah yang belum
+  pernah mengajukan.
+- **Aktivitas**: catatan kegiatan semua naskah, terbaru di atas, mis. "Taufik Rahman (Verifikator)
+  menerbitkan nota dinas". Bisa disaring per peran pelaku dan rentang tanggal. Perubahan rumusan per
+  baris disembunyikan supaya ringkas; centang **Termasuk perubahan rumusan** bila perlu.
+
+![Laporan & Pemantauan: ringkasan](../../public/img/panduan/verifikator-laporan.jpg)
+*Ringkasan: angka utama dan naskah yang tertahan*
+
+![Per Perangkat Daerah](../../public/img/panduan/verifikator-pemantauan.jpg)
+*Per Perangkat Daerah: sebaran naskah tiap langkah, baris dibuka untuk melihat naskahnya*
+
+![Aktivitas](../../public/img/panduan/verifikator-aktivitas.jpg)
+*Aktivitas: siapa melakukan apa pada naskah mana, dan kapan*

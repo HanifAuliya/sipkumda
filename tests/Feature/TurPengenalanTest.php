@@ -30,10 +30,10 @@ it('langkahnya sesuai peran dan hanya menyorot menu yang dimiliki', function () 
     $sasaran = fn (User $u) => collect(TurPengenalan::langkah($u))->pluck('target')->filter()->values()->all();
 
     expect($sasaran($this->pd))->toContain('menu-rancanganku', 'menu-fasilitasiku', 'giliran', 'lonceng', 'menu-panduan')
-        ->not->toContain('menu-laporan', 'menu-persetujuan-berkas');
+        ->not->toContain('menu-laporan-pemantauan', 'menu-persetujuan-berkas');
 
     $admin = tap(User::factory()->create())->assignRole('Admin');
-    expect($sasaran($admin))->toContain('menu-persetujuan-berkas', 'menu-laporan', 'menu-daftar-pengguna')
+    expect($sasaran($admin))->toContain('menu-persetujuan-berkas', 'menu-laporan-pemantauan', 'menu-daftar-pengguna')
         ->not->toContain('menu-rancanganku');
 
     // Setiap menu yang disorot benar-benar ada di sidebar pengguna itu.

@@ -10,6 +10,11 @@ class NaskahRiwayat extends Model
 
     protected $fillable = ['naskah_id', 'baris_id', 'user_id', 'aksi', 'catatan', 'sebelum', 'sesudah'];
 
+    public function naskah()
+    {
+        return $this->belongsTo(Naskah::class);
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);

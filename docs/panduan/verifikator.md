@@ -12,7 +12,7 @@ mengelola pejabat penanda tangan.
 | Validasi Fasilitasi | Naskah fasilitasi yang menunggu persetujuan |
 | Daftar Nota Dinas | Naskah yang menunggu nota dinas dan yang sudah terbit |
 | Dokumentasi | Arsip produk hukum; tab **Menunggu Arsip** berisi naskah yang siap diarsipkan |
-| Laporan | Rekap naskah, lama tiap tahap, naskah yang tertahan, unduh Excel |
+| Laporan & Pemantauan | Rekap naskah, sebaran per Perangkat Daerah, aktivitas semua naskah, unduh Excel |
 | Pengaturan | Pengaturan Naskah, Format Dokumen, Kelola TTD |
 
 **Tur pengenalan.** Saat pertama masuk, Dashboard menampilkan tur singkat yang menyorot menu Anda satu
@@ -73,13 +73,32 @@ tanggal penetapan.
 ![Arsipkan dari Sistem: data naskah terisi otomatis](../../public/img/panduan/verifikator-arsip.jpg)
 *Arsipkan dari Sistem: data naskah terisi otomatis*
 
-Menu **Laporan** merangkum jumlah naskah, lama tiap tahap, dan naskah yang tertahan lebih dari 7 hari.
-Pemegang giliran naskah yang tertahan diingatkan otomatis lewat notifikasi.
+## 6. Laporan & Pemantauan
 
-![Laporan: ringkasan dan naskah yang tertahan](../../public/img/panduan/verifikator-laporan.jpg)
-*Laporan: ringkasan dan naskah yang tertahan*
+Menu **Laporan & Pemantauan** punya tiga tab. Filter **jenis** dan **Perangkat Daerah** di atasnya berlaku
+untuk ketiganya, dan **Unduh Excel** mengunduh daftar naskah sesuai filter.
 
-## 6. Kelola TTD
+- **Ringkasan**: jumlah naskah, rata-rata lama proses, naskah yang tertahan lebih dari 7 hari, dan
+  rata-rata lama tiap tahap. Pemegang giliran naskah yang tertahan diingatkan otomatis lewat notifikasi.
+- **Per Perangkat Daerah**: siapa mengajukan apa dan sampai mana. Tiap baris satu Perangkat Daerah, tiap
+  kolom satu langkah (Penyusunan sampai Selesai). Pilih jenis **Peraturan Bupati** untuk melihat
+  Perangkat Daerah mana saja yang mengajukan Perbup. Tekan barisnya untuk melihat naskahnya, lalu
+  **Detail**. Centang **Tampilkan yang belum mengajukan** untuk melihat Perangkat Daerah yang belum
+  pernah mengajukan.
+- **Aktivitas**: catatan kegiatan semua naskah, terbaru di atas, mis. "Taufik Rahman (Verifikator)
+  menerbitkan nota dinas". Bisa disaring per peran pelaku dan rentang tanggal. Perubahan rumusan per
+  baris disembunyikan supaya ringkas; centang **Termasuk perubahan rumusan** bila perlu.
+
+![Laporan & Pemantauan: ringkasan](../../public/img/panduan/verifikator-laporan.jpg)
+*Ringkasan: angka utama dan naskah yang tertahan*
+
+![Per Perangkat Daerah](../../public/img/panduan/verifikator-pemantauan.jpg)
+*Per Perangkat Daerah: sebaran naskah tiap langkah, baris dibuka untuk melihat naskahnya*
+
+![Aktivitas](../../public/img/panduan/verifikator-aktivitas.jpg)
+*Aktivitas: siapa melakukan apa pada naskah mana, dan kapan*
+
+## 7. Kelola TTD
 
 Menu **Pengaturan › Kelola TTD**: tambah pejabat penanda tangan nota dinas, unggah gambar tanda tangannya,
 dan nonaktifkan yang sudah tidak menjabat.

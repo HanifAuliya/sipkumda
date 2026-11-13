@@ -88,7 +88,7 @@ class TurPengenalan
                 ['menu-validasi-fasilitasi', 'Validasi Fasilitasi', 'Naskah fasilitasi yang menunggu persetujuan akhir.'],
                 ['menu-daftar-nota-dinas', 'Menerbitkan Nota Dinas', 'Naskah yang fasilitasinya selesai menunggu nota dinas di tab Menunggu Terbit. Tekan Terbitkan Nota Dinas, isi nomor urut, periksa Kepada, dan pilih tanda tangan. Admin juga bisa menerbitkannya.'],
                 ['menu-dokumentasi', 'Dokumentasi', 'Arsipkan naskah yang tanda tangannya lengkap lewat Arsipkan dari Sistem, atau tambahkan produk hukum lama.'],
-                ['menu-laporan', 'Laporan', 'Rekap naskah, lama tiap tahap, dan naskah yang tertahan. Bisa diunduh sebagai Excel.'],
+                ['menu-laporan-pemantauan', 'Laporan & Pemantauan', 'Rekap naskah, sebaran per Perangkat Daerah (siapa mengajukan apa dan sampai mana), aktivitas semua naskah, dan naskah yang tertahan. Bisa diunduh sebagai Excel.'],
                 ['menu-kelola-ttd', 'Kelola TTD', 'Pejabat penanda tangan nota dinas.'],
             ],
             'Admin' => [
@@ -96,13 +96,13 @@ class TurPengenalan
                 ['menu-daftar-nota-dinas', 'Menerbitkan Nota Dinas', 'Naskah yang fasilitasinya selesai menunggu nota dinas di tab Menunggu Terbit. Tekan Terbitkan Nota Dinas, isi nomor urut, periksa Kepada, dan pilih tanda tangan. Verifikator juga bisa menerbitkannya.'],
                 ['menu-penandatanganan', 'Penandatanganan', 'Catat paraf dan tanda tangan pejabat satu per satu.'],
                 ['menu-dokumentasi', 'Dokumentasi', 'Arsipkan naskah yang tanda tangannya lengkap lewat Arsipkan dari Sistem, atau tambahkan produk hukum lama.'],
-                ['menu-laporan', 'Laporan', 'Rekap naskah, lama tiap tahap, dan naskah yang tertahan. Bisa diunduh sebagai Excel.'],
+                ['menu-laporan-pemantauan', 'Laporan & Pemantauan', 'Rekap naskah, sebaran per Perangkat Daerah (siapa mengajukan apa dan sampai mana), aktivitas semua naskah, dan naskah yang tertahan. Bisa diunduh sebagai Excel.'],
                 ['menu-daftar-pengguna', 'Daftar Pengguna', 'Tambah akun, atur peran, dan buat kata sandi sementara.'],
                 ['menu-pengaturan-naskah', 'Pengaturan', 'Nama pejabat, urutan tanda tangan, format dokumen, dan daftar perangkat daerah.'],
             ],
             'Super Admin' => [
                 ['menu-daftar-pengguna', 'Daftar Pengguna', 'Tambah akun, atur peran, dan buat kata sandi sementara.'],
-                ['menu-laporan', 'Laporan', 'Rekap naskah, lama tiap tahap, dan naskah yang tertahan.'],
+                ['menu-laporan-pemantauan', 'Laporan & Pemantauan', 'Rekap naskah, sebaran per Perangkat Daerah, aktivitas semua naskah, dan naskah yang tertahan.'],
                 ['menu-pengaturan-naskah', 'Pengaturan', 'Nama pejabat, urutan tanda tangan, format dokumen, dan daftar perangkat daerah.'],
             ],
             'Tamu' => [

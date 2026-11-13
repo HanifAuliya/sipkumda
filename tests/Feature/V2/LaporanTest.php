@@ -131,3 +131,59 @@ it('arsip Keputusan Bupati boleh tanpa Berita Daerah, dan tahunnya mengikuti tan
     expect((int) $d->fresh()->tahun)->toBe(2025)
         ->and($d->fresh()->nomor_formatted)->toBe('Nomor 140/5/412.1.6/TAHUN 2025');
 });
+
+it('tab Per Perangkat Daerah menyebar naskah menurut langkah, dan bisa disaring per Perangkat Daerah', function () {
+    ($this->naskah)('Peraturan Bupati', 10, [T::Penelitian->label() => 0], T::Penelitian);
+    ($this->naskah)('Peraturan Bupati', 30, [T::Selesai->label() => 20], T::Selesai);
+    ($this->naskah)('Keputusan Bupati', 5, [T::PersetujuanBerkas->label() => 0], T::PersetujuanBerkas);
+    PerangkatDaerah::factory()->create(['nama_perangkat_daerah' => 'Dinas Belum Mengajukan']);
+
+    $matriks = LaporanNaskah::matriksPd(LaporanNaskah::baris(null, 'Peraturan Bupati'));
+    expect($matriks)->toHaveCount(1)
+        ->and($matriks[0]['nama'])->toBe('Dinas Uji')
+        ->and($matriks[0]['total'])->toBe(2)
+        ->and($matriks[0]['jumlah'][T::Penelitian->langkah()])->toBe(1)
+        ->and($matriks[0]['jumlah'][T::Selesai->langkah()])->toBe(1);
+
+    // Ikut menampilkan PD yang belum pernah mengajukan.
+    expect(LaporanNaskah::matriksPd(LaporanNaskah::baris(), true)->pluck('nama'))->toContain('Dinas Belum Mengajukan');
+
+    Livewire::actingAs($this->admin)->test(Laporan::class)
+        ->set('tab', 'perangkat')
+        ->assertSee('Sebaran per Perangkat Daerah')
+        ->assertSee('Dinas Uji')
+        ->assertViewHas('matriks', fn ($m) => ! $m->pluck('nama')->contains('Dinas Belum Mengajukan'))
+        ->set('semuaPd', true)
+        ->assertViewHas('matriks', fn ($m) => $m->pluck('nama')->contains('Dinas Belum Mengajukan'))
+        // Filter Perangkat Daerah juga berlaku di Ringkasan.
+        ->set('tab', 'ringkasan')
+        ->set('pd', (string) PerangkatDaerah::where('nama_perangkat_daerah', 'Dinas Belum Mengajukan')->value('id'))
+        ->assertViewHas('ringkasan', fn ($r) => $r['diajukan'] === 0);
+});
+
+it('tab Aktivitas menampilkan kegiatan semua naskah dengan kalimat yang jelas dan bisa disaring', function () {
+    $alur = app(\App\Services\AlurNaskah::class);
+    $n = Naskah::create(['jenis' => 'Peraturan Bupati', 'tentang' => 'Uji Aktivitas', 'pemrakarsa_id' => $this->pd->id, 'peneliti_id' => $this->peneliti->id]);
+    $n->forceFill(['tahap' => T::PersetujuanBerkas, 'diajukan_at' => now()])->save();
+    $alur->jalankan($n, $this->admin, 'setujui_berkas');
+    $alur->jalankan($n->fresh(), $this->verifikator, 'tugaskan_peneliti', null, $this->peneliti->id);
+
+    $halaman = Livewire::actingAs($this->admin)->test(Laporan::class)->set('tab', 'aktivitas');
+    $halaman->assertSee('Uji Aktivitas')
+        ->assertSee('menugaskan peneliti')
+        ->assertSee($this->verifikator->nama_user)
+        ->assertSee('(Verifikator)');
+
+    // Disaring per peran pelaku: hanya kegiatan Admin.
+    $halaman->set('peran', 'Admin')->assertDontSee('menugaskan peneliti')->assertSee($this->admin->nama_user);
+
+    // Rentang tanggal di masa depan: kosong.
+    $halaman->set('peran', '')->set('dari', now()->addDay()->toDateString())->assertSee('Belum ada aktivitas dengan filter ini.');
+
+    // Kalimat untuk perpindahan tahap yang umum.
+    $kalimat = fn ($dari, $ke) => \App\Support\KalimatRiwayat::untuk(new \App\Models\NaskahRiwayat(['aksi' => 'tahap', 'sebelum' => $dari->label(), 'sesudah' => $ke->label()]))['teks'];
+    expect($kalimat(T::Draf, T::PersetujuanBerkas))->toBe('mengajukan rancangan')
+        ->and($kalimat(T::Final, T::Penandatanganan))->toBe('menerbitkan nota dinas')
+        ->and($kalimat(T::Arsip, T::Selesai))->toBe('mengarsipkan ke JDIH')
+        ->and($kalimat(T::PersetujuanBerkas, T::Draf))->toStartWith('mengembalikan naskah');
+});

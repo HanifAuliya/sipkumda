@@ -91,7 +91,7 @@ Perintah `akun:super-admin` mencetak kata sandi sementara yang wajib diganti saa
 kata sandi `password`. `V2RancanganPdSeeder` mengisi rancangan contoh di tahap awal, dan `DemoSeeder`
 menambah akun Perangkat Daerah, tanda tangan, arsip lama, lalu `DemoAlurSeeder`: naskah yang menunggu
 nota dinas, sedang ditandatangani, menunggu arsip, selesai, dan tertahan lama (waktunya dimundurkan
-supaya menu Laporan berisi). **Jangan dijalankan di server produksi.**
+supaya menu Laporan & Pemantauan berisi). **Jangan dijalankan di server produksi.**
 
 **Panduan dan tur.** Panduan per peran ada di `docs/panduan/*.md` dan tampil di menu Panduan beserta
 screenshot dari `public/img/panduan/`. Gambar dirujuk relatif (`../../public/img/panduan/…`) supaya
@@ -124,7 +124,7 @@ ada** (sesudah `php artisan config:cache`), karena tes bisa memakai database uta
 | Format Dokumen | `app/Support/FormatDokumen.php`, `app/Livewire/V2/PengaturanFormat.php` |
 | Menu | `app/Support/Navigation.php` |
 | Dokumentasi dan JDIH | `app/Livewire/Dokumentasi/`, `app/Http/Controllers/JdihController.php`, `resources/views/jdih/` |
-| Laporan | `app/Support/LaporanNaskah.php`, `app/Livewire/V2/Laporan.php`, `app/Exports/LaporanNaskahExport.php` |
+| Laporan & Pemantauan | `app/Support/LaporanNaskah.php`, `app/Support/KalimatRiwayat.php` (kalimat Aktivitas), `app/Livewire/V2/Laporan.php`, `app/Exports/LaporanNaskahExport.php` |
 | Pengingat naskah tertahan | `app/Console/Commands/IngatkanNaskahTertahan.php` (setiap pukul 08.00) |
 | Cadangan | `app/Console/Commands/BackupAplikasi.php` (setiap pukul 01.00) |
 | Akun darurat | `app/Console/Commands/AkunSuperAdmin.php` (`php artisan akun:super-admin`) |
