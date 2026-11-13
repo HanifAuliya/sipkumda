@@ -34,6 +34,7 @@ class KesiapanAplikasi
         $cadangan = self::cadanganTerakhir();
         $umurCadangan = $cadangan ? (int) floor($cadangan->diffInDays(now())) : null;
         $mailer = (string) config('mail.default');
+        $penelitiTanpaTtd = User::role('Peneliti')->whereNull('file_ttd')->orderBy('nama_user')->pluck('nama_user');
 
         return [
             [
@@ -46,13 +47,23 @@ class KesiapanAplikasi
                 'oleh' => 'Admin atau Verifikator',
             ],
             [
-                'judul' => 'Pejabat penanda tangan nota dinas',
+                'judul' => 'Tanda tangan Kepala Bagian Hukum',
                 'keterangan' => TandaTangan::where('status', 'Aktif')->exists()
                     ? 'Ada tanda tangan aktif.'
-                    : 'Belum ada tanda tangan aktif, sehingga nota dinas tidak bisa diterbitkan. Tambahkan di Kelola TTD.',
+                    : 'Belum ada tanda tangan aktif, sehingga nota dinas tidak bisa diterbitkan. Kepala Bagian Hukum (Verifikator) mengunggahnya di Profil, atau Admin membantu di Kelola TTD.',
                 'siap' => TandaTangan::where('status', 'Aktif')->exists(),
-                'tautan' => $tautan('kelola-ttd.main', ['Verifikator']),
-                'oleh' => 'Verifikator',
+                'tautan' => $user->hasRole('Admin') ? $tautan('kelola-ttd.main', ['Admin']) : $tautan('profile.edit', ['Verifikator']),
+                'oleh' => 'Verifikator atau Admin',
+            ],
+            [
+                'judul' => 'Tanda tangan peneliti',
+                'keterangan' => $penelitiTanpaTtd->isEmpty()
+                    ? 'Semua peneliti sudah mengunggah tanda tangan.'
+                    // Dipisah titik koma karena nama memuat koma gelar; nama yang berakhir titik tidak diberi titik lagi.
+                    : 'Belum mengunggah: ' . rtrim($penelitiTanpaTtd->implode('; '), '.') . '. Kolom tanda tangannya di matriks akan kosong. Peneliti mengunggahnya di Profil, atau Admin membantu di Kelola TTD.',
+                'siap' => $penelitiTanpaTtd->isEmpty(),
+                'tautan' => $tautan('kelola-ttd.main', ['Admin']),
+                'oleh' => 'Peneliti atau Admin',
             ],
             [
                 'judul' => 'Pengiriman email',

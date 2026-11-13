@@ -51,6 +51,13 @@ perubahan (merah dihapus, hijau ditambah).
 - **Pengecekan Fasilitasi**: setelah PD memperbaiki permintaan Verifikator, periksa lagi lalu
   **Selesai, teruskan ke Verifikator**, atau **Kirim ke PD** bila masih perlu perbaikan.
 
+## 3. Tanda tangan Anda
+
+Tanda tangan Anda dicetak di matriks naskah yang Anda teliti, di atas nama dan NIP Anda, setelah nota
+dinas diterbitkan. Unggah sekali lewat menu akun di kanan atas › **Profil** › kartu **Tanda Tangan**:
+pilih gambar (PNG transparan paling rapi; JPG berlatar putih juga bisa), masukkan kata sandi, lalu
+**Simpan Tanda Tangan**. Bila perlu bantuan, Admin bisa mengunggahkannya di menu **Kelola TTD**.
+
 ## Pertanyaan umum
 
 **Tombol kirim tidak bisa ditekan.** Masih ada baris yang belum diperiksa; jumlahnya tertulis di atas matriks.

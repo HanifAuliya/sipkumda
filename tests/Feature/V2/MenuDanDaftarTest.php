@@ -46,10 +46,11 @@ describe('menu', function () {
         }
     })->with([
         'pd' => ['Perangkat Daerah', ['Rancanganku', 'Fasilitasiku'], ['Pilih Peneliti', 'Persetujuan Berkas', 'Pengaturan Naskah']],
-        'admin' => ['Admin', ['Persetujuan Berkas', 'Penandatanganan', 'Pengaturan Naskah'], ['Rancanganku', 'Pilih Peneliti', 'Persetujuan Fasilitasi']],
+        'admin' => ['Admin', ['Persetujuan Berkas', 'Penandatanganan', 'Pengaturan Naskah', 'Kelola TTD'], ['Rancanganku', 'Pilih Peneliti', 'Persetujuan Fasilitasi']],
         'peneliti' => ['Peneliti', ['Penelitian Rancangan', 'Persetujuan Fasilitasi', 'Pengecekan Fasilitasi'], ['Rancanganku', 'Penandatanganan', 'Persetujuan Berkas']],
         'tamu' => ['Tamu', ['Dashboard', 'Profil', 'Penandatanganan'], ['Rancanganku', 'Daftar Rancangan', 'Daftar Fasilitasi', 'Persetujuan Fasilitasi', 'Pengaturan Naskah']],
-        'verifikator' => ['Verifikator', ['Pilih Peneliti', 'Validasi Rancangan', 'Validasi Fasilitasi', 'Kelola TTD'], ['Rancanganku', 'Persetujuan Berkas']],
+        // Verifikator (Kepala Bagian Hukum) mengatur tanda tangannya di Profil, bukan di Kelola TTD.
+        'verifikator' => ['Verifikator', ['Pilih Peneliti', 'Validasi Rancangan', 'Validasi Fasilitasi'], ['Rancanganku', 'Persetujuan Berkas', 'Kelola TTD']],
     ]);
 
     it('semua menu bisa dibuka oleh perannya', function (string $peran) {

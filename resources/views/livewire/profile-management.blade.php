@@ -9,8 +9,11 @@
         </div>
         <div class="space-y-6 lg:col-span-2">
             <livewire:profile.update-password />
+            {{-- Tanda tangan diatur pemiliknya sendiri: Peneliti untuk matriks, Verifikator (Kepala Bagian Hukum) untuk nota dinas dan matriks. --}}
             @if (auth()->user()->hasRole('Peneliti'))
                 <livewire:profile.tanda-tangan-saya />
+            @elseif (auth()->user()->hasRole('Verifikator'))
+                <livewire:profile.tanda-tangan-kabag />
             @endif
         </div>
     </div>

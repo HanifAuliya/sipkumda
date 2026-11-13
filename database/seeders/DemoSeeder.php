@@ -7,6 +7,7 @@ use App\Models\PerangkatDaerah;
 use App\Models\TandaTangan;
 use App\Models\User;
 use App\Support\FormatDokumen;
+use App\Support\TandaTanganPeneliti;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
@@ -91,8 +92,14 @@ class DemoSeeder extends Seeder
             'dibuat_oleh' => $verifikator->id, 'status' => 'Tidak Aktif',
         ]);
 
+        // Peneliti mengunggah tanda tangannya sendiri di Profil (dicetak di matriks).
+        User::role('Peneliti')->whereNull('file_ttd')->get()
+            ->each(fn (User $p) => TandaTanganPeneliti::simpan($p, Storage::disk('local')->path($this->file['ttd'])));
+
+        // Kepala Bagian Hukum sekarang adalah akun Verifikator; ia mengatur tanda tangannya di Profil.
         return TandaTangan::create([
-            'nama_ttd' => 'Dr. H. Ahmad Fauzi, S.H., M.H.', 'nip_ttd' => '197501012000031001',
+            'user_id' => $verifikator->id,
+            'nama_ttd' => $verifikator->nama_user, 'nip_ttd' => '197501012000031001',
             'jabatan' => 'Pembina Tk. I', 'file_ttd' => $this->file['ttd'],
             'dibuat_oleh' => $verifikator->id, 'status' => 'Aktif',
         ]);

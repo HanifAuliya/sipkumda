@@ -32,6 +32,16 @@ class TandaTanganPeneliti
 
     public static function simpan(User $user, string $sumber): void
     {
+        $path = self::FOLDER . '/' . Str::random(40) . '.png';
+        Storage::disk('local')->put($path, self::png($sumber));
+
+        self::buang($user->file_ttd);
+        $user->forceFill(['file_ttd' => $path])->save();
+    }
+
+    /** Isi PNG bersih dari gambar sumber; juga dipakai tanda tangan Kepala Bagian Hukum. */
+    public static function png(string $sumber): string
+    {
         $gambar = imagecreatefromstring(file_get_contents($sumber));
 
         // imagecropauto memangkas tepi yang warnanya sama dengan sudut gambar, transparan maupun putih.
@@ -52,13 +62,8 @@ class TandaTanganPeneliti
 
         ob_start();
         imagepng($hasil, null, 9);
-        $isi = ob_get_clean();
 
-        $path = self::FOLDER . '/' . Str::random(40) . '.png';
-        Storage::disk('local')->put($path, $isi);
-
-        self::buang($user->file_ttd);
-        $user->forceFill(['file_ttd' => $path])->save();
+        return ob_get_clean();
     }
 
     public static function hapus(User $user): void

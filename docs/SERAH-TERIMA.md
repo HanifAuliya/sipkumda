@@ -27,7 +27,7 @@ dokumen ini; simpan di tempat resmi (brankas kata sandi instansi atau amplop ter
 |---|---|---|---|
 | 1 | Minimal **dua** akun Admin yang dipegang orang berbeda | | ☐ |
 | 2 | Minimal **satu** akun Super Admin cadangan, dipegang Kepala Bagian Hukum | | ☐ |
-| 3 | Minimal satu Verifikator aktif dan data Kelola TTD sudah benar | | ☐ |
+| 3 | Minimal satu Verifikator (Kepala Bagian Hukum) aktif dan tanda tangannya sudah diunggah di Profil; tanda tangan semua Peneliti sudah ada (cek di Kelola TTD) | | ☐ |
 | 4 | Akun contoh (`superadmin`, `admin`, `verifikator`, `perangkatdaerah`, `peneliti`, `tamu` dengan kata sandi `password`) **tidak ada** di server produksi | | ☐ |
 | 5 | Pengelola server tahu perintah darurat `php artisan akun:super-admin` | | ☐ |
 

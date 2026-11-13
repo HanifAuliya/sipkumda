@@ -154,7 +154,7 @@
         </div>
     </x-ui.card>
 
-    <x-ui.card title="Tanda Tangan" description="Nama, pangkat, dan NIP diambil dari tanda tangan yang dipilih saat menerbitkan (menu Kelola TTD).">
+    <x-ui.card title="Tanda Tangan" description="Nama, pangkat, dan NIP diambil dari tanda tangan yang dipilih saat menerbitkan: milik Kepala Bagian Hukum (Profil Verifikator) atau yang dicatat Admin di Kelola TTD.">
         <div class="grid gap-4 sm:grid-cols-2">
             <x-form.field label="Jabatan" for="nota-jabatan" error="nota.ttd.jabatan">
                 <x-form.input id="nota-jabatan" wire:model="nota.ttd.jabatan" />

@@ -77,8 +77,8 @@ class Navigation
                 'items' => [
                     ['label' => 'Pengaturan Naskah', 'route' => 'pengaturan', 'icon' => 'gear', 'roles' => ['Admin', 'Verifikator', 'Super Admin']],
                     ['label' => 'Format Dokumen', 'route' => 'format', 'icon' => 'file-earmark-text', 'roles' => ['Admin', 'Verifikator', 'Super Admin']],
-                    // Dipakai saat menerbitkan nota dinas dan saat PD menyusun rancangan, bukan tahap pekerjaan.
-                    ['label' => 'Kelola TTD', 'route' => 'kelola-ttd.main', 'icon' => 'pen', 'roles' => ['Verifikator']],
+                    // Pemilik tanda tangan (Verifikator/Kabag Hukum dan Peneliti) mengaturnya sendiri di Profil; Admin membantu di sini.
+                    ['label' => 'Kelola TTD', 'route' => 'kelola-ttd.main', 'icon' => 'pen', 'roles' => ['Admin']],
                     ['label' => 'Template Bahan Penting', 'route' => 'bahan-penting', 'icon' => 'list-task', 'roles' => ['Admin']],
                     ['label' => 'Perangkat Daerah', 'route' => 'perangkat-daerah', 'icon' => 'building', 'roles' => ['Admin', 'Super Admin']],
                 ],

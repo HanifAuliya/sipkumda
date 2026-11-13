@@ -1,22 +1,7 @@
 <x-ui.card title="Tanda Tangan"
-    description="Dipakai di matriks naskah yang Anda teliti, di atas nama dan NIP Anda. Muncul setelah nota dinas diterbitkan.">
-    {{-- Latar kotak-kotak memperlihatkan bagian yang transparan, seperti di aplikasi gambar. --}}
-    <div class="relative grid h-40 place-items-center overflow-hidden rounded-xl bg-white bg-[length:16px_16px] bg-[linear-gradient(45deg,#f1f5f9_25%,transparent_25%),linear-gradient(-45deg,#f1f5f9_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#f1f5f9_75%),linear-gradient(-45deg,transparent_75%,#f1f5f9_75%)] bg-[position:0_0,0_8px,8px_-8px,-8px_0] ring-1 ring-slate-200 ring-inset dark:ring-navy-700">
-        @if ($gambar)
-            <img src="{{ $gambar->temporaryUrl() }}" alt="Pratinjau tanda tangan" class="max-h-32 max-w-[85%] object-contain">
-        @elseif ($user->file_ttd)
-            <img src="{{ $user->ttdUrl() }}" alt="Tanda tangan {{ $user->nama_user }}" class="max-h-32 max-w-[85%] object-contain">
-        @else
-            <div class="flex flex-col items-center gap-2 text-sm text-slate-400">
-                <i class="bi bi-vector-pen text-3xl" aria-hidden="true"></i>
-                Belum ada tanda tangan
-            </div>
-        @endif
-
-        <div wire:loading.flex wire:target="gambar, simpan, hapus" class="absolute inset-0 items-center justify-center bg-white/70 dark:bg-navy-900/70">
-            <x-ui.spinner class="size-7 text-primary-500" />
-        </div>
-    </div>
+    description="Dipakai di matriks naskah yang Anda teliti, di atas nama dan NIP Anda. Muncul setelah nota dinas diterbitkan. Admin juga bisa membantu mengunggahnya.">
+    <x-ttd.pratinjau :src="$gambar ? $gambar->temporaryUrl() : $user->ttdUrl()" :alt="$gambar ? 'Pratinjau tanda tangan' : 'Tanda tangan ' . $user->nama_user"
+        memuat="gambar, simpan, hapus" />
 
     @error('gambar')
         <p class="mt-2 flex items-center gap-1.5 text-sm font-medium text-rose-600 dark:text-rose-300">

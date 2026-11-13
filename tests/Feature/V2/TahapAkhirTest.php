@@ -178,7 +178,8 @@ describe('nota dinas', function () {
 
     it('tanda tangan yang dipakai nota dinas v2 tidak bisa dihapus', function () {
         $this->alur->terbitkanNota(naskahFinal($this), $this->admin, '12', 'Sekda', $this->ttd->id);
-        $this->actingAs($this->verifikator);
+        // Kelola TTD kini menu Admin; Verifikator mengatur tanda tangannya di Profil.
+        $this->actingAs($this->admin);
 
         Livewire::test(PengelolaTtd::class)->call('delete', $this->ttd->id);
 

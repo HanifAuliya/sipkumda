@@ -45,7 +45,7 @@ class TurPengenalan
             ...self::menuPeran($user),
             ['lonceng', 'Notifikasi', 'Tugas baru dan kabar naskah muncul di sini. Naskah yang lama tertahan juga diingatkan lewat notifikasi.'],
             ['menu-panduan', 'Panduan', 'Panduan lengkap sesuai peran Anda, lengkap dengan gambar. Tur ini juga bisa diulang dari sana.'],
-            ['akun', 'Akun Anda', 'Profil, foto, tanda tangan, ganti kata sandi, dan keluar.'],
+            ['akun', 'Akun Anda', self::isiAkun($user)],
             [null, 'Selesai, siap dipakai', 'Mulailah dari Giliran Anda. Bila bingung, buka menu Panduan.',
                 $pd
                     ? 'Mulailah dengan mengajukan rancangan pertama lewat Rancanganku › Ajukan Rancangan Baru. Bila bingung, buka menu Panduan.'
@@ -64,6 +64,16 @@ class TurPengenalan
             ], fn ($v) => $v !== null) + ['target' => null])
             ->values()
             ->all();
+    }
+
+    /** Langkah Akun: pemilik tanda tangan diingatkan mengunggahnya di Profil. */
+    private static function isiAkun(User $user): string
+    {
+        return match (true) {
+            $user->hasRole('Verifikator') => 'Profil, foto, ganti kata sandi, dan keluar. Sebagai Kepala Bagian Hukum, unggah tanda tangan Anda di Profil: dicetak di nota dinas dan matriks.',
+            $user->hasRole('Peneliti') => 'Profil, foto, ganti kata sandi, dan keluar. Unggah tanda tangan Anda di Profil: dicetak di matriks naskah yang Anda teliti.',
+            default => 'Profil, foto, ganti kata sandi, dan keluar.',
+        };
     }
 
     /** Menu utama tiap peran, sesuai urutan pekerjaannya. */
@@ -89,7 +99,6 @@ class TurPengenalan
                 ['menu-daftar-nota-dinas', 'Menerbitkan Nota Dinas', 'Naskah yang fasilitasinya selesai menunggu nota dinas di tab Menunggu Terbit. Tekan Terbitkan Nota Dinas, isi nomor urut, periksa Kepada, dan pilih tanda tangan. Admin juga bisa menerbitkannya.'],
                 ['menu-dokumentasi', 'Dokumentasi', 'Arsipkan naskah yang tanda tangannya lengkap lewat Arsipkan dari Sistem, atau tambahkan produk hukum lama.'],
                 ['menu-laporan-pemantauan', 'Laporan & Pemantauan', 'Rekap naskah, sebaran per Perangkat Daerah (siapa mengajukan apa dan sampai mana), aktivitas semua naskah, dan naskah yang tertahan. Bisa diunduh sebagai Excel.'],
-                ['menu-kelola-ttd', 'Kelola TTD', 'Pejabat penanda tangan nota dinas.'],
             ],
             'Admin' => [
                 ['menu-persetujuan-berkas', 'Persetujuan Berkas', 'Pengajuan baru dari Perangkat Daerah. Periksa berkasnya, lalu setujui atau kembalikan.'],
@@ -99,6 +108,7 @@ class TurPengenalan
                 ['menu-laporan-pemantauan', 'Laporan & Pemantauan', 'Rekap naskah, sebaran per Perangkat Daerah (siapa mengajukan apa dan sampai mana), aktivitas semua naskah, dan naskah yang tertahan. Bisa diunduh sebagai Excel.'],
                 ['menu-daftar-pengguna', 'Daftar Pengguna', 'Tambah akun, atur peran, dan buat kata sandi sementara.'],
                 ['menu-pengaturan-naskah', 'Pengaturan', 'Nama pejabat, urutan tanda tangan, format dokumen, dan daftar perangkat daerah.'],
+                ['menu-kelola-ttd', 'Kelola TTD', 'Kepala Bagian Hukum dan Peneliti mengunggah tanda tangannya sendiri di Profil. Di sini Anda bisa membantu mengunggah atau menggantinya, serta mencatat Kabag lama atau Plt.'],
             ],
             'Super Admin' => [
                 ['menu-daftar-pengguna', 'Daftar Pengguna', 'Tambah akun, atur peran, dan buat kata sandi sementara.'],

@@ -47,7 +47,8 @@ Aturan perpindahan tahap ada di `app/Services/AlurNaskah.php` (konstanta `AKSI`)
 |---|---|
 | Pengaturan › Pengaturan Naskah | Nama Bupati dan Sekda; urutan paraf dan tanda tangan |
 | Pengaturan › Format Dokumen | Kertas, margin, huruf, kop, paraf hierarki, pola nomor nota dinas dan nomor Keputusan Bupati, isi nota dinas |
-| Pengaturan › Kelola TTD | Pejabat penanda tangan nota dinas |
+| Profil › Tanda Tangan | Kepala Bagian Hukum (Verifikator) dan Peneliti mengunggah tanda tangannya sendiri |
+| Pengaturan › Kelola TTD | Admin membantu mengunggah/mengganti tanda tangan; Kabag lama dan Plt/Plh |
 | Pengaturan › Template Bahan Penting | Berkas yang bisa diunduh Perangkat Daerah |
 | Pengaturan › Perangkat Daerah | Daftar instansi |
 | Akun › Daftar Pengguna | Akun, peran, aktivasi, kata sandi sementara |

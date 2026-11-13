@@ -5,7 +5,8 @@ mengarsipkan produk hukum, serta mengelola pengguna dan pengaturan. Untuk penyel
 juga **Runbook Admin** (`docs/RUNBOOK-ADMIN.md`).
 
 **Kesiapan aplikasi.** Selama masih ada yang belum siap (nama Bupati/Sekda kosong, belum ada tanda tangan
-aktif, email belum dikirim sungguhan, atau cadangan otomatis tidak berjalan), Dashboard menampilkan kartu
+Kepala Bagian Hukum, ada peneliti yang belum mengunggah tanda tangan, email belum dikirim sungguhan, atau
+cadangan otomatis tidak berjalan), Dashboard menampilkan kartu
 **Kesiapan aplikasi** berisi apa yang perlu dibereskan dan tombol menuju menunya. Kartu itu hilang sendiri
 setelah semuanya beres.
 
@@ -19,7 +20,7 @@ setelah semuanya beres.
 | Dokumentasi | Arsip produk hukum; tab Menunggu Arsip |
 | Laporan & Pemantauan | Rekap naskah, sebaran per Perangkat Daerah, aktivitas semua naskah, unduh Excel |
 | Akun › Daftar Pengguna | Akun pengguna |
-| Pengaturan | Pengaturan Naskah, Format Dokumen, Template Bahan Penting, Perangkat Daerah |
+| Pengaturan | Pengaturan Naskah, Format Dokumen, Kelola TTD, Template Bahan Penting, Perangkat Daerah |
 
 **Tur pengenalan.** Saat pertama masuk, Dashboard menampilkan tur singkat yang menyorot menu Anda satu
 per satu. Tekan **Selanjutnya** untuk lanjut atau **Lewati tur**. Tur bisa diulang dari halaman **Panduan**
@@ -50,7 +51,8 @@ mengerjakannya. Keduanya menerima notifikasi saat ada naskah yang fasilitasinya 
 2. Isi **nomor urut** saja. Bagian lain nomor (mis. `100.3/…/ND/KUM/2026`) mengikuti pola di
    **Pengaturan › Format Dokumen**.
 3. Periksa **Kepada**. Isinya terisi dari Perangkat Daerah yang mengajukan dan bisa diubah bila tujuannya berbeda.
-4. Pilih **Tanda tangan** pejabat. Daftar pejabatnya dikelola Verifikator di **Kelola TTD**.
+4. Pilih **Tanda tangan** pejabat. Kepala Bagian Hukum (Verifikator) mengatur tanda tangannya sendiri di
+   Profil; Kabag lama atau Plt dicatat di **Kelola TTD**.
 5. Tekan **Terbitkan Nota Dinas**. Nota dinas bisa diunduh, Perangkat Daerah mendapat kabar, dan
    naskah masuk tahap **Penandatanganan**.
 
@@ -110,11 +112,30 @@ mendapat notifikasi pengingat otomatis setiap 7 hari.
 |---|---|
 | Pengaturan Naskah | Bupati/Sekda berganti; urutan tanda tangan berubah |
 | Format Dokumen | Kop, margin, huruf, paraf hierarki, pola nomor, atau isi nota dinas berubah. Pratinjau di kanan menunjukkan hasilnya sebelum disimpan |
+| Kelola TTD | Membantu Kepala Bagian Hukum atau Peneliti mengunggah/mengganti tanda tangan; mencatat Kabag lama atau Plt |
 | Template Bahan Penting | Menambah berkas yang bisa diunduh Perangkat Daerah |
 | Perangkat Daerah | Instansi baru atau berganti nama |
 
 ![Format Dokumen: pengaturan di kiri, pratinjau di kanan](../../public/img/panduan/admin-format.jpg)
 *Format Dokumen: pengaturan di kiri, pratinjau di kanan*
+
+**Kelola TTD.** Pemilik tanda tangan mengaturnya sendiri di **Profil**: Kepala Bagian Hukum (Verifikator)
+untuk nota dinas dan matriks, Peneliti untuk matriks. Menu ini untuk membantu mereka:
+
+- Tab **Kepala Bagian Hukum**: ubah data dan gambar penanda tangan nota dinas. Pilih **Akun Verifikator**
+  supaya Kepala Bagian Hukum bisa mengaturnya sendiri; kosongkan untuk Kabag lama atau Plt/Plh. Saat
+  pejabat berganti, ubah status yang lama menjadi **Tidak Aktif** (yang sudah dipakai nota dinas tidak
+  bisa dihapus).
+- Tab **Peneliti**: tombol **Unggah** atau **Ganti** untuk tanda tangan peneliti; yang belum punya
+  ditandai **Belum ada tanda tangan**.
+
+Mengganti gambar tanda tangan orang lain meminta kata sandi Anda.
+
+![Kelola TTD: tab Kepala Bagian Hukum](../../public/img/panduan/admin-kelola-ttd.jpg)
+*Kelola TTD: penanda tangan nota dinas beserta akun pemiliknya*
+
+![Kelola TTD: tab Peneliti](../../public/img/panduan/admin-kelola-ttd-peneliti.jpg)
+*Tab Peneliti: yang belum punya tanda tangan ditandai*
 
 ## 7. Laporan & Pemantauan
 

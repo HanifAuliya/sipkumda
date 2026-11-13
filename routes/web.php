@@ -10,6 +10,7 @@ use App\Livewire\Rancangan\TambahBahanPenting;
 use App\Livewire\UserManagement;
 use App\Livewire\Verifikator\TandaTangan\PengelolaTtd;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 
 // Halaman publik (JDIH): tanpa sesi & cookie agar ringan untuk banyak pengunjung
 // dan bisa di-cache browser/proxy. Jangan memakai fitur yang butuh sesi di sini.
@@ -57,12 +58,19 @@ Route::middleware('auth')->group(function () {
         ->where(['folder' => '[a-z_]+', 'subfolder' => '[a-z_]+', 'filename' => '[^/\\\\]+'])
         ->name('private-file');
 
-    Route::middleware(['role:Verifikator'])->group(function () {
-        Route::livewire('/kelola-ttd', PengelolaTtd::class)->name('kelola-ttd.main');
-    });
-
     Route::middleware(['role:Admin'])->group(function () {
         Route::livewire('/kelola-bahan-penting', TambahBahanPenting::class)->name('bahan-penting');
+
+        // Pemilik tanda tangan mengaturnya sendiri di Profil; Admin membantu di sini.
+        Route::livewire('/kelola-ttd', PengelolaTtd::class)->name('kelola-ttd.main');
+        Route::get('/kelola-ttd/peneliti/{user}', function (\App\Models\User $user) {
+            abort_unless($user->hasRole('Peneliti') && $user->file_ttd && Storage::disk('local')->exists($user->file_ttd), 404);
+
+            return Storage::disk('local')->response($user->file_ttd, 'tanda-tangan.png', [
+                'X-Content-Type-Options' => 'nosniff',
+                'Cache-Control' => 'private, max-age=600',
+            ]);
+        })->whereNumber('user')->name('kelola-ttd.peneliti');
     });
 
     Route::middleware(['role:Admin|Verifikator|Perangkat Daerah|Peneliti'])->group(function () {

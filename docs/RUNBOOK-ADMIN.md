@@ -59,8 +59,11 @@ Nama ini dipakai untuk naskah yang dibuat sesudahnya. Naskah yang sudah ada dipe
 Penutup di matriksnya.
 
 ### Pejabat penanda tangan nota dinas berganti
-Menu: **Pengaturan › Kelola TTD** (Verifikator).
-Tambah penanda tangan baru dan nonaktifkan yang lama. Penanda tangan yang sudah dipakai pada nota dinas
+Kepala Bagian Hukum (Verifikator) mengatur tanda tangannya sendiri di **Profil**. Saat pejabat berganti,
+Admin membuka **Pengaturan › Kelola TTD**, tab **Kepala Bagian Hukum**: ubah status yang lama menjadi
+**Tidak Aktif** (bila akun Verifikator yang sama dipakai pejabat baru, kosongkan juga **Akun Verifikator**-nya),
+lalu Kabag baru mengunggah tanda tangannya di Profil, atau Admin menambahkannya dan memilih akun
+Verifikatornya. Untuk Plt/Plh, tambahkan tanpa akun. Penanda tangan yang sudah dipakai pada nota dinas
 tidak bisa dihapus, cukup dinonaktifkan.
 
 ### Urutan paraf dan tanda tangan berubah

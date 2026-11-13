@@ -1,7 +1,7 @@
 # Panduan Verifikator
 
-Anda menugaskan peneliti, memvalidasi hasil penelitian dan fasilitasi, menerbitkan nota dinas, dan
-mengelola pejabat penanda tangan.
+Anda menugaskan peneliti, memvalidasi hasil penelitian dan fasilitasi, dan menerbitkan nota dinas.
+Sebagai Kepala Bagian Hukum, Anda juga mengatur tanda tangan Anda sendiri di **Profil**.
 
 ## Menu Anda
 
@@ -13,7 +13,7 @@ mengelola pejabat penanda tangan.
 | Daftar Nota Dinas | Naskah yang menunggu nota dinas dan yang sudah terbit |
 | Dokumentasi | Arsip produk hukum; tab **Menunggu Arsip** berisi naskah yang siap diarsipkan |
 | Laporan & Pemantauan | Rekap naskah, sebaran per Perangkat Daerah, aktivitas semua naskah, unduh Excel |
-| Pengaturan | Pengaturan Naskah, Format Dokumen, Kelola TTD |
+| Pengaturan | Pengaturan Naskah, Format Dokumen |
 
 **Tur pengenalan.** Saat pertama masuk, Dashboard menampilkan tur singkat yang menyorot menu Anda satu
 per satu. Tekan **Selanjutnya** untuk lanjut atau **Lewati tur**. Tur bisa diulang dari halaman **Panduan**
@@ -113,7 +113,20 @@ Isi tiap tab:
 ![Aktivitas](../../public/img/panduan/verifikator-aktivitas.jpg)
 *Aktivitas: siapa melakukan apa pada naskah mana, dan kapan*
 
-## 7. Kelola TTD
+## 7. Tanda tangan Anda
 
-Menu **Pengaturan › Kelola TTD**: tambah pejabat penanda tangan nota dinas, unggah gambar tanda tangannya,
-dan nonaktifkan yang sudah tidak menjabat.
+Tanda tangan Kepala Bagian Hukum dicetak di **nota dinas** dan di kolom **Kepala Bagian Hukum** pada
+matriks. Anda mengaturnya sendiri: menu akun di kanan atas › **Profil** › kartu **Tanda Tangan**.
+
+1. Tekan **Unggah Gambar** (atau **Ubah Tanda Tangan** bila sudah ada). PNG berlatar transparan paling
+   rapi; JPG berlatar putih juga bisa. Tepi kosong dipangkas otomatis.
+2. Periksa **Nama Lengkap** (seperti tercetak, lengkap dengan gelar), **Pangkat/Golongan**, dan **NIP**.
+   Saat pertama kali, nama dan NIP diisi dari akun Anda.
+3. Masukkan **kata sandi** Anda, lalu **Simpan Tanda Tangan**.
+
+Setelah tersimpan, tanda tangan ini bisa dipilih saat menerbitkan nota dinas. Bila perlu bantuan, Admin
+bisa mengunggah atau menggantinya di menu **Kelola TTD**. Kepala Bagian Hukum lama dan Plt/Plh juga
+dicatat Admin di sana.
+
+![Profil › Tanda Tangan](../../public/img/panduan/verifikator-ttd.jpg)
+*Profil › Tanda Tangan: yang tercetak di bawah tanda tangan ditampilkan di bawah gambarnya*

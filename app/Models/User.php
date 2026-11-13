@@ -69,6 +69,12 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasRole('Tamu') && ! $this->hasAnyRole(['Admin', 'Super Admin', 'Verifikator', 'Peneliti', 'Perangkat Daerah']);
     }
 
+    /** Tanda tangan Kepala Bagian Hukum milik akun Verifikator ini (nota dinas dan matriks). */
+    public function tandaTanganKabag()
+    {
+        return $this->hasOne(TandaTangan::class, 'user_id');
+    }
+
     /** Sama seperti foto: nama file acak berganti setiap unggah. */
     public function ttdUrl(): ?string
     {
