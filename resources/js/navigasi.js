@@ -120,8 +120,19 @@ document.addEventListener('livewire:navigating', ({ detail }) => {
     });
 });
 
+/*
+ * Tombol Back browser memulihkan salinan halaman yang disimpan Livewire saat halaman itu ditinggalkan,
+ * yaitu sesudah isinya diredupkan (dan mungkin sudah diganti kerangka). Tanpa dibersihkan, isi
+ * halaman tertinggal redup dan tidak bisa diklik.
+ */
+const bersihkanSisaPindah = () => {
+    isiHalaman()?.classList.remove('sedang-pindah', 'hidden');
+    document.querySelectorAll('[data-kerangka-halaman]').forEach((k) => k.remove());
+};
+
 document.addEventListener('livewire:navigated', () => {
     hentikanPenunggu();
+    bersihkanSisaPindah();
     tempatkanPenanda(false);
     amatiMenu();
 });
@@ -163,6 +174,8 @@ const garisMuat = (() => {
 
     const selesai = (semua = false) => {
         jumlah = semua ? 0 : Math.max(0, jumlah - 1);
+        // Garis yang ikut tersimpan di salinan halaman (tombol Back) tidak dikendalikan siapa pun.
+        if (semua) document.querySelectorAll('.garis-muat').forEach((g) => g !== el && g.remove());
         if (!el || jumlah > 0) return;
 
         clearInterval(rayap);

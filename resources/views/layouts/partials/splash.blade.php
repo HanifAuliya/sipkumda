@@ -17,6 +17,11 @@
         const layar = document.getElementById('layar-masuk');
         let sudahTampil = true;
 
+        // Saat tombol Back browser, Livewire memulihkan halaman dari salinan yang layar ini sudah
+        // dihapus, lalu menjalankan skrip ini lagi. Galat di sini menghentikan perpindahan halaman
+        // dan membuat isinya beku, jadi berhenti bila layarnya tidak ada.
+        if (! layar) return;
+
         try {
             sudahTampil = sessionStorage.getItem('splash-shown') !== null;
             sessionStorage.setItem('splash-shown', '1');

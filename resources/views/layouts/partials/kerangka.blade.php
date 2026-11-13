@@ -1,5 +1,5 @@
 {{-- Kerangka halaman yang tampil bila server lambat saat berpindah menu (resources/js/navigasi.js). --}}
-<div class="mx-auto w-full max-w-[1600px] animate-pulse" role="status" aria-label="Memuat halaman">
+<div class="mx-auto w-full max-w-[1600px] animate-pulse" role="status" aria-label="Memuat halaman" data-kerangka-halaman>
     <div class="mb-6 flex items-center gap-3 rounded-2xl bg-white p-5 shadow-card sm:gap-4 sm:p-6 dark:bg-navy-900 dark:shadow-none dark:ring-1 dark:ring-white/5">
         <div class="kerangka-blok size-12 shrink-0 rounded-xl"></div>
         <div class="min-w-0 flex-1 space-y-2.5">
