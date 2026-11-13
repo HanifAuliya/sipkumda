@@ -514,10 +514,10 @@
                 @if ($bolehUnggah)
                     <form wire:submit="unggahBerkas" class="flex flex-wrap items-end gap-3 rounded-2xl bg-white p-4 shadow-card dark:bg-navy-900 dark:shadow-none dark:ring-1 dark:ring-white/5">
                         <x-form.field label="Jenis" for="jenisBerkas" error="jenisBerkas">
-                            <select id="jenisBerkas" wire:model="jenisBerkas" class="min-h-10 rounded-lg border-0 py-2 pl-3 text-sm ring-1 ring-slate-200 dark:bg-navy-800 dark:ring-navy-700">
+                            <x-form.select id="jenisBerkas" wire:model="jenisBerkas">
                                 <option value="{{ NaskahBerkas::LAMPIRAN }}">{{ NaskahBerkas::LABEL[NaskahBerkas::LAMPIRAN] }}</option>
                                 <option value="{{ NaskahBerkas::BAHAN_PENDUKUNG }}">{{ NaskahBerkas::LABEL[NaskahBerkas::BAHAN_PENDUKUNG] }}</option>
-                            </select>
+                            </x-form.select>
                         </x-form.field>
                         <x-form.field label="File" for="berkasBaru" error="berkasBaru" class="min-w-56 flex-1">
                             <input id="berkasBaru" type="file" wire:model="berkasBaru" class="block min-h-10 w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-sm file:font-semibold dark:file:bg-navy-800 dark:file:text-slate-200">
@@ -675,12 +675,12 @@
 
         @if (! empty($aksiModal['peneliti']))
             <x-form.field :label="$aksiTerpilih === 'ganti_peneliti' ? 'Peneliti baru' : 'Peneliti'" for="penelitiId" error="penelitiId" required>
-                <select id="penelitiId" wire:model="penelitiId" class="w-full rounded-lg border-0 py-2 pl-3 text-sm ring-1 ring-slate-200 dark:bg-navy-800 dark:ring-navy-700">
+                <x-form.select id="penelitiId" wire:model="penelitiId">
                     <option value="">Pilih peneliti</option>
                     @foreach ($peneliti as $orang)
                         <option value="{{ $orang->id }}">{{ $orang->nama_user }}</option>
                     @endforeach
-                </select>
+                </x-form.select>
             </x-form.field>
         @endif
 

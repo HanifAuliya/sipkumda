@@ -105,7 +105,7 @@
                                 <form x-show="buka" x-cloak wire:submit="terbitUlangNota" class="space-y-3 rounded-xl bg-slate-50 p-4 dark:bg-navy-950/50">
                                     <div class="grid gap-3 sm:grid-cols-2">
                                         <x-form.field label="Tanda tangan" for="ttdUlangId" error="ttdUlangId" required>
-                                            <select id="ttdUlangId" wire:model="ttdUlangId" class="{{ $isian }}">
+                                            <x-form.select id="ttdUlangId" wire:model="ttdUlangId">
                                                 @foreach ($daftarTtd as $ttd)
                                                     <option value="{{ $ttd->id }}">{{ $ttd->nama_ttd }} ({{ $ttd->jabatan }})</option>
                                                 @endforeach
@@ -113,7 +113,7 @@
                                                 @if ($nota->tandaTangan && ! $daftarTtd->contains('id', $nota->tanda_tangan_id))
                                                     <option value="{{ $nota->tanda_tangan_id }}" disabled>{{ $nota->tandaTangan->nama_ttd }} (tidak aktif)</option>
                                                 @endif
-                                            </select>
+                                            </x-form.select>
                                         </x-form.field>
                                         <x-form.field label="Kepada" for="kepadaUlang" error="kepadaUlang" required>
                                             <input id="kepadaUlang" type="text" maxlength="255" wire:model="kepadaUlang" class="{{ $isian }}">
@@ -161,12 +161,12 @@
                         </x-form.field>
 
                         <x-form.field label="Tanda tangan" for="tandaTanganId" error="tandaTanganId" required hint="Nomor dan tanda tangan ini otomatis masuk ke matriks.">
-                            <select id="tandaTanganId" wire:model="tandaTanganId" class="{{ $isian }}">
+                            <x-form.select id="tandaTanganId" wire:model="tandaTanganId">
                                 <option value="">Pilih tanda tangan</option>
                                 @foreach ($daftarTtd as $ttd)
                                     <option value="{{ $ttd->id }}">{{ $ttd->nama_ttd }} ({{ $ttd->jabatan }})</option>
                                 @endforeach
-                            </select>
+                            </x-form.select>
                         </x-form.field>
 
                         @error('aksi')

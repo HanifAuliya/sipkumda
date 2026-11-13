@@ -38,7 +38,7 @@
     {{-- Filter bersama untuk ketiga tab, Unduh Excel, dan Unduh PDF. --}}
     <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
         @if ($periode !== 'rentang')
-            <x-form.select wire:model.live="tahun" icon="calendar3" class="sm:w-40" aria-label="Tahun">
+            <x-form.select wire:model.live="tahun" icon="calendar3" class="sm:w-44" aria-label="Tahun">
                 <option value="">Semua tahun</option>
                 @foreach ($daftarTahun as $t)
                     <option value="{{ $t }}">{{ $t }}</option>
