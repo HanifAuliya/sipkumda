@@ -536,6 +536,49 @@ describe('arsip ke JDIH', function () {
             // Sesudah selesai, naskah dibuka lagi sebagai matriks untuk dibaca.
             ->and($this->n->fresh()->tautanUntuk($this->admin))->toBe(route('naskah.kerja', $this->n));
     });
+
+    it('Arsipkan dari Sistem di halaman Dokumentasi memilih naskah, mengisi datanya, dan menyelesaikan naskah', function () {
+        $form = fn () => Livewire::actingAs($this->admin)->test(\App\Livewire\Dokumentasi\AjukanDokumentasiProdukHukum::class);
+
+        // Hanya naskah yang tanda tangannya lengkap yang bisa dipilih.
+        $draf = Naskah::create(['jenis' => 'Peraturan Bupati', 'tentang' => 'Masih Draf Sekali', 'pemrakarsa_id' => $this->pd->id]);
+        $form()->call('open', 'sistem')
+            ->assertSee('Arsipkan Naskah dari Sistem')
+            ->assertSee($this->n->tentang)
+            ->assertDontSee('Masih Draf Sekali');
+        $form()->call('open', 'sistem')->set('naskahId', $draf->id)->assertSet('tentang_dokumentasi', null);
+
+        $form()->call('open', 'sistem', $this->n->id)
+            ->assertSet('jenis_dokumentasi', 'Peraturan Bupati')
+            ->assertSet('tentang_dokumentasi', $this->n->tentang)
+            ->assertSet('perangkat_daerah_id', $this->perangkat->id)
+            ->set('nomor', '8')->set('nomor_berita', '8')->set('tahun_berita', '2026')
+            ->set('tanggal_penetapan', '2026-10-01')->set('file_produk_hukum', $this->pdf)
+            ->call('store')
+            ->assertHasNoErrors()
+            ->assertDispatched('closeModal', 'modalTambahDokumentasi');
+
+        $n = $this->n->fresh();
+        $d = DokumentasiProdukHukum::findOrFail($n->dokumentasi_id);
+
+        expect($n->tahap)->toBe(T::Selesai)
+            ->and($d->nomor_formatted)->toBe('Nomor 8 Tahun 2026')
+            ->and($d->naskah->is($n))->toBeTrue();
+
+        // Naskah yang sudah diarsipkan tidak bisa diarsipkan dua kali.
+        $form()->call('open', 'sistem', $n->id)->assertSet('naskahId', $n->id)->assertSet('tentang_dokumentasi', null);
+    });
+
+    it('Tambah Arsip Lama tetap diisi manual tanpa naskah', function () {
+        Livewire::actingAs($this->admin)->test(\App\Livewire\Dokumentasi\AjukanDokumentasiProdukHukum::class)
+            ->call('open', 'lama')
+            ->assertSee('Tambah Arsip Lama')
+            ->assertSee('Jenis Produk Hukum')
+            ->assertSet('sumber', 'lama');
+
+        $this->actingAs($this->admin)->get(route('dokumentasi.main'))
+            ->assertSee('Arsipkan dari Sistem')->assertSee('Tambah Arsip Lama');
+    });
 });
 
 it('halaman Nota Dinas & Tanda Tangan menerbitkan nota dinas dan mencatat tahapan', function () {

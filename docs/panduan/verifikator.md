@@ -48,7 +48,8 @@ terhapus.
 
 ## 5. Mengarsipkan
 
-Menu **Dokumentasi › Menunggu Arsip › Arsipkan**. Isi nomor produk hukum, tanggal penetapan, Berita
+Menu **Dokumentasi › Arsipkan dari Sistem** (atau **Arsipkan** di tab Menunggu Arsip), lalu pilih
+naskahnya. Produk hukum lama sebelum ada sistem: **Tambah Arsip Lama**. Isi nomor produk hukum, tanggal penetapan, Berita
 Daerah, dan unggah PDF bertanda tangan basah. Untuk Keputusan Bupati nomornya berformat
 `[140] / [nomor] / [412.1.6] / TAHUN [tahun]` dan Berita Daerah boleh dikosongkan. Tahunnya mengikuti
 tanggal penetapan.

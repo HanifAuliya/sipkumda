@@ -112,8 +112,10 @@ Menu: **Dokumentasi**.
   Tekan **Arsipkan**, isi nomor, tanggal penetapan, Berita Daerah, dan unggah PDF bertanda tangan basah.
   Keputusan Bupati memakai nomor berformat `[140] / [nomor] / [412.1.6] / TAHUN [tahun]`; hanya nomor
   urut yang wajib diisi, bagian lain bisa diganti bila memakai kode lain.
-- Tab **Terarsip** berisi semua dokumen. **Tambah Arsip** untuk produk hukum yang
-  ditetapkan sebelum ada sistem.
+- Tombol **Arsipkan dari Sistem** sama dengan **Arsipkan** di tab Menunggu Arsip: pilih naskahnya,
+  data naskah terisi sendiri, dan naskah itu ikut selesai.
+- Tab **Terarsip** berisi semua dokumen. **Tambah Arsip Lama** untuk produk hukum yang
+  ditetapkan sebelum ada sistem (tidak terkait naskah).
 - Tahun nomor selalu mengikuti tanggal penetapan. Bila tahunnya salah, betulkan tanggal penetapannya
   lewat **Ubah**. Berita Daerah wajib untuk Peraturan Bupati dan boleh kosong untuk Keputusan Bupati.
 - Dokumen yang sudah diarsipkan langsung tampil untuk umum di halaman JDIH (`/produk-hukum`).

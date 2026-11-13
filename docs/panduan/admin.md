@@ -39,8 +39,14 @@ Urutan tahapan diatur di **Pengaturan › Pengaturan Naskah › Urutan Tanda Tan
 
 ## 4. Mengarsipkan
 
-**Dokumentasi › Menunggu Arsip › Arsipkan**, lalu isi nomor, tanggal penetapan, Berita Daerah, dan unggah PDF
-bertanda tangan basah. Produk hukum lama yang belum ada di sistem: **Tambah Arsip**. Tahun nomor
+Di menu **Dokumentasi** ada dua tombol:
+
+- **Arsipkan dari Sistem**: pilih naskah SIFKUMDA yang paraf dan tanda tangannya lengkap. Jenis, judul,
+  dan perangkat daerah terisi dari naskahnya; naskah itu ikut selesai. Sama dengan tombol **Arsipkan**
+  di tab **Menunggu Arsip**.
+- **Tambah Arsip Lama**: produk hukum yang ditetapkan sebelum ada sistem, semua diisi manual.
+
+Isi nomor, tanggal penetapan, Berita Daerah, dan unggah PDF bertanda tangan basah. Tahun nomor
 mengikuti tanggal penetapan. Berita Daerah wajib untuk Peraturan Bupati dan boleh dikosongkan untuk
 Keputusan Bupati.
 

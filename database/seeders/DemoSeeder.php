@@ -6,6 +6,7 @@ use App\Models\DokumentasiProdukHukum;
 use App\Models\PerangkatDaerah;
 use App\Models\TandaTangan;
 use App\Models\User;
+use App\Support\FormatDokumen;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
@@ -91,10 +92,10 @@ class DemoSeeder extends Seeder
         ]);
     }
 
-    /** Keputusan Bupati bernomor lengkap (140/1/412.1.6/TAHUN 2025); Peraturan Bupati tanpa pola. */
+    /** Keputusan Bupati bernomor lengkap dari Format Dokumen (140/1/412.1.6/TAHUN 2025); Peraturan Bupati tanpa pola. */
     private function polaNomor(string $jenis): ?string
     {
-        return $jenis === 'Keputusan Bupati' ? '140/{nomor}/412.1.6/TAHUN {tahun}' : null;
+        return $jenis === FormatDokumen::KEPBUP ? FormatDokumen::naskah(FormatDokumen::KEPBUP)['nomor_arsip'] : null;
     }
 
     /** Arsip produk hukum yang ditetapkan sebelum ada sistem. */
@@ -114,7 +115,8 @@ class DemoSeeder extends Seeder
                 'nomor' => $nomor,
                 'tahun' => $tahun,
                 'pola_nomor' => $this->polaNomor($jenis),
-                'nomor_tahun_berita' => "{$nomor}/{$tahun}",
+                // Keputusan Bupati umumnya tidak dimuat dalam Berita Daerah.
+                'nomor_tahun_berita' => $jenis === FormatDokumen::KEPBUP ? '-/-' : "{$nomor}/{$tahun}",
                 'tanggal_penetapan' => $ditetapkan,
                 'tanggal_pengarsipan' => Carbon::create(2025, 1, 20)->addDays($nomor),
                 'file_produk_hukum' => $this->file['produk_hukum'],

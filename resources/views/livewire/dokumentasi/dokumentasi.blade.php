@@ -5,14 +5,25 @@
         description="Arsip produk hukum daerah yang telah ditetapkan · {{ number_format($totalDokumentasi, 0, ',', '.') }} dokumen">
         <x-slot:actions>
             @can('viewAny', App\Models\DokumentasiProdukHukum::class)
-                <x-ui.button variant="outline" icon="file-earmark-spreadsheet" title="Unduh daftar sesuai pencarian dan filter yang sedang dipakai"
-                    x-on:click="showLoading('Menyiapkan Excel...'); $wire.exportExcel()"><span class="max-sm:hidden">Unduh</span> Excel</x-ui.button>
-                <x-ui.button variant="outline" icon="file-earmark-pdf" title="Unduh daftar sesuai pencarian dan filter yang sedang dipakai"
-                    x-on:click="showLoading('Menyiapkan PDF...'); $wire.exportPDF()"><span class="max-sm:hidden">Unduh</span> PDF</x-ui.button>
+                {{-- Satu tombol Unduh supaya kepala halaman tidak sesak; isinya sesuai pencarian dan filter yang dipakai. --}}
+                <x-ui.dropdown align="right" width="w-60">
+                    <x-slot:trigger>
+                        <x-ui.button variant="outline" icon="download" title="Unduh daftar sesuai pencarian dan filter yang sedang dipakai">
+                            Unduh <i class="bi bi-chevron-down text-xs" aria-hidden="true"></i>
+                        </x-ui.button>
+                    </x-slot:trigger>
+                    <x-ui.dropdown-item icon="file-earmark-spreadsheet" x-on:click="showLoading('Menyiapkan Excel...'); $wire.exportExcel()">Excel</x-ui.dropdown-item>
+                    <x-ui.dropdown-item icon="file-earmark-pdf" x-on:click="showLoading('Menyiapkan PDF...'); $wire.exportPDF()">PDF</x-ui.dropdown-item>
+                </x-ui.dropdown>
             @endcan
             @can('create', App\Models\DokumentasiProdukHukum::class)
-                {{-- Produk hukum dari naskah diarsipkan lewat tab Menunggu Arsip; tombol ini untuk yang ditetapkan sebelum ada sistem. --}}
-                <x-ui.button icon="folder-plus" x-on:click="Livewire.dispatch('tambahDokumentasi')">Tambah Arsip</x-ui.button>
+                {{-- Dua sumber arsip: naskah dari sistem (terkait rancangan/fasilitasinya) dan produk hukum lama sebelum ada sistem. --}}
+                @if ($bolehAntre)
+                    <x-ui.button icon="archive" title="Naskah SIFKUMDA yang paraf dan tanda tangannya lengkap"
+                        x-on:click="Livewire.dispatch('tambahDokumentasi', { sumber: 'sistem' })">Arsipkan dari Sistem</x-ui.button>
+                @endif
+                <x-ui.button variant="outline" icon="folder-plus" title="Produk hukum yang ditetapkan sebelum ada sistem"
+                    x-on:click="Livewire.dispatch('tambahDokumentasi', { sumber: 'lama' })">Tambah Arsip Lama</x-ui.button>
             @endcan
         </x-slot:actions>
     </x-ui.page-header>
@@ -70,8 +81,11 @@
                         <td class="min-w-44 max-sm:hidden"><p class="sel-judul">{{ $naskah->pemrakarsa->perangkatDaerah->nama_perangkat_daerah ?? $naskah->pemrakarsa->nama_user }}</p></td>
                         <td class="whitespace-nowrap max-sm:hidden">{{ tanggal(collect($naskah->tahapan_ttd ?? [])->sort()->last()) }}</td>
                         <td>
-                            <div class="flex justify-end">
-                                <x-ui.button size="sm" variant="success" icon="archive" :href="route('naskah.pantau', $naskah)">Arsipkan</x-ui.button>
+                            <div class="flex justify-end gap-1.5">
+                                <x-ui.button size="sm" variant="outline" icon="eye" :href="route('naskah.pantau', $naskah)" title="Lihat naskah dan berkasnya"
+                                    class="max-sm:size-9 max-sm:px-0"><span class="max-sm:hidden">Lihat</span></x-ui.button>
+                                <x-ui.button size="sm" variant="success" icon="archive"
+                                    x-on:click="Livewire.dispatch('tambahDokumentasi', { sumber: 'sistem', naskah: {{ $naskah->id }} })">Arsipkan</x-ui.button>
                             </div>
                         </td>
                     </tr>
