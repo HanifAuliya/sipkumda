@@ -4,9 +4,11 @@
 --}}
 <x-ui.tombol-tema />
 
-<livewire:v2.lonceng wire:key="lonceng-pengguna" />
+<div class="flex" data-tur="lonceng">
+    <livewire:v2.lonceng wire:key="lonceng-pengguna" />
+</div>
 
-<x-ui.dropdown width="w-60">
+<x-ui.dropdown width="w-60" data-tur="akun">
     <x-slot:trigger>
         <button type="button" class="flex min-h-10 items-center gap-2.5 rounded-full py-1 pr-1 pl-1 transition hover:bg-current/10 lg:pr-2.5" aria-label="Menu pengguna">
             <img src="{{ auth()->user()->fotoUrl() }}" alt="" class="size-8 rounded-full object-cover ring-2 ring-current/20" x-on:foto-berubah.window="$el.src = $event.detail.url">
@@ -21,6 +23,7 @@
     </div>
     <div class="pt-1.5">
         <x-ui.dropdown-item :href="route('profile.edit')" icon="person">Profil Saya</x-ui.dropdown-item>
+        <x-ui.dropdown-item :href="route('dashboard', ['tur' => 1])" icon="signpost-split">Tur Pengenalan</x-ui.dropdown-item>
         <form method="POST" action="{{ route('logout') }}">
             @csrf
             <x-ui.dropdown-item type="submit" icon="box-arrow-right" danger>Keluar</x-ui.dropdown-item>

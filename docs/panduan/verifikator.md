@@ -15,6 +15,13 @@ mengelola pejabat penanda tangan.
 | Laporan | Rekap naskah, lama tiap tahap, naskah yang tertahan, unduh Excel |
 | Pengaturan | Pengaturan Naskah, Format Dokumen, Kelola TTD |
 
+**Tur pengenalan.** Saat pertama masuk, Dashboard menampilkan tur singkat yang menyorot menu Anda satu
+per satu. Tekan **Selanjutnya** untuk lanjut atau **Lewati tur**. Tur bisa diulang dari halaman **Panduan**
+(tombol **Ulangi Tur Pengenalan**) atau menu akun di kanan atas (**Tur Pengenalan**).
+
+![Tur pengenalan menyorot menu satu per satu](../../public/img/panduan/umum-tur.jpg)
+*Tur pengenalan menyorot menu satu per satu*
+
 ## 1. Menugaskan peneliti
 
 Buka naskah dari **Pilih Peneliti**, tekan **Tugaskan Peneliti**, pilih peneliti, lalu **Lanjutkan**.
@@ -26,6 +33,9 @@ Periksa hasil penelitian di matriks (tab **Naskah › Perbandingan** menampilkan
 - **Setuju**: rancangan disetujui dan Perangkat Daerah bisa mengajukan fasilitasi.
 - **Lainnya › Kembalikan ke Penelitian (Peneliti)** dengan alasan, bila perlu diperbaiki.
 
+![Validasi rancangan di matriks](../../public/img/panduan/verifikator-validasi.jpg)
+*Validasi rancangan di matriks*
+
 ## 3. Validasi fasilitasi
 
 Anda bisa membetulkan rumusan langsung di matriks.
@@ -34,10 +44,16 @@ Anda bisa membetulkan rumusan langsung di matriks.
 
 ## 4. Menerbitkan nota dinas
 
+Nota dinas bisa diterbitkan oleh **Verifikator maupun Admin**; siapa pun yang lebih dulu boleh
+mengerjakannya.
+
 1. Buka naskah dari **Daftar Nota Dinas** (tombol **Terbitkan Nota Dinas**).
 2. Isi **nomor urut** saja; bagian lain nomor mengikuti pola di Format Dokumen. **Kepada** terisi dari
    Perangkat Daerah pengaju dan bisa diubah. Pilih **Tanda tangan**.
 3. **Terbitkan Nota Dinas**. Naskah masuk tahap Penandatanganan.
+
+![Menerbitkan nota dinas: cukup isi nomor urut, Kepada, dan tanda tangan](../../public/img/panduan/verifikator-nota-dinas.jpg)
+*Menerbitkan nota dinas: cukup isi nomor urut, Kepada, dan tanda tangan*
 
 Salah penanda tangan atau tujuan: **Perbaiki & Terbitkan Ulang** di halaman yang sama. Nomor dan
 tanggal tetap; versi lama tersimpan sebagai "Diganti".
@@ -53,6 +69,15 @@ naskahnya. Produk hukum lama sebelum ada sistem: **Tambah Arsip Lama**. Isi nomo
 Daerah, dan unggah PDF bertanda tangan basah. Untuk Keputusan Bupati nomornya berformat
 `[140] / [nomor] / [412.1.6] / TAHUN [tahun]` dan Berita Daerah boleh dikosongkan. Tahunnya mengikuti
 tanggal penetapan.
+
+![Arsipkan dari Sistem: data naskah terisi otomatis](../../public/img/panduan/verifikator-arsip.jpg)
+*Arsipkan dari Sistem: data naskah terisi otomatis*
+
+Menu **Laporan** merangkum jumlah naskah, lama tiap tahap, dan naskah yang tertahan lebih dari 7 hari.
+Pemegang giliran naskah yang tertahan diingatkan otomatis lewat notifikasi.
+
+![Laporan: ringkasan dan naskah yang tertahan](../../public/img/panduan/verifikator-laporan.jpg)
+*Laporan: ringkasan dan naskah yang tertahan*
 
 ## 6. Kelola TTD
 

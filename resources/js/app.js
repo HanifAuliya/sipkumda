@@ -5,10 +5,12 @@ import './theme';
 import './navigasi';
 import chart from './alpine/chart';
 import editorRumusan from './alpine/editor-rumusan';
+import turPengenalan from './alpine/tur';
 import tabelDariClipboard from './tempel-tabel';
 
 Alpine.data('chart', chart);
 Alpine.data('editorRumusan', editorRumusan);
+Alpine.data('turPengenalan', turPengenalan);
 
 window.Swal = Swal;
 window.tabelDariClipboard = tabelDariClipboard;

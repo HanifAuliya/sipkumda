@@ -41,6 +41,13 @@ Route::middleware('auth')->group(function () {
     // Panduan pengguna per peran (isi dari docs/panduan/*.md).
     Route::livewire('/panduan/{peran?}', \App\Livewire\Panduan::class)->name('panduan');
 
+    // Tur pengenalan di Dashboard selesai atau dilewati: tidak muncul otomatis lagi.
+    Route::post('/tur-pengenalan/selesai', function () {
+        request()->user()->forceFill(['tur_selesai_at' => now()])->save();
+
+        return response()->noContent();
+    })->middleware('throttle:30,1')->name('tur.selesai');
+
     Route::middleware(['role:Admin|Verifikator|Super Admin'])->group(function () {
         Route::livewire('/user-management', UserManagement::class)->name('user.management');
     });

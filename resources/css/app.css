@@ -550,6 +550,10 @@
         & table { @apply my-4 w-full border-collapse text-left; }
         & th { @apply border-b border-slate-200 py-2 pr-4 font-semibold text-slate-500 dark:border-navy-700 dark:text-slate-400; }
         & td { @apply border-b border-slate-100 py-2 pr-4 align-top dark:border-navy-800; }
+        /* Screenshot: bingkai tipis, keterangan miring di bawahnya. */
+        & img { @apply mt-4 mb-1.5 w-full rounded-xl shadow-card ring-1 ring-slate-200 dark:ring-navy-700; }
+        & p:has(> img) { @apply mb-6; }
+        & p:has(> img) em { @apply block text-center text-xs text-slate-500 not-italic dark:text-slate-400; }
     }
 
     /* Tabel data standar. */

@@ -125,3 +125,26 @@ it('migrasi mengganti nama jenis lama pada naskah', function () {
 
     expect($lama->refresh()->jenis)->toBe('Keputusan Bupati');
 });
+
+it('DemoAlurSeeder mengisi Menunggu Arsip, Selesai bertaut arsip, dan naskah tertahan untuk Laporan', function () {
+    $this->seed(\Database\Seeders\DemoAlurSeeder::class);
+    $this->seed(\Database\Seeders\DemoAlurSeeder::class);
+
+    $tahap = Naskah::pluck('tahap', 'tentang');
+
+    expect($tahap)->toHaveCount(8)
+        ->and($tahap->filter(fn ($t) => $t === T::Final))->toHaveCount(1)
+        ->and($tahap->filter(fn ($t) => $t === T::Arsip))->toHaveCount(2)
+        ->and($tahap->filter(fn ($t) => $t === T::Selesai))->toHaveCount(2);
+
+    // Yang selesai tertaut ke arsip; Keputusan Bupati bernomor berformat dan tanpa Berita Daerah.
+    $sk = Naskah::where('tahap', T::Selesai)->where('jenis', 'Keputusan Bupati')->firstOrFail()->dokumentasi;
+    expect($sk->nomor_formatted)->toStartWith('Nomor 140/')
+        ->and($sk->berita_daerah)->toBeNull();
+
+    // Waktunya mundur, jadi Laporan menunjukkan lama proses dan naskah tertahan.
+    $laporan = \App\Support\LaporanNaskah::susun();
+    expect($laporan['ringkasan']['rata_proses'])->toBeGreaterThan(20)
+        ->and($laporan['tertahan']->pluck('naskah.tentang')->all())
+        ->toContain('Penetapan Kawasan Ruang Terbuka Hijau', 'Standar Pelayanan Minimal Puskesmas');
+});

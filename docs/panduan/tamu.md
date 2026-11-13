@@ -11,6 +11,13 @@ misalnya di lingkungan Sekretariat Daerah. Isi naskah hanya bisa dibaca, tidak b
 | Penandatanganan | Naskah yang sedang dalam proses paraf dan tanda tangan |
 | Profil | Akun Anda |
 
+**Tur pengenalan.** Saat pertama masuk, Dashboard menampilkan tur singkat yang menyorot menu Anda satu
+per satu. Tekan **Selanjutnya** untuk lanjut atau **Lewati tur**. Tur bisa diulang dari halaman **Panduan**
+(tombol **Ulangi Tur Pengenalan**) atau menu akun di kanan atas (**Tur Pengenalan**).
+
+![Tur pengenalan menyorot menu satu per satu](../../public/img/panduan/umum-tur.jpg)
+*Tur pengenalan menyorot menu satu per satu*
+
 ## Mencatat tahapan
 
 1. Buka **Penandatanganan**, lalu tekan **Pantau** pada naskah.
@@ -19,6 +26,9 @@ misalnya di lingkungan Sekretariat Daerah. Isi naskah hanya bisa dibaca, tidak b
 3. Bila menandai tidak sesuai urutan, sistem mengingatkan; lanjutkan hanya bila memang begitu kejadiannya.
 
 **Salah tanggal**: **Ubah Tanggal**. **Salah tandai**: **Batalkan**.
+
+![Tahapan Tanda Tangan: tahapan berikutnya disorot biru](../../public/img/panduan/tamu-penandatanganan.jpg)
+*Tahapan Tanda Tangan: tahapan berikutnya disorot biru*
 
 Setelah semua tahapan selesai, naskah diserahkan kembali ke Bagian Hukum untuk diarsipkan.
 

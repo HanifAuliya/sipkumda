@@ -1,5 +1,10 @@
 <div class="mx-auto max-w-4xl">
-    <x-ui.page-header title="Panduan" description="Cara memakai SIFKUMDA sesuai peran Anda." icon="book" />
+    <x-ui.page-header title="Panduan" description="Cara memakai SIFKUMDA sesuai peran Anda." icon="book">
+        <x-slot:actions>
+            {{-- Memuat ulang Dashboard, supaya tur berjalan di layar yang lengkap. --}}
+            <x-ui.button variant="outline" icon="signpost-split" :href="route('dashboard', ['tur' => 1])">Ulangi Tur Pengenalan</x-ui.button>
+        </x-slot:actions>
+    </x-ui.page-header>
 
     @if ($tersedia->count() > 1)
         <nav class="mb-6 flex flex-wrap gap-2" aria-label="Panduan per peran">

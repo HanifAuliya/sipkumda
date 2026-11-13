@@ -29,6 +29,8 @@
     {{-- Modal detail naskah bersama: Livewire.dispatch('bukaDetailNaskah', { slug }) --}}
     <livewire:v2.detail-naskah />
 
+    @include('layouts.partials.tur')
+
     {{-- Dipakai resources/js/navigasi.js bila server lambat saat berpindah menu. --}}
     <template id="kerangka-halaman">@include('layouts.partials.kerangka')</template>
 

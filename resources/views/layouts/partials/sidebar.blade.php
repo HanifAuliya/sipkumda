@@ -52,7 +52,7 @@
                     @foreach ($section['items'] as $item)
                         <li>
                             <a href="{{ route($item['route'], $item['params'] ?? []) }}" title="{{ $item['label'] }}" @if ($tanpaMuatUlang) wire:navigate @endif
-                                class="menu-item" data-ciut-tengah
+                                class="menu-item" data-ciut-tengah data-tur="menu-{{ \Illuminate\Support\Str::slug($item['label']) }}"
                                 @if (\App\Support\Navigation::aktif($item)) aria-current="page" @endif>
                                 <i class="bi bi-{{ $item['icon'] }}" aria-hidden="true"></i>
                                 <span class="truncate" data-ciut-sembunyi>{{ $item['label'] }}</span>

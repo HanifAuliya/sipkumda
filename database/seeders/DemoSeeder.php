@@ -15,8 +15,8 @@ use RuntimeException;
 
 /**
  * Data contoh untuk melihat tampilan (khusus lingkungan lokal): akun Perangkat Daerah tambahan,
- * pejabat penanda tangan nota dinas, dan arsip produk hukum. Naskah contoh di setiap tahap dibuat
- * V2RancanganPdSeeder.
+ * pejabat penanda tangan nota dinas, arsip produk hukum lama, lalu DemoAlurSeeder (naskah di tahap
+ * lanjut). Naskah contoh untuk format isi dibuat V2RancanganPdSeeder.
  *
  *   php artisan db:seed --class=DemoSeeder
  *
@@ -49,6 +49,9 @@ class DemoSeeder extends Seeder
         $this->buatArsipManual();
 
         $this->command?->info(sprintf('Data demo dibuat: %d dokumentasi.', DokumentasiProdukHukum::count()));
+
+        // Naskah di tahap lanjut (Menunggu Arsip, Selesai, tertahan) untuk Dokumentasi dan Laporan.
+        $this->call(DemoAlurSeeder::class);
     }
 
     private function buatPerangkatDaerah(): array

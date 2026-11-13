@@ -13,6 +13,16 @@ naskah yang diajukan untuk fasilitasi.
 | Pengecekan Fasilitasi | Perbaikan Perangkat Daerah yang perlu Anda cek |
 | Daftar Rancangan, Daftar Fasilitasi, Dokumentasi | Untuk dibaca |
 
+![Penelitian Rancangan: rancangan yang ditugaskan kepada Anda](../../public/img/panduan/peneliti-daftar.jpg)
+*Penelitian Rancangan: rancangan yang ditugaskan kepada Anda*
+
+**Tur pengenalan.** Saat pertama masuk, Dashboard menampilkan tur singkat yang menyorot menu Anda satu
+per satu. Tekan **Selanjutnya** untuk lanjut atau **Lewati tur**. Tur bisa diulang dari halaman **Panduan**
+(tombol **Ulangi Tur Pengenalan**) atau menu akun di kanan atas (**Tur Pengenalan**).
+
+![Tur pengenalan menyorot menu satu per satu](../../public/img/panduan/umum-tur.jpg)
+*Tur pengenalan menyorot menu satu per satu*
+
 ## 1. Meneliti rancangan
 
 1. Buka naskah dari **Penelitian Rancangan** (tombol **Kerjakan**).
@@ -27,6 +37,9 @@ naskah yang diajukan untuk fasilitasi.
 5. Setelah semua baris diperiksa:
    - Bila ada baris untuk PD: **Kirim ke PD**. Naskah kembali kepada Anda setelah PD mengirim tindak lanjut.
    - Bila tidak ada: **Selesai, teruskan ke Verifikator**.
+
+![Matriks penelitian: tiap baris ditetapkan, diubah, atau dimintakan perbaikan ke PD](../../public/img/panduan/peneliti-matriks.jpg)
+*Matriks penelitian: tiap baris ditetapkan, diubah, atau dimintakan perbaikan ke PD*
 
 **Pratinjau Naskah** di kanan, dan tab **Naskah › Perbandingan**, menunjukkan hasil cetak beserta
 perubahan (merah dihapus, hijau ditambah).

@@ -49,12 +49,14 @@ class Panduan extends Component
 
     public function render()
     {
-        $isi = file_get_contents(base_path("docs/panduan/{$this->peran}.md"));
+        // Gambar ditulis relatif ke berkas Markdown (../../public/img/...) supaya juga tampil di GitHub;
+        // di aplikasi diarahkan ke folder public.
+        $isi = str_replace('](../../public/', '](' . rtrim(asset('/'), '/') . '/', file_get_contents(base_path("docs/panduan/{$this->peran}.md")));
 
         return view('livewire.panduan', [
             'tersedia' => $this->tersedia(),
             // Berkas dari repositori sendiri; HTML mentah tetap dimatikan.
-            'html' => Str::markdown($isi, ['html_input' => 'strip', 'allow_unsafe_links' => false]),
+            'html' => str_replace('<img ', '<img loading="lazy" ', Str::markdown($isi, ['html_input' => 'strip', 'allow_unsafe_links' => false])),
         ]);
     }
 }

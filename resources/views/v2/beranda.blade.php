@@ -29,7 +29,8 @@
     </section>
 
     {{-- Statistik --}}
-    <div class="grid grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-4">
+    {{-- data-kosong: tur pengenalan memakai kalimat untuk aplikasi yang belum berisi naskah. --}}
+    <div class="grid grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-4" data-tur="statistik" @if (! array_filter($statistik)) data-kosong @endif>
         <x-ui.stat-card rapat label="Rancangan" :value="$statistik['rancangan']" suffix="naskah" icon="clipboard2-data" color="rose"
             :href="route('daftar', $pd ? 'rancanganku' : 'rancangan')" wire:navigate />
         <x-ui.stat-card rapat label="Fasilitasi" :value="$statistik['fasilitasi']" suffix="naskah" icon="file-text" color="orange"
@@ -43,7 +44,7 @@
     </div>
 
     {{-- Giliran --}}
-    <x-ui.card title="Giliran Anda" description="Naskah yang sedang menunggu tindakan Anda">
+    <x-ui.card title="Giliran Anda" description="Naskah yang sedang menunggu tindakan Anda" data-tur="giliran" :data-kosong="$giliranSaya->isEmpty()">
         <x-slot:actions>
             <x-ui.badge color="primary">{{ $giliranSaya->count() }} naskah</x-ui.badge>
         </x-slot:actions>

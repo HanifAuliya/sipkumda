@@ -88,8 +88,15 @@ php artisan serve
 Perintah `akun:super-admin` mencetak kata sandi sementara yang wajib diganti saat pertama masuk.
 
 **Data contoh (hanya untuk komputer pengembang):** `UserSeeder` membuat satu akun per peran dengan
-kata sandi `password`, dan `DemoSeeder` mengisi naskah di semua tahap. **Jangan dijalankan di server
-produksi.**
+kata sandi `password`. `V2RancanganPdSeeder` mengisi rancangan contoh di tahap awal, dan `DemoSeeder`
+menambah akun Perangkat Daerah, tanda tangan, arsip lama, lalu `DemoAlurSeeder`: naskah yang menunggu
+nota dinas, sedang ditandatangani, menunggu arsip, selesai, dan tertahan lama (waktunya dimundurkan
+supaya menu Laporan berisi). **Jangan dijalankan di server produksi.**
+
+**Panduan dan tur.** Panduan per peran ada di `docs/panduan/*.md` dan tampil di menu Panduan beserta
+screenshot dari `public/img/panduan/`. Gambar dirujuk relatif (`../../public/img/panduan/…`) supaya
+terbaca juga di GitHub. Tur pengenalan di Dashboard diatur di `app/Support/TurPengenalan.php`; target
+sorotannya adalah atribut `data-tur` di tampilan (menu samping memakai `menu-<nama menu>`).
 
 Font Bookman Old Style untuk PDF naskah tidak ikut di repositori; lihat [docs/DEPLOY.md](docs/DEPLOY.md).
 

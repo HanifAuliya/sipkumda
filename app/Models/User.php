@@ -110,6 +110,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'wajib_ganti_sandi' => 'boolean',
+            'tur_selesai_at' => 'datetime',
         ];
     }
 }
