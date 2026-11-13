@@ -149,7 +149,7 @@
                         </p>
                         <p class="sel-kedua mt-1 sm:hidden">Ditetapkan {{ tanggal_singkat($dokumentasi->tanggal_penetapan) }}</p>
                     </td>
-                    <td class="min-w-36 max-sm:hidden"><p class="sel-judul">{{ $dokumentasi->perangkatDaerah->nama_perangkat_daerah ?? '-' }}</p></td>
+                    <td class="min-w-44 max-sm:hidden"><p class="sel-judul line-clamp-none">{{ $dokumentasi->perangkatDaerah->nama_perangkat_daerah ?? '-' }}</p></td>
                     <td class="whitespace-nowrap max-sm:hidden">{{ $dokumentasi->berita_daerah ?? '-' }}</td>
                     <td class="whitespace-nowrap max-sm:hidden" title="{{ tanggal($dokumentasi->tanggal_penetapan) }}">{{ tanggal_singkat($dokumentasi->tanggal_penetapan) }}</td>
                     <td class="whitespace-nowrap max-sm:hidden" title="{{ tanggal($dokumentasi->tanggal_pengarsipan) }}">{{ tanggal_singkat($dokumentasi->tanggal_pengarsipan) }}</td>

@@ -25,8 +25,9 @@ class DaftarNaskah extends Component
 
     /** "tab" berisi [ikon, label] untuk tab menunggu dan riwayat; tanpa "tab" berarti tampilan tabel. */
     public const KELOMPOK = [
+        // Draf (belum diajukan atau dikembalikan untuk dilengkapi) dipisah supaya tidak dikira sudah terkirim.
         'rancanganku' => ['judul' => 'Rancanganku', 'keterangan' => 'Pengajuan rancangan produk hukum perangkat daerah', 'ikon' => 'clipboard2', 'tahap' => T::RANCANGAN,
-            'tab' => [['send', 'Sedang Diajukan'], ['check2-circle', 'Pengajuan Diterima']]],
+            'tab' => [['send', 'Sedang Diajukan'], ['check2-circle', 'Pengajuan Diterima']], 'draf' => ['pencil-square', 'Draf']],
         'rancangan' => ['judul' => 'Daftar Rancangan', 'keterangan' => 'Pengajuan rancangan produk hukum', 'ikon' => 'clipboard2-data', 'tahap' => T::RANCANGAN],
         'persetujuan-berkas' => ['judul' => 'Persetujuan Berkas', 'keterangan' => 'Pengajuan baru yang menunggu pemeriksaan kelengkapan', 'ikon' => 'clipboard2-check', 'tahap' => [T::PersetujuanBerkas],
             'tab' => [['hourglass-split', 'Menunggu Persetujuan'], ['clock-history', 'Riwayat Persetujuan']]],
@@ -77,7 +78,7 @@ class DaftarNaskah extends Component
 
     public function pilihTab(string $tab): void
     {
-        $this->tabAktif = $tab === 'riwayat' ? 'riwayat' : 'menunggu';
+        $this->tabAktif = in_array($tab, ['riwayat', 'draf'], true) ? $tab : 'menunggu';
         $this->resetPage();
     }
 
@@ -98,11 +99,22 @@ class DaftarNaskah extends Component
         $info = self::KELOMPOK[$this->kelompok];
         $menunggu = $info['tahap'];
         $riwayat = isset($info['tab']) ? end($menunggu)->sesudahnya() : [];
-        $riwayatAktif = isset($info['tab']) && $this->tabAktif === 'riwayat';
+        $draf = isset($info['draf']) ? [T::Draf] : [];
+        if ($draf) {
+            $menunggu = array_values(array_filter($menunggu, fn (T $t) => $t !== T::Draf));
+        }
+        if ($this->tabAktif === 'draf' && ! $draf || $this->tabAktif === 'riwayat' && ! isset($info['tab'])) {
+            $this->tabAktif = 'menunggu';
+        }
+        $tahapTab = match ($this->tabAktif) {
+            'riwayat' => $riwayat,
+            'draf' => $draf,
+            default => $menunggu,
+        };
 
         $halaman = $this->dasar()
             ->with(['pemrakarsa.perangkatDaerah', 'peneliti'])
-            ->whereIn('tahap', $riwayatAktif ? $riwayat : $menunggu)
+            ->whereIn('tahap', isset($info['tab']) ? $tahapTab : $menunggu)
             ->when($this->search !== '', fn ($q) => $q->where(fn ($s) => $s
                 ->where('tentang', 'like', "%{$this->search}%")
                 ->orWhere('nomor', 'like', "%{$this->search}%")))
@@ -114,10 +126,17 @@ class DaftarNaskah extends Component
         return view('v2.daftar-naskah', [
             'info' => $info,
             'halaman' => $halaman,
-            'jumlah' => isset($info['tab']) ? [
+            'jumlah' => isset($info['tab']) ? array_filter([
+                'draf' => $draf ? $this->dasar()->whereIn('tahap', $draf)->count() : null,
                 'menunggu' => $this->dasar()->whereIn('tahap', $menunggu)->count(),
                 'riwayat' => $this->dasar()->whereIn('tahap', $riwayat)->count(),
-            ] : [],
+            ], fn ($n) => $n !== null) : [],
+            // [kunci => [ikon, label]] sesuai urutan tampil.
+            'daftarTab' => isset($info['tab']) ? array_filter([
+                'draf' => $info['draf'] ?? null,
+                'menunggu' => $info['tab'][0],
+                'riwayat' => $info['tab'][1],
+            ]) : [],
             'bisaBuat' => $this->kelompok === 'rancanganku' && Gate::allows('create', Naskah::class),
         ])->title($info['judul']);
     }

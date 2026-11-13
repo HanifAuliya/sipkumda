@@ -11,9 +11,9 @@
     <x-ui.card>
         @isset($info['tab'])
             <x-ui.tabs>
-                @foreach (['menunggu', 'riwayat'] as $i => $tab)
-                    <x-ui.tab :active="$tabAktif === $tab" :icon="$info['tab'][$i][0]" :count="$jumlah[$tab]" wire:click="pilihTab('{{ $tab }}')">
-                        {{ $info['tab'][$i][1] }}
+                @foreach ($daftarTab as $tab => [$ikonTab, $labelTab])
+                    <x-ui.tab :active="$tabAktif === $tab" :icon="$ikonTab" :count="$jumlah[$tab]" wire:click="pilihTab('{{ $tab }}')">
+                        {{ $labelTab }}
                     </x-ui.tab>
                 @endforeach
             </x-ui.tabs>
@@ -27,9 +27,9 @@
                     @forelse ($halaman as $naskah)
                         <x-naskah.item :naskah="$naskah" wire:key="naskah-{{ $naskah->id }}" />
                     @empty
-                        <x-ui.empty-state :icon="$info['ikon']" :title="$search !== '' || $jenis !== '' ? 'Tidak ada naskah yang cocok dengan pencarian atau filter.' : 'Daftar “'.$info['tab'][$tabAktif === 'menunggu' ? 0 : 1][1].'” masih kosong.'" class="py-12">
+                        <x-ui.empty-state :icon="$info['ikon']" :title="$search !== '' || $jenis !== '' ? 'Tidak ada naskah yang cocok dengan pencarian atau filter.' : 'Daftar “'.$daftarTab[$tabAktif][1].'” masih kosong.'" class="py-12">
                             <x-ui.reset-filter :aktif="$search !== '' || $jenis !== ''" :nilai="['search' => '', 'jenis' => '']" />
-                            @if ($bisaBuat && $search === '' && $jenis === '' && $tabAktif === 'menunggu')
+                            @if ($bisaBuat && $search === '' && $jenis === '' && $tabAktif !== 'riwayat')
                                 <x-ui.button icon="send-plus" size="rapat" x-on:click="openModal('ajukanNaskahModal')">Ajukan Rancangan Baru</x-ui.button>
                             @endif
                         </x-ui.empty-state>

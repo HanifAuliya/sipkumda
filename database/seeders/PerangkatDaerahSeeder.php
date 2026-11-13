@@ -11,7 +11,7 @@ class PerangkatDaerahSeeder extends Seeder
     {
         $data = [
             'Bagian Hukum',
-            'Bagian Kesejateraan Rakyat',
+            'Bagian Kesejahteraan Rakyat',
             'Bagian Tata Pemerintahan',
             'Bagian Perekonomian dan SDA',
             'Bagian Pembangunan',

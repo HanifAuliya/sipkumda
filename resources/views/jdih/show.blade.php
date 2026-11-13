@@ -93,7 +93,8 @@
                     @foreach ($metadata as [$label, $nilai, $penuh])
                         <div @class(['min-w-0', 'col-span-2' => $penuh])>
                             <dt class="text-xs font-medium text-slate-500 dark:text-slate-400">{{ $label }}</dt>
-                            <dd class="mt-0.5 text-sm font-semibold break-words text-navy-900 dark:text-slate-100">{{ $nilai }}</dd>
+                            {{-- Nomor SK panjang (140/31/412.1.6/TAHUN 2026) boleh dipatah setelah "/", bukan di tengah kata. --}}
+                            <dd class="mt-0.5 text-sm font-semibold break-words text-navy-900 dark:text-slate-100">{!! str_replace('/', '/<wbr>', e($nilai)) !!}</dd>
                         </div>
                     @endforeach
                 </dl>

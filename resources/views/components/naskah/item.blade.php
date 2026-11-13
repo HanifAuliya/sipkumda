@@ -1,8 +1,10 @@
 {{--
     Kartu satu naskah dalam daftar. Urutan bacanya: naskah apa, tahap apa, lalu langkah berikutnya.
     <x-naskah.item :naskah="$naskah" />
+    - menunggu : hari di tahap sekarang (Giliran Anda); null = tidak ditampilkan
+    - batas    : mulai hari ke berapa lamanya ditandai oranye (LaporanNaskah::batasTertahan)
 --}}
-@props(['naskah'])
+@props(['naskah', 'menunggu' => null, 'batas' => 7])
 
 @php
     $tahap = $naskah->tahap;
@@ -45,6 +47,16 @@
         @endif
         <x-naskah.meta icon="building">{{ $naskah->pemrakarsa->perangkatDaerah->nama_perangkat_daerah ?? $naskah->pemrakarsa->nama_user }}</x-naskah.meta>
         <x-naskah.meta icon="calendar3">{{ $naskah->diajukan_at ? 'Diajukan '.tanggal($naskah->diajukan_at, true) : 'Belum diajukan' }}</x-naskah.meta>
+        @if ($menunggu !== null)
+            <li><span @class([
+                'inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-sm font-medium',
+                'bg-orange-50 text-orange-700 dark:bg-orange-500/15 dark:text-orange-300' => $menunggu >= $batas,
+                'bg-slate-100 text-slate-600 dark:bg-navy-800 dark:text-slate-300' => $menunggu < $batas,
+            ]) title="Lama naskah berada di tahap ini">
+                <i class="bi bi-hourglass-split text-xs" aria-hidden="true"></i>
+                {{ $menunggu < 1 ? 'Masuk hari ini' : "Menunggu {$menunggu} hari" }}
+            </span></li>
+        @endif
     </ul>
 
     <div class="mt-4 flex flex-col gap-3 border-t border-slate-100 pt-4 lg:flex-row lg:items-center lg:justify-between dark:border-navy-800">
@@ -64,7 +76,7 @@
                 <x-ui.button size="rapat" icon="vector-pen" :href="route('naskah.pantau', $naskah)" class="max-lg:flex-1">Pantau</x-ui.button>
             @elseif ($giliran)
                 {{-- Langsung ke halaman yang dikerjakan pada tahap ini: matriks, atau Nota Dinas & Tanda Tangan. --}}
-                <x-ui.button size="rapat" :icon="$tahap->tahapAkhir() ? 'vector-pen' : 'pencil-square'" :href="$naskah->tautanUntuk(auth()->user())" class="max-lg:flex-1">{{ $tahap->labelKerjakan() }}</x-ui.button>
+                <x-ui.button size="rapat" :icon="$tahap->ikonKerjakan()" :href="$naskah->tautanUntuk(auth()->user())" class="max-lg:flex-1">{{ $tahap->labelKerjakan() }}</x-ui.button>
             @endif
         </div>
     </div>

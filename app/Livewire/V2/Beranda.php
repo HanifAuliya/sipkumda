@@ -4,6 +4,9 @@ namespace App\Livewire\V2;
 
 use App\Enums\TahapNaskah;
 use App\Models\Naskah;
+use App\Models\NaskahRiwayat;
+use App\Support\KesiapanAplikasi;
+use App\Support\LaporanNaskah;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -69,7 +72,34 @@ class Beranda extends Component
                 ->when(in_array($this->jenis, ['Peraturan Bupati', 'Keputusan Bupati'], true), fn ($q) => $q->where('jenis', $this->jenis))
                 ->latest('updated_at')
                 ->paginate(20),
-            'giliranSaya' => (clone $semua)->menunggu($user)->latest('updated_at')->limit(50)->get(),
+            ...$this->giliran((clone $semua)->menunggu($user)->limit(50)->get()),
+            'kesiapan' => KesiapanAplikasi::belumSiap($user),
         ]);
+    }
+
+    /**
+     * Giliran Anda diurutkan dari yang paling lama menunggu di tahapnya. Lamanya dihitung dari
+     * perpindahan tahap terakhir; draf yang belum pernah diajukan tidak diberi hitungan.
+     */
+    private function giliran($naskah): array
+    {
+        $masuk = NaskahRiwayat::query()
+            ->whereIn('naskah_id', $naskah->pluck('id'))
+            ->where('aksi', 'tahap')
+            ->groupBy('naskah_id')
+            ->selectRaw('naskah_id, max(created_at) as masuk')
+            ->pluck('masuk', 'naskah_id');
+
+        $hari = $naskah->mapWithKeys(function (Naskah $n) use ($masuk) {
+            $sejak = $masuk[$n->id] ?? $n->diajukan_at;
+
+            return [$n->id => $n->diajukan_at && $sejak ? (int) floor(\Illuminate\Support\Carbon::parse($sejak)->diffInDays(now())) : null];
+        });
+
+        return [
+            'giliranSaya' => $naskah->sortByDesc(fn (Naskah $n) => [$hari[$n->id] ?? -1, $n->updated_at?->timestamp])->values(),
+            'lamaMenunggu' => $hari->all(),
+            'batasTertahan' => LaporanNaskah::batasTertahan(),
+        ];
     }
 }

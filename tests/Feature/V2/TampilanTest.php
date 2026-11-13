@@ -94,9 +94,14 @@ it('tombol Kerjakan hanya tampil pada naskah yang menjadi giliran pengguna', fun
     $naskah = Naskah::create(['jenis' => 'Peraturan Bupati', 'tentang' => 'Uji Tombol Kerjakan', 'pemrakarsa_id' => $pd->id]);
     $lembarKerja = route('naskah.kerja', $naskah);
 
-    $this->actingAs($pd)->get(route('daftar', 'rancanganku'))
+    // Draf ada di tab Draf, bukan di Sedang Diajukan.
+    $this->actingAs($pd)->get(route('daftar', ['kelompok' => 'rancanganku', 'tab' => 'draf']))
         ->assertOk()
         ->assertSee($lembarKerja, false);
+    $this->actingAs($pd)->get(route('daftar', 'rancanganku'))
+        ->assertOk()
+        ->assertSee('Draf')
+        ->assertDontSee('Uji Tombol Kerjakan');
 
     $this->actingAs($this->admin)->get(route('daftar', 'rancangan'))
         ->assertOk()

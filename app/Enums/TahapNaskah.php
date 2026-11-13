@@ -150,6 +150,17 @@ enum TahapNaskah: string
         };
     }
 
+    /** Ikon tombol pembuka naskah, sesuai labelKerjakan(). */
+    public function ikonKerjakan(): string
+    {
+        return match ($this) {
+            self::Final => 'file-earmark-text',
+            self::Penandatanganan => 'vector-pen',
+            self::Arsip => 'archive',
+            default => 'pencil-square',
+        };
+    }
+
     public function terkunci(): bool
     {
         return in_array($this, self::TERKUNCI, true);

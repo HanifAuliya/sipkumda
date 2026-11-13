@@ -126,7 +126,7 @@ Menu: **Dokumentasi**.
 
 | Kapan | Yang diperiksa |
 |---|---|
-| Setiap hari kerja | Dashboard › **Giliran Anda**. |
+| Setiap hari kerja | Dashboard › **Giliran Anda** (yang paling lama menunggu ada di atas). Bila muncul kartu **Kesiapan aplikasi**, bereskan butirnya: nama Bupati/Sekda, tanda tangan aktif, pengiriman email, atau cadangan otomatis. Kartu itu hilang sendiri setelah semuanya beres. |
 | Setiap minggu | Menu **Laporan & Pemantauan** › Ringkasan › *Tertahan lebih dari 7 hari*. Pemegang gilirannya sudah diingatkan otomatis setiap 7 hari (pukul 08.00); bila tetap tertahan, tanyakan langsung. |
 | Akhir bulan, triwulan, atau tahun | Menu **Laporan & Pemantauan**, pilih **Periode**, lalu **Unduh › PDF laporan** (berkop, untuk pimpinan) atau **Excel lengkap**. Tab **Per Perangkat Daerah** untuk melihat siapa mengajukan apa. |
 | Bila ada pertanyaan "siapa yang mengubah ini dan kapan" | Menu **Laporan & Pemantauan** › **Aktivitas**, saring per Perangkat Daerah atau tanggal. |

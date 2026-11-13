@@ -28,13 +28,42 @@
         </div>
     </section>
 
+    {{-- Kesiapan aplikasi: hanya tampil selama masih ada yang belum beres (App\Support\KesiapanAplikasi). --}}
+    @if ($kesiapan)
+        <x-ui.card title="Kesiapan aplikasi" :description="count($kesiapan) . ' hal perlu dibereskan supaya SIFKUMDA berjalan lancar. Kartu ini hilang sendiri setelah semuanya beres.'"
+            class="ring-1 ring-amber-200 dark:ring-amber-500/30">
+            <ul class="divide-y divide-slate-100 dark:divide-navy-800">
+                @foreach ($kesiapan as $butir)
+                    <li class="flex flex-wrap items-start gap-3 py-3 first:pt-0 last:pb-0 sm:flex-nowrap">
+                        <span class="grid size-8 shrink-0 place-items-center rounded-full bg-amber-50 text-amber-600 dark:bg-amber-500/15 dark:text-amber-300">
+                            <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+                        </span>
+                        <div class="min-w-0 flex-1">
+                            <p class="font-semibold text-navy-900 dark:text-white">{{ $butir['judul'] }}</p>
+                            <p class="mt-0.5 text-sm text-slate-600 dark:text-slate-300">{{ $butir['keterangan'] }}</p>
+                        </div>
+                        @if ($butir['tautan'])
+                            <x-ui.button variant="outline" size="sm" icon="arrow-right" :href="$butir['tautan']" wire:navigate class="max-sm:ml-11">Bereskan</x-ui.button>
+                        @else
+                            <span class="text-sm whitespace-nowrap text-slate-400 max-sm:ml-11">Oleh {{ $butir['oleh'] }}</span>
+                        @endif
+                    </li>
+                @endforeach
+            </ul>
+        </x-ui.card>
+    @endif
+
     {{-- Statistik --}}
     {{-- data-kosong: tur pengenalan memakai kalimat untuk aplikasi yang belum berisi naskah. --}}
-    <div class="grid grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-4" data-tur="statistik" @if (! array_filter($statistik)) data-kosong @endif>
-        <x-ui.stat-card rapat label="Rancangan" :value="$statistik['rancangan']" suffix="naskah" icon="clipboard2-data" color="rose"
-            :href="route('daftar', $pd ? 'rancanganku' : 'rancangan')" wire:navigate />
-        <x-ui.stat-card rapat label="Fasilitasi" :value="$statistik['fasilitasi']" suffix="naskah" icon="file-text" color="orange"
-            :href="route('daftar', $pd ? 'fasilitasiku' : 'fasilitasi')" wire:navigate />
+    {{-- Tamu hanya mencatat tanda tangan, jadi kartu Rancangan dan Fasilitasi (selalu 0 baginya) tidak ditampilkan. --}}
+    @php $tamu = $user->hasRole('Tamu') && ! $user->hasAnyRole(['Admin', 'Verifikator', 'Peneliti', 'Perangkat Daerah']); @endphp
+    <div @class(['grid grid-cols-2 gap-3 sm:gap-5', 'xl:grid-cols-4' => ! $tamu]) data-tur="statistik" @if (! array_filter($statistik)) data-kosong @endif>
+        @unless ($tamu)
+            <x-ui.stat-card rapat label="Rancangan" :value="$statistik['rancangan']" suffix="naskah" icon="clipboard2-data" color="rose"
+                :href="route('daftar', $pd ? 'rancanganku' : 'rancangan')" wire:navigate />
+            <x-ui.stat-card rapat label="Fasilitasi" :value="$statistik['fasilitasi']" suffix="naskah" icon="file-text" color="orange"
+                :href="route('daftar', $pd ? 'fasilitasiku' : 'fasilitasi')" wire:navigate />
+        @endunless
         @if ($user->hasAnyRole(['Admin', 'Tamu']))
             <x-ui.stat-card rapat label="Tanda Tangan & Arsip" :value="$statistik['ttd']" suffix="naskah" icon="pen" color="emerald" :href="route('daftar', 'penandatanganan')" wire:navigate />
         @else
@@ -54,7 +83,7 @@
         @else
             <div class="space-y-4">
                 @foreach ($giliranSaya as $naskah)
-                    <x-naskah.item :naskah="$naskah" wire:key="giliran-{{ $naskah->id }}" />
+                    <x-naskah.item :naskah="$naskah" :menunggu="$lamaMenunggu[$naskah->id] ?? null" :batas="$batasTertahan" wire:key="giliran-{{ $naskah->id }}" />
                 @endforeach
             </div>
         @endif

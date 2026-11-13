@@ -24,12 +24,14 @@ per satu. Tekan **Selanjutnya** untuk lanjut atau **Lewati tur**. Tur bisa diula
 | Menu | Isi |
 |---|---|
 | Dashboard | Naskah yang menunggu tindakan Anda, dan semua naskah Anda |
-| Rancanganku | Rancangan yang sedang diajukan dan yang sudah diterima |
+| Rancanganku | Tab **Draf** (belum diajukan atau dikembalikan untuk dilengkapi), **Sedang Diajukan**, dan **Pengajuan Diterima** |
 | Fasilitasiku | Naskah pada tahap fasilitasi |
 | Daftar Nota Dinas | Nota dinas dari Bagian Hukum |
 | Dokumentasi | Produk hukum yang sudah ditetapkan |
 
 Naskah yang sedang **giliran Anda** ditandai garis biru di kiri kartunya dan memiliki tombol **Kerjakan**.
+Di Dashboard, Giliran Anda diurutkan dari yang paling lama menunggu, dengan keterangan "Menunggu … hari"
+(oranye bila sudah lebih dari 7 hari).
 
 ![Dashboard Perangkat Daerah: Giliran Anda dan ringkasan naskah](../../public/img/panduan/pd-dashboard.jpg)
 *Dashboard Perangkat Daerah: Giliran Anda dan ringkasan naskah*
@@ -44,7 +46,8 @@ Naskah yang sedang **giliran Anda** ditandai garis biru di kiri kartunya dan mem
    - **Matriks**: tabel dengan kolom materi dan rumusan.
 
    Lalu unggah filenya. Tanpa file Word, isi rancangan diketik langsung di langkah berikutnya.
-   Hasil baca paling akurat bila memakai template di tombol **Bahan Penting** atau tautan template di formulir.
+   Hasil baca paling akurat bila memakai **Template Peraturan Bupati** atau **Template Keputusan Bupati** di
+   tombol **Bahan Penting** (selalu tersedia), atau tautan template di formulir.
 5. Tekan **Lanjutkan**. Anda dibawa ke **layar kerja** naskah.
 
 ![Formulir Ajukan Rancangan Baru](../../public/img/panduan/pd-ajukan.jpg)

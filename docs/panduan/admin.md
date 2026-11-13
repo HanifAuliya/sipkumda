@@ -4,6 +4,11 @@ Anda memeriksa kelengkapan berkas pengajuan, menerbitkan nota dinas, mencatat pa
 mengarsipkan produk hukum, serta mengelola pengguna dan pengaturan. Untuk penyelesaian masalah, lihat
 juga **Runbook Admin** (`docs/RUNBOOK-ADMIN.md`).
 
+**Kesiapan aplikasi.** Selama masih ada yang belum siap (nama Bupati/Sekda kosong, belum ada tanda tangan
+aktif, email belum dikirim sungguhan, atau cadangan otomatis tidak berjalan), Dashboard menampilkan kartu
+**Kesiapan aplikasi** berisi apa yang perlu dibereskan dan tombol menuju menunya. Kartu itu hilang sendiri
+setelah semuanya beres.
+
 ## Menu Anda
 
 | Menu | Isi |

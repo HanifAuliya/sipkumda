@@ -5,7 +5,7 @@
         description="Template yang dapat diunduh perangkat daerah dari menu Rancanganku" />
 
     <div class="grid gap-6 lg:grid-cols-5">
-        <x-ui.card title="Daftar Bahan Penting" description="Tampil di tombol “Bahan Penting” untuk Perangkat Daerah." class="lg:col-span-3">
+        <x-ui.card title="Daftar Bahan Penting" description="Tampil di tombol “Bahan Penting” untuk Perangkat Daerah, di bawah Template Peraturan Bupati dan Keputusan Bupati yang selalu ada." class="lg:col-span-3">
             <x-ui.table>
                 <x-slot:head>
                     <th class="w-12">No</th>
