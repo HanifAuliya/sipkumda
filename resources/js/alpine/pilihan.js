@@ -24,6 +24,9 @@ export default () => ({
 
     init() {
         this.baca();
+        // wire:model baru memasang nilai ke <select> setelah komponen ini dimuat; baca lagi sesudahnya.
+        this.$nextTick(() => this.baca());
+        setTimeout(() => this.baca(), 0);
 
         const select = this.$refs.select;
         select.addEventListener('change', () => this.baca());
