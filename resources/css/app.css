@@ -622,6 +622,26 @@
     }
 }
 
+/* Garis muat di atas layar saat pindah menu dan ganti tab (resources/js/navigasi.js). Oranye aksen
+   supaya jelas di atas header biru tua maupun latar terang. */
+.garis-muat {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: 1100;
+    height: 3px;
+    overflow: hidden;
+    pointer-events: none;
+    transition: opacity 250ms linear;
+
+    & > div {
+        height: 100%;
+        background: var(--color-accent-500);
+        box-shadow: 0 0 8px var(--color-accent-500);
+        transform: translate3d(-100%, 0, 0);
+        transition: transform 200ms ease;
+    }
+}
+
 @keyframes ketik-masuk {
     from { transform: translateX(0); }
     to { transform: translateX(calc(100% - 4px)); }

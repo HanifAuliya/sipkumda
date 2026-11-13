@@ -193,7 +193,10 @@ return [
     */
 
     'navigate' => [
-        'show_progress_bar' => false, // Server lambat ditandai kerangka halaman (resources/js/navigasi.js).
+        // Bar bawaan baru muncul setelah 150 ms (nyaris tak terlihat di server cepat), jadi diganti garis
+        // muat sendiri untuk pindah menu dan ganti tab (resources/js/navigasi.js). Server lambat tetap
+        // ditandai kerangka halaman.
+        'show_progress_bar' => false,
         'progress_bar_color' => '#5e72e4',
     ],
 

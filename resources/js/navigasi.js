@@ -6,6 +6,8 @@
 | penanda menu meluncur saat diklik, isi halaman lama meredup, dan kerangka
 | halaman (skeleton) hanya muncul bila server lambat menjawab.
 */
+import { Livewire } from '../../vendor/livewire/livewire/dist/livewire.esm';
+
 const menuSamping = () => document.querySelector('[data-menu-samping]');
 const isiHalaman = () => document.querySelector('[data-isi-halaman]');
 
@@ -126,6 +128,82 @@ document.addEventListener('livewire:navigated', () => {
 
 // Huruf yang baru termuat bisa menggeser tinggi item menu.
 document.fonts?.ready.then(() => tempatkanPenanda(false));
+
+/*
+ * Garis muat di atas layar (seperti GitHub) saat pindah menu dan ganti tab. Bar bawaan Livewire
+ * tidak dipakai: hanya untuk wire:navigate dan baru muncul setelah 150 ms, sehingga di server yang
+ * cepat nyaris tidak terlihat. Garis ini muncul langsung, lalu selesai dan memudar (minimal ~0,4 detik
+ * terlihat). Hanya hiasan di browser: tidak menambah permintaan ke server.
+ */
+const garisMuat = (() => {
+    let el = null;
+    let nilai = 0;
+    let rayap = null;
+    let jumlah = 0; // permintaan yang belum selesai
+
+    const geser = (n) => {
+        nilai = n;
+        el.firstChild.style.transform = `translate3d(${(n - 1) * 100}%, 0, 0)`;
+    };
+
+    const mulai = () => {
+        jumlah++;
+        if (el) return;
+
+        el = document.createElement('div');
+        el.className = 'garis-muat';
+        el.setAttribute('aria-hidden', 'true');
+        el.innerHTML = '<div></div>';
+        // Di <html>, bukan <body>: body diganti saat pindah menu.
+        document.documentElement.appendChild(el);
+        geser(0.08);
+        requestAnimationFrame(() => el && geser(0.35));
+        rayap = setInterval(() => geser(nilai + (0.9 - nilai) * 0.08), 200);
+    };
+
+    const selesai = (semua = false) => {
+        jumlah = semua ? 0 : Math.max(0, jumlah - 1);
+        if (!el || jumlah > 0) return;
+
+        clearInterval(rayap);
+        const lama = el;
+        el = null;
+        lama.firstChild.style.transform = 'translate3d(0, 0, 0)';
+        setTimeout(() => {
+            lama.style.opacity = '0';
+            setTimeout(() => lama.remove(), 250);
+        }, 200);
+    };
+
+    return { mulai, selesai };
+})();
+
+// Pindah menu.
+document.addEventListener('livewire:navigate', () => garisMuat.mulai());
+document.addEventListener('livewire:navigated', () => garisMuat.selesai(true));
+
+// Ganti tab. Galat di sini dianggap Livewire sebagai permintaan gagal, jadi garis (hiasan saja)
+// tidak boleh pernah melempar galat.
+Livewire.interceptMessage(({ message, onSend, onFinish }) => {
+    let dariTab = false;
+
+    onSend(() => {
+        try {
+            // actions berupa Set, bukan array.
+            dariTab = [...message.actions].some((a) => a.origin?.el?.closest?.('[role="tab"]'));
+            if (dariTab) garisMuat.mulai();
+        } catch {
+            dariTab = false;
+        }
+    });
+    onFinish(() => {
+        try {
+            if (dariTab) garisMuat.selesai();
+        } catch {
+            // abaikan
+        }
+    });
+});
 
 // Tab yang diklik langsung tampak aktif; jawaban server tetap menjadi penentu akhirnya.
 document.addEventListener('click', (event) => {
