@@ -7,12 +7,14 @@ import chart from './alpine/chart';
 import editorRumusan from './alpine/editor-rumusan';
 import turPengenalan from './alpine/tur';
 import pilihan from './alpine/pilihan';
+import padTtd from './alpine/pad-ttd';
 import tabelDariClipboard from './tempel-tabel';
 
 Alpine.data('chart', chart);
 Alpine.data('editorRumusan', editorRumusan);
 Alpine.data('turPengenalan', turPengenalan);
 Alpine.data('pilihan', pilihan);
+Alpine.data('padTtd', padTtd);
 
 window.Swal = Swal;
 window.tabelDariClipboard = tabelDariClipboard;

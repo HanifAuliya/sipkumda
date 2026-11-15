@@ -8,7 +8,7 @@ class NaskahNotaDinas extends Model
 {
     protected $table = 'naskah_nota_dinas';
 
-    protected $fillable = ['naskah_id', 'nomor_inputan', 'nomor_nota', 'tanggal_nota', 'kepada', 'tanda_tangan_id'];
+    protected $fillable = ['naskah_id', 'nomor_inputan', 'nomor_nota', 'tanggal_nota', 'kepada', 'tanda_tangan_id', 'file_ttd'];
 
     protected function casts(): array
     {
@@ -25,11 +25,14 @@ class NaskahNotaDinas extends Model
         return $this->belongsTo(TandaTangan::class, 'tanda_tangan_id');
     }
 
-    /** Path gambar tanda tangan, atau null bila filenya tidak ada. */
+    /**
+     * Path gambar tanda tangan, atau null bila filenya tidak ada. Tanda tangan yang digambar langsung
+     * saat menerbitkan (file_ttd) didahulukan dari gambar tersimpan penanda tangannya.
+     */
     public function pathTandaTangan(): ?string
     {
-        $file = $this->tandaTangan?->file_ttd;
-        $path = $file ? storage_path('app/private/tanda_tangan/ttd/' . basename($file)) : null;
+        $file = $this->file_ttd ?: $this->tandaTangan?->file_ttd;
+        $path = $file ? \Illuminate\Support\Facades\Storage::disk('local')->path(TandaTangan::FOLDER . '/' . basename($file)) : null;
 
         return $path && is_file($path) ? $path : null;
     }

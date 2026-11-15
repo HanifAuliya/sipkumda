@@ -9,6 +9,7 @@ use App\Models\NaskahBerkas;
 use App\Models\TandaTangan;
 use App\Services\AlurNaskah;
 use App\Support\FormatDokumen;
+use App\Support\TandaTanganLangsung;
 use App\Support\TataLetakNaskah;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
@@ -37,6 +38,14 @@ class PantauNaskah extends Component
     public string $nomorInputan = '';
     public string $kepada = '';
     public ?int $tandaTanganId = null;
+
+    /**
+     * Kepala Bagian Hukum (Verifikator) yang menerbitkan sendiri boleh menggambar tanda tangannya
+     * saat itu juga: 'tersimpan' | 'langsung'. Admin hanya memilih tanda tangan tersimpan.
+     */
+    public string $sumberTtd = 'tersimpan';
+    public string $ttdLangsung = '';
+    public bool $simpanTtd = false;
 
     /** Alasan Admin menerbitkan ulang nota dinas dari pengaturan Format Dokumen terbaru. */
     public string $alasanTerbitUlang = '';
@@ -67,6 +76,7 @@ class PantauNaskah extends Component
         // Tujuan nota dinas adalah Perangkat Daerah yang mengajukan; masih bisa disunting sebelum terbit.
         $pd = $naskah->pemrakarsa?->perangkatDaerah?->nama_perangkat_daerah;
         $this->kepada = $pd ? "Kepala {$pd}" : '';
+        $this->tandaTanganId = $this->ttdSaya()?->id;
         $this->isiPembetulanNota();
 
         // Terisi dari pola di menu Format Dokumen; bisa diganti bila naskah ini memakai kode lain.
@@ -123,12 +133,40 @@ class PantauNaskah extends Component
         $this->kepadaUlang = $nota->kepada ?? '';
     }
 
+    /** Tanda tangan aktif milik pengguna ini sebagai Kepala Bagian Hukum, bila ada. */
+    private function ttdSaya(): ?TandaTangan
+    {
+        return auth()->user()->hasRole('Verifikator')
+            ? TandaTangan::where('user_id', auth()->id())->where('status', 'Aktif')->first()
+            : null;
+    }
+
     public function terbitkanNota(AlurNaskah $alur): void
     {
         $this->resetValidation();
-        $this->naskah = $alur->terbitkanNota($this->naskah, auth()->user(), $this->nomorInputan, $this->kepada, $this->tandaTanganId);
+        $ttdSaya = $this->ttdSaya();
+        $gambar = null;
 
-        $this->reset('nomorInputan', 'tandaTanganId');
+        if ($this->sumberTtd === 'langsung') {
+            abort_unless($ttdSaya, 403);
+            $gambar = TandaTanganLangsung::fileSementara($this->ttdLangsung, 'ttd');
+        }
+
+        try {
+            $this->naskah = $alur->terbitkanNota($this->naskah, auth()->user(), $this->nomorInputan, $this->kepada,
+                $gambar ? $ttdSaya->id : $this->tandaTanganId, $gambar);
+
+            if ($gambar && $this->simpanTtd) {
+                $ttdSaya->gantiGambar($gambar);
+            }
+        } finally {
+            if ($gambar) {
+                @unlink($gambar);
+            }
+        }
+
+        $this->reset('nomorInputan', 'sumberTtd', 'ttdLangsung', 'simpanTtd');
+        $this->tandaTanganId = $this->ttdSaya()?->id;
         $this->isiPembetulanNota();
         $this->dispatch('swal:toast', ['type' => 'success', 'message' => 'Nota dinas diterbitkan.']);
     }
@@ -221,6 +259,7 @@ class PantauNaskah extends Component
             'versiNota' => $this->naskah->berkas()->where('jenis', NaskahBerkas::NOTA_DINAS)->with('pengunggah:id,nama_user')->get(),
             'potonganNomor' => $bolehTerbit ? FormatDokumen::potonganNomorNota(FormatDokumen::nota()['nomor'], $this->naskah->jenis, now()->year) : [],
             'daftarTtd' => $bolehTerbit || $alur->bolehTerbitUlangNota($this->naskah, $user) ? TandaTangan::where('status', 'Aktif')->get(['id', 'nama_ttd', 'jabatan']) : collect(),
+            'ttdSaya' => $bolehTerbit ? $this->ttdSaya() : null,
             'riwayat' => $riwayat,
             'blokNaskah' => $this->lihatIsi ? TataLetakNaskah::susun($this->naskah, $this->naskah->baris()->get()) : [],
         ])->title(($pemantau ? 'Pantau ' : 'Nota Dinas ') . $this->naskah->nomor_tampil);

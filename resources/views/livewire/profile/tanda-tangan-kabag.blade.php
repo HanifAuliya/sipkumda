@@ -2,8 +2,12 @@
     description="Sebagai Kepala Bagian Hukum, tanda tangan ini dicetak di nota dinas dan di kolom Kepala Bagian Hukum pada matriks. Admin juga bisa membantu mengaturnya.">
     @php $berkas = $ttd ? private_file_url('tanda_tangan/ttd', $ttd->file_ttd) : null; @endphp
 
-    <x-ttd.pratinjau :src="$gambar ? $gambar->temporaryUrl() : $berkas" :alt="$gambar ? 'Pratinjau tanda tangan' : 'Tanda tangan ' . $nama"
-        memuat="gambar, simpan" />
+    @if ($ubah && $menggambar)
+        <x-ttd.pad model="ttdLangsung" />
+    @else
+        <x-ttd.pratinjau :src="$gambar ? $gambar->temporaryUrl() : $berkas" :alt="$gambar ? 'Pratinjau tanda tangan' : 'Tanda tangan ' . $nama"
+            memuat="gambar, simpan" />
+    @endif
 
     @error('gambar')
         <p class="mt-2 flex items-center gap-1.5 text-sm font-medium text-rose-600 dark:text-rose-300">
@@ -39,13 +43,20 @@
             @endunless
 
             <div>
-                <label class="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-slate-700 ring-1 ring-slate-200 transition ring-inset hover:bg-slate-50 has-focus-visible:outline-2 has-focus-visible:outline-primary-400 dark:text-slate-200 dark:ring-navy-700 dark:hover:bg-navy-800">
-                    <i class="bi bi-upload" aria-hidden="true"></i>
-                    {{ $gambar || $ttd?->file_ttd ? 'Ganti Gambar' : 'Unggah Gambar' }}
-                    <input type="file" wire:model="gambar" accept="image/png,image/jpeg" class="sr-only" aria-label="Pilih gambar tanda tangan">
-                </label>
+                <div class="flex flex-wrap items-center gap-2">
+                    @if ($menggambar)
+                        <x-ui.button variant="outline" icon="upload" wire:click="gantiCara(false)">Unggah Gambar Saja</x-ui.button>
+                    @else
+                        <label class="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-slate-700 ring-1 ring-slate-200 transition ring-inset hover:bg-slate-50 has-focus-visible:outline-2 has-focus-visible:outline-primary-400 dark:text-slate-200 dark:ring-navy-700 dark:hover:bg-navy-800">
+                            <i class="bi bi-upload" aria-hidden="true"></i>
+                            {{ $gambar || $ttd?->file_ttd ? 'Ganti Gambar' : 'Unggah Gambar' }}
+                            <input type="file" wire:model="gambar" accept="image/png,image/jpeg" class="sr-only" aria-label="Pilih gambar tanda tangan">
+                        </label>
+                        <x-ui.button variant="outline" icon="pencil" wire:click="gantiCara(true)">Gambar Langsung</x-ui.button>
+                    @endif
+                </div>
                 <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
-                    PNG berlatar transparan paling rapi; JPG berlatar putih juga bisa. Maks. 2MB. Tepi kosong dipangkas otomatis.
+                    {{ $menggambar ? 'Gambar tanda tangan di kotak di atas.' : 'PNG berlatar transparan paling rapi; JPG berlatar putih juga bisa. Maks. 2MB. Tepi kosong dipangkas otomatis.' }}
                 </p>
             </div>
 

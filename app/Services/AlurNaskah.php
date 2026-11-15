@@ -15,6 +15,8 @@ use App\Models\User;
 use App\Notifications\NaskahNotification;
 use App\Support\FormatDokumen;
 use App\Support\PesanNotifikasi;
+use App\Support\TandaTanganLangsung;
+use App\Support\TandaTanganPeneliti;
 use App\Support\TemplateNaskah;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
@@ -53,13 +55,14 @@ class AlurNaskah
         'setujui_rancangan' => ['dari' => T::ValidasiRancangan, 'ke' => T::Disetujui, 'label' => 'Setuju', 'ikon' => 'check2', 'varian' => 'success'],
         'tolak_rancangan' => ['dari' => T::ValidasiRancangan, 'ke' => T::Penelitian, 'label' => 'Kembalikan ke Penelitian (Peneliti)', 'ikon' => 'arrow-return-left', 'varian' => 'outline-danger', 'catatan' => true, 'mundur' => true],
         'ajukan_fasilitasi' => ['dari' => T::Disetujui, 'ke' => T::PersetujuanFasilitasi, 'label' => 'Ajukan fasilitasi', 'ikon' => 'send', 'varian' => 'primary'],
-        'setujui_fasilitasi' => ['dari' => T::PersetujuanFasilitasi, 'ke' => T::ValidasiFasilitasi, 'label' => 'Berkas fasilitasi lengkap', 'ikon' => 'check2', 'varian' => 'success'],
+        // ttd_peneliti: langkah terakhir Peneliti di fasilitasi, sekaligus menandatangani matriks.
+        'setujui_fasilitasi' => ['dari' => T::PersetujuanFasilitasi, 'ke' => T::ValidasiFasilitasi, 'label' => 'Berkas fasilitasi lengkap', 'ikon' => 'check2', 'varian' => 'success', 'ttd_peneliti' => true],
         'tolak_fasilitasi' => ['dari' => T::PersetujuanFasilitasi, 'ke' => T::Disetujui, 'label' => 'Kembalikan berkas fasilitasi ke PD', 'ikon' => 'arrow-return-left', 'varian' => 'outline-danger', 'catatan' => true, 'mundur' => true],
         'finalkan' => ['dari' => T::ValidasiFasilitasi, 'ke' => T::Final, 'label' => 'Setuju', 'ikon' => 'patch-check', 'varian' => 'success'],
         'tolak_validasi' => ['dari' => T::ValidasiFasilitasi, 'ke' => T::PerbaikanFasilitasi, 'label' => 'Kembalikan ke Perbaikan Fasilitasi (PD)', 'ikon' => 'arrow-return-left', 'varian' => 'outline-danger', 'catatan' => true, 'mundur' => true],
         'perbaikan_ke_peneliti' => ['dari' => T::PerbaikanFasilitasi, 'ke' => T::CekPeneliti, 'label' => 'Kirim ke Peneliti', 'ikon' => 'send', 'varian' => 'primary'],
         'cek_ke_pd' => ['dari' => T::CekPeneliti, 'ke' => T::PerbaikanFasilitasi, 'label' => 'Kirim ke PD', 'ikon' => 'send', 'varian' => 'primary'],
-        'cek_ke_verifikator' => ['dari' => T::CekPeneliti, 'ke' => T::ValidasiFasilitasi, 'label' => 'Selesai, teruskan ke Verifikator', 'ikon' => 'check2-all', 'varian' => 'success'],
+        'cek_ke_verifikator' => ['dari' => T::CekPeneliti, 'ke' => T::ValidasiFasilitasi, 'label' => 'Selesai, teruskan ke Verifikator', 'ikon' => 'check2-all', 'varian' => 'success', 'ttd_peneliti' => true],
         // Buka kunci: isi naskah bisa diubah lagi. Tombolnya ada di halaman Nota Dinas & Tanda Tangan.
         'buka_kunci' => ['dari' => T::Final, 'ke' => T::ValidasiFasilitasi, 'label' => 'Kembalikan ke Validasi Fasilitasi', 'ikon' => 'unlock', 'varian' => 'outline-danger', 'catatan' => true, 'peran' => 'Verifikator', 'mundur' => true],
         'buka_kunci_ttd' => ['dari' => T::Penandatanganan, 'ke' => T::ValidasiFasilitasi, 'label' => 'Kembalikan ke Validasi Fasilitasi', 'ikon' => 'unlock', 'varian' => 'outline-danger', 'catatan' => true, 'peran' => 'Verifikator', 'mundur' => true],
@@ -156,6 +159,11 @@ class AlurNaskah
 
             $lama = User::find($naskah->peneliti_id);
             $naskah->peneliti_id = $baru->id;
+            // Tanda tangan matriks milik peneliti lama; peneliti baru menandatanganinya sendiri.
+            if ($naskah->ttd_peneliti) {
+                Storage::disk('local')->delete($naskah->ttd_peneliti);
+                $naskah->ttd_peneliti = null;
+            }
             $naskah->save();
 
             $this->catat($naskah, $user, 'ganti_peneliti', filled($catatan) ? $catatan : null, $lama?->nama_user, $baru->nama_user);
@@ -216,7 +224,11 @@ class AlurNaskah
     /**
      * Menerbitkan nota dinas. Nomor urutnya unik per tahun (dan per jenis bila polanya memakai {kode}).
      */
-    public function terbitkanNota(Naskah $naskah, User $user, ?string $nomorInputan, ?string $kepada, ?int $tandaTanganId): Naskah
+    /**
+     * $gambarLangsung: file PNG tanda tangan yang digambar penanda tangan saat ini juga (hanya untuk
+     * tanda tangannya sendiri); disimpan khusus untuk nota dinas ini.
+     */
+    public function terbitkanNota(Naskah $naskah, User $user, ?string $nomorInputan, ?string $kepada, ?int $tandaTanganId, ?string $gambarLangsung = null): Naskah
     {
         if (! ctype_digit((string) $nomorInputan) || strlen((string) $nomorInputan) > 3) {
             $this->gagal('nomorInputan', 'Nomor nota dinas berupa angka, paling banyak 3 digit.');
@@ -227,30 +239,49 @@ class AlurNaskah
         if (! $tandaTanganId || ! TandaTangan::where('status', 'Aktif')->whereKey($tandaTanganId)->exists()) {
             $this->gagal('tandaTanganId', 'Pilih tanda tangan.');
         }
+        // Menggambar tanda tangan hanya untuk tanda tangan sendiri, bukan atas nama orang lain.
+        if ($gambarLangsung && TandaTangan::whereKey($tandaTanganId)->value('user_id') !== $user->id) {
+            $this->gagal('ttd', 'Tanda tangan langsung hanya untuk tanda tangan Anda sendiri.');
+        }
 
-        $naskah = Cache::lock('nomor-nota-dinas', 15)->block(10, fn () => DB::transaction(function () use ($naskah, $user, $nomorInputan, $kepada, $tandaTanganId) {
-            $naskah = $this->kunciUntukAksi($naskah, $user, 'terbitkan_nota');
-            $tahun = now()->year;
-            $pola = FormatDokumen::nota()['nomor'];
-            // Pola dengan {kode} (NDPB/NDSK) memisahkan urutan per jenis; tanpa itu satu urutan untuk semua.
-            $perJenis = str_contains($pola, '{kode}');
+        $fileLangsung = $gambarLangsung ? TandaTangan::FOLDER . '/nota_' . Str::random(32) . '.png' : null;
+        if ($fileLangsung) {
+            Storage::disk('local')->put($fileLangsung, TandaTanganPeneliti::png($gambarLangsung));
+        }
 
-            if ($this->nomorNotaDipakai((int) $nomorInputan, $naskah->jenis, $tahun, $perJenis)) {
-                $this->gagal('nomorInputan', $perJenis
-                    ? "Nomor {$nomorInputan} sudah digunakan untuk {$naskah->jenis} tahun {$tahun}."
-                    : "Nomor {$nomorInputan} sudah digunakan pada nota dinas tahun {$tahun}.");
+        try {
+            $naskah = Cache::lock('nomor-nota-dinas', 15)->block(10, fn () => DB::transaction(function () use ($naskah, $user, $nomorInputan, $kepada, $tandaTanganId, $fileLangsung) {
+                $naskah = $this->kunciUntukAksi($naskah, $user, 'terbitkan_nota');
+                $tahun = now()->year;
+                $pola = FormatDokumen::nota()['nomor'];
+                // Pola dengan {kode} (NDPB/NDSK) memisahkan urutan per jenis; tanpa itu satu urutan untuk semua.
+                $perJenis = str_contains($pola, '{kode}');
+
+                if ($this->nomorNotaDipakai((int) $nomorInputan, $naskah->jenis, $tahun, $perJenis)) {
+                    $this->gagal('nomorInputan', $perJenis
+                        ? "Nomor {$nomorInputan} sudah digunakan untuk {$naskah->jenis} tahun {$tahun}."
+                        : "Nomor {$nomorInputan} sudah digunakan pada nota dinas tahun {$tahun}.");
+                }
+
+                $naskah->notaDinas()->create([
+                    'nomor_inputan' => $nomorInputan,
+                    'nomor_nota' => FormatDokumen::nomorNota($pola, $nomorInputan, $naskah->jenis, $tahun),
+                    'tanggal_nota' => now(),
+                    'kepada' => $kepada,
+                    'tanda_tangan_id' => $tandaTanganId,
+                    'file_ttd' => $fileLangsung,
+                ]);
+
+                return $this->pindah($naskah, $user, T::Penandatanganan);
+            }));
+        } catch (\Throwable $e) {
+            // Nota dinas tidak jadi terbit: gambar langsungnya tidak dipakai siapa pun.
+            if ($fileLangsung) {
+                Storage::disk('local')->delete($fileLangsung);
             }
 
-            $naskah->notaDinas()->create([
-                'nomor_inputan' => $nomorInputan,
-                'nomor_nota' => FormatDokumen::nomorNota($pola, $nomorInputan, $naskah->jenis, $tahun),
-                'tanggal_nota' => now(),
-                'kepada' => $kepada,
-                'tanda_tangan_id' => $tandaTanganId,
-            ]);
-
-            return $this->pindah($naskah, $user, T::Penandatanganan);
-        }));
+            throw $e;
+        }
 
         // Dibekukan di luar kunci nomor supaya penerbit lain tidak ikut menunggu pembuatan PDF.
         // Bila gagal, nota dinas tetap terbit dan unduhannya dibuat langsung dari pengaturan.
@@ -297,6 +328,8 @@ class AlurNaskah
             if ($ttdBaru && $ttdBaru->id !== $nota->tanda_tangan_id) {
                 $perubahan[] = 'penandatangan: ' . ($nota->tandaTangan->nama_ttd ?? '-') . ' → ' . $ttdBaru->nama_ttd;
                 $nota->tanda_tangan_id = $ttdBaru->id;
+                // Tanda tangan yang digambar langsung milik penanda tangan lama; yang baru memakai gambar tersimpannya.
+                $nota->file_ttd = null;
             }
             if (filled($kepada) && trim($kepada) !== $nota->kepada) {
                 $perubahan[] = "kepada: {$nota->kepada} → " . trim($kepada);
@@ -616,54 +649,78 @@ class AlurNaskah
     }
 
     /** Memindahkan naskah ke tahap berikutnya dan menyimpan versi. */
-    public function jalankan(Naskah $naskah, User $user, string $kunci, ?string $catatan = null, ?int $penelitiId = null): Naskah
+    /**
+     * $ttdPeneliti: file PNG tanda tangan peneliti untuk matriks (tersimpan atau digambar langsung),
+     * hanya untuk aksi bertanda ttd_peneliti. Tanpa itu matriks memakai tanda tangan di Profilnya.
+     */
+    public function jalankan(Naskah $naskah, User $user, string $kunci, ?string $catatan = null, ?int $penelitiId = null, ?string $ttdPeneliti = null): Naskah
     {
         $aksi = self::AKSI[$kunci] ?? abort(404);
         abort_if(isset($aksi['form']), 400, 'Aksi ini memiliki isian sendiri.');
 
         $asal = $naskah;
+        $fileTtd = $ttdPeneliti && ! empty($aksi['ttd_peneliti']) ? TandaTanganLangsung::simpanUntukNaskah($ttdPeneliti) : null;
+        $ttdLama = null;
 
-        DB::transaction(function () use (&$naskah, $user, $kunci, $aksi, $catatan, $penelitiId) {
-            // Tahap dibaca ulang di dalam kunci: klik ganda atau tab lama tidak bisa memindahkan dua kali.
-            $naskah = $this->kunciUntukAksi($naskah, $user, $kunci);
+        try {
+            DB::transaction(function () use (&$naskah, &$ttdLama, $user, $kunci, $aksi, $catatan, $penelitiId, $fileTtd) {
+                // Tahap dibaca ulang di dalam kunci: klik ganda atau tab lama tidak bisa memindahkan dua kali.
+                $naskah = $this->kunciUntukAksi($naskah, $user, $kunci);
 
-            if (in_array($kunci, $this->aksiTersembunyi($naskah), true)) {
-                $this->gagal('aksi', 'Status baris sudah berubah. Muat ulang halaman.');
-            }
-            if ($hambatan = $this->hambatan($naskah, $kunci)) {
-                $this->gagal('aksi', $hambatan);
-            }
-            if (! empty($aksi['catatan']) && blank($catatan)) {
-                $this->gagal('catatan', 'Alasan wajib diisi.');
-            }
-            if (! empty($aksi['peneliti'])) {
-                if (! $penelitiId || ! User::role('Peneliti')->whereKey($penelitiId)->exists()) {
-                    $this->gagal('penelitiId', 'Pilih peneliti terlebih dahulu.');
+                if (in_array($kunci, $this->aksiTersembunyi($naskah), true)) {
+                    $this->gagal('aksi', 'Status baris sudah berubah. Muat ulang halaman.');
                 }
-                $naskah->peneliti_id = $penelitiId;
+                if ($hambatan = $this->hambatan($naskah, $kunci)) {
+                    $this->gagal('aksi', $hambatan);
+                }
+                if (! empty($aksi['catatan']) && blank($catatan)) {
+                    $this->gagal('catatan', 'Alasan wajib diisi.');
+                }
+                if (! empty($aksi['peneliti'])) {
+                    if (! $penelitiId || ! User::role('Peneliti')->whereKey($penelitiId)->exists()) {
+                        $this->gagal('penelitiId', 'Pilih peneliti terlebih dahulu.');
+                    }
+                    $naskah->peneliti_id = $penelitiId;
+                }
+
+                $naskah->diajukan_at ??= $kunci === 'ajukan' ? now() : null;
+
+                // Nomor rancangan diberikan saat pertama kali diajukan; diajukan ulang tetap memakai nomor yang sama.
+                if ($kunci === 'ajukan') {
+                    $naskah->beriNomor();
+                }
+
+                // Saat dibuka kembali, tanda tangan harus diulang karena isinya berubah.
+                // Nota dinas yang sudah terbit tetap dipakai, jadi tidak perlu diterbitkan lagi.
+                $ke = $aksi['ke'];
+
+                if ($kunci === 'finalkan') {
+                    $naskah->terkunci_at = now();
+                    $ke = $naskah->notaDinas()->exists() ? T::Penandatanganan : T::Final;
+                } elseif (str_starts_with($kunci, 'buka_kunci')) {
+                    $naskah->terkunci_at = null;
+                    $naskah->tahapan_ttd = null;
+                }
+
+                if ($fileTtd) {
+                    $ttdLama = $naskah->ttd_peneliti;
+                    $naskah->ttd_peneliti = $fileTtd;
+                }
+
+                $naskah = $this->pindah($naskah, $user, $ke, $catatan);
+            });
+        } catch (\Throwable $e) {
+            if ($fileTtd) {
+                Storage::disk('local')->delete($fileTtd);
             }
 
-            $naskah->diajukan_at ??= $kunci === 'ajukan' ? now() : null;
+            throw $e;
+        }
 
-            // Nomor rancangan diberikan saat pertama kali diajukan; diajukan ulang tetap memakai nomor yang sama.
-            if ($kunci === 'ajukan') {
-                $naskah->beriNomor();
-            }
-
-            // Saat dibuka kembali, tanda tangan harus diulang karena isinya berubah.
-            // Nota dinas yang sudah terbit tetap dipakai, jadi tidak perlu diterbitkan lagi.
-            $ke = $aksi['ke'];
-
-            if ($kunci === 'finalkan') {
-                $naskah->terkunci_at = now();
-                $ke = $naskah->notaDinas()->exists() ? T::Penandatanganan : T::Final;
-            } elseif (str_starts_with($kunci, 'buka_kunci')) {
-                $naskah->terkunci_at = null;
-                $naskah->tahapan_ttd = null;
-            }
-
-            $naskah = $this->pindah($naskah, $user, $ke, $catatan);
-        });
+        // Diperiksa ulang: tanda tangan matriks diganti yang terbaru.
+        if ($ttdLama) {
+            Storage::disk('local')->delete($ttdLama);
+        }
 
         // Objek milik pemanggil (misalnya komponen Livewire) ikut tahu nomor yang baru diberikan.
         if ($asal !== $naskah && $asal->nomor === null && $naskah->nomor !== null) {

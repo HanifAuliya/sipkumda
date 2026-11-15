@@ -688,6 +688,15 @@
             $isian = 'w-full rounded-lg border-0 text-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-primary-300 dark:bg-navy-800 dark:ring-navy-700';
         @endphp
 
+        @if (! empty($aksiModal['ttd_peneliti']))
+            {{-- Langkah terakhir Peneliti di fasilitasi: menandatangani matriks. --}}
+            <div class="mb-4">
+                <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">Tanda Tangan Matriks <span class="text-rose-500">*</span></p>
+                <p class="mb-3 text-sm text-slate-500 dark:text-slate-400">Dicetak di matriks di atas nama dan NIP Anda setelah nota dinas terbit.</p>
+                <x-ttd.pilih sumber="sumberTtd" langsung="ttdLangsung" simpan="simpanTtd" error="ttd" :src="auth()->user()->ttdUrl()" />
+            </div>
+        @endif
+
         <x-form.field :label="! empty($aksiModal['catatan']) ? 'Alasan' : 'Catatan (opsional)'" for="catatan" error="catatan" :required="! empty($aksiModal['catatan'])" class="mt-3">
             <textarea id="catatan" wire:model="catatan" rows="3" class="{{ $isian }}"></textarea>
         </x-form.field>

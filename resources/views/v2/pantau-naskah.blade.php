@@ -160,14 +160,35 @@
                             <input id="kepada" type="text" maxlength="255" wire:model="kepada" class="{{ $isian }}">
                         </x-form.field>
 
-                        <x-form.field label="Tanda tangan" for="tandaTanganId" error="tandaTanganId" required hint="Nomor dan tanda tangan ini otomatis masuk ke matriks.">
-                            <x-form.select id="tandaTanganId" wire:model="tandaTanganId">
-                                <option value="">Pilih tanda tangan</option>
-                                @foreach ($daftarTtd as $ttd)
-                                    <option value="{{ $ttd->id }}">{{ $ttd->nama_ttd }} ({{ $ttd->jabatan }})</option>
-                                @endforeach
-                            </x-form.select>
-                        </x-form.field>
+                        @if ($ttdSaya)
+                            {{-- Kepala Bagian Hukum yang menerbitkan sendiri: pakai tanda tangan tersimpan atau tanda tangan sekarang. --}}
+                            <div>
+                                <p class="mb-1.5 text-sm font-semibold text-slate-700 dark:text-slate-200">Tanda tangan <span class="text-rose-500">*</span></p>
+                                <x-ttd.pilih sumber="sumberTtd" langsung="ttdLangsung" simpan="simpanTtd" error="ttd"
+                                    keterangan-tersimpan="Pilih penanda tangan; tanda tangan Anda terpilih lebih dulu.">
+                                    <x-form.field label="Penanda tangan" for="tandaTanganId" error="tandaTanganId">
+                                        <x-form.select id="tandaTanganId" wire:model="tandaTanganId">
+                                            <option value="">Pilih tanda tangan</option>
+                                            @foreach ($daftarTtd as $ttd)
+                                                <option value="{{ $ttd->id }}">{{ $ttd->nama_ttd }} ({{ $ttd->jabatan }})</option>
+                                            @endforeach
+                                        </x-form.select>
+                                    </x-form.field>
+                                </x-ttd.pilih>
+                                <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                                    Tanda tangan sekarang dicetak atas nama <strong>{{ $ttdSaya->nama_ttd }}</strong> · NIP {{ $ttdSaya->nip_ttd }}. Nomor dan tanda tangan ini otomatis masuk ke matriks.
+                                </p>
+                            </div>
+                        @else
+                            <x-form.field label="Tanda tangan" for="tandaTanganId" error="tandaTanganId" required hint="Nomor dan tanda tangan ini otomatis masuk ke matriks.">
+                                <x-form.select id="tandaTanganId" wire:model="tandaTanganId">
+                                    <option value="">Pilih tanda tangan</option>
+                                    @foreach ($daftarTtd as $ttd)
+                                        <option value="{{ $ttd->id }}">{{ $ttd->nama_ttd }} ({{ $ttd->jabatan }})</option>
+                                    @endforeach
+                                </x-form.select>
+                            </x-form.field>
+                        @endif
 
                         @error('aksi')
                             <x-ui.alert type="danger">{{ $message }}</x-ui.alert>

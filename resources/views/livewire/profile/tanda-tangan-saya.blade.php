@@ -1,7 +1,11 @@
 <x-ui.card title="Tanda Tangan"
     description="Dipakai di matriks naskah yang Anda teliti, di atas nama dan NIP Anda. Muncul setelah nota dinas diterbitkan. Admin juga bisa membantu mengunggahnya.">
-    <x-ttd.pratinjau :src="$gambar ? $gambar->temporaryUrl() : $user->ttdUrl()" :alt="$gambar ? 'Pratinjau tanda tangan' : 'Tanda tangan ' . $user->nama_user"
-        memuat="gambar, simpan, hapus" />
+    @if ($menggambar)
+        <x-ttd.pad model="ttdLangsung" />
+    @else
+        <x-ttd.pratinjau :src="$gambar ? $gambar->temporaryUrl() : $user->ttdUrl()" :alt="$gambar ? 'Pratinjau tanda tangan' : 'Tanda tangan ' . $user->nama_user"
+            memuat="gambar, simpan, hapus" />
+    @endif
 
     @error('gambar')
         <p class="mt-2 flex items-center gap-1.5 text-sm font-medium text-rose-600 dark:text-rose-300">
@@ -9,7 +13,7 @@
         </p>
     @enderror
 
-    @if ($gambar)
+    @if ($gambar || $menggambar)
         <x-form.field label="Kata Sandi Saat Ini" for="sandiTtd" error="sandiSekarang" required class="mt-4 max-w-sm"
             hint="Tanda tangan ini tercetak di matriks resmi, jadi penggantiannya perlu kata sandi.">
             <x-form.password id="sandiTtd" name="sandiSekarang" wire:model="sandiSekarang" autocomplete="current-password"
@@ -18,7 +22,7 @@
         <div class="mt-4 flex flex-wrap items-center gap-2">
             <x-ui.button variant="success" icon="check2" wire:click="simpan" loading="simpan">Simpan Tanda Tangan</x-ui.button>
             <x-ui.button variant="outline" wire:click="batal">Batal</x-ui.button>
-            <span class="text-sm text-slate-500 dark:text-slate-400">Pratinjau, belum tersimpan.</span>
+            <span class="text-sm text-slate-500 dark:text-slate-400">{{ $menggambar ? 'Belum tersimpan.' : 'Pratinjau, belum tersimpan.' }}</span>
         </div>
     @else
         <div class="mt-4 flex flex-wrap items-center gap-2">
@@ -27,6 +31,7 @@
                 {{ $user->file_ttd ? 'Ganti Gambar' : 'Unggah Gambar' }}
                 <input type="file" wire:model="gambar" accept="image/png,image/jpeg" class="sr-only" aria-label="Pilih gambar tanda tangan">
             </label>
+            <x-ui.button variant="outline" icon="pencil" wire:click="mulaiGambar">Gambar Langsung</x-ui.button>
             @if ($user->file_ttd)
                 <x-ui.button variant="ghost" icon="trash"
                     x-on:click="$confirm({ text: 'Tanda tangan akan dihapus dari matriks yang dicetak berikutnya.', confirmText: 'Ya, hapus' }).then((ok) => ok && $wire.hapus())">Hapus</x-ui.button>

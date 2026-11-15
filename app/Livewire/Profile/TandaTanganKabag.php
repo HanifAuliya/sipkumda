@@ -3,6 +3,7 @@
 namespace App\Livewire\Profile;
 
 use App\Models\TandaTangan;
+use App\Support\TandaTanganLangsung;
 use App\Support\TandaTanganPeneliti;
 use Closure;
 use Illuminate\Support\Facades\Auth;
@@ -29,6 +30,10 @@ class TandaTanganKabag extends Component
     public string $jabatan = '';
 
     public $gambar;
+
+    /** Menggambar langsung di layar sebagai ganti mengunggah gambar. */
+    public bool $menggambar = false;
+    public string $ttdLangsung = '';
 
     /** Tercetak di nota dinas resmi, jadi perubahannya meminta kata sandi. */
     public string $sandiSekarang = '';
@@ -86,9 +91,16 @@ class TandaTanganKabag extends Component
         $this->ubah = true;
     }
 
+    public function gantiCara(bool $menggambar): void
+    {
+        $this->reset('gambar', 'ttdLangsung');
+        $this->resetValidation('gambar');
+        $this->menggambar = $menggambar;
+    }
+
     public function batal(): void
     {
-        $this->reset('gambar', 'sandiSekarang');
+        $this->reset('gambar', 'sandiSekarang', 'menggambar', 'ttdLangsung');
         $this->resetValidation();
         $this->isiDariData();
         $this->ubah = ! $this->milikSaya();
@@ -103,30 +115,40 @@ class TandaTanganKabag extends Component
             'nama' => ['required', 'string', 'max:100'],
             'nip' => ['required', 'string', 'max:50', Rule::unique('tanda_tangan', 'nip_ttd')->ignore($ttd?->id)],
             'jabatan' => ['required', 'string', 'max:100'],
-            'gambar' => $this->aturanGambar(! $ttd?->file_ttd),
+            'gambar' => $this->aturanGambar(! $ttd?->file_ttd && ! $this->menggambar),
             'sandiSekarang' => ['required', 'current_password'],
         ], [
             'nip.unique' => 'NIP ini sudah dipakai data tanda tangan lain. Minta Admin menghubungkannya ke akun Anda di Kelola TTD.',
         ]);
 
         $ttd ??= new TandaTangan(['user_id' => Auth::id(), 'dibuat_oleh' => Auth::id(), 'status' => 'Aktif']);
+        // Gambar langsung boleh dilewati bila sudah ada tanda tangan dan hanya data teksnya yang diubah.
+        $sementara = $this->menggambar && ($this->ttdLangsung !== '' || ! $ttd?->file_ttd)
+            ? TandaTanganLangsung::fileSementara($this->ttdLangsung, 'gambar')
+            : null;
+        $sumber = $sementara ?? $this->gambar?->getRealPath();
+
         $ttd->fill(['nama_ttd' => trim($this->nama), 'nip_ttd' => trim($this->nip), 'jabatan' => trim($this->jabatan)]);
 
         // gantiGambar ikut menyimpan baris, jadi data baru tersimpan bersama gambarnya.
-        if ($this->gambar) {
-            try {
-                $ttd->gantiGambar($this->gambar->getRealPath());
-            } catch (Throwable $e) {
-                report($e);
-                $this->reset('gambar');
-
-                throw ValidationException::withMessages(['gambar' => 'Gambar tidak bisa dibaca. Coba pilih gambar lain.']);
+        try {
+            if ($sumber) {
+                $ttd->gantiGambar($sumber);
+            } else {
+                $ttd->save();
             }
-        } else {
-            $ttd->save();
+        } catch (Throwable $e) {
+            report($e);
+            $this->reset('gambar');
+
+            throw ValidationException::withMessages(['gambar' => 'Gambar tidak bisa dibaca. Coba pilih gambar lain.']);
+        } finally {
+            if ($sementara) {
+                @unlink($sementara);
+            }
         }
 
-        $this->reset('gambar', 'sandiSekarang');
+        $this->reset('gambar', 'sandiSekarang', 'menggambar', 'ttdLangsung');
         $this->ubah = false;
         $this->dispatch('swal:toast', ['type' => 'success', 'message' => 'Tanda tangan tersimpan.']);
     }

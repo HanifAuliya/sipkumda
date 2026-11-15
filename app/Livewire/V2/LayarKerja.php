@@ -11,12 +11,15 @@ use App\Services\AlurNaskah;
 use App\Support\BandingNaskah;
 use App\Support\BlokNaskah;
 use App\Support\PemeriksaPenomoran;
+use App\Support\TandaTanganLangsung;
+use App\Support\TandaTanganPeneliti;
 use App\Support\TataLetakNaskah;
 use App\Support\TemplateNaskah;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
@@ -59,6 +62,11 @@ class LayarKerja extends Component
     public ?string $aksiTerpilih = null;
     public string $catatan = '';
     public ?int $penelitiId = null;
+
+    /** Tanda tangan matriks pada langkah terakhir Peneliti di fasilitasi: 'tersimpan' | 'langsung'. */
+    public string $sumberTtd = 'tersimpan';
+    public string $ttdLangsung = '';
+    public bool $simpanTtd = false;
 
     /** Isian nota dinas. */
 
@@ -190,6 +198,7 @@ class LayarKerja extends Component
 
         $this->resetIsianAksi();
         $this->aksiTerpilih = $aksi;
+        $this->sumberTtd = auth()->user()->file_ttd ? 'tersimpan' : 'langsung';
         $this->resetValidation();
         $this->dispatch('openModal', 'modalAksi');
     }
@@ -202,10 +211,32 @@ class LayarKerja extends Component
         // Galat dari percobaan sebelumnya jangan tertinggal saat pengguna sudah memperbaiki isiannya.
         $this->resetValidation();
 
-        $this->naskah = match ($this->aksiTerpilih) {
-            'ganti_peneliti' => $alur->gantiPeneliti($this->naskah, $user, $this->penelitiId, $this->catatan ?: null),
-            default => $alur->jalankan($this->naskah, $user, $this->aksiTerpilih, $this->catatan ?: null, $this->penelitiId),
-        };
+        // Langkah terakhir Peneliti di fasilitasi sekaligus menandatangani matriks.
+        $denganTtd = ! empty($alur->aksiTersedia($this->naskah->fresh(), $user)[$this->aksiTerpilih]['ttd_peneliti']);
+        $ttd = null;
+        $sementara = null;
+
+        if ($denganTtd && $this->sumberTtd === 'langsung') {
+            $ttd = $sementara = TandaTanganLangsung::fileSementara($this->ttdLangsung, 'ttd');
+        } elseif ($denganTtd) {
+            $ttd = TandaTanganPeneliti::path($user)
+                ?? throw ValidationException::withMessages(['ttd' => 'Belum ada tanda tangan tersimpan. Pilih Tanda tangan sekarang, atau unggah dulu di Profil.']);
+        }
+
+        try {
+            $this->naskah = match ($this->aksiTerpilih) {
+                'ganti_peneliti' => $alur->gantiPeneliti($this->naskah, $user, $this->penelitiId, $this->catatan ?: null),
+                default => $alur->jalankan($this->naskah, $user, $this->aksiTerpilih, $this->catatan ?: null, $this->penelitiId, $ttd),
+            };
+
+            if ($sementara && $this->simpanTtd) {
+                TandaTanganPeneliti::simpan($user, $sementara);
+            }
+        } finally {
+            if ($sementara) {
+                @unlink($sementara);
+            }
+        }
 
         $this->resetIsianAksi();
         $this->reset('filter');
@@ -214,7 +245,7 @@ class LayarKerja extends Component
 
     private function resetIsianAksi(): void
     {
-        $this->reset('aksiTerpilih', 'catatan', 'penelitiId');
+        $this->reset('aksiTerpilih', 'catatan', 'penelitiId', 'sumberTtd', 'ttdLangsung', 'simpanTtd');
     }
 
     public function buangDraf(AlurNaskah $alur)

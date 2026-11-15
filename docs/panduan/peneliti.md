@@ -51,12 +51,21 @@ perubahan (merah dihapus, hijau ditambah).
 - **Pengecekan Fasilitasi**: setelah PD memperbaiki permintaan Verifikator, periksa lagi lalu
   **Selesai, teruskan ke Verifikator**, atau **Kirim ke PD** bila masih perlu perbaikan.
 
+**Tanda tangan matriks.** Saat menekan **Berkas fasilitasi lengkap** atau **Selesai, teruskan ke
+Verifikator**, jendela konfirmasinya memuat bagian **Tanda Tangan Matriks**:
+
+- **Pakai tanda tangan tersimpan**: tanda tangan Anda di Profil.
+- **Tanda tangan sekarang**: gambar langsung di kotak (mouse, jari, atau stylus), khusus untuk naskah ini.
+  Centang **Simpan juga sebagai tanda tangan saya** bila ingin memakainya lagi.
+
+Tanda tangan ini dicetak di matriks setelah nota dinas terbit. Bila naskah dikembalikan dan Anda memeriksa
+ulang, tanda tangan yang baru menggantikan yang lama.
+
 ## 3. Tanda tangan Anda
 
-Tanda tangan Anda dicetak di matriks naskah yang Anda teliti, di atas nama dan NIP Anda, setelah nota
-dinas diterbitkan. Unggah sekali lewat menu akun di kanan atas › **Profil** › kartu **Tanda Tangan**:
-pilih gambar (PNG transparan paling rapi; JPG berlatar putih juga bisa), masukkan kata sandi, lalu
-**Simpan Tanda Tangan**. Bila perlu bantuan, Admin bisa mengunggahkannya di menu **Kelola TTD**.
+Tanda tangan tersimpan dipakai saat Anda memilih **Pakai tanda tangan tersimpan** di atas. Atur lewat menu
+akun di kanan atas › **Profil** › kartu **Tanda Tangan**: **Unggah Gambar** (PNG transparan paling rapi;
+JPG berlatar putih juga bisa) atau **Gambar Langsung**, masukkan kata sandi, lalu **Simpan Tanda Tangan**. Bila perlu bantuan, Admin bisa mengunggahkannya di menu **Kelola TTD**.
 
 ## Pertanyaan umum
 

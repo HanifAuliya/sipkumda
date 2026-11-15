@@ -49,8 +49,16 @@ mengerjakannya.
 
 1. Buka naskah dari **Daftar Nota Dinas** (tombol **Terbitkan Nota Dinas**).
 2. Isi **nomor urut** saja; bagian lain nomor mengikuti pola di Format Dokumen. **Kepada** terisi dari
-   Perangkat Daerah pengaju dan bisa diubah. Pilih **Tanda tangan**.
-3. **Terbitkan Nota Dinas**. Naskah masuk tahap Penandatanganan.
+   Perangkat Daerah pengaju dan bisa diubah.
+3. Pilih tanda tangan:
+   - **Pakai tanda tangan tersimpan**: tanda tangan Anda di Profil sudah terpilih; bisa juga diganti
+     penanda tangan lain (mis. Plt).
+   - **Tanda tangan sekarang**: gambar tanda tangan langsung di kotak (mouse, jari, atau stylus), khusus
+     untuk nota dinas ini. Centang **Simpan juga sebagai tanda tangan saya** bila ingin memakainya lagi.
+4. **Terbitkan Nota Dinas**. Naskah masuk tahap Penandatanganan.
+
+![Tanda tangan sekarang: digambar langsung saat menerbitkan](../../public/img/panduan/verifikator-ttd-langsung.jpg)
+*Tanda tangan sekarang: digambar langsung saat menerbitkan*
 
 ![Menerbitkan nota dinas: cukup isi nomor urut, Kepada, dan tanda tangan](../../public/img/panduan/verifikator-nota-dinas.jpg)
 *Menerbitkan nota dinas: cukup isi nomor urut, Kepada, dan tanda tangan*
@@ -118,8 +126,9 @@ Isi tiap tab:
 Tanda tangan Kepala Bagian Hukum dicetak di **nota dinas** dan di kolom **Kepala Bagian Hukum** pada
 matriks. Anda mengaturnya sendiri: menu akun di kanan atas › **Profil** › kartu **Tanda Tangan**.
 
-1. Tekan **Unggah Gambar** (atau **Ubah Tanda Tangan** bila sudah ada). PNG berlatar transparan paling
-   rapi; JPG berlatar putih juga bisa. Tepi kosong dipangkas otomatis.
+1. Tekan **Unggah Gambar**, atau **Gambar Langsung** untuk menggambarnya di layar (bila sudah ada, tekan
+   **Ubah Tanda Tangan** dulu). PNG berlatar transparan paling rapi; JPG berlatar putih juga bisa. Tepi
+   kosong dipangkas otomatis.
 2. Periksa **Nama Lengkap** (seperti tercetak, lengkap dengan gelar), **Pangkat/Golongan**, dan **NIP**.
    Saat pertama kali, nama dan NIP diisi dari akun Anda.
 3. Masukkan **kata sandi** Anda, lalu **Simpan Tanda Tangan**.

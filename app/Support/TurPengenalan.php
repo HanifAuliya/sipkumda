@@ -70,8 +70,8 @@ class TurPengenalan
     private static function isiAkun(User $user): string
     {
         return match (true) {
-            $user->hasRole('Verifikator') => 'Profil, foto, ganti kata sandi, dan keluar. Sebagai Kepala Bagian Hukum, unggah tanda tangan Anda di Profil: dicetak di nota dinas dan matriks.',
-            $user->hasRole('Peneliti') => 'Profil, foto, ganti kata sandi, dan keluar. Unggah tanda tangan Anda di Profil: dicetak di matriks naskah yang Anda teliti.',
+            $user->hasRole('Verifikator') => 'Profil, foto, ganti kata sandi, dan keluar. Sebagai Kepala Bagian Hukum, unggah atau gambar langsung tanda tangan Anda di Profil: dicetak di nota dinas dan matriks.',
+            $user->hasRole('Peneliti') => 'Profil, foto, ganti kata sandi, dan keluar. Unggah atau gambar langsung tanda tangan Anda di Profil: dicetak di matriks naskah yang Anda teliti.',
             default => 'Profil, foto, ganti kata sandi, dan keluar.',
         };
     }
@@ -88,15 +88,15 @@ class TurPengenalan
             ],
             'Peneliti' => [
                 ['menu-penelitian-rancangan', 'Penelitian Rancangan', 'Rancangan yang ditugaskan kepada Anda. Periksa tiap baris: tetapkan, perbaiki, atau minta Perangkat Daerah menyesuaikan.'],
-                ['menu-persetujuan-fasilitasi', 'Persetujuan Fasilitasi', 'Berkas fasilitasi yang perlu Anda periksa kelengkapannya.'],
-                ['menu-pengecekan-fasilitasi', 'Pengecekan Fasilitasi', 'Perbaikan fasilitasi dari Perangkat Daerah yang perlu Anda cek.'],
+                ['menu-persetujuan-fasilitasi', 'Persetujuan Fasilitasi', 'Berkas fasilitasi yang perlu Anda periksa kelengkapannya. Saat menyatakan lengkap, Anda sekaligus menandatangani matriks: pakai tanda tangan tersimpan atau tanda tangan sekarang di layar.'],
+                ['menu-pengecekan-fasilitasi', 'Pengecekan Fasilitasi', 'Perbaikan fasilitasi dari Perangkat Daerah yang perlu Anda cek. Saat meneruskan ke Verifikator, tanda tangani matriks lagi.'],
                 ['menu-daftar-rancangan', 'Daftar Rancangan', 'Semua rancangan, untuk dicari atau dipantau.'],
             ],
             'Verifikator' => [
                 ['menu-pilih-peneliti', 'Pilih Peneliti', 'Rancangan yang berkasnya lengkap menunggu Anda menugaskan peneliti.'],
                 ['menu-validasi-rancangan', 'Validasi Rancangan', 'Hasil penelitian yang menunggu persetujuan Anda.'],
                 ['menu-validasi-fasilitasi', 'Validasi Fasilitasi', 'Naskah fasilitasi yang menunggu persetujuan akhir.'],
-                ['menu-daftar-nota-dinas', 'Menerbitkan Nota Dinas', 'Naskah yang fasilitasinya selesai menunggu nota dinas di tab Menunggu Terbit. Tekan Terbitkan Nota Dinas, isi nomor urut, periksa Kepada, dan pilih tanda tangan. Admin juga bisa menerbitkannya.'],
+                ['menu-daftar-nota-dinas', 'Menerbitkan Nota Dinas', 'Naskah yang fasilitasinya selesai menunggu nota dinas di tab Menunggu Terbit. Tekan Terbitkan Nota Dinas, isi nomor urut, periksa Kepada, lalu pakai tanda tangan tersimpan atau tanda tangan sekarang di layar. Admin juga bisa menerbitkannya.'],
                 ['menu-dokumentasi', 'Dokumentasi', 'Arsipkan naskah yang tanda tangannya lengkap lewat Arsipkan dari Sistem, atau tambahkan produk hukum lama.'],
                 ['menu-laporan-pemantauan', 'Laporan & Pemantauan', 'Rekap naskah, sebaran per Perangkat Daerah (siapa mengajukan apa dan sampai mana), aktivitas semua naskah, dan naskah yang tertahan. Bisa diunduh sebagai Excel.'],
             ],

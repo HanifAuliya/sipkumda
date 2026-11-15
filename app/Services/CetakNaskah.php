@@ -892,13 +892,17 @@ class CetakNaskah
         $nota = $naskah->tahap->terkunci() ? $naskah->notaDinas()->with('tandaTangan')->first() : null;
 
         // Tanda tangan peneliti mengikuti Kepala Bagian Hukum: baru dibubuhkan setelah nota dinas terbit.
+        // Yang dibubuhkan peneliti saat menyelesaikan fasilitasi didahulukan; naskah lama memakai yang di Profil.
         $peneliti = $naskah->peneliti;
+        $ttdNaskah = $naskah->ttd_peneliti && Storage::disk('local')->exists($naskah->ttd_peneliti)
+            ? Storage::disk('local')->path($naskah->ttd_peneliti)
+            : null;
 
         return Pdf::loadView('pdf.v2.matriks', [
             'naskah' => $naskah,
             'nota' => $nota,
             'peneliti' => $peneliti,
-            'ttdPeneliti' => $nota ? TandaTanganPeneliti::path($peneliti) : null,
+            'ttdPeneliti' => $nota ? ($ttdNaskah ?? TandaTanganPeneliti::path($peneliti)) : null,
             'isi' => $isi,
             'singkatan' => $naskah->jenis === 'Keputusan Bupati' ? 'Rancangan Keputusan' : 'Raperbup',
             'judul' => $naskah->jenis === 'Keputusan Bupati' ? 'KEPUTUSAN BUPATI' : 'PERATURAN BUPATI',

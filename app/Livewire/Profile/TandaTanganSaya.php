@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Profile;
 
+use App\Support\TandaTanganLangsung;
 use App\Support\TandaTanganPeneliti;
 use Closure;
 use Illuminate\Support\Facades\Auth;
@@ -16,6 +17,10 @@ class TandaTanganSaya extends Component
     use WithFileUploads;
 
     public $gambar;
+
+    /** Menggambar langsung di layar sebagai ganti mengunggah gambar. */
+    public bool $menggambar = false;
+    public string $ttdLangsung = '';
 
     /** Gambar ini tercetak di matriks resmi, jadi menggantinya meminta kata sandi. */
     public string $sandiSekarang = '';
@@ -50,27 +55,45 @@ class TandaTanganSaya extends Component
         }
     }
 
+    public function mulaiGambar(): void
+    {
+        $this->reset('gambar', 'ttdLangsung', 'sandiSekarang');
+        $this->resetValidation();
+        $this->menggambar = true;
+    }
+
     public function batal(): void
     {
-        $this->reset('gambar', 'sandiSekarang');
+        $this->reset('gambar', 'sandiSekarang', 'menggambar', 'ttdLangsung');
         $this->resetValidation();
     }
 
     public function simpan(): void
     {
         abort_unless(Auth::user()->hasRole('Peneliti'), 403);
-        $this->validate($this->aturan() + ['sandiSekarang' => ['required', 'current_password']]);
+
+        if ($this->menggambar) {
+            $this->validate(['sandiSekarang' => ['required', 'current_password']]);
+            $sumber = TandaTanganLangsung::fileSementara($this->ttdLangsung, 'gambar');
+        } else {
+            $this->validate($this->aturan() + ['sandiSekarang' => ['required', 'current_password']]);
+            $sumber = $this->gambar->getRealPath();
+        }
 
         try {
-            TandaTanganPeneliti::simpan(Auth::user(), $this->gambar->getRealPath());
+            TandaTanganPeneliti::simpan(Auth::user(), $sumber);
         } catch (Throwable $e) {
             report($e);
             $this->reset('gambar');
 
             throw ValidationException::withMessages(['gambar' => 'Gambar tidak bisa dibaca. Coba pilih gambar lain.']);
+        } finally {
+            if ($this->menggambar) {
+                @unlink($sumber);
+            }
         }
 
-        $this->reset('gambar', 'sandiSekarang');
+        $this->reset('gambar', 'sandiSekarang', 'menggambar', 'ttdLangsung');
         $this->dispatch('swal:toast', ['type' => 'success', 'message' => 'Tanda tangan tersimpan.']);
     }
 

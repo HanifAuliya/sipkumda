@@ -52,7 +52,8 @@ mengerjakannya. Keduanya menerima notifikasi saat ada naskah yang fasilitasinya 
    **Pengaturan › Format Dokumen**.
 3. Periksa **Kepada**. Isinya terisi dari Perangkat Daerah yang mengajukan dan bisa diubah bila tujuannya berbeda.
 4. Pilih **Tanda tangan** pejabat. Kepala Bagian Hukum (Verifikator) mengatur tanda tangannya sendiri di
-   Profil; Kabag lama atau Plt dicatat di **Kelola TTD**.
+   Profil; Kabag lama atau Plt dicatat di **Kelola TTD**. Bila Kepala Bagian Hukum menerbitkan sendiri, ia
+   juga bisa menggambar tanda tangannya langsung saat itu; Admin hanya memilih tanda tangan tersimpan.
 5. Tekan **Terbitkan Nota Dinas**. Nota dinas bisa diunduh, Perangkat Daerah mendapat kabar, dan
    naskah masuk tahap **Penandatanganan**.
 
