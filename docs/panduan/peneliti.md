@@ -53,8 +53,9 @@ perubahan (merah dihapus, hijau ditambah).
 
 ## 2. Fasilitasi
 
-- **Persetujuan Fasilitasi**: PD mengunggah **naskah hasil perbaikan**; tampil di atas matriks dengan tombol
-  **Lihat** dan **Unduh**. Periksa apakah semua hasil penelitian sudah diterapkan, lalu
+- **Persetujuan Fasilitasi**: **naskah hasil perbaikan** disusun otomatis dari matriks (PD tidak mengunggah
+  file); tampil di atas matriks dengan tombol **Lihat** dan **Word**. Periksa apakah semua hasil penelitian sudah
+  diterapkan, lalu
   **Berkas fasilitasi lengkap**, atau **Kembalikan berkas fasilitasi ke PD** dengan alasan.
 - **Pengecekan Fasilitasi**: setelah PD memperbaiki permintaan Verifikator, periksa lagi lalu
   **Selesai, teruskan ke Verifikator**, atau **Kirim ke PD** bila masih perlu perbaikan.

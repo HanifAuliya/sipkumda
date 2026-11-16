@@ -166,8 +166,6 @@ class DemoAlurSeeder extends Seeder
             },
             T::Disetujui->value => fn () => $alur->jalankan($naskah, $this->verifikator, 'setujui_rancangan'),
             T::PersetujuanFasilitasi->value => function () use ($alur, $naskah, $pd) {
-                // Naskah hasil perbaikan PD: Word naskah dari sistem yang sudah memuat hasil penelitian.
-                $alur->simpanNaskahFasilitasi($naskah, $pd, file_get_contents(app(\App\Services\CetakNaskah::class)->wordNaskah($naskah)), 'Naskah hasil perbaikan.docx');
                 $alur->jalankan($naskah, $pd, 'ajukan_fasilitasi');
             },
             T::ValidasiFasilitasi->value => fn () => $alur->jalankan($naskah, $this->peneliti, 'setujui_fasilitasi'),

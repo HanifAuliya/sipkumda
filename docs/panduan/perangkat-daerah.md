@@ -93,17 +93,15 @@ Bila Peneliti meminta perbaikan, naskah kembali menjadi giliran Anda dengan taha
 
 ## 4. Mengajukan fasilitasi
 
-Setelah rancangan disetujui Verifikator (tahap **Rancangan Disetujui**), revisi naskah Anda sesuai seluruh
-hasil penelitian, lalu ajukan fasilitasi untuk dicek Peneliti sebelum nota dinas terbit:
+Setelah rancangan disetujui Verifikator (tahap **Rancangan Disetujui**), ajukan fasilitasi untuk dicek
+Peneliti sebelum nota dinas terbit. Naskah hasil perbaikan **tidak perlu diunggah**: SIFKUMDA menyusunnya
+otomatis dari matriks, yang sudah memuat seluruh hasil penelitian.
 
-1. Buka naskah dan tekan **Ajukan fasilitasi**.
-2. Sebagai bahan, unduh **naskah hasil penelitian (Word)** dari tautan di jendela itu: isinya sudah memuat
-   semua rumusan penyempurnaan.
-3. Unggah **Naskah hasil perbaikan** (Word atau PDF), lalu **Lanjutkan**.
+1. Buka naskah dari menu **Fasilitasiku** dan tekan **Ajukan fasilitasi**.
+2. Tekan **Lihat naskah** untuk memeriksa naskah hasil perbaikan, lalu **Lanjutkan**.
 
-Bila Peneliti mengembalikannya karena belum sesuai, unggah naskah hasil perbaikan yang baru saat mengajukan
-lagi. Bila Verifikator mengembalikannya (**Perbaikan Fasilitasi**), sesuaikan rumusan seperti langkah 3,
-unggah naskah hasil perbaikan terbaru di tab **Berkas** bila perlu, lalu **Kirim ke Peneliti**.
+Bila Verifikator mengembalikannya (**Perbaikan Fasilitasi**), sesuaikan rumusan pada baris yang ditandai
+sama seperti pada Perbaikan PD, lalu **Kirim ke Peneliti**.
 
 ## 5. Sesudah fasilitasi
 

@@ -188,7 +188,7 @@
     <x-ui.modal id="modalEditDokumentasi" title="Ubah Dokumentasi" description="Perbarui nomor, berita daerah, atau file produk hukum."
         size="2xl" static on-close="resetForm">
         <form id="editDokumentasiForm" wire:submit="update" class="space-y-5">
-            @include('livewire.dokumentasi.partials.nomor-fields', ['tahunTetap' => null, 'beritaWajib' => ! $editKeputusan])
+            @include('livewire.dokumentasi.partials.nomor-fields', ['tahunTetap' => null, 'beritaWajib' => ! $editKeputusan, 'awalan' => 'ubah-'])
 
             <x-form.field label="Tanggal Penetapan" for="edit_tanggal_penetapan" error="tanggal_penetapan" required>
                 <x-form.input type="date" id="edit_tanggal_penetapan" wire:model="tanggal_penetapan" />

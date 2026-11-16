@@ -8,9 +8,7 @@ use App\Models\PerangkatDaerah;
 use App\Models\User;
 use App\Services\AlurNaskah;
 use Database\Seeders\RoleSeeder;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
 
 /*
@@ -87,33 +85,26 @@ it('berkas PDF bisa dilihat di halaman tanpa diunduh', function () {
     expect($this->actingAs($this->pd)->get(route('naskah.berkas', [$n, $berkas]))->headers->get('Content-Disposition'))->toContain('attachment');
 });
 
-it('Ajukan fasilitasi wajib mengunggah naskah hasil perbaikan, dan berkas baru setelah dikembalikan', function () {
+it('Ajukan fasilitasi tanpa unggahan: naskah hasil perbaikan disusun dari matriks', function () {
     $n = sampaiDisetujui($this, drafUji($this));
 
-    expect(fn () => $this->alur->jalankan($n, $this->pd, 'ajukan_fasilitasi'))->toThrow(ValidationException::class, 'Unggah naskah hasil perbaikan');
+    expect($this->alur->aksiTersedia($n->fresh(), $this->pd)['ajukan_fasilitasi']['hambatan'])->toBeNull();
 
     Livewire::actingAs($this->pd)->test(LayarKerja::class, ['naskah' => $n])
         ->call('pilihAksi', 'ajukan_fasilitasi')
-        ->assertSee('naskah hasil penelitian (Word)')
-        ->set('berkasFasilitasi', UploadedFile::fake()->create('naskah-revisi.docx', 20))
+        ->assertSee('tidak perlu mengunggah file')
+        ->assertSee('Lihat naskah')
         ->call('jalankanAksi')
         ->assertHasNoErrors();
 
     expect($n->fresh()->tahap->value)->toBe('persetujuan_fasilitasi')
-        ->and($n->berkas()->where('jenis', NaskahBerkas::NASKAH_FASILITASI)->value('nama_asli'))->toBe('naskah-revisi.docx');
+        ->and($n->berkas()->where('jenis', NaskahBerkas::NASKAH_FASILITASI)->exists())->toBeFalse();
 
-    // Peneliti melihat berkasnya di layar kerja.
+    // Peneliti memeriksa naskah dari sistem, yang bisa dipratinjau di browser.
     Livewire::actingAs($this->peneliti)->test(LayarKerja::class, ['naskah' => $n->fresh()])
-        ->assertSee('Naskah hasil perbaikan dari PD')->assertSee('naskah-revisi.docx');
-
-    // Dikembalikan: berkas lama dianggap belum sesuai, jadi harus unggah yang baru.
-    $this->alur->jalankan($n->fresh(), $this->peneliti, 'tolak_fasilitasi', 'Pasal 1 belum diubah');
-    $this->travel(1)->seconds();
-    expect($this->alur->berkasFasilitasiBerlaku($n->fresh()))->toBeNull();
-
-    $this->alur->simpanNaskahFasilitasi($n, $this->pd, 'isi baru', 'naskah-revisi-2.docx');
-    expect($this->alur->jalankan($n->fresh(), $this->pd, 'ajukan_fasilitasi')->tahap->value)->toBe('persetujuan_fasilitasi')
-        ->and($n->berkas()->where('jenis', NaskahBerkas::NASKAH_FASILITASI)->where('aktif', true)->count())->toBe(1);
+        ->assertSee('Naskah hasil perbaikan, dibuat dari isi matriks terbaru.');
+    expect($this->actingAs($this->peneliti)->get(route('naskah.cetak', [$n, 'naskah-pdf', 'lihat' => 1]))->headers->get('Content-Disposition'))->toStartWith('inline')
+        ->and($this->actingAs($this->peneliti)->get(route('naskah.cetak', [$n, 'naskah-pdf']))->headers->get('Content-Disposition'))->toStartWith('attachment');
 });
 
 it('arahan untuk PD tidak ikut tercetak setelah perbaikannya diterima', function () {
@@ -178,4 +169,18 @@ it('jendela Kirim ke PD menyebut baris yang ditandai', function () {
         ->call('pilihAksi', 'kirim_ke_pd')
         ->assertSee('1 baris dikirim untuk diperbaiki PD')
         ->assertSee('Besaran tarif belum ada.');
+});
+
+it('naskah yang dikembalikan hanya dengan catatan tidak membuka layar kosong', function () {
+    $n = drafUji($this);
+    $this->alur->jalankan($n, $this->pd, 'ajukan');
+    $this->alur->jalankan($n, $this->admin, 'setujui_berkas');
+    $n = $this->alur->jalankan($n, $this->verifikator, 'tugaskan_peneliti', null, $this->peneliti->id);
+    $n->baris()->get()->each(fn (B $b) => $this->alur->tetapkan($b, $this->peneliti));
+    $this->alur->jalankan($n, $this->peneliti, 'teruskan_ke_verifikator');
+    $this->alur->jalankan($n, $this->verifikator, 'tolak_rancangan', 'Konsiderans kurang lengkap.');
+
+    Livewire::actingAs($this->peneliti)->test(LayarKerja::class, ['naskah' => $n->fresh()])
+        ->assertDontSee('Tidak ada baris pada tampilan ini')
+        ->assertSee('Konsiderans kurang lengkap.');
 });

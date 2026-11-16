@@ -100,7 +100,6 @@ describe('alur lengkap', function () {
 
         $n = $this->alur->jalankan($n, $this->peneliti, 'teruskan_ke_verifikator');
         $n = $this->alur->jalankan($n, $this->verifikator, 'setujui_rancangan');
-        $this->alur->simpanNaskahFasilitasi($n, $this->pd, 'isi', 'naskah-perbaikan.docx');
         $n = $this->alur->jalankan($n, $this->pd, 'ajukan_fasilitasi');
         $n = $this->alur->jalankan($n, $this->peneliti, 'setujui_fasilitasi');
 
@@ -125,7 +124,6 @@ describe('alur lengkap', function () {
         semuaTetap($this, $n);
         $n = $this->alur->jalankan($n, $this->peneliti, 'teruskan_ke_verifikator');
         $n = $this->alur->jalankan($n, $this->verifikator, 'setujui_rancangan');
-        $this->alur->simpanNaskahFasilitasi($n, $this->pd, 'isi', 'naskah-perbaikan.docx');
         $n = $this->alur->jalankan($n, $this->pd, 'ajukan_fasilitasi');
         $n = $this->alur->jalankan($n, $this->peneliti, 'setujui_fasilitasi');
         $n = $this->alur->jalankan($n, $this->verifikator, 'finalkan');

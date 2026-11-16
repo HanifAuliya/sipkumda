@@ -73,23 +73,14 @@
         @endif
 
         @if ($aksiTerpilih === 'ajukan_fasilitasi')
-            {{-- Bukti bahwa naskah sudah direvisi sepenuhnya sesuai hasil penelitian, untuk dicek Peneliti. --}}
-            <div class="mb-4 space-y-3">
+            {{-- Naskah hasil perbaikan adalah naskah yang dibuat dari isi matriks; tidak perlu mengunggah file. --}}
+            <div class="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-lg bg-slate-50 px-3 py-2.5 dark:bg-navy-800/60">
                 <p class="text-sm text-slate-600 dark:text-slate-300">
-                    Unggah naskah yang sudah Anda revisi sesuai seluruh hasil penelitian. Peneliti mengeceknya sebelum nota dinas terbit.
-                    Sebagai bahan, unduh <a href="{{ route('naskah.cetak', [$naskah, 'naskah-word']) }}" class="font-semibold text-primary-600 hover:underline dark:text-primary-300">naskah hasil penelitian (Word)</a>.
+                    Naskah hasil perbaikan dibuat otomatis dari matriks yang sudah memuat seluruh hasil penelitian; tidak perlu mengunggah file.
+                    Periksa naskahnya, lalu Lanjutkan. Peneliti mengeceknya sebelum nota dinas terbit.
                 </p>
-                @if ($berkasFasilitasiBerlaku && ! $berkasFasilitasi)
-                    <p class="flex items-center gap-2 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-200">
-                        <i class="bi bi-check2-circle" aria-hidden="true"></i>
-                        <span>Sudah diunggah: <strong>{{ $berkasFasilitasiBerlaku->nama_asli }}</strong>. Pilih file lain untuk menggantinya.</span>
-                    </p>
-                @endif
-                <x-form.field label="Naskah hasil perbaikan" for="berkasFasilitasi" error="berkasFasilitasi" :required="! $berkasFasilitasiBerlaku" hint="Word (.docx) atau PDF, maks. 20MB.">
-                    <input id="berkasFasilitasi" type="file" wire:model="berkasFasilitasi" accept=".docx,.pdf"
-                        class="block min-h-10 w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-sm file:font-semibold dark:file:bg-navy-800 dark:file:text-slate-200">
-                </x-form.field>
-                <x-ui.loading target="berkasFasilitasi">Mengunggah file...</x-ui.loading>
+                <x-ui.button size="sm" variant="outline" icon="eye" :data-url="route('naskah.cetak', [$naskah, 'naskah-pdf', 'lihat' => 1])" data-judul="Naskah hasil perbaikan"
+                    x-on:click="$dispatch('lihat-pdf', { url: $el.dataset.url, judul: $el.dataset.judul })">Lihat naskah</x-ui.button>
             </div>
         @endif
 
@@ -137,9 +128,8 @@
 
         <x-slot:footer>
             <x-ui.button variant="ghost" x-on:click="close()">Batal</x-ui.button>
-            <x-ui.button icon="check2" wire:click="jalankanAksi" loading="jalankanAksi, berkasFasilitasi"
-                :disabled="($aksiTerpilih === 'setujui_berkas' && count($periksaBerkas) < count(\App\Livewire\V2\LayarKerja::PERIKSA_BERKAS))
-                    || ($aksiTerpilih === 'ajukan_fasilitasi' && ! $berkasFasilitasi && ! $berkasFasilitasiBerlaku)">Lanjutkan</x-ui.button>
+            <x-ui.button icon="check2" wire:click="jalankanAksi" loading="jalankanAksi"
+                :disabled="$aksiTerpilih === 'setujui_berkas' && count($periksaBerkas) < count(\App\Livewire\V2\LayarKerja::PERIKSA_BERKAS)">Lanjutkan</x-ui.button>
         </x-slot:footer>
     </x-ui.modal>
 

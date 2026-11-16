@@ -68,8 +68,6 @@ function naskahFasilitasi(object $uji): Naskah
     $alur->jalankan($n, $uji->peneliti, 'teruskan_ke_verifikator');
     $alur->jalankan($n, $uji->kabag, 'setujui_rancangan');
 
-    $alur->simpanNaskahFasilitasi($n, $uji->pd, 'isi', 'naskah-perbaikan.docx');
-
     return $alur->jalankan($n, $uji->pd, 'ajukan_fasilitasi');
 }
 

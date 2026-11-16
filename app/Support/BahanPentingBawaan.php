@@ -216,7 +216,7 @@ class BahanPentingBawaan
         foreach ([
             'Pantau tahapnya di menu Rancanganku dan Dashboard › Giliran Anda; setiap perubahan tahap dikabarkan lewat notifikasi.',
             'Bila Peneliti meminta penyesuaian (tahap Perbaikan PD), buka naskah, perbaiki baris yang ditandai, lalu tekan Kirim tindak lanjut.',
-            'Setelah rancangan disetujui, revisi naskah sesuai seluruh hasil penelitian (unduh naskah hasil penelitian dalam Word sebagai bahan), lalu tekan Ajukan fasilitasi dan unggah naskah hasil perbaikan.',
+            'Setelah rancangan disetujui, buka naskah di menu Fasilitasiku lalu tekan Ajukan fasilitasi. Naskah hasil perbaikan disusun otomatis dari matriks; tidak perlu mengunggah file.',
             'Panduan lengkap ada di menu Panduan di dalam SIFKUMDA.',
         ] as $teks) {
             $bagian->addListItem($teks, 0, [], ['listType' => \PhpOffice\PhpWord\Style\ListItem::TYPE_BULLET_FILLED], ['spaceAfter' => 60]);

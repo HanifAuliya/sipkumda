@@ -63,7 +63,6 @@ function naskahFinal(object $uji, string $jenis = 'Peraturan Bupati', string $te
     $n->baris()->get()->each(fn (B $b) => $alur->tetapkan($b, $uji->peneliti));
     $alur->jalankan($n, $uji->peneliti, 'teruskan_ke_verifikator');
     $alur->jalankan($n, $uji->verifikator, 'setujui_rancangan');
-    $alur->simpanNaskahFasilitasi($n, $uji->pd, 'isi', 'naskah-perbaikan.docx');
     $alur->jalankan($n, $uji->pd, 'ajukan_fasilitasi');
     $alur->jalankan($n, $uji->peneliti, 'setujui_fasilitasi');
 
@@ -200,7 +199,6 @@ describe('persetujuan fasilitasi', function () {
         $this->n->baris()->get()->each(fn (B $b) => $alur->tetapkan($b, $this->peneliti));
         $alur->jalankan($this->n, $this->peneliti, 'teruskan_ke_verifikator');
         $alur->jalankan($this->n, $this->verifikator, 'setujui_rancangan');
-        $alur->simpanNaskahFasilitasi($this->n, $this->pd, 'isi', 'naskah-perbaikan.docx');
         $this->n = $alur->jalankan($this->n, $this->pd, 'ajukan_fasilitasi');
     });
 

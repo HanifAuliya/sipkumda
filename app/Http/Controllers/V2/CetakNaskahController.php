@@ -19,7 +19,7 @@ class CetakNaskahController extends Controller
                 "{$naskah->nomor_tampil}-naskah.docx",
                 ['Content-Type' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
             )->deleteFileAfterSend(),
-            'naskah-pdf' => $this->pdf($cetak->pdfNaskah($naskah), "{$naskah->nomor_tampil}-naskah.pdf"),
+            'naskah-pdf' => $this->pdf($cetak->pdfNaskah($naskah), "{$naskah->nomor_tampil}-naskah.pdf", request()->boolean('lihat')),
             'matriks-pdf' => $this->pdf($cetak->pdfMatriks($naskah), "{$naskah->nomor_tampil}-matriks.pdf"),
             'nota-dinas' => $this->pdf($cetak->pdfNotaDinas($naskah), "{$naskah->nomor_tampil}-nota-dinas.pdf"),
         };
@@ -36,11 +36,12 @@ class CetakNaskahController extends Controller
         )->deleteFileAfterSend();
     }
 
-    private function pdf(string $isi, string $nama)
+    /** ?lihat=1 menampilkan PDF di browser (pratinjau di layar kerja) alih-alih mengunduhnya. */
+    private function pdf(string $isi, string $nama, bool $lihat = false)
     {
         return response($isi, 200, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => "attachment; filename=\"{$nama}\"",
+            'Content-Disposition' => ($lihat ? 'inline' : 'attachment') . "; filename=\"{$nama}\"",
         ]);
     }
 }

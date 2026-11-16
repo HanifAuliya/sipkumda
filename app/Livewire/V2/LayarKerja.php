@@ -74,9 +74,6 @@ class LayarKerja extends Component
 
     public array $periksaBerkas = [];
 
-    /** Naskah hasil perbaikan yang diunggah PD saat Ajukan fasilitasi (Word atau PDF). */
-    public $berkasFasilitasi;
-
     /** Isian modal Ubah Judul: judul pengajuan yang juga menjadi judul naskah dan "Menetapkan". */
     public string $judulBaru = '';
 
@@ -259,12 +256,6 @@ class LayarKerja extends Component
             throw ValidationException::withMessages(['periksaBerkas' => 'Centang semua butir daftar periksa dulu.']);
         }
 
-        // Ajukan fasilitasi: naskah yang sudah direvisi PD diunggah sebagai bukti perubahan sudah diterapkan.
-        if ($this->aksiTerpilih === 'ajukan_fasilitasi' && $this->berkasFasilitasi) {
-            $this->validate(['berkasFasilitasi' => 'file|mimes:pdf,docx|max:20480'], [], ['berkasFasilitasi' => 'naskah hasil perbaikan']);
-            $this->simpanBerkas(NaskahBerkas::NASKAH_FASILITASI, $this->berkasFasilitasi);
-        }
-
         $aksi = $this->aksiTerpilih;
 
         try {
@@ -297,14 +288,14 @@ class LayarKerja extends Component
 
     private function resetIsianAksi(): void
     {
-        $this->reset('aksiTerpilih', 'catatan', 'penelitiId', 'sumberTtd', 'ttdLangsung', 'simpanTtd', 'berkasFasilitasi', 'periksaBerkas');
+        $this->reset('aksiTerpilih', 'catatan', 'penelitiId', 'sumberTtd', 'ttdLangsung', 'simpanTtd', 'periksaBerkas');
     }
 
-    /** Lampiran dan naskah hasil perbaikan hanya satu yang berlaku; yang lama tersimpan sebagai versi lama. */
+    /** Lampiran hanya satu yang berlaku; yang lama tersimpan sebagai versi lama. */
     private function simpanBerkas(string $jenis, $file): void
     {
         DB::transaction(function () use ($jenis, $file) {
-            if (in_array($jenis, [NaskahBerkas::LAMPIRAN, NaskahBerkas::NASKAH_FASILITASI], true)) {
+            if ($jenis === NaskahBerkas::LAMPIRAN) {
                 $this->naskah->berkas()->where('jenis', $jenis)->update(['aktif' => false]);
             }
 
@@ -371,13 +362,10 @@ class LayarKerja extends Component
             });
     }
 
-    /** Jenis berkas yang bisa diunggah di tab Berkas; naskah hasil perbaikan hanya pada tahap fasilitasi. */
+    /** Jenis berkas yang bisa diunggah di tab Berkas. Naskahnya sendiri tidak diunggah: dibuat dari isi matriks. */
     private function jenisUnggahan(): array
     {
-        return [
-            NaskahBerkas::LAMPIRAN, NaskahBerkas::BAHAN_PENDUKUNG,
-            ...($this->naskah->tahap->langkah() === 3 ? [NaskahBerkas::NASKAH_FASILITASI] : []),
-        ];
+        return [NaskahBerkas::LAMPIRAN, NaskahBerkas::BAHAN_PENDUKUNG];
     }
 
     private function bolehUnggah(AlurNaskah $alur): bool
@@ -426,15 +414,22 @@ class LayarKerja extends Component
         $berisian = $this->naskah->tahap === TahapNaskah::Draf
             ? $barisLengkap->filter(fn (B $b) => PemeriksaIsian::adaIsian($b))->pluck('id')
             : collect();
-        $filter = in_array($this->filter, self::FILTER, true) ? $this->filter : $this->filterAwal($mode, $hitung);
-
-        $terlihat = $semuaBaris->filter(fn (B $b) => match ($filter) {
+        $dipilih = in_array($this->filter, self::FILTER, true);
+        $filter = $dipilih ? $this->filter : $this->filterAwal($mode, $hitung);
+        $cocok = fn (string $filter) => $semuaBaris->filter(fn (B $b) => match ($filter) {
             'belum' => in_array($b->status, $statusBelum, true),
             'perlu' => $b->status === B::PERLU_PD,
             'diubah' => in_array($b->status, B::BERUBAH, true),
             'berubah' => $b->giliran_diubah !== null && $b->giliran_diubah >= $this->naskah->giliran - 1 && $b->diubah_oleh !== $user->id,
             default => true,
         })->pluck('id');
+        $terlihat = $cocok($filter);
+
+        // Tampilan bawaan yang kosong (mis. naskah dikembalikan hanya dengan catatan) tidak berguna: tampilkan semua.
+        if (! $dipilih && $terlihat->isEmpty()) {
+            $filter = 'semua';
+            $terlihat = $cocok($filter);
+        }
 
         // Filter yang menyisakan sebagian baris juga menyembunyikan bagian yang tidak punya baris cocok.
         $perId = $semuaBaris->keyBy('id');
@@ -496,10 +491,8 @@ class LayarKerja extends Component
             'barisUntukPd' => in_array($this->aksiTerpilih, ['kirim_ke_pd', 'cek_ke_pd'], true)
                 ? $this->naskah->baris()->where('status', B::PERLU_PD)->get(['id', 'bagian', 'label', 'keterangan'])
                 : collect(),
-            'naskahPerbaikan' => $this->naskah->tahap->langkah() === 3
-                ? $this->naskah->berkas()->where('jenis', NaskahBerkas::NASKAH_FASILITASI)->where('aktif', true)->latest('id')->first()
-                : null,
-            'berkasFasilitasiBerlaku' => $this->aksiTerpilih === 'ajukan_fasilitasi' ? $alur->berkasFasilitasiBerlaku($this->naskah) : null,
+            // Fasilitasi: Peneliti mengecek naskah hasil perbaikan, yaitu naskah yang dibuat dari isi matriks.
+            'periksaNaskah' => $this->naskah->tahap->langkah() === 3,
             'jenisUnggahan' => $this->jenisUnggahan(),
             // Sebelum penelitian belum ada baris yang diperiksa, jadi penghitungnya tidak berarti.
             'tampilkanHitung' => ! in_array($this->naskah->tahap, [TahapNaskah::Draf, TahapNaskah::PersetujuanBerkas, TahapNaskah::PilihPeneliti], true),

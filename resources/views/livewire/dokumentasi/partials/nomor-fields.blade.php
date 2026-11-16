@@ -6,6 +6,8 @@
 --}}
 @php
     $beritaWajib ??= true;
+    // Halaman Dokumentasi memuat dua formulir (tambah dan ubah); id-nya dibedakan supaya label menunjuk isian yang benar.
+    $awalan ??= '';
     $potongan = $this->potonganNomor();
     $angka = fn (int $max) => "\$el.value = \$el.value.replace(/\\D/g, '').slice(0, {$max})";
     $segmen = 'flex items-center bg-slate-50 px-3 text-sm text-slate-500 dark:bg-navy-800';
@@ -18,12 +20,12 @@
 
 <div class="grid gap-5 sm:grid-cols-2">
     @if ($potongan)
-        <x-form.field label="Nomor Keputusan Bupati" for="nomor_produk_hukum" :error="['nomor', 'tahun']" required class="sm:col-span-2"
+        <x-form.field label="Nomor Keputusan Bupati" :for="$awalan . 'nomor_produk_hukum'" :error="['nomor', 'tahun']" required class="sm:col-span-2"
             hint="Isi nomor urutnya. Bagian lain terisi dari menu Format Dokumen dan bisa diganti bila memakai kode lain. Tahun mengikuti tanggal penetapan.">
             <div class="flex flex-wrap items-center gap-1.5">
                 @foreach ($potongan as $i => $p)
                     @if ($p['jenis'] === 'nomor')
-                        <input id="nomor_produk_hukum" wire:model="nomor" inputmode="numeric" maxlength="3" placeholder="000" autocomplete="off"
+                        <input id="{{ $awalan }}nomor_produk_hukum" wire:model="nomor" inputmode="numeric" maxlength="3" placeholder="000" autocomplete="off"
                             x-on:input="{{ $angka(3) }}" class="{{ $kotak }} w-20 font-semibold ring-2 ring-primary-300 dark:ring-primary-500/50">
                     @elseif ($p['jenis'] === 'pemisah')
                         <span class="text-lg text-slate-400" aria-hidden="true">/</span>
@@ -45,20 +47,20 @@
             </div>
         </x-form.field>
     @else
-        <x-form.field label="Nomor Produk Hukum" for="nomor_produk_hukum" :error="['nomor', 'tahun']" required hint="Tahun mengikuti tanggal penetapan.">
+        <x-form.field label="Nomor Produk Hukum" :for="$awalan . 'nomor_produk_hukum'" :error="['nomor', 'tahun']" required hint="Tahun mengikuti tanggal penetapan.">
             <div class="{{ $grup }}">
                 <span class="{{ $segmen }}">Nomor</span>
-                <input id="nomor_produk_hukum" wire:model="nomor" inputmode="numeric" maxlength="3" placeholder="###"
+                <input id="{{ $awalan }}nomor_produk_hukum" wire:model="nomor" inputmode="numeric" maxlength="3" placeholder="###"
                     x-on:input="{{ $angka(3) }}" class="{{ $isian }}">
                 <span class="{{ $segmen }}">Tahun&nbsp;<span @unless ($tahunTetap) {!! $tahunOtomatis !!} @endunless>{{ $tahunTetap ?: '…' }}</span></span>
             </div>
         </x-form.field>
     @endif
 
-    <x-form.field label="Nomor Berita Daerah" for="nomor_berita" :error="['nomor_berita', 'tahun_berita']"
+    <x-form.field label="Nomor Berita Daerah" :for="$awalan . 'nomor_berita'" :error="['nomor_berita', 'tahun_berita']"
         :required="$beritaWajib" :hint="$beritaWajib ? null : 'Opsional; Keputusan Bupati biasanya tidak dimuat dalam Berita Daerah.'">
         <div class="{{ $grup }}">
-            <input id="nomor_berita" wire:model="nomor_berita" inputmode="numeric" maxlength="3" placeholder="No"
+            <input id="{{ $awalan }}nomor_berita" wire:model="nomor_berita" inputmode="numeric" maxlength="3" placeholder="No"
                 x-on:input="{{ $angka(3) }}" class="{{ $isian }}">
             <span class="{{ $segmen }}">/</span>
             <input wire:model="tahun_berita" inputmode="numeric" maxlength="4" placeholder="YYYY" aria-label="Tahun berita daerah"

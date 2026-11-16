@@ -374,17 +374,15 @@
                     <x-ui.alert type="warning">{{ $hambatanUtama }}</x-ui.alert>
                 @endif
 
-                @if ($tab === 'kerja' && $naskahPerbaikan)
-                    {{-- Fasilitasi: naskah revisi PD dibandingkan dengan hasil penelitian di matriks. --}}
+                @if ($tab === 'kerja' && $periksaNaskah)
+                    {{-- Fasilitasi: naskahnya dibuat dari isi matriks, jadi yang dicek adalah naskah sistem, bukan unggahan. --}}
                     <x-ui.alert type="primary" icon="file-earmark-check">
                         <div class="flex flex-wrap items-center justify-between gap-2">
-                            <span>Naskah hasil perbaikan dari PD: <strong>{{ $naskahPerbaikan->nama_asli }}</strong> · {{ $naskahPerbaikan->created_at->translatedFormat('d M Y H:i') }}</span>
+                            <span>Naskah hasil perbaikan, dibuat dari isi matriks terbaru.</span>
                             <span class="flex gap-2">
-                                @if (str_ends_with(strtolower($naskahPerbaikan->nama_asli), '.pdf'))
-                                    <x-ui.button size="sm" variant="outline" icon="eye" :data-url="route('naskah.berkas', [$naskah, $naskahPerbaikan, 'lihat' => 1])" :data-judul="$naskahPerbaikan->nama_asli"
-                                        x-on:click="$dispatch('lihat-pdf', { url: $el.dataset.url, judul: $el.dataset.judul })">Lihat</x-ui.button>
-                                @endif
-                                <x-ui.button size="sm" variant="outline" icon="download" :href="route('naskah.berkas', [$naskah, $naskahPerbaikan])">Unduh</x-ui.button>
+                                <x-ui.button size="sm" variant="outline" icon="eye" :data-url="route('naskah.cetak', [$naskah, 'naskah-pdf', 'lihat' => 1])" data-judul="Naskah hasil perbaikan"
+                                    x-on:click="$dispatch('lihat-pdf', { url: $el.dataset.url, judul: $el.dataset.judul })">Lihat</x-ui.button>
+                                <x-ui.button size="sm" variant="outline" icon="file-earmark-word" :href="route('naskah.cetak', [$naskah, 'naskah-word'])">Word</x-ui.button>
                             </span>
                         </div>
                     </x-ui.alert>

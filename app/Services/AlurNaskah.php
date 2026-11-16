@@ -624,7 +624,6 @@ class AlurNaskah
             'ajukan' => $this->hambatanAjukan($naskah),
             'kirim_ke_pd', 'teruskan_ke_verifikator', 'cek_ke_pd', 'cek_ke_verifikator' => $this->hambatanTeliti($naskah),
             'kembali_ke_peneliti', 'perbaikan_ke_peneliti' => $this->hambatanSesuaikan($naskah),
-            'ajukan_fasilitasi' => $this->berkasFasilitasiBerlaku($naskah) ? null : 'Unggah naskah hasil perbaikan dulu.',
             default => null,
         };
     }
@@ -649,37 +648,6 @@ class AlurNaskah
         return $isian->isNotEmpty()
             ? 'Masih ada isian “…” dari template di ' . PemeriksaIsian::daftarNama($isian) . '. Lengkapi dulu sebelum diajukan.'
             : null;
-    }
-
-    /** Menyimpan naskah hasil perbaikan PD (isi file); yang lama tetap ada sebagai versi lama. */
-    public function simpanNaskahFasilitasi(Naskah $naskah, User $user, string $isi, string $namaAsli): NaskahBerkas
-    {
-        return DB::transaction(function () use ($naskah, $user, $isi, $namaAsli) {
-            $naskah->berkas()->where('jenis', NaskahBerkas::NASKAH_FASILITASI)->update(['aktif' => false]);
-            $path = "naskah/{$naskah->slug}/" . Str::random(40) . '.' . strtolower(pathinfo($namaAsli, PATHINFO_EXTENSION) ?: 'docx');
-            Storage::disk('local')->put($path, $isi);
-
-            return $naskah->berkas()->create([
-                'jenis' => NaskahBerkas::NASKAH_FASILITASI,
-                'path' => $path,
-                'nama_asli' => $namaAsli,
-                'diunggah_oleh' => $user->id,
-            ]);
-        });
-    }
-
-    /**
-     * Naskah hasil perbaikan yang berlaku untuk pengajuan fasilitasi: yang terbaru, dan diunggah sesudah
-     * pengajuan fasilitasi terakhir dikembalikan Peneliti (berkas lama sudah dinilai belum sesuai).
-     */
-    public function berkasFasilitasiBerlaku(Naskah $naskah): ?NaskahBerkas
-    {
-        $berkas = $naskah->berkas()->where('jenis', NaskahBerkas::NASKAH_FASILITASI)->where('aktif', true)->latest('id')->first();
-        $dikembalikan = $naskah->riwayat()->where('aksi', 'tahap')
-            ->where('sebelum', T::PersetujuanFasilitasi->label())->where('sesudah', T::Disetujui->label())
-            ->latest('id')->value('created_at');
-
-        return $berkas && (! $dikembalikan || $berkas->created_at->gt($dikembalikan)) ? $berkas : null;
     }
 
     private function hambatanTeliti(Naskah $naskah): ?string
