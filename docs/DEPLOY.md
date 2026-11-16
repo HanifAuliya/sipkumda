@@ -233,88 +233,84 @@ membutuhkan ±6 request/detik.
 - Store `file` untuk rate limit gagal di Windows saat ramai (kunci file eksklusif) → tidak dipakai.
 - Pencarian nomor memindai seluruh indeks tanggal → kini memakai indeks tahun/nomor.
 
-## 9. Hostinger Web Hosting (hPanel) dengan GOWA di komputer kantor
+## 9. Hostinger Web Hosting (hPanel, tanpa SSH) dengan GOWA di komputer kantor
 
-Penempatan sementara: aplikasi di hosting bersama Hostinger, sedangkan GOWA berjalan di satu komputer kantor
-dan dihubungi Hostinger lewat Cloudflare Tunnel (`https://wa.domain-anda`). Hosting bersama tidak bisa
-menjalankan program terus-menerus, jadi antrean dan pengiriman WhatsApp dikerjakan cron tiap menit.
+Penempatan sementara: aplikasi di hosting bersama Hostinger dan diperbarui lewat **Git** (hPanel menarik dari
+GitHub), sedangkan GOWA berjalan di satu komputer kantor dan dihubungi lewat Cloudflare Tunnel. Hosting bersama
+tidak punya SSH, Node.js, maupun proses latar belakang, jadi:
+
+- **GitHub Actions** (`.github/workflows/produksi.yml`) membangun branch **`produksi`** setiap ada push ke `main`:
+  `vendor` tanpa paket pengembangan dan aset hasil build sudah di dalamnya.
+- **hPanel › Git** menarik branch `produksi` ke folder subdomain, otomatis lewat webhook.
+- **Cron** tiap menit menjalankan `sifkumda:selaraskan` (migrasi, data dasar, dan cache bila versi atau `.env`
+  berubah; jejaknya di `storage/logs/rilis.log`) lalu `schedule:run` (tugas terjadwal, antrean, WhatsApp).
 
 ```
-Hostinger (sifkumda.domain-anda) ──HTTPS──▶ Cloudflare ──tunnel──▶ PC kantor: cloudflared ─▶ GOWA 127.0.0.1:3000 ─▶ WhatsApp
+push main ─▶ GitHub Actions ─▶ branch produksi ─▶ hPanel Git (pull) ─▶ cron: sifkumda:selaraskan
+Hostinger ──HTTPS──▶ Cloudflare ──tunnel──▶ PC kantor: cloudflared ─▶ GOWA 127.0.0.1:3000 ─▶ WhatsApp
 ```
 
-Bila PC kantor mati, pesan WhatsApp menunggu (paling lama 48 jam) dan terkirim begitu menyala lagi;
-notifikasi lonceng di aplikasi tetap berjalan. Isi pesan kini melewati Cloudflare (terenkripsi HTTPS).
+Isi branch `produksi` (folder subdomain):
 
-### 9.1 Periksa di hPanel
+```
+.htaccess      semua permintaan dibelokkan ke aplikasi/public
+aplikasi/      Laravel lengkap; .env, font, dan storage milik server tidak ikut repo
+```
 
-| Menu hPanel | Yang dicek atau dibuat |
+`.env`, kode, dan `storage` tidak bisa dibuka dari browser karena setiap permintaan dibelokkan ke
+`aplikasi/public`. `composer.json` sengaja tidak di root, supaya hPanel tidak menjalankan `composer update` sendiri.
+
+### 9.1 Siapkan di hPanel (sekali)
+
+| Menu hPanel | Yang dibuat atau dicek |
 |---|---|
-| **Advanced › PHP Configuration** | PHP **8.3 atau lebih baru** (pilih yang tertinggi). Ekstensi `gd`, `exif`, `zip`, `fileinfo`, `pdo_mysql`, `mbstring` aktif |
-| **Advanced › SSH Access** | Aktifkan bila tersedia di paket Anda. Tanpa SSH tetap bisa, lihat 9.5 |
-| **Domains › Subdomains** | Buat subdomain, mis. `sifkumda`. Catat foldernya, biasanya `public_html/sifkumda` |
+| **Advanced › PHP Configuration** | PHP **8.3 atau lebih baru**. Ekstensi `gd`, `exif`, `zip`, `fileinfo`, `pdo_mysql`, `mbstring`, `intl` aktif |
+| **Domains › Subdomains** | Buat subdomain, mis. `sifkumda`. Catat foldernya, mis. `public_html/sifkumda` |
 | **Security › SSL** | Pasang SSL gratis untuk subdomain itu |
 | **Databases › MySQL Databases** | Buat database dan penggunanya; catat nama (berawalan `u123456789_`) dan kata sandinya |
-| **Emails** | Buat akun email pengirim, mis. `noreply@domain-anda`, untuk aktivasi akun dan atur ulang sandi |
-| **Advanced › Cron Jobs** | Dipakai di 9.6 |
+| **Emails** | Akun pengirim, mis. `noreply@domain-anda`, untuk aktivasi akun dan atur ulang sandi |
 
-### 9.2 Buat paket di komputer pengembang
+### 9.2 Sambungkan Git
 
-```powershell
-powershell -ExecutionPolicy Bypass -File scripts\paket-hostinger.ps1
-```
+1. **File Manager**: kosongkan folder subdomain (hapus `default.php` atau `index.php` bawaan Hostinger).
+   hPanel hanya mau memasang repo ke folder kosong.
+2. **Advanced › Git › Create a New Repository**:
+   - Repository: `https://github.com/HanifAuliya/sipkumda.git` (repo publik, tanpa kunci)
+   - Branch: `produksi`
+   - Directory: folder subdomain, mis. `sifkumda`
+3. Tekan **Deploy** sekali, lalu nyalakan **Auto Deployment**. Bila hPanel menampilkan URL webhook, tambahkan di
+   GitHub › Settings › Webhooks (event *push*).
 
-Hasilnya `dist\sifkumda-<commit>.zip` berisi kode dari commit terakhir, `vendor` tanpa paket pengembangan,
-aset hasil `npm run build`, dan font Bookman. Node.js dan Composer tidak dibutuhkan di Hostinger.
+### 9.3 `.env` dan font (sekali, lewat File Manager)
 
-### 9.3 Unggah dan arahkan subdomain
-
-Kode aplikasi ditaruh **di luar** `public_html`, supaya `.env`, `storage`, dan berkas unggahan tidak bisa dibuka
-dari browser. Hanya folder `public` yang menjadi isi subdomain:
-
-```
-/home/u123456789/domains/domain-anda/
-├── public_html/
-│   └── sifkumda  →  ../sifkumda-app/public   (folder subdomain)
-└── sifkumda-app/                              (isi ZIP)
-```
-
-1. **File Manager**: buat folder `sifkumda-app` sejajar `public_html`, unggah ZIP ke dalamnya, lalu **Extract**.
-2. Arahkan subdomain ke `public`:
-   - **Dengan SSH** (disarankan):
-
-     ```bash
-     cd ~/domains/domain-anda/public_html
-     ls -la sifkumda          # pastikan isinya hanya file bawaan Hostinger
-     rm -rf sifkumda
-     ln -s ../sifkumda-app/public sifkumda
-     ```
-
-   - **Tanpa SSH**: salin seluruh isi `sifkumda-app/public` ke folder subdomain, lalu di `index.php` folder subdomain
-     ganti ketiga `__DIR__.'/../` menjadi `__DIR__.'/../../sifkumda-app/`. Setiap pembaruan, folder `build` juga
-     harus disalin ulang.
-
-`php artisan storage:link` tidak diperlukan: SIFKUMDA tidak menyajikan berkas lewat `public/storage`.
-
-### 9.4 Buat `.env`
-
-Salin `.env.example` menjadi `.env` di `sifkumda-app`, lalu ubah:
+Tampilkan file tersembunyi di File Manager (Settings › Show hidden files), lalu buat `aplikasi/.env`:
 
 ```dotenv
+APP_NAME=SIFKUMDA
 APP_ENV=production
+APP_KEY=
 APP_DEBUG=false
 APP_URL=https://sifkumda.domain-anda
 APP_TIMEZONE=Asia/Makassar
+APP_LOCALE=id
+LOG_CHANNEL=stack
+LOG_STACK=single
 LOG_LEVEL=error
-SESSION_SECURE_COOKIE=true
 
 DB_CONNECTION=mysql
 DB_HOST=localhost
+DB_PORT=3306
 DB_DATABASE=u123456789_sifkumda
 DB_USERNAME=u123456789_sifkumda
 DB_PASSWORD=...
 
+SESSION_DRIVER=database
+SESSION_LIFETIME=120
+SESSION_SECURE_COOKIE=true
+CACHE_STORE=file
+QUEUE_CONNECTION=database
 QUEUE_LEWAT_JADWAL=true
+FILESYSTEM_DISK=local
 
 MAIL_MAILER=smtp
 MAIL_HOST=smtp.hostinger.com
@@ -323,44 +319,52 @@ MAIL_ENCRYPTION=ssl
 MAIL_USERNAME=noreply@domain-anda
 MAIL_PASSWORD=...
 MAIL_FROM_ADDRESS=noreply@domain-anda
+MAIL_FROM_NAME=SIFKUMDA
 
 WA_DRIVER=gowa
 WA_GOWA_URL=https://wa.domain-anda
 WA_GOWA_USER=sifkumda
 WA_GOWA_PASSWORD=<sama dengan APP_BASIC_AUTH GOWA>
+
+# Super Admin pertama, dibuat otomatis sekali saja.
+SIFKUMDA_SUPERADMIN_NIP=<NIP>
+SIFKUMDA_SUPERADMIN_NAMA="Nama Lengkap"
+SIFKUMDA_SUPERADMIN_EMAIL=nama@domain-anda
 ```
 
-`APP_KEY` diisi di langkah berikutnya. Tanpa SSH, buat di komputer pengembang dengan
-`php artisan key:generate --show` lalu tempel hasilnya.
+`APP_KEY` dibiarkan kosong: `sifkumda:selaraskan` membuatnya sendiri. `CACHE_STORE=file` aman di server Linux
+dan tidak bergantung tabel database saat pemasangan pertama.
 
-### 9.5 Perintah pemasangan (sekali)
+Unggah keempat font Bookman (bagian 1) ke `aplikasi/resources/fonts/` (buat foldernya).
+
+### 9.4 Cron (sekali)
+
+**Advanced › Cron Jobs › Custom**, setiap menit (`* * * * *`), sesuaikan jalurnya:
 
 ```bash
-cd ~/domains/domain-anda/sifkumda-app
-php -v                                   # harus 8.3+; bila tidak, pakai mis. /opt/alt/php84/usr/bin/php
-php artisan key:generate --force
-php artisan migrate --force
-php artisan db:seed --class=PerangkatDaerahSeeder --force
-php artisan db:seed --class=RoleSeeder --force
-php artisan akun:super-admin <NIP> --nama="Nama Lengkap" --email=nama@domain-anda
-php artisan bahan-penting:bawaan
-php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan event:cache
+cd /home/u123456789/domains/domain-anda/public_html/sifkumda/aplikasi && php artisan sifkumda:selaraskan >> /dev/null 2>&1; php artisan schedule:run >> /dev/null 2>&1
 ```
 
-Kata sandi sementara Super Admin tampil sekali; simpan, lalu ganti saat pertama masuk.
-Tanpa SSH, perintah sekali-jalan bisa dibuat sebagai Cron Job lalu dihapus setelah berjalan.
+Dalam satu sampai dua menit, `storage/logs/rilis.log` berisi jejak pemasangan: `APP_KEY` dibuat, migrasi,
+peran, daftar Perangkat Daerah, Bahan Penting, Super Admin, dan cache. **Kata sandi sementara Super Admin
+tercatat di log itu**: masuk, ganti kata sandinya, lalu hapus `rilis.log` (dibuat lagi pada rilis berikutnya
+tanpa kata sandi). Bila log berisi `GAGAL`, perbaiki penyebabnya (biasanya isian database di `.env`); langkahnya
+diulang otomatis tiap menit.
 
-### 9.6 Cron
+Bila log menyebut versi PHP terlalu rendah, ganti `php` di cron dengan alamat lengkap, mis.
+`/opt/alt/php83/usr/bin/php`.
 
-**Advanced › Cron Jobs › Custom**, setiap menit (`* * * * *`):
+### 9.5 Memperbarui aplikasi
 
-```bash
-cd /home/u123456789/domains/domain-anda/sifkumda-app && php artisan schedule:run >> /dev/null 2>&1
-```
+Cukup push ke `main`. GitHub Actions membangun `produksi` (±2 menit), hPanel menariknya, dan cron menjalankan
+migrasi serta memperbarui cache dalam semenit. Status pembangunan terlihat di tab **Actions** GitHub; versi yang
+terpasang ada di `aplikasi/REVISION` dan `storage/app/selaraskan.json`. Menjalankan ulang tanpa perubahan kode:
+ubah `.env` (mis. tambah baris komentar).
 
-Satu baris ini menjalankan semua tugas di bagian 5, antrean (`QUEUE_LEWAT_JADWAL=true`), dan pengiriman WhatsApp.
+Jangan mengubah file yang ada di repo langsung dari File Manager: `git pull` berikutnya bisa gagal. Yang boleh
+diubah hanya `.env`, font, dan isi `storage`.
 
-### 9.7 GOWA dan Cloudflare Tunnel di PC kantor
+### 9.6 GOWA dan Cloudflare Tunnel di PC kantor
 
 Syarat: DNS domain dikelola Cloudflare. Bila domain masih memakai DNS Hostinger, pindahkan nameserver ke
 Cloudflare (salin dulu semua record DNS, termasuk subdomain dan email ke Hostinger), atau pakai domain lain
@@ -372,25 +376,19 @@ yang sudah di Cloudflare khusus untuk `wa`.
    pilih Windows, lalu jalankan perintah `cloudflared.exe service install <token>` yang ditampilkan di
    Command Prompt **Run as administrator**. Tunnel menjadi layanan Windows yang otomatis menyala.
 3. Tab **Public Hostname**: subdomain `wa`, domain Anda, service `HTTP` → `127.0.0.1:3000`.
-4. Batasi akses: **Security › WAF › Custom rules**, blokir bila *Hostname* sama dengan `wa.domain-anda` **dan**
-   *IP Source Address* bukan IP keluar Hostinger. IP itu terlihat dari SSH Hostinger: `curl -s https://ifconfig.me`.
-   Tanpa aturan ini GOWA hanya dijaga kata sandi Basic Auth.
-5. Uji dari SSH Hostinger: `curl -u sifkumda:<password> https://wa.domain-anda/app/status` harus menjawab JSON.
-6. Masuk SIFKUMDA sebagai Admin › menu **WhatsApp**, scan QR dari HP kantor, lalu kirim pesan uji.
+4. Masuk SIFKUMDA sebagai Admin › menu **WhatsApp**: statusnya harus tersambung ke GOWA. Scan QR dari HP kantor,
+   lalu kirim pesan uji.
+5. Batasi akses: **Security › WAF › Custom rules**, blokir bila *Hostname* sama dengan `wa.domain-anda` **dan**
+   *IP Source Address* bukan IP server Hostinger (terlihat di **Security › Events** Cloudflare setelah langkah 4,
+   atau di ringkasan hosting hPanel). Tanpa aturan ini GOWA hanya dijaga kata sandi Basic Auth.
 
-### 9.8 Memperbarui aplikasi
+Bila PC kantor mati, pesan WhatsApp menunggu (paling lama 48 jam) dan terkirim begitu menyala lagi; notifikasi
+lonceng di aplikasi tetap berjalan. Isi pesan melewati Cloudflare (terenkripsi HTTPS).
 
-1. Jalankan lagi `scripts\paket-hostinger.ps1`.
-2. Unggah ZIP ke `sifkumda-app` lalu Extract dan timpa. `.env` dan isi `storage` tidak ikut di ZIP, jadi aman.
-3. Di SSH:
+### 9.7 Cadangan
 
-   ```bash
-   cd ~/domains/domain-anda/sifkumda-app
-   php artisan down
-   php artisan migrate --force
-   php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan event:cache
-   php artisan up
-   ```
+Cadangan harian (bagian 6) tersimpan di disk hosting yang sama; unduh berkala dari File Manager
+(`aplikasi/storage/app/backup`), dan andalkan juga backup bawaan Hostinger. Bila `mysqldump` tidak tersedia,
+log rilis atau `laravel.log` mencatat kegagalan backup.
 
-Cadangan harian (bagian 6) tersimpan di disk hosting yang sama; unduh berkala dari File Manager, atau andalkan
-juga backup bawaan Hostinger.
+Paket ZIP manual (`scripts\paket-hostinger.ps1`) tetap bisa dipakai bila Git di hPanel tidak tersedia.

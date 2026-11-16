@@ -23,7 +23,8 @@ return [
     | file eksklusif di sana menolak tulis bersamaan sehingga request gagal.
     */
 
-    'limiter' => env('CACHE_LIMITER'),
+    // "CACHE_LIMITER=" (kosong, seperti di .env.example) terbaca string kosong, bukan null.
+    'limiter' => env('CACHE_LIMITER') ?: null,
 
     /*
     |--------------------------------------------------------------------------

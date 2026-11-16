@@ -1,0 +1,91 @@
+# Membangun branch `produksi` dari `main` untuk hosting tanpa SSH, Node.js, dan Composer
+# (Hostinger Web Hosting). hPanel › Git menarik branch ini; cron menjalankan sifkumda:selaraskan
+# untuk migrasi dan cache. Lihat docs/DEPLOY.md bagian 9.
+#
+# Isi branch produksi:
+#   .htaccess        membelokkan semua permintaan ke aplikasi/public
+#   .gitignore       .env, font berlisensi, dan data server tidak ikut
+#   aplikasi/        aplikasi lengkap dengan vendor (tanpa paket dev), aset build, dan file REVISION
+# composer.json sengaja tidak di root, supaya hPanel tidak menjalankan `composer update` sendiri.
+name: Bangun branch produksi
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: produksi
+  cancel-in-progress: false
+
+jobs:
+  bangun:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: gd, zip, exif, intl, mbstring, pdo_mysql
+          tools: composer:v2
+          coverage: none
+
+      - name: Composer (tanpa paket pengembangan)
+        run: composer install --no-dev --optimize-autoloader --no-interaction --no-progress --prefer-dist
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Aset
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build
+
+      - name: Susun isi branch produksi
+        run: |
+          set -euo pipefail
+          KELUAR="$RUNNER_TEMP/keluar"
+          mkdir -p "$KELUAR/aplikasi"
+          rsync -a \
+            --exclude .git --exclude .github --exclude node_modules --exclude tests \
+            --exclude deploy --exclude dist --exclude /.gitignore \
+            ./ "$KELUAR/aplikasi/"
+          cp deploy/hostinger/root.htaccess "$KELUAR/.htaccess"
+          cp deploy/hostinger/gitignore "$KELUAR/.gitignore"
+          echo "$GITHUB_SHA" > "$KELUAR/aplikasi/REVISION"
+
+      - name: Commit dan push ke produksi
+        run: |
+          set -euo pipefail
+          KELUAR="$RUNNER_TEMP/keluar"
+          TUJUAN="$RUNNER_TEMP/produksi"
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # Riwayat produksi dilanjutkan (bukan ditimpa) supaya hPanel cukup `git pull`.
+          if git ls-remote --exit-code --heads origin produksi > /dev/null; then
+            git fetch --depth=1 origin produksi:produksi
+            git worktree add "$TUJUAN" produksi
+          else
+            git worktree add --orphan -b produksi "$TUJUAN"
+          fi
+
+          rsync -a --delete --exclude .git "$KELUAR/" "$TUJUAN/"
+          cd "$TUJUAN"
+          git add -A
+          # vendor dan build bisa berisi .gitignore milik paket; tetap ikutkan semuanya.
+          git add -f aplikasi/vendor aplikasi/public/build aplikasi/bootstrap/cache
+
+          if git diff --cached --quiet; then
+            echo "Tidak ada perubahan untuk produksi."
+            exit 0
+          fi
+
+          git commit -q -m "Produksi dari ${GITHUB_SHA::7}: $(git -C "$GITHUB_WORKSPACE" log -1 --format=%s)"
+          git push origin produksi
