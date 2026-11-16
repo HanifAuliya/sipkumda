@@ -44,6 +44,8 @@ export default () => ({
 
     baca() {
         const select = this.$refs.select;
+        // Dipanggil setelah permintaan Livewire selesai; bila halaman sudah berpindah, dropdown ini sudah tidak ada.
+        if (!select) return;
         const opsi = [];
         let placeholder = '';
 

@@ -122,6 +122,8 @@ export default function editorRumusan(barisMinimal = 3, gayaAwal = 'ayat') {
         barisMinimal,
         // Baris yang terakhir disunting (id dan posisi kursor), untuk tombol nomor dan tempat menyisipkan tabel.
         aktif: null,
+        /** Butir baru yang sedang menunggu fokus sesudah Enter: { id, posisi }. */
+        tertunda: null,
         // Sel tabel yang terakhir disentuh, untuk tombol baris, kolom, dan rata.
         sel: null,
         ditulis: null,
@@ -227,6 +229,19 @@ export default function editorRumusan(barisMinimal = 3, gayaAwal = 'ayat') {
         },
 
         tombol(e, i) {
+            // Huruf yang diketik sesaat setelah Enter, sebelum butir baru selesai dibuat dan mendapat fokus,
+            // masuk ke butir baru itu, bukan ke butir sebelumnya.
+            if (this.tertunda && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey && !e.isComposing) {
+                const tujuan = this.potong.find((b) => b.id === this.tertunda.id);
+                if (tujuan) {
+                    e.preventDefault();
+                    tujuan.isi = tujuan.isi.slice(0, this.tertunda.posisi) + e.key + tujuan.isi.slice(this.tertunda.posisi);
+                    this.tertunda.posisi++;
+                    this.simpan();
+                    return;
+                }
+            }
+
             const el = e.target;
             const p = this.potong[i];
             const diAwal = el.selectionStart === 0 && el.selectionEnd === 0;
@@ -276,6 +291,9 @@ export default function editorRumusan(barisMinimal = 3, gayaAwal = 'ayat') {
             const butir = baru({ jenis: 'baris', nomor: p.nomor, isi: sesudah });
             this.potong.splice(i + 1, 0, butir);
             this.simpanBernomor();
+            this.tertunda = { id: butir.id, posisi: 0 };
+            // Pengaman: bila butirnya tidak pernah mendapat fokus, ketikan kembali normal.
+            setTimeout(() => { if (this.tertunda?.id === butir.id) this.tertunda = null; }, 1000);
             this.fokusBaris(butir.id, 0);
         },
 
@@ -376,6 +394,12 @@ export default function editorRumusan(barisMinimal = 3, gayaAwal = 'ayat') {
         fokusBaris(id, posisi = null) {
             const terakhir = this.aktif?.id === id ? this.aktif.posisi : 'akhir';
             this.fokusElemen(`[data-baris="${id}"]`, (el) => {
+                // Huruf yang sempat ditahan (lihat tombol()) sudah masuk; kursor diletakkan sesudahnya.
+                if (this.tertunda?.id === id) {
+                    posisi = this.tertunda.posisi;
+                    el.value = this.potong.find((b) => b.id === id)?.isi ?? el.value;
+                }
+                this.tertunda = null;
                 let letak = posisi ?? terakhir;
                 if (letak === 'akhir') letak = el.value.length;
                 el.setSelectionRange(letak, letak);
