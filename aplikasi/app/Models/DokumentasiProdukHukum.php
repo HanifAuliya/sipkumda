@@ -1,0 +1,168 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use App\Support\Jdih;
+use App\Support\Status;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+
+class DokumentasiProdukHukum extends Model
+{
+    use HasFactory;
+
+    /**
+     * Batas panjang judul, sama dengan kolom di database. Form tidak menampilkan batas ini karena
+     * judul sewajarnya jauh lebih pendek; validasi hanya mencegah error database.
+     */
+    public const TENTANG_MAKS = 1000;
+
+    protected $table = 'dokumentasi_produk_hukum';
+
+    protected $fillable = [
+        'nomor',
+        'tahun',
+        'pola_nomor',
+        'tanggal_pengarsipan',
+        'file_produk_hukum',
+        'nomor_tahun_berita',
+        'tanggal_penetapan',
+        'perangkat_daerah_id',
+        'jenis_dokumentasi',
+        'tentang_dokumentasi'
+    ];
+
+    /** Naskah yang diarsipkan menjadi dokumentasi ini (kosong untuk dokumen yang ditetapkan sebelum ada sistem). */
+    public function naskah()
+    {
+        return $this->hasOne(Naskah::class, 'dokumentasi_id');
+    }
+
+    // Relasi ke Perangkat Daerah
+    public function perangkatDaerah()
+    {
+        return $this->belongsTo(PerangkatDaerah::class, 'perangkat_daerah_id');
+    }
+
+    /**
+     * Filter daftar dokumentasi; dipakai tabel, ekspor PDF, dan ekspor Excel.
+     */
+    public function scopeFilter($query, ?string $search, ?string $jenis, $tahun)
+    {
+        return $query
+            ->when($search, fn ($q) => $q->where(fn ($sub) => $sub
+                ->where('tentang_dokumentasi', 'like', "%{$search}%")
+                ->orWhere('nomor', $search)))
+            ->when($jenis, fn ($q) => $q->whereIn('jenis_dokumentasi', Status::varianJenis($jenis)))
+            ->when($tahun, fn ($q) => $q->where('tahun', $tahun));
+    }
+
+    /**
+     * Jalankan cek nomor + simpan secara bergiliran (kunci + transaksi), agar dua
+     * pengguna yang menyimpan nomor yang sama pada saat bersamaan tidak sama-sama lolos.
+     */
+    public static function denganNomorTerkunci(callable $simpan): mixed
+    {
+        return Cache::lock('nomor-dokumentasi', 15)->block(10, fn () => DB::transaction($simpan));
+    }
+
+    /** Apakah nomor sudah dipakai pada tahun yang sama (selain $exceptId). */
+    public static function nomorDipakai($nomor, $tahun, ?int $exceptId = null): bool
+    {
+        return self::where('tahun', $tahun)
+            ->where('nomor', $nomor)
+            ->when($exceptId, fn ($q) => $q->whereKeyNot($exceptId))
+            ->exists();
+    }
+
+    /**
+     * ✅ Mutator untuk menampilkan nomor dalam format: "Nomor 003 Tahun 2025"
+     */
+    /** Nomor/tahun Berita Daerah, atau null bila tidak dimuat (tersimpan "-/-", umumnya Keputusan Bupati). */
+    public function getBeritaDaerahAttribute(): ?string
+    {
+        $isi = trim((string) $this->nomor_tahun_berita);
+
+        return $isi === '' || trim($isi, '-/ ') === '' ? null : $isi;
+    }
+
+    public function getNomorFormattedAttribute()
+    {
+        // Keputusan Bupati bernomor lengkap, mis. "Nomor 140/1/412.1.6/TAHUN 2025".
+        if ($lengkap = $this->nomor_lengkap) {
+            return "Nomor {$lengkap}";
+        }
+
+        // return "Nomor " . str_pad($this->nomor, 3, '0', STR_PAD_LEFT) . " Tahun " . $this->tahun;
+        return "Nomor " . $this->nomor . " Tahun " . $this->tahun;
+    }
+
+    /**
+     * Nomor lengkap dari pola yang disimpan saat diarsipkan, mis. "140/1/412.1.6/TAHUN 2025".
+     * Disusun saat ditampilkan, jadi tetap benar bila nomor urut atau tahunnya dibetulkan. Null bila tanpa pola.
+     */
+    public function getNomorLengkapAttribute(): ?string
+    {
+        return filled($this->pola_nomor)
+            ? \App\Support\FormatDokumen::nomorArsip($this->pola_nomor, (string) $this->nomor, (int) $this->tahun)
+            : null;
+    }
+
+
+    /**
+     * ✅ Event untuk membuat nomor otomatis saat creating
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Halaman JDIH publik di-cache; setiap perubahan arsip memperbarui cache tersebut.
+        static::saved(fn () => Jdih::segarkan());
+        static::deleted(fn () => Jdih::segarkan());
+
+        static::creating(function ($dokumentasi) {
+            $tahun = $dokumentasi->tahun;
+
+            // Pastikan nomor hanya berisi 3 digit angka
+            // $nomor = str_pad($dokumentasi->nomor, 3, '0', STR_PAD_LEFT);
+
+            // Gunakan nomor apa adanya tanpa padding nol
+            $nomor = $dokumentasi->nomor;
+
+            // Cek apakah nomor sudah ada di tahun ini
+            $existing = self::where('tahun', $tahun)
+                ->where('nomor', $nomor)
+                ->exists();
+
+            if ($existing) {
+                // Simpan pesan error di session agar bisa diakses di Livewire atau Controller
+                session()->flash('error_nomor', "Nomor {$nomor} untuk tahun {$tahun} sudah ada! Pilih nomor lain.");
+                return false; // Mencegah penyimpanan
+            }
+
+            // Simpan dalam format 3 digit
+            $dokumentasi->nomor = $nomor;
+            $dokumentasi->tahun = $tahun;
+        });
+
+        // Saat mengupdate data
+        static::updating(function ($dokumentasi) {
+            $tahun = $dokumentasi->tahun;
+            $nomor = $dokumentasi->nomor;
+
+            // Cek apakah nomor sudah ada di tahun yang sama (kecuali dirinya sendiri)
+            $existing = self::where('tahun', $tahun)
+                ->where('nomor', $nomor)
+                ->where('id', '!=', $dokumentasi->id) // Kecuali record yang sedang diupdate
+                ->exists();
+
+            if ($existing) {
+                // Kirim pesan error ke session
+                session()->flash('error_nomor', "Nomor {$nomor} untuk tahun {$tahun} sudah digunakan! Silakan pilih nomor lain.");
+                return false; // Mencegah update
+            }
+        });
+    }
+}

@@ -1,0 +1,128 @@
+# Panduan Perangkat Daerah
+
+Anda menyusun rancangan, mengajukannya ke Bagian Hukum, menyesuaikan rumusan yang diminta Peneliti,
+lalu mengajukan fasilitasi. Semua dikerjakan pada satu naskah. Saat fasilitasi Anda mengunggah naskah yang
+sudah direvisi sesuai hasil penelitian.
+
+## Masuk
+
+Masuk dengan **NIP** dan kata sandi di halaman SIFKUMDA. Akun baru menerima tautan aktivasi lewat
+email untuk membuat kata sandi. Bila Anda menerima **kata sandi sementara** dari Admin, Anda akan
+langsung diminta membuat kata sandi baru di halaman Profil.
+
+![Halaman masuk SIFKUMDA](../../public/img/panduan/umum-masuk.jpg)
+*Halaman masuk SIFKUMDA*
+
+**Tur pengenalan.** Saat pertama masuk, Dashboard menampilkan tur singkat yang menyorot menu Anda satu
+per satu. Tekan **Selanjutnya** untuk lanjut atau **Lewati tur**. Tur bisa diulang dari halaman **Panduan**
+(tombol **Ulangi Tur Pengenalan**) atau menu akun di kanan atas (**Tur Pengenalan**).
+
+![Tur pengenalan menyorot menu satu per satu](../../public/img/panduan/umum-tur.jpg)
+*Tur pengenalan menyorot menu satu per satu*
+
+## Menu Anda
+
+| Menu | Isi |
+|---|---|
+| Dashboard | Naskah yang menunggu tindakan Anda, dan semua naskah Anda |
+| Rancanganku | Tab **Draf** (belum diajukan atau dikembalikan untuk dilengkapi), **Sedang Diajukan**, dan **Pengajuan Diterima** |
+| Fasilitasiku | Naskah pada tahap fasilitasi |
+| Daftar Nota Dinas | Nota dinas dari Bagian Hukum |
+| Dokumentasi | Produk hukum yang sudah ditetapkan |
+
+Naskah yang sedang **giliran Anda** ditandai garis biru di kiri kartunya dan memiliki tombol **Kerjakan**.
+Di Dashboard, Giliran Anda diurutkan dari yang paling lama menunggu, dengan keterangan "Menunggu … hari"
+(oranye bila sudah lebih dari 7 hari).
+
+![Dashboard Perangkat Daerah: Giliran Anda dan ringkasan naskah](../../public/img/panduan/pd-dashboard.jpg)
+*Dashboard Perangkat Daerah: Giliran Anda dan ringkasan naskah*
+
+## 1. Mengajukan rancangan baru
+
+Sebelum mulai, buka **Rancanganku › Bahan Penting**. Isinya: template naskah Peraturan Bupati dan
+Keputusan Bupati, **Template Matriks** keduanya, **Contoh Nota Dinas Pengajuan**, dan **Daftar Periksa
+Pengajuan** berisi apa saja yang perlu disiapkan.
+
+1. Buka **Rancanganku › Ajukan Rancangan Baru**.
+2. Isi **Jenis Rancangan** (Peraturan Bupati atau Keputusan Bupati), **Tentang**, serta **Nomor** dan **Tanggal Nota Dinas PD**.
+   **Tentang** adalah judul rancangan: judul naskah dan bunyi "Menetapkan" diisi otomatis darinya, juga
+   bila file Word diunggah, jadi judul cukup diketik sekali di sini.
+3. Unggah **Nota Dinas Perangkat Daerah** (PDF yang sudah ditandatangani, wajib). Contohnya ada di Bahan Penting.
+4. Bila punya file Word rancangan, pilih **Bentuk File Rancangan**:
+   - **Naskah Rancangan**: ditulis seperti naskah yang dicetak (judul, Menimbang, Mengingat, pasal atau diktum).
+   - **Matriks**: tabel dengan kolom materi dan rumusan.
+
+   Lalu unggah filenya. Tanpa file Word, isi rancangan diketik langsung di langkah berikutnya.
+   Hasil baca paling akurat bila memakai **Template Peraturan Bupati** atau **Template Keputusan Bupati** di
+   tombol **Bahan Penting** (selalu tersedia), atau tautan template di formulir.
+5. Tekan **Lanjutkan**. Anda dibawa ke **layar kerja** naskah.
+
+![Formulir Ajukan Rancangan Baru](../../public/img/panduan/pd-ajukan.jpg)
+*Formulir Ajukan Rancangan Baru*
+
+## 2. Menyusun di layar kerja
+
+- Panel kiri berisi bagian naskah (Judul, Menimbang, Mengingat, Batang Tubuh per BAB, Penutup, Lampiran).
+  Tanda centang hijau berarti bagian itu sudah terisi. Bagian yang masih berisi isian **"…"** dari template
+  belum dianggap terisi.
+- Ketik rumusan di kotak **Rumusan**. Penomoran (a., 1., (1)) dan tabel ditampilkan seperti hasil cetak.
+- **Pratinjau Naskah** di kanan menunjukkan hasil cetaknya.
+- Tab **Naskah** untuk membaca seluruh naskah dan mengunduh Word/PDF; tab **Berkas** untuk lampiran.
+- Judul diubah lewat **Lainnya › Ubah Judul** (atau tombol **Ubah Judul** di bagian Judul). Judul
+  pengajuan, judul naskah, dan bunyi "Menetapkan" ikut berubah bersama.
+- Selama belum diajukan, draf bisa dibuang lewat **Lainnya › Buang Draf**.
+- Bila semua bagian sudah benar, tekan **Ajukan**. Nomor rancangan (mis. PB-2026-012) diberikan saat itu.
+  Tombol **Ajukan** terkunci selama masih ada isian **"…"** dari template (kecuali nomor, tahun, dan tanggal
+  penetapan). Daftar **hal perlu diperiksa** di atas matriks menyebut bagiannya; tekan untuk membukanya.
+
+Sesudah diajukan, rumusan awal tidak bisa diubah lagi; perubahan berikutnya lewat kolom penyempurnaan.
+
+![Layar kerja: bagian naskah di kiri, rumusan di tengah, pratinjau di kanan](../../public/img/panduan/pd-layar-kerja.jpg)
+*Layar kerja: bagian naskah di kiri, rumusan di tengah, pratinjau di kanan*
+
+## 3. Menyesuaikan rumusan (Perbaikan PD)
+
+Bila Peneliti meminta perbaikan, naskah kembali menjadi giliran Anda dengan tahap **Perbaikan PD**.
+
+1. Buka naskah (**Kerjakan**). Baris yang perlu diperbaiki ditandai dan disertai keterangan Peneliti.
+2. Tekan **Perbaiki Rumusan**, ubah isinya, lalu simpan; atau **Sudah Disesuaikan** bila rumusannya sudah benar.
+   Anda juga bisa **Sisipkan Baris** (misalnya pasal baru) atau **Hapus Rumusan** untuk mengusulkan baris
+   dihapus. Semua perubahan Anda diperiksa Peneliti; sisipan yang belum diperiksa masih bisa dibuang dengan
+   **Hapus Baris**.
+3. Setelah semua baris selesai, tekan **Kirim tindak lanjut**.
+
+![Perbaikan PD: baris yang diminta Peneliti beserta keterangannya](../../public/img/panduan/pd-perbaikan.jpg)
+*Perbaikan PD: baris yang diminta Peneliti beserta keterangannya*
+
+## 4. Mengajukan fasilitasi
+
+Setelah rancangan disetujui Verifikator (tahap **Rancangan Disetujui**), ajukan fasilitasi untuk dicek
+Peneliti sebelum nota dinas terbit. Naskah hasil perbaikan **tidak perlu diunggah**: SIFKUMDA menyusunnya
+otomatis dari matriks, yang sudah memuat seluruh hasil penelitian.
+
+1. Buka naskah dari menu **Fasilitasiku**.
+2. Bila masih ada yang perlu disempurnakan, Anda bisa memperbaiki, menyisipkan, atau mengusulkan hapus baris
+   seperti pada Perbaikan PD. Perubahan ini diperiksa Peneliti saat fasilitasi.
+3. Tekan **Ajukan fasilitasi**, lalu **Lihat naskah** untuk memeriksa naskah hasil perbaikan, lalu **Lanjutkan**.
+
+Bila Peneliti atau Verifikator meminta perbaikan (tahap **Perbaikan Fasilitasi**), sesuaikan baris yang
+ditandai seperti pada Perbaikan PD, lalu **Kirim ke Peneliti**.
+
+## 5. Sesudah fasilitasi
+
+- Bagian Hukum menerbitkan **nota dinas**. Anda bisa mengunduhnya di halaman **Nota Dinas & Tanda Tangan**
+  naskah itu atau di menu **Daftar Nota Dinas**.
+
+![Daftar Nota Dinas](../../public/img/panduan/pd-nota-dinas.jpg)
+*Daftar Nota Dinas*
+- Paraf dan tanda tangan basah dicatat oleh Bagian Hukum; Anda mendapat notifikasi tiap tahapnya.
+- Setelah ditetapkan dan diarsipkan, produk hukum muncul di menu **Dokumentasi** dan di JDIH.
+
+## Pertanyaan umum
+
+**Naskah saya tertahan lama.** Lihat kartunya: tertulis tahap dan siapa yang memegang giliran.
+
+**Salah mengajukan atau isinya keliru setelah diajukan.** Hubungi Bagian Hukum; Admin bisa mengembalikan
+atau menghapus rancangan.
+
+**Lupa kata sandi.** Pakai **Lupa password?** di halaman masuk, atau minta kata sandi sementara ke Admin.

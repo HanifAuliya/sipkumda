@@ -1,0 +1,790 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/open-sans';
+@import './ikon.css';
+
+@plugin '@tailwindcss/forms';
+
+@source '../views';
+@source '../../app';
+
+/* Dark mode dikendalikan class "dark" pada <html> (lihat resources/js/theme.js). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+    --font-sans: 'Open Sans Variable', ui-sans-serif, system-ui, sans-serif;
+
+    /* Warna utama (indigo khas Argon). */
+    --color-primary-50: #eef0fd;
+    --color-primary-100: #e0e4fb;
+    --color-primary-200: #c6cdf8;
+    --color-primary-300: #a3aef2;
+    --color-primary-400: #8090eb;
+    --color-primary-500: #5e72e4;
+    --color-primary-600: #4a5cd6;
+    --color-primary-700: #3d4bbc;
+    --color-primary-800: #343f98;
+    --color-primary-900: #2f3878;
+    --color-primary-950: #1d2147;
+
+    /* Navy untuk topbar & teks tegas. */
+    --color-navy-50: #f2f5fa;
+    --color-navy-100: #e3e9f3;
+    --color-navy-200: #c3cfe3;
+    --color-navy-300: #94a8c9;
+    --color-navy-400: #5f7aa8;
+    --color-navy-500: #3e5a8a;
+    --color-navy-600: #2f4672;
+    --color-navy-700: #26395d;
+    --color-navy-800: #1d3054;
+    --color-navy-900: #172b4d;
+    --color-navy-950: #0d1a31;
+
+    /* Aksen menu aktif & hijau logo. */
+    --color-accent-500: #fb6340;
+    --color-accent-600: #ea4f2b;
+    --color-brand-500: #2dce89;
+    --color-brand-600: #24a46d;
+
+    --color-surface: #f8f9fe;
+
+    /* Permukaan datar: garis tipis dan bayangan sangat halus, supaya isi yang menonjol, bukan kotaknya. */
+    --shadow-card: 0 0 0 1px rgb(15 23 42 / 0.06), 0 1px 2px rgb(15 23 42 / 0.04);
+    --shadow-soft: 0 1px 2px rgb(15 23 42 / 0.1);
+
+    --animate-fade-in: fade-in 0.25s ease-out;
+    --animate-marquee: marquee 30s linear infinite;
+    /* Beranda publik: isi naik saat halaman dibuka, kartu mengapung pelan, latar bergeser lambat. */
+    --animate-naik: naik 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+    --animate-apung: apung 6s ease-in-out infinite;
+    --animate-hanyut: hanyut 16s ease-in-out infinite alternate;
+    --animate-isi: isi 1.6s cubic-bezier(0.16, 1, 0.3, 1) 0.9s both;
+
+    @keyframes naik {
+        from { opacity: 0; transform: translateY(1.25rem); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes apung {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-0.5rem); }
+    }
+
+    @keyframes hanyut {
+        from { transform: translate(0, 0) scale(1); }
+        to { transform: translate(2.5rem, 1.5rem) scale(1.12); }
+    }
+
+    @keyframes isi {
+        from { transform: scaleX(0); }
+        to { transform: scaleX(1); }
+    }
+
+    @keyframes fade-in {
+        from { opacity: 0; transform: translateY(4px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes marquee {
+        from { transform: translateX(0); }
+        to { transform: translateX(-50%); }
+    }
+}
+
+/*
+ * Tema gelap: skala warna dipetakan ulang di sini, jadi semua kelas warna ikut berubah
+ * tanpa menyentuh tema terang. Tingkatannya: navy-950 halaman, navy-900 kartu dan bingkai aplikasi,
+ * navy-800 permukaan yang terangkat atau disorot, navy-700 garis tepi.
+ */
+.dark {
+    color-scheme: dark;
+    scrollbar-color: var(--color-navy-600) transparent;
+
+    --color-navy-50: #f1f4f8;
+    --color-navy-100: #e2e7ef;
+    --color-navy-200: #c8d0dd;
+    --color-navy-300: #a6b1c4;
+    --color-navy-400: #8592a9;
+    --color-navy-500: #5f6d88;
+    --color-navy-600: #46536d;
+    --color-navy-700: #323e56;
+    --color-navy-800: #252f44;
+    --color-navy-900: #1a2233;
+    --color-navy-950: #0e131d;
+
+    --color-surface: #0e131d;
+
+    /* Sedikit lebih tua dari tema terang, supaya teks putih di atasnya mudah dibaca. */
+    --color-primary-500: #5366dd;
+    --color-primary-600: #4656c8;
+    --color-accent-500: #cc451d;
+    --color-accent-600: #b23c19;
+
+    /* Dipakai sebagai warna teks, jadi lebih terang. Latar merah dan hijau bertulisan putih diatur langsung di komponennya. */
+    --color-slate-500: #8d9ab0;
+    --color-rose-500: #ff637e;
+    --color-brand-600: #26b97a;
+
+    --shadow-card: 0 1px 3px rgb(0 0 0 / 0.35);
+    --shadow-soft: 0 1px 2px rgb(0 0 0 / 0.4);
+}
+
+/* Kertas naskah selalu putih, jadi warna di dalamnya tetap warna tema terang. */
+.dark .v2-kertas,
+.dark .kertas-pratinjau {
+    color-scheme: light;
+    --color-slate-500: oklch(55.4% 0.046 257.417);
+    --color-rose-500: oklch(64.5% 0.246 16.439);
+}
+
+/* Perpindahan tema memudar halus (lihat resources/js/theme.js). */
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation-duration: 220ms;
+}
+
+/* Ikon tombol tema: bulan dan matahari saling berganti sambil berputar. */
+.ikon-tema {
+    width: 1.375rem;
+    height: 1.375rem;
+    overflow: visible;
+
+    & > * {
+        transform-box: view-box;
+        transform-origin: 12px 12px;
+        transition:
+            transform 380ms cubic-bezier(0.34, 1.45, 0.64, 1),
+            opacity 180ms ease-out,
+            rotate 300ms ease-out;
+    }
+}
+
+.ikon-matahari {
+    opacity: 0;
+    transform: rotate(-90deg) scale(0.4);
+}
+
+.tombol-tema:hover .ikon-bulan {
+    rotate: -14deg;
+}
+
+.tombol-tema:hover .ikon-matahari {
+    rotate: 30deg;
+}
+
+.tombol-tema:active .ikon-tema {
+    scale: 0.88;
+}
+
+.dark .ikon-bulan {
+    opacity: 0;
+    transform: rotate(90deg) scale(0.4);
+}
+
+.dark .ikon-matahari {
+    opacity: 1;
+    transform: none;
+    color: var(--color-amber-300);
+}
+
+/* Penanda perubahan pada rumusan penyempurnaan (v2). */
+.v2-diff del {
+    background: rgb(244 63 94 / 0.15);
+    color: #be123c;
+}
+
+.v2-diff ins {
+    background: rgb(16 185 129 / 0.18);
+    color: #047857;
+    text-decoration: none;
+}
+
+.dark .v2-diff del {
+    color: #fda4af;
+}
+
+.dark .v2-diff ins {
+    color: #6ee7b7;
+}
+
+/* Kertas naskah selalu putih, juga pada mode gelap. */
+.v2-kertas del,
+.dark .v2-kertas del {
+    color: #be123c;
+}
+
+.v2-kertas ins,
+.dark .v2-kertas ins {
+    color: #047857;
+}
+
+@layer base {
+    html {
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+        @apply bg-surface text-slate-700 antialiased dark:bg-navy-950 dark:text-slate-300;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        @apply text-navy-900 dark:text-white;
+    }
+
+    [x-cloak] {
+        display: none !important;
+    }
+
+    /* Ikon mengikuti ukuran teks dan kotaknya pas selebar 1em, sehingga selalu sejajar di tengah tombol. */
+    .bi {
+        display: inline-block;
+        flex-shrink: 0;
+        line-height: 1;
+        vertical-align: -0.125em;
+    }
+
+    /* Semua yang bisa diklik berubah dengan halus dan langsung merespons sentuhan. */
+    a,
+    button,
+    summary,
+    [role="tab"],
+    [role="button"] {
+        transition-property: color, background-color, border-color, box-shadow, opacity, transform;
+        transition-duration: 150ms;
+        touch-action: manipulation;
+    }
+
+    a:focus-visible,
+    button:focus-visible,
+    summary:focus-visible,
+    [role="tab"]:focus-visible {
+        outline: 2px solid var(--color-primary-400);
+        outline-offset: 2px;
+    }
+
+    /* Tailwind 4 tidak lagi memberi kursor tangan pada tombol. */
+    button:not(:disabled),
+    [role="button"]:not([aria-disabled="true"]),
+    select:not(:disabled),
+    summary,
+    input[type="checkbox"]:not(:disabled),
+    input[type="radio"]:not(:disabled),
+    label:has(input[type="checkbox"]:not(:disabled), input[type="radio"]:not(:disabled)),
+    input[type="file"]:not(:disabled)::file-selector-button {
+        cursor: pointer;
+    }
+}
+
+/*
+ * Daftar pilihan <select> bergaya sama dengan dropdown menu. Kotak tertutupnya tidak berubah,
+ * termasuk panahnya (dari @tailwindcss/forms). Hanya didukung Chrome/Edge 135+; browser lain
+ * tetap menampilkan daftar bawaan, dan cara kerja form maupun wire:model tidak berubah.
+ */
+@layer base {
+    @supports (appearance: base-select) {
+        select:not([multiple], [size]),
+        select:not([multiple], [size])::picker(select) {
+            appearance: base-select;
+        }
+
+        select:not([multiple], [size]) {
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        select::picker-icon {
+            display: none;
+        }
+
+        ::picker(select) {
+            box-sizing: border-box;
+            /* Selebar pilihan terpanjang; bila mentok di kanan layar, daftar membuka ke kiri. */
+            width: max-content;
+            min-width: anchor-size(width);
+            max-width: min(32rem, calc(100vw - 1.5rem));
+            position-try-fallbacks: flip-block, flip-inline, flip-block flip-inline;
+            /* Chrome memilih sisi yang paling lega; di sini selalu ke bawah selama masih muat. */
+            position-try-order: normal;
+            max-height: min(20rem, 60dvh);
+            margin-block: 0.5rem;
+            padding: 0.375rem;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            scrollbar-width: thin;
+            border: 0;
+            border-radius: var(--radius-2xl);
+            background-color: var(--color-white);
+            color: var(--color-slate-700);
+            box-shadow:
+                0 0 0 1px rgb(15 23 42 / 0.05),
+                0 20px 25px -5px rgb(23 43 77 / 0.1),
+                0 8px 10px -6px rgb(23 43 77 / 0.1);
+            transform-origin: top;
+            opacity: 0;
+            translate: 0 -0.5rem;
+            scale: 0.95;
+            transition:
+                opacity 100ms ease-in,
+                translate 100ms ease-in,
+                scale 100ms ease-in,
+                display 100ms allow-discrete,
+                overlay 100ms allow-discrete;
+        }
+
+        select:open::picker(select) {
+            opacity: 1;
+            translate: 0 0;
+            scale: 1;
+            transition-duration: 200ms;
+            transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @starting-style {
+            select:open::picker(select) {
+                opacity: 0;
+                translate: 0 -0.5rem;
+                scale: 0.95;
+            }
+        }
+
+        select option {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+            min-height: 2.5rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: var(--radius-lg);
+            font-size: var(--text-sm);
+            line-height: var(--text-sm--line-height);
+            white-space: normal;
+            cursor: pointer;
+            transition: background-color 150ms, color 150ms;
+        }
+
+        select option:hover,
+        select option:focus-visible {
+            outline: none;
+            background-color: var(--color-primary-50);
+            color: var(--color-primary-700);
+        }
+
+        select option:checked {
+            font-weight: 600;
+            color: var(--color-primary-700);
+        }
+
+        /* Centang di kanan, memakai ikon yang sama dengan bagian lain aplikasi. */
+        select option::checkmark {
+            order: 1;
+            margin-left: auto;
+            content: "\e182";
+            font-family: "Phosphor";
+            font-size: 1rem;
+            color: var(--color-primary-600);
+        }
+
+        select option:disabled {
+            cursor: default;
+            color: var(--color-slate-400);
+            background-color: transparent;
+        }
+
+        :where(.dark) ::picker(select) {
+            background-color: var(--color-navy-800);
+            color: var(--color-slate-200);
+            box-shadow:
+                0 0 0 1px rgb(255 255 255 / 0.1),
+                0 20px 25px -5px rgb(0 0 0 / 0.4),
+                0 8px 10px -6px rgb(0 0 0 / 0.4);
+        }
+
+        :where(.dark) select option:hover,
+        :where(.dark) select option:focus-visible {
+            background-color: color-mix(in oklab, var(--color-primary-500) 15%, transparent);
+            color: var(--color-white);
+        }
+
+        :where(.dark) select option:checked {
+            color: var(--color-primary-300);
+        }
+
+        :where(.dark) select option::checkmark {
+            color: var(--color-primary-300);
+        }
+
+        :where(.dark) select option:disabled {
+            color: var(--color-slate-500);
+            background-color: transparent;
+        }
+
+        @media (max-width: 639px) {
+            select option {
+                font-size: var(--text-base);
+                min-height: 2.75rem;
+            }
+        }
+    }
+}
+
+@layer components {
+    /* Kontrol form dasar; dipakai komponen <x-form.*>. */
+    .form-control {
+        @apply block w-full rounded-lg border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-700 shadow-xs
+            max-sm:text-base
+            placeholder:text-slate-400
+            focus:border-primary-400 focus:ring-3 focus:ring-primary-100
+            disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400
+            dark:border-navy-700 dark:bg-navy-900 dark:text-slate-200 dark:placeholder:text-slate-500
+            dark:focus:border-primary-500 dark:focus:ring-primary-500/20;
+    }
+
+    .form-control-invalid {
+        @apply border-rose-300 focus:border-rose-400 focus:ring-rose-100 dark:border-rose-500/60;
+    }
+
+    /* Item menu samping. Warnanya mengikuti aria-current, jadi bisa berpindah seketika saat diklik. */
+    .menu-item {
+        @apply relative z-[1] flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 lg:py-2
+            transition duration-150 ease-out hover:bg-slate-100 hover:text-navy-900 active:scale-[0.98]
+            dark:text-slate-300 dark:hover:bg-navy-800 dark:hover:text-white;
+
+        & > i {
+            @apply text-lg text-slate-400 transition-colors duration-150 ease-out dark:text-slate-500;
+        }
+
+        &:hover > i {
+            @apply text-slate-600 dark:text-slate-300;
+        }
+
+        /* Yang aktif cukup latar lembut dan teks berwarna; tidak perlu blok warna pekat. */
+        &[aria-current="page"] {
+            @apply bg-primary-50 font-semibold text-primary-700 hover:bg-primary-50 hover:text-primary-700
+                dark:bg-primary-500/15 dark:text-white dark:hover:bg-primary-500/15 dark:hover:text-white;
+
+            & > i {
+                @apply text-primary-600 dark:text-primary-300;
+            }
+        }
+    }
+
+    /* Latar lembut yang meluncur ke menu yang diklik (lihat resources/js/navigasi.js). */
+    .penanda-menu {
+        @apply pointer-events-none absolute top-0 right-3 left-3 rounded-lg bg-primary-50 opacity-0 dark:bg-primary-500/15;
+        transition:
+            transform 240ms cubic-bezier(0.4, 0, 0.2, 1),
+            height 240ms cubic-bezier(0.4, 0, 0.2, 1),
+            opacity 120ms ease-out;
+    }
+
+    [data-penanda-siap] .menu-item[aria-current="page"] {
+        @apply bg-transparent hover:bg-transparent dark:bg-transparent dark:hover:bg-transparent;
+    }
+
+    /*
+     * Efek ketikan pada layar masuk aplikasi. Teksnya diam dan penutupnya yang bergeser: animasi
+     * transform dan opacity dijalankan GPU, jadi tetap mulus walau browser sedang sibuk memuat aplikasi.
+     */
+    .ketik-masuk {
+        position: relative;
+        overflow: hidden;
+        padding-right: 4px;
+        white-space: nowrap;
+    }
+
+    .ketik-tutup {
+        position: absolute;
+        inset: 0;
+        will-change: transform;
+        animation: ketik-masuk 1.7s cubic-bezier(0.3, 0.1, 0.4, 1) both;
+    }
+
+    .ketik-kursor {
+        position: absolute;
+        top: 0.1em;
+        bottom: 0.1em;
+        left: 0;
+        width: 2px;
+        border-radius: 1px;
+        background: orange;
+        animation: kursor-masuk 0.8s ease-in-out infinite alternate;
+    }
+
+    /* Blok abu-abu pada kerangka halaman. */
+    .kerangka-blok {
+        @apply rounded-md bg-slate-200 dark:bg-navy-800;
+    }
+
+    /* Panel samping tetap bisa digulir, hanya batang gulirnya yang disembunyikan. */
+    .tanpa-scrollbar {
+        scrollbar-width: none;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+    }
+
+    /* Tepi bawah memudar: tanda bahwa menu masih bisa digeser walau tanpa scrollbar. */
+    .menu-pudar {
+        mask-image: linear-gradient(to bottom, black calc(100% - 1.5rem), transparent);
+    }
+
+    /* Isi halaman lama meredup sampai halaman baru datang. */
+    .sedang-pindah {
+        @apply pointer-events-none opacity-50;
+        transition: opacity 150ms ease-out;
+    }
+
+    /* Isi panduan (Markdown dari docs/panduan). */
+    .isi-panduan {
+        @apply text-sm leading-relaxed text-slate-700 dark:text-slate-300;
+
+        & h1 { @apply mb-4 text-xl font-bold text-navy-900 dark:text-white; }
+        & h2 { @apply mt-8 mb-3 border-t border-slate-100 pt-6 text-base font-bold text-navy-900 dark:border-navy-800 dark:text-white; }
+        & h3 { @apply mt-5 mb-2 font-semibold text-navy-900 dark:text-white; }
+        & p { @apply my-3; }
+        & ul { @apply my-3 list-disc space-y-1.5 pl-5; }
+        & ol { @apply my-3 list-decimal space-y-1.5 pl-5; }
+        & li > ul, & li > ol { @apply my-1.5; }
+        & strong { @apply font-semibold text-navy-900 dark:text-white; }
+        & code { @apply rounded bg-slate-100 px-1.5 py-0.5 text-[0.85em] text-navy-900 dark:bg-navy-800 dark:text-slate-200; }
+        & table { @apply my-4 w-full border-collapse text-left; }
+        & th { @apply border-b border-slate-200 py-2 pr-4 font-semibold text-slate-500 dark:border-navy-700 dark:text-slate-400; }
+        & td { @apply border-b border-slate-100 py-2 pr-4 align-top dark:border-navy-800; }
+        /* Screenshot: bingkai tipis, keterangan miring di bawahnya. */
+        & img { @apply mt-4 mb-1.5 w-full rounded-xl shadow-card ring-1 ring-slate-200 dark:ring-navy-700; }
+        & p:has(> img) { @apply mb-6; }
+        & p:has(> img) em { @apply block text-center text-xs text-slate-500 not-italic dark:text-slate-400; }
+    }
+
+    /* Tabel data standar. */
+    .table-base {
+        @apply w-full border-separate border-spacing-0 text-left text-sm tabular-nums;
+
+        /* Kepala tabel tenang: tanpa latar, hanya garis bawah, supaya isi baris yang menonjol. */
+        & thead th {
+            @apply border-b border-slate-200 px-3 pt-1 pb-3 text-sm font-medium whitespace-nowrap
+                text-slate-500 dark:border-navy-700 dark:text-slate-400;
+        }
+
+        /* Isi sejajar di tengah baris, termasuk tombol aksi. */
+        & tbody td {
+            @apply border-b border-slate-100 px-3 py-4 align-middle text-slate-700 dark:border-navy-800 dark:text-slate-300;
+        }
+
+        & tbody tr:last-child td {
+            @apply border-b-0;
+        }
+
+        /* Sejajarkan tepi tabel dengan padding kartu (tabel dibuat full-bleed oleh <x-ui.table>). */
+        & :is(th, td):first-child {
+            @apply pl-5 sm:pl-6;
+        }
+
+        & :is(th, td):last-child {
+            @apply pr-5 sm:pr-6;
+        }
+
+        & tbody tr {
+            @apply transition-colors duration-100 hover:bg-slate-50 dark:hover:bg-navy-800/50;
+        }
+
+        /* Kolom Aksi (kolom terakhir rata kanan) tetap terlihat saat tabel digeser di layar sempit. */
+        &:has(thead th.text-right:last-child) :is(thead th, tbody td:not([colspan])):last-child {
+            @apply max-xl:sticky max-xl:right-0 max-xl:z-[1] max-xl:bg-white max-xl:pl-3
+                max-xl:shadow-[-10px_0_10px_-10px_rgb(23_43_77/0.25)] dark:max-xl:bg-navy-900;
+        }
+
+        &:has(thead th.text-right:last-child) thead th:last-child {
+            @apply max-xl:bg-white dark:max-xl:bg-navy-900;
+        }
+
+        &:has(thead th.text-right:last-child) tbody tr:hover td:not([colspan]):last-child {
+            @apply max-xl:bg-slate-50 dark:max-xl:bg-navy-800;
+        }
+    }
+
+    /* Isi sel: nilai utama tegas, keterangan lebih lembut. Judul panjang dibatasi dua baris. */
+    .sel-utama {
+        @apply font-semibold text-navy-900 dark:text-white;
+    }
+
+    .sel-kedua {
+        @apply text-sm text-slate-500 dark:text-slate-400;
+    }
+
+    .sel-judul {
+        @apply line-clamp-2;
+    }
+
+    /* Teks konten panjang (catatan, deskripsi). */
+    .prose-note {
+        @apply text-sm leading-relaxed whitespace-pre-line text-slate-600 dark:text-slate-300;
+    }
+}
+
+/* Garis muat di atas layar saat pindah menu dan ganti tab (resources/js/navigasi.js). Oranye aksen
+   supaya jelas di atas header biru tua maupun latar terang. */
+.garis-muat {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: 1100;
+    height: 3px;
+    overflow: hidden;
+    pointer-events: none;
+    transition: opacity 250ms linear;
+
+    & > div {
+        height: 100%;
+        background: var(--color-accent-500);
+        box-shadow: 0 0 8px var(--color-accent-500);
+        transform: translate3d(-100%, 0, 0);
+        transition: transform 200ms ease;
+    }
+}
+
+@keyframes ketik-masuk {
+    from { transform: translateX(0); }
+    to { transform: translateX(calc(100% - 4px)); }
+}
+
+@keyframes kursor-masuk {
+    from { opacity: 1; }
+    to { opacity: 0.15; }
+}
+
+/* Menu diciutkan. Di luar layer supaya menang atas lebar bawaan pada elemennya. */
+@media (min-width: 64rem) {
+    /* Animasi lebar hanya saat tombol ciut ditekan, tidak saat berpindah halaman. */
+    html[data-menu-gerak] [data-menu-utama] {
+        transition: width 200ms ease-out;
+    }
+
+    html[data-menu-gerak] [data-konten-utama] {
+        transition: padding-left 200ms ease-out;
+    }
+
+    html[data-menu-ciut] [data-menu-utama] {
+        width: 5rem;
+    }
+
+    html[data-menu-ciut] [data-konten-utama] {
+        padding-left: 5rem;
+    }
+
+    html[data-menu-ciut] [data-ciut-tengah] {
+        justify-content: center;
+        padding-inline: 0;
+    }
+
+    html[data-menu-ciut] [data-ciut-sembunyi] {
+        display: none;
+    }
+
+    html[data-menu-ciut] [data-ciut-tampil] {
+        display: block;
+    }
+}
+
+/*
+ * Di luar layer supaya menang atas aturan dasar di ikon.css.
+ * Gambar Phosphor punya ruang kosong di tepinya; scale memperbesar gambarnya tanpa mengubah lebar kotak ikon.
+ */
+.bi::before {
+    display: block;
+    transform: scale(1.12);
+    vertical-align: 0;
+}
+
+/* Lonceng berayun dari gantungannya, dan lencana berdenyut tiga kali lalu diam supaya tidak mengganggu. */
+@keyframes lonceng-ayun {
+    0%, 100% { transform: rotate(0); }
+    15% { transform: rotate(16deg); }
+    30% { transform: rotate(-14deg); }
+    45% { transform: rotate(10deg); }
+    60% { transform: rotate(-7deg); }
+    75% { transform: rotate(4deg); }
+    90% { transform: rotate(-2deg); }
+}
+
+@keyframes lencana-denyut {
+    0% { opacity: 0.7; transform: scale(1); }
+    80%, 100% { opacity: 0; transform: scale(2.2); }
+}
+
+.ikon-lonceng {
+    transform-origin: 50% 10%;
+}
+
+.tombol-lonceng:hover .ikon-lonceng,
+.tombol-lonceng:focus-visible .ikon-lonceng,
+.ikon-lonceng.berayun {
+    animation: lonceng-ayun 0.8s ease-in-out;
+}
+
+/* Bola hiasan (komponen ui.bola): melayang pelan dengan lintasan dan tempo berbeda supaya tidak seirama. */
+.bola-melayang-a { animation: bola-a 18s ease-in-out infinite; }
+.bola-melayang-b { animation: bola-b 24s ease-in-out infinite; }
+.bola-melayang-c { animation: bola-c 13s ease-in-out infinite; }
+
+@keyframes bola-a {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(-1.75rem, 1.25rem) scale(1.06); }
+    66% { transform: translate(1rem, 2rem) scale(0.96); }
+}
+
+@keyframes bola-b {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(-2.5rem, -1.5rem) scale(1.1); }
+}
+
+@keyframes bola-c {
+    0%, 100% { transform: translate(0, 0); }
+    25% { transform: translate(1.5rem, 1rem); }
+    50% { transform: translate(2.5rem, -0.5rem); }
+    75% { transform: translate(0.75rem, -1.25rem); }
+}
+
+.lencana-denyut {
+    animation: lencana-denyut 1.4s ease-out 0.4s 3 both;
+}
+
+/* Hormati pengguna yang mematikan animasi di perangkatnya. */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* SweetAlert2 menyesuaikan tema aplikasi. */
+.swal2-popup {
+    @apply rounded-2xl! font-sans!;
+
+    /* Lewat variabel, supaya warna merah pada dialog hapus (window.confirmAction) tetap berlaku. */
+    --swal2-confirm-button-background-color: var(--color-primary-500);
+}
+
+.dark .swal2-popup {
+    @apply bg-navy-900! text-slate-200!;
+
+    --swal2-cancel-button-background-color: var(--color-navy-700);
+}
+
+.dark .swal2-title,
+.dark .swal2-html-container,
+.dark .swal2-input-label {
+    @apply text-slate-200!;
+}
+
+.dark .swal2-input,
+.dark .swal2-textarea,
+.dark .swal2-select {
+    @apply border-navy-700! bg-navy-800! text-slate-200!;
+}
+
+.dark .swal2-validation-message {
+    @apply bg-navy-800! text-rose-300!;
+}

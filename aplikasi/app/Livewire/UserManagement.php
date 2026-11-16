@@ -1,0 +1,444 @@
+<?php
+
+namespace App\Livewire;
+
+use App\Mail\AktivasiAkun;
+use App\Models\User;
+use App\Models\PerangkatDaerah;
+use App\Support\Wa\NomorWa;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+
+use Livewire\Attributes\Locked;
+use Livewire\Component;
+use Livewire\WithPagination;
+use Spatie\Permission\Models\Role;
+
+class UserManagement extends Component
+{
+    use WithPagination;
+
+    public $search = '';
+    public $page = 1;
+    public $perPage = 10;
+    public $sortField = 'id';
+    public $sortDirection = 'asc';
+    public $roleFilter = ''; // Filter berdasarkan role
+
+    // Hanya untuk tampilan. Hak akses tiap aksi selalu dicek ulang dari peran pengguna yang masuk
+    // (adminSekarang), bukan dari properti ini, karena properti publik Livewire bisa diubah dari peramban.
+    #[Locked]
+    public $isAdmin = false;
+    #[Locked]
+    public $isVerifier = false;
+
+
+    public $nama_user, $NIP, $email, $password, $role, $perangkat_daerah_id, $no_wa;
+    public $daftar_perangkat_daerah;
+    #[Locked]
+    public $userIdToEdit = null;
+
+    private const URUTAN = ['id', 'nama_user', 'NIP'];
+    private const PER_HALAMAN = [5, 10, 20, 50];
+
+    protected $queryString = [
+        'search' => ['except' => ''],
+        'sortField' => ['except' => 'id'],
+        'sortDirection' => ['except' => 'asc'],
+        'roleFilter' => ['except' => ''],
+        'perPage' => ['except' => '10'], // Untuk jumlah data per halaman
+        'page' => ['except' => 1],     // Untuk pagination
+    ];
+
+    protected $listeners = ['refreshTable' => '$refresh', 'deleteUser' => 'delete'];
+
+    public function mount()
+    {
+        $this->isAdmin = Auth::user()->hasRole(['Super Admin', 'Admin']);
+        $this->isVerifier = Auth::user()->hasRole(['Verifikator', 'Admin']);
+        $this->daftar_perangkat_daerah = PerangkatDaerah::all();
+
+        if (!$this->isAdmin && !$this->isVerifier) {
+            abort(403, 'Anda tidak memiliki akses ke halaman ini.');
+        }
+    }
+
+    private function adminSekarang(): bool
+    {
+        return (bool) Auth::user()?->hasRole(['Super Admin', 'Admin']);
+    }
+
+    /**
+     * Akun Super Admin hanya boleh diubah, dihapus, atau diberi kata sandi sementara oleh Super Admin,
+     * supaya Admin tidak bisa mengambil alih akun darurat itu.
+     */
+    private function bolehKelola(User $user): bool
+    {
+        return ! $user->hasRole('Super Admin') || Auth::user()->hasRole('Super Admin');
+    }
+
+    /** Peran yang boleh diberikan oleh pengguna yang masuk; Super Admin hanya oleh Super Admin. */
+    private function peranBisaDiberi()
+    {
+        return Role::orderBy('name')->pluck('name')
+            ->when(! Auth::user()->hasRole('Super Admin'), fn ($r) => $r->reject(fn ($n) => $n === 'Super Admin'))
+            ->values();
+    }
+
+    public function updatingSearch()
+    {
+        $this->resetPage(); // Reset pagination saat pencarian berubah
+    }
+
+    public function updatingPerPage()
+    {
+        $this->resetPage(); // Reset pagination saat jumlah per halaman berubah
+    }
+
+    public function updatingRoleFilter()
+    {
+        $this->resetPage();
+    }
+    public function updatingSortField()
+    {
+        $this->resetPage(); // Reset pagination saat sorting field berubah
+    }
+
+    public function sortBy($field)
+    {
+        // Hanya kolom yang memang bisa diurutkan
+        if (! in_array($field, self::URUTAN, true)) {
+            return;
+        }
+
+        if ($this->sortField === $field) {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortField = $field;
+            $this->sortDirection = 'asc';
+        }
+    }
+
+    public function store()
+    {
+        if (! $this->adminSekarang()) {
+            abort(403, 'Anda tidak memiliki izin untuk menambah pengguna.');
+        }
+        try {
+            $validated = $this->validate([
+                'nama_user' => 'required|string|max:255',
+                'NIP' => 'required|string|size:18|unique:users,NIP',
+                'email' => 'required|email:rfc,dns|lowercase|max:100|unique:users,email',
+                'role' => ['required', Rule::in($this->peranBisaDiberi()->all())],
+                'perangkat_daerah_id' => 'required|exists:perangkat_daerah,id',
+                'no_wa' => NomorWa::aturan(),
+            ], [], ['no_wa' => 'nomor WhatsApp']);
+            $validated['no_wa'] = NomorWa::normal($validated['no_wa'] ?? null);
+
+            // Password acak ini tidak diberikan kepada siapa pun; pengguna membuat sendiri lewat tautan aktivasi.
+            $validated['password'] = Hash::make(Str::random(64));
+
+            // Hapus role sebelum membuat user
+            $role = $validated['role'];
+            unset($validated['role']);
+
+            // Simpan user ke dalam variabel
+            $user = User::create($validated);
+
+            // Assign role ke user
+            $user->assignRole($role);
+
+            $this->resetInput();
+            $this->dispatch('closeModal', 'userModal');
+
+            if ($this->kirimAktivasi($user)) {
+                $this->dispatch('swal:modal', [
+                    'type' => 'success',
+                    'title' => 'Berhasil!',
+                    'message' => 'Pengguna ditambahkan. Tautan aktivasi sudah dikirim ke ' . $user->email . '.',
+                ]);
+            } else {
+                $this->dispatch('swal:modal', [
+                    'type' => 'warning',
+                    'title' => 'Email belum terkirim',
+                    'message' => 'Pengguna sudah ditambahkan, tetapi tautan aktivasi gagal dikirim. Coba lagi lewat tombol Kirim Ulang Aktivasi di baris pengguna tersebut.',
+                ]);
+            }
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Dispatch event untuk SweetAlert error validasi
+            $this->dispatch('swal:error', [
+                'type' => 'error',
+                'title' => 'Kesalahan!',
+                'message' => 'Ada kesalahan pada input data. Periksa kembali!',
+            ]);
+            // Tambahkan untuk debugging jika diperlukan
+            throw $e;
+        }
+    }
+
+
+
+    /**
+     * Jalan cadangan bila email tidak bisa dikirim: Admin membuat kata sandi sementara, menyampaikannya
+     * langsung kepada pengguna, dan pengguna wajib menggantinya saat pertama masuk. Kata sandi hanya
+     * ditampilkan sekali dan tidak disimpan dalam bentuk yang bisa dibaca.
+     */
+    public function buatSandiSementara($id)
+    {
+        if (! $this->adminSekarang()) {
+            abort(403, 'Anda tidak memiliki izin untuk mengatur kata sandi pengguna.');
+        }
+
+        $user = User::findOrFail($id);
+
+        if ($user->is(Auth::user())) {
+            abort(403, 'Kata sandi sendiri diganti lewat halaman Profil.');
+        }
+        abort_unless($this->bolehKelola($user), 403, 'Akun Super Admin hanya bisa diatur oleh Super Admin.');
+
+        // Tanpa huruf yang mudah tertukar (O/0, l/1) supaya bisa dibacakan atau ditulis tangan.
+        $sandi = User::buatSandiSementara();
+
+        $user->forceFill([
+            'password' => Hash::make($sandi),
+            'wajib_ganti_sandi' => true,
+            'email_verified_at' => $user->email_verified_at ?? now(),
+            'remember_token' => Str::random(60),
+        ])->save();
+
+        Log::notice('Admin membuat kata sandi sementara.', ['untuk' => $user->id, 'oleh' => Auth::id()]);
+
+        $this->sandiSementara = ['nama' => $user->nama_user, 'NIP' => $user->NIP, 'sandi' => $sandi];
+        $this->dispatch('openModal', 'modalSandiSementara');
+    }
+
+    /** Kata sandi sementara yang baru dibuat, untuk ditampilkan sekali; dikosongkan saat modal ditutup. */
+    public ?array $sandiSementara = null;
+
+    public function tutupSandiSementara(): void
+    {
+        $this->sandiSementara = null;
+    }
+
+    public function kirimUlangAktivasi($id)
+    {
+        if (! $this->adminSekarang()) {
+            abort(403, 'Anda tidak memiliki izin untuk mengirim aktivasi.');
+        }
+
+        $user = User::findOrFail($id);
+
+        // Akun yang sudah aktif memakai Lupa Password.
+        if ($user->email_verified_at) {
+            return;
+        }
+
+        $this->kirimAktivasi($user)
+            ? $this->dispatch('swal:toast', ['type' => 'success', 'message' => 'Tautan aktivasi dikirim ke ' . $user->email . '.'])
+            : $this->dispatch('swal:modal', ['type' => 'error', 'title' => 'Email gagal terkirim', 'message' => 'Periksa pengaturan email server, lalu coba lagi.']);
+    }
+
+    private function kirimAktivasi(User $user): bool
+    {
+        try {
+            Mail::to($user->email)->send(new AktivasiAkun($user));
+
+            return true;
+        } catch (\Throwable $e) {
+            report($e);
+
+            return false;
+        }
+    }
+
+    public function edit($id)
+    {
+        if (! $this->adminSekarang()) {
+            abort(403, 'Anda tidak memiliki izin untuk mengedit pengguna.');
+        }
+        // Reset error validasi sebelumnya
+        $this->resetErrorBag();
+        $this->resetValidation();
+
+        $user = User::findOrFail($id);
+        abort_unless($this->bolehKelola($user), 403, 'Akun Super Admin hanya bisa diubah oleh Super Admin.');
+        $this->userIdToEdit = $user->id;
+        $this->nama_user = $user->nama_user;
+        $this->NIP = $user->NIP;
+        $this->email = $user->email;
+        // Mengambil nama role pertama yang terkait dengan user
+        $this->role = $user->getRoleNames()->first(); // Pastikan hanya satu role yang diambil
+        $this->perangkat_daerah_id = $user->perangkat_daerah_id;
+        $this->no_wa = $user->no_wa ? NomorWa::tampil($user->no_wa) : '';
+
+        $this->dispatch('openModal', 'userModal');
+    }
+
+    public function create()
+    {
+        if (! $this->adminSekarang()) {
+            abort(403, 'Anda tidak memiliki izin untuk menambah pengguna.');
+        }
+
+        $this->resetInput();
+        $this->dispatch('openModal', 'userModal');
+    }
+
+    public function update()
+    {
+        if (! $this->adminSekarang()) {
+            abort(403, 'Anda tidak memiliki izin untuk mengubah pengguna.');
+        }
+
+        try {
+            $user = User::findOrFail($this->userIdToEdit);
+            abort_unless($this->bolehKelola($user), 403, 'Akun Super Admin hanya bisa diubah oleh Super Admin.');
+
+            // Validasi input
+            $validated = $this->validate([
+                'nama_user' => 'required|string|max:255',
+                'NIP' => [
+                    'required',
+                    'string',
+                    'size:18', // Harus tepat 18 karakter
+                    'unique:users,NIP,' . $user->id, // Pastikan unik kecuali untuk user yang sedang diedit
+                ],
+                'email' => [
+                    'required',
+                    'email:rfc,dns', // Memeriksa format email yang valid dan domain yang valid
+                    'lowercase', // Memastikan email disimpan dalam huruf kecil
+                    'max:100', // Batasan panjang email maksimal 100 karakter
+                    'unique:users,email,' . $user->id, // Pastikan email unik, kecuali untuk user yang sedang diedit
+                ],
+                'perangkat_daerah_id' => 'required|exists:perangkat_daerah,id',
+                'role' => ['required', 'string', Rule::in($this->peranBisaDiberi()->all())],
+                'no_wa' => NomorWa::aturan(),
+            ], [], ['no_wa' => 'nomor WhatsApp']);
+
+            // Perbarui data pengguna
+            $user->update([
+                'nama_user' => $validated['nama_user'],
+                'NIP' => $validated['NIP'],
+                'email' => $validated['email'],
+                'perangkat_daerah_id' => $validated['perangkat_daerah_id'],
+                'no_wa' => NomorWa::normal($validated['no_wa'] ?? null),
+            ]);
+
+            // Tetapkan role ke pengguna menggunakan Spatie
+            $user->syncRoles([$validated['role']]); // Role diatur menggunakan Spatie
+
+            // Reset input
+            $this->resetInput();
+
+            $this->dispatch('closeModal', 'userModal');
+            // Dispatch notifikasi sukses
+            $this->dispatch('swal:modal', [
+                'type' => 'success',
+                'title' => 'Berhasil!',
+                'message' => 'Pengguna berhasil diperbarui.',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Dispatch event untuk SweetAlert error validasi
+            $this->dispatch('swal:error', [
+                'type' => 'error',
+                'title' => 'Kesalahan!',
+                'message' => 'Ada kesalahan pada input data. Periksa kembali!',
+            ]);
+            // Tambahkan untuk debugging jika diperlukan
+            throw $e;
+        }
+    }
+
+    public function delete($id)
+    {
+        // Pastikan hanya admin yang bisa menghapus
+        if (! $this->adminSekarang()) {
+            abort(403, 'Anda tidak memiliki izin untuk menghapus pengguna.');
+        }
+
+        $user = User::findOrFail($id);
+
+        if ($user->is(Auth::user())) {
+            abort(403, 'Akun sendiri tidak bisa dihapus.');
+        }
+        abort_unless($this->bolehKelola($user), 403, 'Akun Super Admin hanya bisa dihapus oleh Super Admin.');
+
+        // Akun yang sudah punya naskah atau rancangan tetap disimpan, supaya riwayatnya tidak hilang.
+        try {
+            $user->delete();
+        } catch (\Illuminate\Database\QueryException) {
+            $this->dispatch('swal:modal', [
+                'type' => 'warning',
+                'title' => 'Tidak bisa dihapus',
+                'message' => "{$user->nama_user} sudah tercatat pada naskah atau rancangan, jadi akunnya disimpan. Bila orangnya pindah tugas, buat kata sandi sementara baru agar akun lama tidak bisa dipakai lagi, lalu buat akun untuk penggantinya.",
+            ]);
+
+            return;
+        }
+
+        // Kirim event ke frontend untuk menampilkan notifikasi sukses
+        $this->dispatch('swal:user', [
+            'type' => 'success',
+            'title' => 'Dihapus',
+            'message' => 'Pengguna berhasil dihapus!',
+        ]);
+    }
+
+
+    public function resetInput()
+    {
+        $this->nama_user = '';
+        $this->NIP = '';
+        $this->email = '';
+        $this->password = '';
+        $this->role = '';
+        $this->perangkat_daerah_id = null;
+        $this->no_wa = '';
+        $this->userIdToEdit = null;
+
+        // Reset error validasi sebelumnya
+        $this->resetErrorBag();
+        $this->resetValidation();
+    }
+
+    public function render()
+    {
+        // Nilai dari URL atau peramban dibatasi ke pilihan yang ada.
+        if (! in_array($this->sortField, self::URUTAN, true)) {
+            $this->sortField = 'id';
+        }
+        if (! in_array($this->sortDirection, ['asc', 'desc'], true)) {
+            $this->sortDirection = 'asc';
+        }
+        if (! in_array((int) $this->perPage, self::PER_HALAMAN, true)) {
+            $this->perPage = 10;
+        }
+
+        $users = User::with(['roles', 'perangkatDaerah']) // Eager loading relasi roles dan perangkat daerah
+            ->when($this->search, function ($query) {
+                // Dikelompokkan agar tidak "membatalkan" filter role
+                $query->where(function ($q) {
+                    $q->where('nama_user', 'like', '%' . $this->search . '%')
+                        ->orWhere('NIP', 'like', '%' . $this->search . '%')
+                        ->orWhere('email', 'like', '%' . $this->search . '%');
+                });
+            })
+            ->when($this->roleFilter, function ($query) {
+                $query->whereHas('roles', function ($q) {
+                    $q->where('name', $this->roleFilter);
+                });
+            })
+            ->orderBy($this->sortField, $this->sortDirection)
+            ->paginate($this->perPage);
+
+        return view('livewire.user-management', [
+            'users' => $users,
+            'peranDiberi' => $this->isAdmin ? $this->peranBisaDiberi() : collect(),
+            'bolehKelola' => fn (User $u) => $this->bolehKelola($u),
+        ])->layout('layouts.app');
+    }
+}

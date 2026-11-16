@@ -1,0 +1,10 @@
+# Branch produksi: dibuat GitHub Actions (.github/workflows/produksi.yml), jangan diubah manual.
+# Yang khusus server dan tidak boleh ikut repo:
+/aplikasi/.env
+/aplikasi/.env.*
+!/aplikasi/.env.example
+/aplikasi/storage/*.key
+/aplikasi/resources/fonts/*.[tT][tT][fF]
+/aplikasi/storage/fonts/
+/aplikasi/public/hot
+/aplikasi/public/storage

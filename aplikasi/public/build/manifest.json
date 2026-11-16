@@ -1,0 +1,88 @@
+{
+  "node_modules/@fontsource-variable/open-sans/files/open-sans-cyrillic-ext-wght-normal.woff2": {
+    "file": "assets/open-sans-cyrillic-ext-wght-normal-D8xHCTEw.woff2",
+    "src": "node_modules/@fontsource-variable/open-sans/files/open-sans-cyrillic-ext-wght-normal.woff2"
+  },
+  "node_modules/@fontsource-variable/open-sans/files/open-sans-cyrillic-wght-normal.woff2": {
+    "file": "assets/open-sans-cyrillic-wght-normal-bOs07Rf4.woff2",
+    "src": "node_modules/@fontsource-variable/open-sans/files/open-sans-cyrillic-wght-normal.woff2"
+  },
+  "node_modules/@fontsource-variable/open-sans/files/open-sans-greek-ext-wght-normal.woff2": {
+    "file": "assets/open-sans-greek-ext-wght-normal-Bm9CHu9r.woff2",
+    "src": "node_modules/@fontsource-variable/open-sans/files/open-sans-greek-ext-wght-normal.woff2"
+  },
+  "node_modules/@fontsource-variable/open-sans/files/open-sans-greek-wght-normal.woff2": {
+    "file": "assets/open-sans-greek-wght-normal-8neIfJ3r.woff2",
+    "src": "node_modules/@fontsource-variable/open-sans/files/open-sans-greek-wght-normal.woff2"
+  },
+  "node_modules/@fontsource-variable/open-sans/files/open-sans-hebrew-wght-normal.woff2": {
+    "file": "assets/open-sans-hebrew-wght-normal-BjjtG49P.woff2",
+    "src": "node_modules/@fontsource-variable/open-sans/files/open-sans-hebrew-wght-normal.woff2"
+  },
+  "node_modules/@fontsource-variable/open-sans/files/open-sans-latin-ext-wght-normal.woff2": {
+    "file": "assets/open-sans-latin-ext-wght-normal-DPNHYqvY.woff2",
+    "src": "node_modules/@fontsource-variable/open-sans/files/open-sans-latin-ext-wght-normal.woff2"
+  },
+  "node_modules/@fontsource-variable/open-sans/files/open-sans-latin-wght-normal.woff2": {
+    "file": "assets/open-sans-latin-wght-normal-CWNzRldh.woff2",
+    "src": "node_modules/@fontsource-variable/open-sans/files/open-sans-latin-wght-normal.woff2"
+  },
+  "node_modules/@fontsource-variable/open-sans/files/open-sans-math-wght-normal.woff2": {
+    "file": "assets/open-sans-math-wght-normal-C1FvUlkR.woff2",
+    "src": "node_modules/@fontsource-variable/open-sans/files/open-sans-math-wght-normal.woff2"
+  },
+  "node_modules/@fontsource-variable/open-sans/files/open-sans-symbols-wght-normal.woff2": {
+    "file": "assets/open-sans-symbols-wght-normal-BAf6-sld.woff2",
+    "src": "node_modules/@fontsource-variable/open-sans/files/open-sans-symbols-wght-normal.woff2"
+  },
+  "node_modules/@fontsource-variable/open-sans/files/open-sans-vietnamese-wght-normal.woff2": {
+    "file": "assets/open-sans-vietnamese-wght-normal-UygKeDyW.woff2",
+    "src": "node_modules/@fontsource-variable/open-sans/files/open-sans-vietnamese-wght-normal.woff2"
+  },
+  "node_modules/@phosphor-icons/web/src/fill/Phosphor-Fill.woff2": {
+    "file": "assets/Phosphor-Fill-D4CDmGRg.woff2",
+    "src": "node_modules/@phosphor-icons/web/src/fill/Phosphor-Fill.woff2"
+  },
+  "node_modules/@phosphor-icons/web/src/regular/Phosphor.woff2": {
+    "file": "assets/Phosphor-DtdjzkpE.woff2",
+    "src": "node_modules/@phosphor-icons/web/src/regular/Phosphor.woff2"
+  },
+  "node_modules/chart.js/auto/auto.js": {
+    "file": "assets/auto-D9sMYOGp.js",
+    "name": "auto",
+    "src": "node_modules/chart.js/auto/auto.js",
+    "isDynamicEntry": true
+  },
+  "resources/css/app.css": {
+    "file": "assets/app-DM8hRrK2.css",
+    "name": "app",
+    "names": [
+      "app.css"
+    ],
+    "src": "resources/css/app.css",
+    "isEntry": true,
+    "assets": [
+      "assets/open-sans-cyrillic-ext-wght-normal-D8xHCTEw.woff2",
+      "assets/open-sans-cyrillic-wght-normal-bOs07Rf4.woff2",
+      "assets/open-sans-greek-ext-wght-normal-Bm9CHu9r.woff2",
+      "assets/open-sans-greek-wght-normal-8neIfJ3r.woff2",
+      "assets/open-sans-hebrew-wght-normal-BjjtG49P.woff2",
+      "assets/open-sans-math-wght-normal-C1FvUlkR.woff2",
+      "assets/open-sans-symbols-wght-normal-BAf6-sld.woff2",
+      "assets/open-sans-vietnamese-wght-normal-UygKeDyW.woff2",
+      "assets/open-sans-latin-ext-wght-normal-DPNHYqvY.woff2",
+      "assets/open-sans-latin-wght-normal-CWNzRldh.woff2",
+      "assets/Phosphor-DtdjzkpE.woff2",
+      "assets/Phosphor-Fill-D4CDmGRg.woff2"
+    ]
+  },
+  "resources/js/app.js": {
+    "file": "assets/app-HyXt16WO.js",
+    "name": "app",
+    "src": "resources/js/app.js",
+    "isEntry": true,
+    "dynamicImports": [
+      "node_modules/chart.js/auto/auto.js"
+    ]
+  }
+}

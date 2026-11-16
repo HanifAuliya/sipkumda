@@ -1,0 +1,50 @@
+<?php
+
+namespace Spatie\Permission\Contracts;
+
+use BackedEnum;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Spatie\Permission\Exceptions\RoleDoesNotExist;
+
+/**
+ * @property int|string $id
+ * @property string $name
+ * @property string|null $guard_name
+ *
+ * @mixin \Spatie\Permission\Models\Role
+ *
+ * @phpstan-require-extends \Spatie\Permission\Models\Role
+ */
+interface Role
+{
+    /**
+     * A role may be given various permissions.
+     */
+    public function permissions(): BelongsToMany;
+
+    /**
+     * Find a role by its name and guard name.
+     *
+     *
+     * @throws RoleDoesNotExist
+     */
+    public static function findByName(BackedEnum|string $name, ?string $guardName): self;
+
+    /**
+     * Find a role by its id and guard name.
+     *
+     *
+     * @throws RoleDoesNotExist
+     */
+    public static function findById(int|string $id, ?string $guardName): self;
+
+    /**
+     * Find or create a role by its name and guard name.
+     */
+    public static function findOrCreate(BackedEnum|string $name, ?string $guardName): self;
+
+    /**
+     * Determine if the user may perform the given permission.
+     */
+    public function hasPermissionTo(string|int|Permission|BackedEnum $permission, ?string $guardName = null): bool;
+}

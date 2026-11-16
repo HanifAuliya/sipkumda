@@ -1,0 +1,133 @@
+@php
+    $user = auth()->user();
+    $pd = $user->hasRole('Perangkat Daerah');
+@endphp
+
+<div class="space-y-6">
+    @if (session('pesan'))
+        <x-ui.alert type="info" dismissible>{{ session('pesan') }}</x-ui.alert>
+    @endif
+
+    {{-- Sambungan WhatsApp putus atau penjadwal tidak berjalan: pesan menumpuk tanpa ada yang tahu. --}}
+    @if ($user->hasAnyRole(['Admin', 'Super Admin']) && ($tertundaWa = App\Models\PesanWa::tertundaLama()) > 0)
+        <x-ui.alert type="warning" title="WhatsApp tertunda.">
+            {{ $tertundaWa }} pesan WhatsApp belum terkirim lebih dari 10 menit. Notifikasi tetap ada di lonceng.
+            <a href="{{ route('whatsapp') }}" wire:navigate class="font-semibold underline underline-offset-2">Periksa sambungan WhatsApp</a>
+        </x-ui.alert>
+    @endif
+
+    {{-- Sambutan --}}
+    <section class="relative overflow-hidden rounded-2xl bg-linear-to-br from-navy-900 via-navy-800 to-primary-700 p-5 text-white shadow-card sm:p-6">
+        <x-ui.bola />
+
+        <div class="relative flex items-center gap-4">
+            <img src="{{ $user->fotoUrl() }}" alt="" class="size-12 shrink-0 rounded-full object-cover ring-4 ring-white/15 sm:size-14">
+            <div class="min-w-0">
+                <p class="text-sm text-white/70">Selamat datang kembali,</p>
+                <h1 class="truncate text-xl font-bold text-white sm:text-2xl">{{ $user->nama_user }}</h1>
+                <div class="mt-1.5 flex flex-wrap items-center gap-2 text-sm">
+                    <span class="rounded-full bg-white/15 px-2.5 py-0.5 font-semibold">{{ $user->getRoleNames()->first() ?? 'Tanpa Role' }}</span>
+                    <span class="text-white/70 max-sm:hidden">NIP {{ $user->NIP }}</span>
+                    @if ($user->perangkatDaerah)
+                        <span class="text-white/70"><span class="max-sm:hidden">· </span>{{ $user->perangkatDaerah->nama_perangkat_daerah }}</span>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {{-- Kesiapan aplikasi: hanya tampil selama masih ada yang belum beres (App\Support\KesiapanAplikasi). --}}
+    @if ($kesiapan)
+        <x-ui.card title="Kesiapan aplikasi" :description="count($kesiapan) . ' hal perlu dibereskan supaya SIFKUMDA berjalan lancar. Kartu ini hilang sendiri setelah semuanya beres.'"
+            class="ring-1 ring-amber-200 dark:ring-amber-500/30">
+            <ul class="divide-y divide-slate-100 dark:divide-navy-800">
+                @foreach ($kesiapan as $butir)
+                    <li class="flex flex-wrap items-start gap-3 py-3 first:pt-0 last:pb-0 sm:flex-nowrap">
+                        <span class="grid size-8 shrink-0 place-items-center rounded-full bg-amber-50 text-amber-600 dark:bg-amber-500/15 dark:text-amber-300">
+                            <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+                        </span>
+                        <div class="min-w-0 flex-1">
+                            <p class="font-semibold text-navy-900 dark:text-white">{{ $butir['judul'] }}</p>
+                            <p class="mt-0.5 text-sm text-slate-600 dark:text-slate-300">{{ $butir['keterangan'] }}</p>
+                        </div>
+                        @if ($butir['tautan'])
+                            <x-ui.button variant="outline" size="sm" icon="arrow-right" :href="$butir['tautan']" wire:navigate class="max-sm:ml-11">Bereskan</x-ui.button>
+                        @else
+                            <span class="text-sm whitespace-nowrap text-slate-400 max-sm:ml-11">Oleh {{ $butir['oleh'] }}</span>
+                        @endif
+                    </li>
+                @endforeach
+            </ul>
+        </x-ui.card>
+    @endif
+
+    {{-- Statistik --}}
+    {{-- data-kosong: tur pengenalan memakai kalimat untuk aplikasi yang belum berisi naskah. --}}
+    {{-- Tamu hanya mencatat tanda tangan, jadi kartu Rancangan dan Fasilitasi (selalu 0 baginya) tidak ditampilkan. --}}
+    @php $tamu = $user->hasRole('Tamu') && ! $user->hasAnyRole(['Admin', 'Verifikator', 'Peneliti', 'Perangkat Daerah']); @endphp
+    <div @class(['grid grid-cols-2 gap-3 sm:gap-5', 'xl:grid-cols-4' => ! $tamu]) data-tur="statistik" @if (! array_filter($statistik)) data-kosong @endif>
+        @unless ($tamu)
+            <x-ui.stat-card rapat label="Rancangan" :value="$statistik['rancangan']" suffix="naskah" icon="clipboard2-data" color="rose"
+                :href="route('daftar', $pd ? 'rancanganku' : 'rancangan')" wire:navigate />
+            <x-ui.stat-card rapat label="Fasilitasi" :value="$statistik['fasilitasi']" suffix="naskah" icon="file-text" color="orange"
+                :href="route('daftar', $pd ? 'fasilitasiku' : 'fasilitasi')" wire:navigate />
+        @endunless
+        @if ($user->hasAnyRole(['Admin', 'Tamu']))
+            <x-ui.stat-card rapat label="Tanda Tangan & Arsip" :value="$statistik['ttd']" suffix="naskah" icon="pen" color="emerald" :href="route('daftar', 'penandatanganan')" wire:navigate />
+        @else
+            <x-ui.stat-card rapat label="Tanda Tangan & Arsip" :value="$statistik['ttd']" suffix="naskah" icon="pen" color="emerald" />
+        @endif
+        <x-ui.stat-card rapat label="Selesai" :value="$statistik['selesai']" suffix="naskah" icon="folder2-open" color="sky" />
+    </div>
+
+    {{-- Giliran --}}
+    <x-ui.card title="Giliran Anda" description="Naskah yang sedang menunggu tindakan Anda" data-tur="giliran" :data-kosong="$giliranSaya->isEmpty()">
+        <x-slot:actions>
+            <x-ui.badge color="primary">{{ $giliranSaya->count() }} naskah</x-ui.badge>
+        </x-slot:actions>
+
+        @if ($giliranSaya->isEmpty())
+            <x-ui.empty-state icon="check2-circle" title="Tidak ada naskah yang menunggu Anda." />
+        @else
+            <div class="space-y-4">
+                @foreach ($giliranSaya as $naskah)
+                    <x-naskah.item :naskah="$naskah" :menunggu="$lamaMenunggu[$naskah->id] ?? null" :batas="$batasTertahan" wire:key="giliran-{{ $naskah->id }}" />
+                @endforeach
+            </div>
+        @endif
+    </x-ui.card>
+
+    {{-- Semua naskah --}}
+    <x-ui.card title="Semua Naskah" description="Seluruh naskah yang bisa Anda lihat">
+        <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <x-form.input wire:model.live.debounce.400ms="cari" icon="search" class="sm:flex-1" placeholder="Cari nomor atau tentang..." aria-label="Cari naskah" />
+            @include('v2.partials.filter-jenis')
+            <x-form.select wire:model.live="tahap" icon="funnel" class="sm:w-52" aria-label="Tahap">
+                <option value="">Semua tahap</option>
+                @foreach (App\Enums\TahapNaskah::cases() as $pilihan)
+                    <option value="{{ $pilihan->value }}">{{ $pilihan->label() }}</option>
+                @endforeach
+            </x-form.select>
+        </div>
+
+        <x-ui.table>
+            <x-slot:head>
+                <th><span class="sm:hidden">Naskah</span><span class="max-sm:hidden">Nomor</span></th>
+                <th class="max-sm:hidden">Tentang</th>
+                <th class="max-sm:hidden">Tahap</th>
+                <th class="max-lg:hidden">Diperbarui</th>
+                <th class="text-right">Aksi</th>
+            </x-slot:head>
+
+            @forelse ($halaman as $naskah)
+                @include('v2.partials.baris-naskah', ['kolomPd' => false, 'kolomWaktu' => true])
+            @empty
+                <x-ui.empty-row colspan="5" :message="$cari !== '' || $tahap !== '' || $jenis !== '' ? 'Tidak ada naskah yang cocok dengan pencarian atau filter.' : 'Belum ada naskah.'">
+                    <x-ui.reset-filter :aktif="$cari !== '' || $tahap !== '' || $jenis !== ''" :nilai="['cari' => '', 'tahap' => '', 'jenis' => '']" />
+                </x-ui.empty-row>
+            @endforelse
+        </x-ui.table>
+
+        <div class="mt-5">{{ $halaman->links() }}</div>
+    </x-ui.card>
+</div>

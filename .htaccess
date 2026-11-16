@@ -1,0 +1,14 @@
+# SIFKUMDA, branch produksi (Hostinger Web Hosting tanpa SSH).
+# Folder ini adalah folder subdomain. Hanya aplikasi/public yang disajikan: .env, kode, storage,
+# dan .git di dalam folder aplikasi tidak bisa dibuka dari browser karena setiap permintaan
+# dibelokkan ke aplikasi/public (yang tidak ada di sana berakhir 404 dari Laravel).
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(.*)$ aplikasi/public/$1 [L]
+</IfModule>
+
+<IfModule !mod_rewrite.c>
+    Require all denied
+</IfModule>

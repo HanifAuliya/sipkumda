@@ -1,0 +1,147 @@
+# Panduan Verifikator
+
+Anda menugaskan peneliti, memvalidasi hasil penelitian dan fasilitasi, dan menerbitkan nota dinas.
+Sebagai Kepala Bagian Hukum, Anda juga mengatur tanda tangan Anda sendiri di **Profil**.
+
+## Menu Anda
+
+| Menu | Isi |
+|---|---|
+| Pilih Peneliti | Rancangan yang menunggu penugasan peneliti |
+| Validasi Rancangan | Hasil penelitian yang menunggu validasi |
+| Validasi Fasilitasi | Naskah fasilitasi yang menunggu persetujuan |
+| Daftar Nota Dinas | Naskah yang menunggu nota dinas dan yang sudah terbit |
+| Dokumentasi | Arsip produk hukum; tab **Menunggu Arsip** berisi naskah yang siap diarsipkan |
+| Laporan & Pemantauan | Rekap naskah, sebaran per Perangkat Daerah, aktivitas semua naskah, unduh Excel |
+| Pengaturan | Pengaturan Naskah, Format Dokumen |
+
+**Tur pengenalan.** Saat pertama masuk, Dashboard menampilkan tur singkat yang menyorot menu Anda satu
+per satu. Tekan **Selanjutnya** untuk lanjut atau **Lewati tur**. Tur bisa diulang dari halaman **Panduan**
+(tombol **Ulangi Tur Pengenalan**) atau menu akun di kanan atas (**Tur Pengenalan**).
+
+![Tur pengenalan menyorot menu satu per satu](../../public/img/panduan/umum-tur.jpg)
+*Tur pengenalan menyorot menu satu per satu*
+
+## 1. Menugaskan peneliti
+
+Buka naskah dari **Pilih Peneliti**, tekan **Tugaskan Peneliti**, pilih peneliti, lalu **Lanjutkan**.
+Di samping nama tiap peneliti tertulis bebannya, misalnya "3 naskah berjalan, 1 menunggu dikerjakan",
+dan setelah dipilih tampil daftar rancangan yang sedang dipegangnya, supaya tugas terbagi rata.
+Panel **Beban Peneliti** di halaman Pilih Peneliti juga menampilkan rancangan yang dipegang tiap peneliti;
+klik namanya untuk membuka daftarnya, dan klik rancangan untuk melihat detailnya.
+Bila nanti perlu diganti: **Lainnya › Ganti Peneliti** di layar kerja.
+
+## 2. Validasi rancangan
+
+Periksa hasil penelitian di matriks (tab **Naskah › Perbandingan** menampilkan perubahannya).
+- **Setuju**: rancangan disetujui dan Perangkat Daerah bisa mengajukan fasilitasi.
+- **Lainnya › Kembalikan ke Penelitian (Peneliti)** dengan alasan, bila perlu diperbaiki.
+
+![Validasi rancangan di matriks](../../public/img/panduan/verifikator-validasi.jpg)
+*Validasi rancangan di matriks*
+
+## 3. Validasi fasilitasi
+
+Anda bisa membetulkan rumusan langsung di matriks, termasuk judul lewat **Ubah Judul** (judul pengajuan,
+judul naskah, dan "Menetapkan" ikut berubah). Daftar **hal perlu diperiksa** di atas matriks, dan di jendela
+**Setuju**, mengingatkan isian "…" yang tertinggal atau judul yang tidak sama.
+- **Setuju**: naskah menjadi final dan isinya **dikunci**. Berikutnya penerbitan nota dinas.
+- **Lainnya › Kembalikan ke Perbaikan Fasilitasi (PD)** dengan alasan.
+
+## 4. Menerbitkan nota dinas
+
+Nota dinas bisa diterbitkan oleh **Verifikator maupun Admin**; siapa pun yang lebih dulu boleh
+mengerjakannya.
+
+1. Buka naskah dari **Daftar Nota Dinas** (tombol **Terbitkan Nota Dinas**).
+2. Isi **nomor urut** saja; bagian lain nomor mengikuti pola di Format Dokumen. **Kepada** terisi dari
+   Perangkat Daerah pengaju dan bisa diubah.
+3. Pilih tanda tangan:
+   - **Pakai tanda tangan tersimpan**: tanda tangan Anda di Profil sudah terpilih; bisa juga diganti
+     penanda tangan lain (mis. Plt).
+   - **Tanda tangan sekarang**: gambar tanda tangan langsung di kotak (mouse, jari, atau stylus), khusus
+     untuk nota dinas ini. Centang **Simpan juga sebagai tanda tangan saya** bila ingin memakainya lagi.
+4. **Terbitkan Nota Dinas**. Naskah masuk tahap Penandatanganan.
+
+![Tanda tangan sekarang: digambar langsung saat menerbitkan](../../public/img/panduan/verifikator-ttd-langsung.jpg)
+*Tanda tangan sekarang: digambar langsung saat menerbitkan*
+
+![Menerbitkan nota dinas: cukup isi nomor urut, Kepada, dan tanda tangan](../../public/img/panduan/verifikator-nota-dinas.jpg)
+*Menerbitkan nota dinas: cukup isi nomor urut, Kepada, dan tanda tangan*
+
+Salah penanda tangan atau tujuan: **Perbaiki & Terbitkan Ulang** di halaman yang sama. Nomor dan
+tanggal tetap; versi lama tersimpan sebagai "Diganti".
+
+**Isi naskah ternyata perlu diubah** setelah dikunci: halaman **Nota Dinas & Tanda Tangan › Isi naskah
+perlu diubah? › Kembalikan ke Validasi Fasilitasi**. Catatan paraf dan tanda tangan yang sudah ada ikut
+terhapus.
+
+## 5. Mengarsipkan
+
+Menu **Dokumentasi › Arsipkan dari Sistem** (atau **Arsipkan** di tab Menunggu Arsip), lalu pilih
+naskahnya. Produk hukum lama sebelum ada sistem: **Tambah Arsip Lama**. Isi nomor produk hukum, tanggal penetapan, Berita
+Daerah, dan unggah PDF bertanda tangan basah. Untuk Keputusan Bupati nomornya berformat
+`[140] / [nomor] / [412.1.6] / TAHUN [tahun]` dan Berita Daerah boleh dikosongkan. Tahunnya mengikuti
+tanggal penetapan.
+
+![Arsipkan dari Sistem: data naskah terisi otomatis](../../public/img/panduan/verifikator-arsip.jpg)
+*Arsipkan dari Sistem: data naskah terisi otomatis*
+
+## 6. Laporan & Pemantauan
+
+Menu **Laporan & Pemantauan** punya tiga tab. Filter di atasnya berlaku untuk ketiganya dan untuk unduhan:
+
+- **Tahun** dan **Periode**: setahun penuh, semester, triwulan, satu bulan, atau **Rentang tanggal** sendiri.
+  Naskah dihitung menurut tanggal diajukan, produk hukum menurut tanggal penetapan.
+- **Jenis** dan **Perangkat Daerah**.
+
+Tombol **Unduh** berisi:
+
+- **PDF laporan**: laporan berkop Sekretariat Daerah untuk pimpinan, berisi ringkasan, sebaran per
+  Perangkat Daerah, naskah tertahan, dan rata-rata lama per tahap.
+- **Excel lengkap**: sheet Ringkasan, Per Perangkat Daerah, Daftar Naskah, dan Aktivitas.
+
+Isi tiap tab:
+
+- **Ringkasan**: naskah diajukan, sedang berjalan, selesai, **produk hukum ditetapkan** (termasuk arsip
+  lama), dan rata-rata lama proses. Grafik **per bulan** menampilkan naskah diajukan atau produk hukum
+  ditetapkan (Perbup dan Kepbup), dan grafik **posisi naskah yang berjalan** menunjukkan di langkah mana
+  naskah menumpuk. Di bawahnya: naskah yang tertahan lebih dari 7 hari dan rata-rata lama tiap tahap.
+  Baris tahap bisa ditekan untuk melihat naskahnya. Pemegang giliran naskah yang tertahan diingatkan
+  otomatis lewat notifikasi.
+- **Per Perangkat Daerah**: siapa mengajukan apa dan sampai mana. Tiap baris satu Perangkat Daerah, tiap
+  kolom satu langkah (Penyusunan sampai Selesai). Pilih jenis **Peraturan Bupati** untuk melihat
+  Perangkat Daerah mana saja yang mengajukan Perbup. Tekan barisnya untuk melihat naskahnya, lalu
+  **Detail**. Centang **Tampilkan yang belum mengajukan** untuk melihat Perangkat Daerah yang belum
+  pernah mengajukan.
+- **Aktivitas**: catatan kegiatan semua naskah, terbaru di atas, mis. "Taufik Rahman (Verifikator)
+  menerbitkan nota dinas". Bisa disaring per peran pelaku dan rentang tanggal. Perubahan rumusan per
+  baris disembunyikan supaya ringkas; centang **Termasuk perubahan rumusan** bila perlu.
+
+![Laporan & Pemantauan: ringkasan](../../public/img/panduan/verifikator-laporan.jpg)
+*Ringkasan: angka utama, grafik per bulan, dan posisi naskah yang berjalan*
+
+![Per Perangkat Daerah](../../public/img/panduan/verifikator-pemantauan.jpg)
+*Per Perangkat Daerah: sebaran naskah tiap langkah, baris dibuka untuk melihat naskahnya*
+
+![Aktivitas](../../public/img/panduan/verifikator-aktivitas.jpg)
+*Aktivitas: siapa melakukan apa pada naskah mana, dan kapan*
+
+## 7. Tanda tangan Anda
+
+Tanda tangan Kepala Bagian Hukum dicetak di **nota dinas** dan di kolom **Kepala Bagian Hukum** pada
+matriks. Anda mengaturnya sendiri: menu akun di kanan atas › **Profil** › kartu **Tanda Tangan**.
+
+1. Tekan **Unggah Gambar**, atau **Gambar Langsung** untuk menggambarnya di layar (bila sudah ada, tekan
+   **Ubah Tanda Tangan** dulu). PNG berlatar transparan paling rapi; JPG berlatar putih juga bisa. Tepi
+   kosong dipangkas otomatis.
+2. Periksa **Nama Lengkap** (seperti tercetak, lengkap dengan gelar), **Pangkat/Golongan**, dan **NIP**.
+   Saat pertama kali, nama dan NIP diisi dari akun Anda.
+3. Masukkan **kata sandi** Anda, lalu **Simpan Tanda Tangan**.
+
+Setelah tersimpan, tanda tangan ini bisa dipilih saat menerbitkan nota dinas. Bila perlu bantuan, Admin
+bisa mengunggah atau menggantinya di menu **Kelola TTD**. Kepala Bagian Hukum lama dan Plt/Plh juga
+dicatat Admin di sana.
+
+![Profil › Tanda Tangan](../../public/img/panduan/verifikator-ttd.jpg)
+*Profil › Tanda Tangan: yang tercetak di bawah tanda tangan ditampilkan di bawah gambarnya*
