@@ -107,6 +107,10 @@ Tanpa `schedule:run`, tugas terjadwal tidak pernah berjalan:
 | `backup:jalankan` | 01.00 | Cadangan database dan berkas (bagian 6) |
 | `naskah:ingatkan` | 08.00 | Notifikasi pengingat untuk pemegang giliran naskah yang tertahan |
 | `notifications:clear` | harian | Membersihkan notifikasi lama |
+| `wa:kirim` | tiap menit | Mengirim pesan WhatsApp yang masih menunggu (bagian 7) |
+
+Di hosting bersama yang tidak bisa menjalankan `queue:work` terus-menerus, isi `QUEUE_LEWAT_JADWAL=true`:
+penjadwal menjalankan worker tiap menit sampai antrean kosong. Lihat bagian 9.
 
 Batas hari naskah dianggap tertahan diatur `SIFKUMDA_HARI_TERTAHAN` di `.env` (bawaan `7`). Pengingat
 dikirim saat lamanya tepat kelipatan batas itu (hari ke-7, 14, 21, ...). Tahap Penandatanganan tidak
@@ -143,7 +147,8 @@ File dump tidak memuat nama database, jadi tidak akan menimpa database lain sela
 
 Notifikasi naskah juga dikirim ke WhatsApp lewat satu nomor kantor yang disambungkan seperti WhatsApp Web.
 Pengirimnya program open source **GOWA** ([go-whatsapp-web-multidevice](https://github.com/aldinokemal/go-whatsapp-web-multidevice))
-yang berjalan di server yang sama, jadi isi pesan tidak lewat layanan pihak ketiga. Jalur ini **bukan jalur resmi Meta**:
+yang berjalan di server yang sama, jadi isi pesan tidak lewat layanan pihak ketiga (di hosting bersama, GOWA berjalan
+di komputer kantor dan dihubungi lewat Cloudflare Tunnel; lihat bagian 9). Jalur ini **bukan jalur resmi Meta**:
 nomornya bisa diblokir bila dianggap spam. Pakai nomor yang sudah lama aktif dengan WhatsApp Business, dan minta
 pegawai menyimpan nomor itu sebagai kontak.
 
@@ -227,3 +232,165 @@ membutuhkan ±6 request/detik.
   dan unduhan; halaman lain tidak menulis apa pun.
 - Store `file` untuk rate limit gagal di Windows saat ramai (kunci file eksklusif) → tidak dipakai.
 - Pencarian nomor memindai seluruh indeks tanggal → kini memakai indeks tahun/nomor.
+
+## 9. Hostinger Web Hosting (hPanel) dengan GOWA di komputer kantor
+
+Penempatan sementara: aplikasi di hosting bersama Hostinger, sedangkan GOWA berjalan di satu komputer kantor
+dan dihubungi Hostinger lewat Cloudflare Tunnel (`https://wa.domain-anda`). Hosting bersama tidak bisa
+menjalankan program terus-menerus, jadi antrean dan pengiriman WhatsApp dikerjakan cron tiap menit.
+
+```
+Hostinger (sifkumda.domain-anda) ──HTTPS──▶ Cloudflare ──tunnel──▶ PC kantor: cloudflared ─▶ GOWA 127.0.0.1:3000 ─▶ WhatsApp
+```
+
+Bila PC kantor mati, pesan WhatsApp menunggu (paling lama 48 jam) dan terkirim begitu menyala lagi;
+notifikasi lonceng di aplikasi tetap berjalan. Isi pesan kini melewati Cloudflare (terenkripsi HTTPS).
+
+### 9.1 Periksa di hPanel
+
+| Menu hPanel | Yang dicek atau dibuat |
+|---|---|
+| **Advanced › PHP Configuration** | PHP **8.3 atau lebih baru** (pilih yang tertinggi). Ekstensi `gd`, `exif`, `zip`, `fileinfo`, `pdo_mysql`, `mbstring` aktif |
+| **Advanced › SSH Access** | Aktifkan bila tersedia di paket Anda. Tanpa SSH tetap bisa, lihat 9.5 |
+| **Domains › Subdomains** | Buat subdomain, mis. `sifkumda`. Catat foldernya, biasanya `public_html/sifkumda` |
+| **Security › SSL** | Pasang SSL gratis untuk subdomain itu |
+| **Databases › MySQL Databases** | Buat database dan penggunanya; catat nama (berawalan `u123456789_`) dan kata sandinya |
+| **Emails** | Buat akun email pengirim, mis. `noreply@domain-anda`, untuk aktivasi akun dan atur ulang sandi |
+| **Advanced › Cron Jobs** | Dipakai di 9.6 |
+
+### 9.2 Buat paket di komputer pengembang
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\paket-hostinger.ps1
+```
+
+Hasilnya `dist\sifkumda-<commit>.zip` berisi kode dari commit terakhir, `vendor` tanpa paket pengembangan,
+aset hasil `npm run build`, dan font Bookman. Node.js dan Composer tidak dibutuhkan di Hostinger.
+
+### 9.3 Unggah dan arahkan subdomain
+
+Kode aplikasi ditaruh **di luar** `public_html`, supaya `.env`, `storage`, dan berkas unggahan tidak bisa dibuka
+dari browser. Hanya folder `public` yang menjadi isi subdomain:
+
+```
+/home/u123456789/domains/domain-anda/
+├── public_html/
+│   └── sifkumda  →  ../sifkumda-app/public   (folder subdomain)
+└── sifkumda-app/                              (isi ZIP)
+```
+
+1. **File Manager**: buat folder `sifkumda-app` sejajar `public_html`, unggah ZIP ke dalamnya, lalu **Extract**.
+2. Arahkan subdomain ke `public`:
+   - **Dengan SSH** (disarankan):
+
+     ```bash
+     cd ~/domains/domain-anda/public_html
+     ls -la sifkumda          # pastikan isinya hanya file bawaan Hostinger
+     rm -rf sifkumda
+     ln -s ../sifkumda-app/public sifkumda
+     ```
+
+   - **Tanpa SSH**: salin seluruh isi `sifkumda-app/public` ke folder subdomain, lalu di `index.php` folder subdomain
+     ganti ketiga `__DIR__.'/../` menjadi `__DIR__.'/../../sifkumda-app/`. Setiap pembaruan, folder `build` juga
+     harus disalin ulang.
+
+`php artisan storage:link` tidak diperlukan: SIFKUMDA tidak menyajikan berkas lewat `public/storage`.
+
+### 9.4 Buat `.env`
+
+Salin `.env.example` menjadi `.env` di `sifkumda-app`, lalu ubah:
+
+```dotenv
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://sifkumda.domain-anda
+APP_TIMEZONE=Asia/Makassar
+LOG_LEVEL=error
+SESSION_SECURE_COOKIE=true
+
+DB_CONNECTION=mysql
+DB_HOST=localhost
+DB_DATABASE=u123456789_sifkumda
+DB_USERNAME=u123456789_sifkumda
+DB_PASSWORD=...
+
+QUEUE_LEWAT_JADWAL=true
+
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.hostinger.com
+MAIL_PORT=465
+MAIL_ENCRYPTION=ssl
+MAIL_USERNAME=noreply@domain-anda
+MAIL_PASSWORD=...
+MAIL_FROM_ADDRESS=noreply@domain-anda
+
+WA_DRIVER=gowa
+WA_GOWA_URL=https://wa.domain-anda
+WA_GOWA_USER=sifkumda
+WA_GOWA_PASSWORD=<sama dengan APP_BASIC_AUTH GOWA>
+```
+
+`APP_KEY` diisi di langkah berikutnya. Tanpa SSH, buat di komputer pengembang dengan
+`php artisan key:generate --show` lalu tempel hasilnya.
+
+### 9.5 Perintah pemasangan (sekali)
+
+```bash
+cd ~/domains/domain-anda/sifkumda-app
+php -v                                   # harus 8.3+; bila tidak, pakai mis. /opt/alt/php84/usr/bin/php
+php artisan key:generate --force
+php artisan migrate --force
+php artisan db:seed --class=PerangkatDaerahSeeder --force
+php artisan db:seed --class=RoleSeeder --force
+php artisan akun:super-admin <NIP> --nama="Nama Lengkap" --email=nama@domain-anda
+php artisan bahan-penting:bawaan
+php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan event:cache
+```
+
+Kata sandi sementara Super Admin tampil sekali; simpan, lalu ganti saat pertama masuk.
+Tanpa SSH, perintah sekali-jalan bisa dibuat sebagai Cron Job lalu dihapus setelah berjalan.
+
+### 9.6 Cron
+
+**Advanced › Cron Jobs › Custom**, setiap menit (`* * * * *`):
+
+```bash
+cd /home/u123456789/domains/domain-anda/sifkumda-app && php artisan schedule:run >> /dev/null 2>&1
+```
+
+Satu baris ini menjalankan semua tugas di bagian 5, antrean (`QUEUE_LEWAT_JADWAL=true`), dan pengiriman WhatsApp.
+
+### 9.7 GOWA dan Cloudflare Tunnel di PC kantor
+
+Syarat: DNS domain dikelola Cloudflare. Bila domain masih memakai DNS Hostinger, pindahkan nameserver ke
+Cloudflare (salin dulu semua record DNS, termasuk subdomain dan email ke Hostinger), atau pakai domain lain
+yang sudah di Cloudflare khusus untuk `wa`.
+
+1. Pasang GOWA seperti bagian 7 (tetap `APP_HOST=127.0.0.1` dan `APP_BASIC_AUTH` dengan kata sandi acak panjang),
+   dan jadikan layanan Windows dengan NSSM supaya menyala sendiri. Matikan mode tidur PC di Power Options.
+2. Cloudflare › **Zero Trust › Networks › Tunnels › Create a tunnel** (Cloudflared), beri nama `sifkumda-wa`,
+   pilih Windows, lalu jalankan perintah `cloudflared.exe service install <token>` yang ditampilkan di
+   Command Prompt **Run as administrator**. Tunnel menjadi layanan Windows yang otomatis menyala.
+3. Tab **Public Hostname**: subdomain `wa`, domain Anda, service `HTTP` → `127.0.0.1:3000`.
+4. Batasi akses: **Security › WAF › Custom rules**, blokir bila *Hostname* sama dengan `wa.domain-anda` **dan**
+   *IP Source Address* bukan IP keluar Hostinger. IP itu terlihat dari SSH Hostinger: `curl -s https://ifconfig.me`.
+   Tanpa aturan ini GOWA hanya dijaga kata sandi Basic Auth.
+5. Uji dari SSH Hostinger: `curl -u sifkumda:<password> https://wa.domain-anda/app/status` harus menjawab JSON.
+6. Masuk SIFKUMDA sebagai Admin › menu **WhatsApp**, scan QR dari HP kantor, lalu kirim pesan uji.
+
+### 9.8 Memperbarui aplikasi
+
+1. Jalankan lagi `scripts\paket-hostinger.ps1`.
+2. Unggah ZIP ke `sifkumda-app` lalu Extract dan timpa. `.env` dan isi `storage` tidak ikut di ZIP, jadi aman.
+3. Di SSH:
+
+   ```bash
+   cd ~/domains/domain-anda/sifkumda-app
+   php artisan down
+   php artisan migrate --force
+   php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan event:cache
+   php artisan up
+   ```
+
+Cadangan harian (bagian 6) tersimpan di disk hosting yang sama; unduh berkala dari File Manager, atau andalkan
+juga backup bawaan Hostinger.

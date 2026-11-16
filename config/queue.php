@@ -16,6 +16,12 @@ return [
     'default' => env('QUEUE_CONNECTION', 'database'),
 
     /*
+    | Hosting bersama (mis. Hostinger Web Hosting) tidak bisa menjalankan `queue:work` terus-menerus.
+    | true: penjadwal (cron `schedule:run` tiap menit) menjalankan worker yang berhenti saat antrean kosong.
+    */
+    'lewat_jadwal' => (bool) env('QUEUE_LEWAT_JADWAL', false),
+
+    /*
     |--------------------------------------------------------------------------
     | Queue Connections
     |--------------------------------------------------------------------------

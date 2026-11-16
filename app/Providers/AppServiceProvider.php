@@ -49,6 +49,12 @@ class AppServiceProvider extends ServiceProvider
             $schedule->command('naskah:ingatkan')->dailyAt('08:00');
             // Cadangan bila queue worker tidak berjalan, dan pengirim ulang setelah sambungan WhatsApp pulih.
             $schedule->command('wa:kirim')->everyMinute()->withoutOverlapping(10);
+
+            // Hosting bersama tanpa worker tetap: antrean dikerjakan tiap menit dari cron.
+            if (config('queue.lewat_jadwal')) {
+                $schedule->command('queue:work --stop-when-empty --max-time=50 --tries=3')
+                    ->everyMinute()->withoutOverlapping(5)->runInBackground();
+            }
         });
     }
 }
