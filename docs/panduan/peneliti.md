@@ -31,11 +31,18 @@ per satu. Tekan **Selanjutnya** untuk lanjut atau **Lewati tur**. Tur bisa diula
    - **Ubah**: Anda memperbaiki sendiri. Tulis rumusan penyempurnaan dan keterangannya.
    - **Minta PD Perbaiki**: hanya Perangkat Daerah yang tahu isinya (misalnya data atau besaran).
      Tulis apa yang perlu diperbaiki.
+
+   Pada baris **Judul**, tombolnya **Ubah Judul**: judul pengajuan, judul naskah, dan bunyi "Menetapkan"
+   diubah bersama dan tercatat sebagai rumusan penyempurnaan.
 3. Baris baru bisa ditambahkan dengan **Sisipkan Baris**; rumusan yang tidak perlu bisa dihapus dengan **Hapus Rumusan**.
-4. Tanda pada panel kiri menunjukkan bagian yang sudah selesai diperiksa. Peringatan penomoran
-   (misalnya pasal yang melompat) muncul di atas matriks.
+4. Tanda pada panel kiri menunjukkan bagian yang sudah selesai diperiksa. Daftar **hal perlu diperiksa**
+   di atas matriks mengingatkan isian "…" yang tertinggal, judul atau "Menetapkan" yang tidak sama dengan
+   judul pengajuan, dan penomoran pasal yang melompat. Tekan butirnya untuk membuka barisnya.
 5. Setelah semua baris diperiksa:
    - Bila ada baris untuk PD: **Kirim ke PD**. Naskah kembali kepada Anda setelah PD mengirim tindak lanjut.
+     Baris yang diperbaiki PD bertanda **Sudah disesuaikan** dan dihitung belum diperiksa: periksa lalu
+     **Terima Perbaikan**, **Ubah** bila masih perlu disempurnakan, atau **Pakai Rumusan Awal** untuk
+     membuang perbaikan PD.
    - Bila tidak ada: **Selesai, teruskan ke Verifikator**.
 
 ![Matriks penelitian: tiap baris ditetapkan, diubah, atau dimintakan perbaikan ke PD](../../public/img/panduan/peneliti-matriks.jpg)
@@ -46,7 +53,8 @@ perubahan (merah dihapus, hijau ditambah).
 
 ## 2. Fasilitasi
 
-- **Persetujuan Fasilitasi**: periksa apakah naskah yang diajukan sesuai hasil penelitian, lalu
+- **Persetujuan Fasilitasi**: PD mengunggah **naskah hasil perbaikan**; tampil di atas matriks dengan tombol
+  **Lihat** dan **Unduh**. Periksa apakah semua hasil penelitian sudah diterapkan, lalu
   **Berkas fasilitasi lengkap**, atau **Kembalikan berkas fasilitasi ke PD** dengan alasan.
 - **Pengecekan Fasilitasi**: setelah PD memperbaiki permintaan Verifikator, periksa lagi lalu
   **Selesai, teruskan ke Verifikator**, atau **Kirim ke PD** bila masih perlu perbaikan.

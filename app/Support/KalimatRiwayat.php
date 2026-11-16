@@ -25,6 +25,7 @@ class KalimatRiwayat
             'terbit_ulang_nota' => ['teks' => 'menerbitkan ulang nota dinas', 'ikon' => 'arrow-repeat', 'warna' => 'slate'],
             'tambah_baris' => ['teks' => 'menambah baris ' . (self::sasaran($r) ?? $r->sesudah), 'ikon' => 'plus-lg', 'warna' => 'slate'],
             'buang_baris' => ['teks' => "menghapus baris sisipan {$r->sesudah}", 'ikon' => 'dash-lg', 'warna' => 'slate'],
+            'ubah_judul' => ['teks' => "mengubah judul menjadi “{$r->sesudah}”", 'ikon' => 'type', 'warna' => 'slate'],
             default => ['teks' => 'menandai ' . (self::sasaran($r) ?? 'baris') . ': ' . (B::LABEL_STATUS[json_decode((string) $r->sesudah, true)['status'] ?? 'belum'] ?? 'diubah'),
                 'ikon' => 'pencil-square', 'warna' => 'slate'],
         };

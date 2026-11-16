@@ -31,8 +31,11 @@ per satu. Tekan **Selanjutnya** untuk lanjut atau **Lewati tur**. Tur bisa diula
 
 ## 1. Memeriksa berkas pengajuan
 
-Buka naskah dari **Persetujuan Berkas**. Periksa nota dinas PD di tab **Berkas** dan isi naskah.
-- **Berkas lengkap**: diteruskan ke Verifikator untuk ditugaskan peneliti.
+Buka naskah dari **Persetujuan Berkas**. Periksa nota dinas PD di tab **Berkas** (tombol **Lihat** membuka
+PDF tanpa mengunduh) dan isi naskah.
+- **Berkas lengkap**: centang keempat butir **Daftar periksa** (tanda tangan, nomor dan tanggal, judul, isi
+  utuh), lalu **Lanjutkan**. Naskah diteruskan ke Verifikator untuk ditugaskan peneliti, dan Anda dibawa
+  kembali ke daftar.
 - **Lainnya › Kembalikan ke Penyusunan (PD)** dengan alasan.
 
 ![Persetujuan Berkas: pengajuan baru dari Perangkat Daerah](../../public/img/panduan/admin-persetujuan-berkas.jpg)

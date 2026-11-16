@@ -14,7 +14,10 @@
     // Pasal dan lampiran memakai editor bernomor dan bertabel; lampiran biasanya berupa daftar dan tabel.
     $pakaiEditor = $pasal || $baris->bagian === 'lampiran';
     $gayaAwal = $pasal ? 'ayat' : 'angka';
-    $bisaDibuang = $mode === A::MODE_TELITI && $baris->sisipan();
+    // Naskah tanpa lampiran: satu baris lampiran yang kosong. Tidak bisa dibuang (lampiran terakhir), jadi
+    // ditetapkan lewat tombol "Tanpa Lampiran" supaya pemeriksaan bisa selesai.
+    $lampiranKosong = $baris->bagian === 'lampiran' && ! $lampiranTambahan && $baris->sisipan();
+    $bisaDibuang = $mode === A::MODE_TELITI && $baris->sisipan() && ! $lampiranKosong;
     $bisaDiberiPenanda = $pasal && $baris->sisipan() && in_array($mode, [A::MODE_TELITI, A::MODE_KOREKSI], true);
     // Baris yang baru disisipkan langsung siap diisi.
     $baruDisisipkan = $bisaDibuang && $status === B::DIUBAH && $sempurna === '';
@@ -99,7 +102,13 @@
             <div class="min-w-0">
                 <p class="{{ $judulKolom }}">Rumusan</p>
                 @php $barisAwal = min(14, max(3, substr_count($awal, "\n") + 2 + (int) (mb_strlen($awal) / 90))); @endphp
-                @if ($pakaiEditor)
+                @if ($baris->bagian === 'judul')
+                    {{-- Judul mengikuti judul pengajuan; diubah lewat Ubah Judul supaya Tentang dan Menetapkan ikut sama. --}}
+                    <div class="{{ $serif }} mt-1.5 rounded-lg bg-slate-50 px-3.5 py-3 whitespace-pre-line dark:bg-navy-800/60">{{ $awal }}</div>
+                    <div class="mt-3 flex justify-end">
+                        <x-ui.button size="rapat" variant="outline-primary" icon="type" x-on:click="$wire.$parent.bukaUbahJudul()">Ubah Judul</x-ui.button>
+                    </div>
+                @elseif ($pakaiEditor)
                     <div x-ref="editor" class="mt-1.5" x-on:input="simpanNanti()" x-on:focusout="$el.contains($event.relatedTarget) || simpanSekarang()">
                         @include('v2.partials.editor-rumusan', ['barisMinimal' => $barisAwal, 'label' => "Rumusan {$judul}"])
                     </div>
@@ -221,6 +230,12 @@
         @endif
 
         @if ($mode === A::MODE_TELITI || $mode === A::MODE_KOREKSI)
+            @if ($status === B::DISESUAIKAN)
+                <p class="mt-4 flex items-start gap-2 text-sm text-teal-700 dark:text-teal-300" x-show="!ubah && !minta">
+                    <i class="bi bi-info-circle mt-0.5" aria-hidden="true"></i>
+                    Perangkat Daerah sudah memperbaiki baris ini. Periksa lalu Terima Perbaikan, atau Ubah bila masih perlu disempurnakan.
+                </p>
+            @endif
             <div class="mt-4 flex flex-wrap items-center justify-between gap-2" x-show="!ubah && !minta">
                 <div class="flex flex-wrap gap-2">
                     @if ($mode === A::MODE_TELITI && $bisaDitambah)
@@ -236,10 +251,21 @@
                     @if ($mode === A::MODE_TELITI)
                         <x-ui.button size="rapat" variant="outline" icon="person-exclamation" title="Hanya PD yang tahu isinya, misalnya data atau besaran" x-on:click="bukaMinta()">{{ $status === B::PERLU_PD ? 'Ubah Arahan ke PD' : 'Minta PD Perbaiki' }}</x-ui.button>
                     @endif
-                    <x-ui.button size="rapat" variant="outline-primary" icon="pencil" title="Anda perbaiki sendiri rumusannya" x-on:click="buka()">Ubah</x-ui.button>
-                    @unless ($baris->sisipan())
+                    @if ($baris->bagian === 'judul')
+                        <x-ui.button size="rapat" variant="outline-primary" icon="type" title="Judul pengajuan, judul naskah, dan Menetapkan diubah bersama" x-on:click="$wire.$parent.bukaUbahJudul()">Ubah Judul</x-ui.button>
+                    @else
+                        <x-ui.button size="rapat" variant="outline-primary" icon="pencil" title="Anda perbaiki sendiri rumusannya" x-on:click="buka()">Ubah</x-ui.button>
+                    @endif
+                    @if ($lampiranKosong)
+                        <x-ui.button size="rapat" variant="primary" icon="check2" title="Naskah ini tidak memiliki lampiran" x-on:click="$wire.tetap(ket).then(() => kembalikan())">Tanpa Lampiran</x-ui.button>
+                    @elseif ($status === B::DISESUAIKAN)
+                        {{-- Perbaikan PD harus diterima dulu sebelum dihitung diperiksa. "Tetap" di sini akan membuangnya, jadi dinamai jelas dan dikonfirmasi. --}}
+                        <x-ui.button size="rapat" variant="outline" icon="arrow-counterclockwise" title="Buang perbaikan PD dan pakai rumusan awal"
+                            x-on:click="$confirm({ title: 'Pakai rumusan awal?', text: 'Perbaikan dari Perangkat Daerah pada baris ini akan dibuang.', confirmText: 'Ya, pakai rumusan awal' }).then((ok) => ok && $wire.tetap(ket).then(() => kembalikan()))">Pakai Rumusan Awal</x-ui.button>
+                        <x-ui.button size="rapat" variant="primary" icon="check2" title="Perbaikan PD sudah benar" x-on:click="$wire.terimaSesuaian(ket).then(() => kembalikan())">Terima Perbaikan</x-ui.button>
+                    @elseif (! $baris->sisipan())
                         <x-ui.button size="rapat" variant="primary" icon="check2" title="Rumusan sudah benar, tidak perlu diubah" x-on:click="$wire.tetap(ket).then(() => kembalikan())">Tetap</x-ui.button>
-                    @endunless
+                    @endif
                 </div>
             </div>
         @elseif ($mode === A::MODE_SESUAIKAN)

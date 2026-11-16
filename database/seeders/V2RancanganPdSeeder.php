@@ -251,6 +251,7 @@ class V2RancanganPdSeeder extends Seeder
                     $naskah->baris()->get()->each(fn ($b) => $alur->tetapkan($b, $this->peneliti));
                     $alur->jalankan($naskah, $this->peneliti, 'teruskan_ke_verifikator');
                     $alur->jalankan($naskah, $this->verifikator, 'setujui_rancangan');
+                    $alur->simpanNaskahFasilitasi($naskah, $this->pd, file_get_contents(app(\App\Services\CetakNaskah::class)->wordNaskah($naskah)), 'Naskah hasil perbaikan.docx');
                     $alur->jalankan($naskah, $this->pd, 'ajukan_fasilitasi');
                     $alur->jalankan($naskah, $this->peneliti, 'setujui_fasilitasi');
                     $alur->jalankan($naskah, $this->verifikator, 'finalkan');

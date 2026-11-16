@@ -26,7 +26,7 @@ class TemplateNaskah
 
     /** Tuntunan singkat untuk Perangkat Daerah saat menyusun tiap bagian. */
     public const PETUNJUK = [
-        'judul' => 'Sesuaikan judul bila perlu. Nomor dan tahun dikosongkan, karena diisi saat penetapan.',
+        'judul' => 'Judul mengikuti judul pengajuan; ubah lewat tombol Ubah Judul supaya bunyi Menetapkan ikut sama. Nomor dan tahun dikosongkan, karena diisi saat penetapan.',
         'menimbang' => 'Satu baris untuk satu pertimbangan, diawali "bahwa". Huruf a, b, c dibuat otomatis.',
         'mengingat' => 'Satu baris untuk satu peraturan, dari yang tertinggi. Nomor urut dibuat otomatis.',
         'memperhatikan' => 'Opsional. Satu baris untuk satu hal yang diperhatikan, misalnya surat rekomendasi atau berita acara. Nomor urut dibuat otomatis; bila hanya satu, ditulis tanpa nomor.',
@@ -83,6 +83,68 @@ class TemplateNaskah
             ['bagian' => 'penutup', 'label' => null, 'teks' => $penutup],
             ['bagian' => 'lampiran', 'label' => null, 'teks' => ''],
         ];
+    }
+
+    /** Judul dengan bagian sesudah "TENTANG" diganti judul pengajuan (huruf kapital). */
+    public static function judulDenganTentang(string $judul, string $tentang): string
+    {
+        $tentang = PemeriksaIsian::judulKapital($tentang);
+        $baris = preg_split('/\R/u', trim($judul));
+        $i = collect($baris)->search(fn ($l) => preg_match('/^\s*TENTANG\s*$/iu', $l));
+
+        if ($i === false) {
+            return trim($judul) === '' ? "TENTANG\n{$tentang}" : trim($judul) . "\nTENTANG\n{$tentang}";
+        }
+
+        return implode("\n", [...array_slice($baris, 0, $i + 1), $tentang]);
+    }
+
+    /**
+     * Diktum Peraturan Bupati dengan "Menetapkan: PERATURAN BUPATI TENTANG ..." mengikuti judul pengajuan.
+     * Bila belum ada baris Menetapkan, ditambahkan di awal. Keputusan Bupati tidak memakai baris ini.
+     */
+    public static function diktumDenganTentang(string $diktum, string $tentang): string
+    {
+        $menetapkan = 'Menetapkan: PERATURAN BUPATI TENTANG ' . PemeriksaIsian::judulKapital($tentang) . '.';
+        $baris = preg_split('/\R/u', trim($diktum));
+        $i = collect($baris)->search(fn ($l) => preg_match('/^\s*menetapkan\s*:/iu', $l));
+
+        if ($i !== false) {
+            $baris[$i] = $menetapkan;
+
+            return implode("\n", $baris);
+        }
+
+        $baris = array_values(array_filter($baris, fn ($l) => trim($l) !== ''));
+        $j = collect($baris)->search(fn ($l) => preg_match('/^\s*MEMUTUSKAN\s*:?\s*$/iu', $l));
+
+        if ($j === false) {
+            return implode("\n", ['MEMUTUSKAN:', $menetapkan, ...$baris]);
+        }
+
+        array_splice($baris, $j + 1, 0, [$menetapkan]);
+
+        return implode("\n", $baris);
+    }
+
+    /**
+     * Baris hasil baca Word diselaraskan dengan judul pengajuan: judul dan "Menetapkan" Peraturan Bupati
+     * memakai Tentang dari formulir, supaya judul hanya diketik sekali.
+     */
+    public static function selaraskanJudul(array $baris, string $jenis, string $tentang): array
+    {
+        $diktumPertama = true;
+
+        foreach ($baris as &$b) {
+            if ($b['bagian'] === 'judul') {
+                $b['teks'] = self::judulDenganTentang((string) $b['teks'], $tentang);
+            } elseif ($b['bagian'] === 'diktum' && $jenis === 'Peraturan Bupati' && $diktumPertama) {
+                $b['teks'] = self::diktumDenganTentang((string) $b['teks'], $tentang);
+                $diktumPertama = false;
+            }
+        }
+
+        return $baris;
     }
 
     /**

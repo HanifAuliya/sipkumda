@@ -14,6 +14,7 @@ use App\Models\TandaTangan;
 use App\Models\User;
 use App\Notifications\NaskahNotification;
 use App\Support\FormatDokumen;
+use App\Support\PemeriksaIsian;
 use App\Support\PesanNotifikasi;
 use App\Support\TandaTanganLangsung;
 use App\Support\TandaTanganPeneliti;
@@ -605,6 +606,12 @@ class AlurNaskah
         $naskah->save();
 
         $this->catat($naskah, $user, 'tahap', $catatan, $dari->label(), $ke->label());
+
+        // Tugas tahap sebelumnya sudah dikerjakan (oleh siapa pun), jadi tidak lagi "Perlu tindakan".
+        $naskah->notifikasi()->whereNull('read_at')
+            ->whereIn('data->kategori', [PesanNotifikasi::TUGAS, PesanNotifikasi::KEMBALI])
+            ->update(['read_at' => now()]);
+
         $this->beriTahu($naskah, $dari, $user, $catatan);
 
         return $naskah;
@@ -617,6 +624,7 @@ class AlurNaskah
             'ajukan' => $this->hambatanAjukan($naskah),
             'kirim_ke_pd', 'teruskan_ke_verifikator', 'cek_ke_pd', 'cek_ke_verifikator' => $this->hambatanTeliti($naskah),
             'kembali_ke_peneliti', 'perbaikan_ke_peneliti' => $this->hambatanSesuaikan($naskah),
+            'ajukan_fasilitasi' => $this->berkasFasilitasiBerlaku($naskah) ? null : 'Unggah naskah hasil perbaikan dulu.',
             default => null,
         };
     }
@@ -631,12 +639,53 @@ class AlurNaskah
             ->where(fn ($q) => $q->whereNull('rumusan_awal')->orWhere('rumusan_awal', ''))
             ->count();
 
-        return $kosong ? "{$kosong} baris masih kosong." : null;
+        if ($kosong) {
+            return "{$kosong} baris masih kosong.";
+        }
+
+        // Template yang belum diisi ("bahwa ...", "Pasal 1 (1) ...") jangan sampai ikut diajukan.
+        $isian = PemeriksaIsian::barisBerisian($naskah->baris()->get());
+
+        return $isian->isNotEmpty()
+            ? 'Masih ada isian “…” dari template di ' . PemeriksaIsian::daftarNama($isian) . '. Lengkapi dulu sebelum diajukan.'
+            : null;
+    }
+
+    /** Menyimpan naskah hasil perbaikan PD (isi file); yang lama tetap ada sebagai versi lama. */
+    public function simpanNaskahFasilitasi(Naskah $naskah, User $user, string $isi, string $namaAsli): NaskahBerkas
+    {
+        return DB::transaction(function () use ($naskah, $user, $isi, $namaAsli) {
+            $naskah->berkas()->where('jenis', NaskahBerkas::NASKAH_FASILITASI)->update(['aktif' => false]);
+            $path = "naskah/{$naskah->slug}/" . Str::random(40) . '.' . strtolower(pathinfo($namaAsli, PATHINFO_EXTENSION) ?: 'docx');
+            Storage::disk('local')->put($path, $isi);
+
+            return $naskah->berkas()->create([
+                'jenis' => NaskahBerkas::NASKAH_FASILITASI,
+                'path' => $path,
+                'nama_asli' => $namaAsli,
+                'diunggah_oleh' => $user->id,
+            ]);
+        });
+    }
+
+    /**
+     * Naskah hasil perbaikan yang berlaku untuk pengajuan fasilitasi: yang terbaru, dan diunggah sesudah
+     * pengajuan fasilitasi terakhir dikembalikan Peneliti (berkas lama sudah dinilai belum sesuai).
+     */
+    public function berkasFasilitasiBerlaku(Naskah $naskah): ?NaskahBerkas
+    {
+        $berkas = $naskah->berkas()->where('jenis', NaskahBerkas::NASKAH_FASILITASI)->where('aktif', true)->latest('id')->first();
+        $dikembalikan = $naskah->riwayat()->where('aksi', 'tahap')
+            ->where('sebelum', T::PersetujuanFasilitasi->label())->where('sesudah', T::Disetujui->label())
+            ->latest('id')->value('created_at');
+
+        return $berkas && (! $dikembalikan || $berkas->created_at->gt($dikembalikan)) ? $berkas : null;
     }
 
     private function hambatanTeliti(Naskah $naskah): ?string
     {
-        $belum = $naskah->baris()->where('status', B::BELUM)->count();
+        // Perbaikan dari PD juga harus dilihat Peneliti dulu (Terima Perbaikan), bukan lolos otomatis.
+        $belum = $naskah->baris()->whereIn('status', B::BELUM_DIPERIKSA)->count();
 
         return $belum ? "{$belum} baris belum diperiksa." : null;
     }
@@ -764,16 +813,87 @@ class AlurNaskah
         });
     }
 
+    /**
+     * Arahan ke PD tersimpan di Keterangan. Begitu Peneliti memutuskan baris yang sudah disesuaikan PD,
+     * arahan itu tidak berlaku lagi dan tidak boleh ikut tercetak di matriks, kecuali Peneliti menulis
+     * keterangan baru. Arahannya tetap ada di riwayat.
+     */
+    private function tanpaArahanLama(B $b, ?string $keterangan): ?string
+    {
+        return $b->status === B::DISESUAIKAN && $this->normal($keterangan) === $this->normal($b->keterangan) ? null : $keterangan;
+    }
+
     public function tetapkan(B $baris, User $user, ?string $keterangan = null): B
     {
         return $this->ubahBaris($baris, $user, [self::MODE_TELITI, self::MODE_KOREKSI], function (B $b) use ($keterangan) {
             $b->rumusan_penyempurnaan = null;
-            $b->keterangan = $keterangan;
+            $b->keterangan = $this->tanpaArahanLama($b, $keterangan);
             $b->status = B::TETAP;
         });
     }
 
     /** Peneliti/Verifikator menulis rumusan. Teks yang sama persis dengan kolom 3 berarti Tetap. */
+    /** Peneliti/Verifikator menerima rumusan yang sudah disesuaikan PD apa adanya. */
+    public function terimaSesuaian(B $baris, User $user, ?string $keterangan = null): B
+    {
+        return $this->ubahBaris($baris, $user, [self::MODE_TELITI, self::MODE_KOREKSI], function (B $b) use ($keterangan) {
+            if ($b->status !== B::DISESUAIKAN) {
+                $this->gagal('rumusan', 'Baris ini tidak sedang menunggu pemeriksaan perbaikan PD.');
+            }
+            $b->keterangan = $this->tanpaArahanLama($b, $keterangan);
+            $b->status = B::DIUBAH;
+        });
+    }
+
+    /**
+     * Mengubah judul pengajuan (Tentang) sekaligus judul naskah dan "Menetapkan" Peraturan Bupati,
+     * supaya ketiganya selalu sama. Saat penyusunan menulis rumusan awal; sesudahnya menjadi rumusan
+     * penyempurnaan sehingga tampil di matriks.
+     */
+    public function ubahJudul(Naskah $naskah, User $user, ?string $tentang): Naskah
+    {
+        $tentang = Str::squish((string) $tentang);
+
+        if ($tentang === '') {
+            $this->gagal('tentang', 'Judul wajib diisi.');
+        }
+        if (mb_strlen($tentang) > DokumentasiProdukHukum::TENTANG_MAKS) {
+            $this->gagal('tentang', 'Judul paling banyak ' . DokumentasiProdukHukum::TENTANG_MAKS . ' karakter.');
+        }
+
+        return DB::transaction(function () use ($naskah, $user, $tentang) {
+            $naskah = Naskah::whereKey($naskah->id)->lockForUpdate()->firstOrFail();
+            $mode = $this->modeBaris($naskah, $user);
+
+            if (! in_array($mode, [self::MODE_SUSUN, self::MODE_TELITI, self::MODE_KOREKSI], true)) {
+                abort(403, 'Bukan giliran Anda untuk mengubah judul.');
+            }
+
+            $tulis = function (B $b, string $teks) use ($user, $mode) {
+                if ($mode === self::MODE_SUSUN) {
+                    $this->susun($b, $user, $b->label, $teks);
+                } elseif ($this->normal($teks) !== $this->normal($b->teksAkhir())) {
+                    $this->perbaiki($b, $user, $teks, $b->keterangan, $b->label);
+                }
+            };
+
+            if ($judul = $naskah->baris()->where('bagian', 'judul')->first()) {
+                $tulis($judul, TemplateNaskah::judulDenganTentang((string) $judul->teksAkhir(), $tentang));
+            }
+            if ($naskah->jenis === 'Peraturan Bupati' && $diktum = $naskah->baris()->where('bagian', 'diktum')->where('status', '!=', B::DIHAPUS)->first()) {
+                $tulis($diktum, TemplateNaskah::diktumDenganTentang((string) $diktum->teksAkhir(), $tentang));
+            }
+
+            if ($tentang !== $naskah->tentang) {
+                $this->catat($naskah, $user, 'ubah_judul', null, $naskah->tentang, $tentang);
+                $naskah->tentang = $tentang;
+                $naskah->save();
+            }
+
+            return $naskah;
+        });
+    }
+
     public function perbaiki(B $baris, User $user, ?string $teks, ?string $keterangan = null, ?string $label = null): B
     {
         return $this->ubahBaris($baris, $user, [self::MODE_TELITI, self::MODE_KOREKSI], function (B $b) use ($teks, $keterangan, $label) {
@@ -790,7 +910,7 @@ class AlurNaskah
             $sama = $this->normal($teks) === $this->normal($b->rumusan_awal);
 
             $b->rumusan_penyempurnaan = $sama ? null : $teks;
-            $b->keterangan = $keterangan;
+            $b->keterangan = $this->tanpaArahanLama($b, $keterangan);
             $b->status = $sama ? B::TETAP : B::DIUBAH;
         });
     }

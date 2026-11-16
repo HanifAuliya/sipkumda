@@ -82,13 +82,13 @@ class TurPengenalan
         $daftar = [
             'Perangkat Daerah' => [
                 ['menu-rancanganku', 'Rancanganku', 'Ajukan rancangan baru dengan tombol Ajukan Rancangan Baru, lalu pantau tahapnya di sini. Template dan contoh berkas ada di tombol Bahan Penting.'],
-                ['menu-fasilitasiku', 'Fasilitasiku', 'Setelah rancangan disetujui, ajukan fasilitasi dan tindak lanjuti catatan peneliti di sini.'],
+                ['menu-fasilitasiku', 'Fasilitasiku', 'Setelah rancangan disetujui, revisi naskah Anda sesuai hasil penelitian lalu ajukan fasilitasi dengan mengunggah naskah hasil perbaikan. Tindak lanjuti catatan peneliti di sini.'],
                 ['menu-daftar-nota-dinas', 'Daftar Nota Dinas', 'Nota dinas dari Bagian Hukum untuk naskah Anda bisa diunduh di sini.'],
                 ['menu-dokumentasi', 'Dokumentasi', 'Produk hukum yang sudah ditetapkan dan diarsipkan.'],
             ],
             'Peneliti' => [
                 ['menu-penelitian-rancangan', 'Penelitian Rancangan', 'Rancangan yang ditugaskan kepada Anda. Periksa tiap baris: tetapkan, perbaiki, atau minta Perangkat Daerah menyesuaikan.'],
-                ['menu-persetujuan-fasilitasi', 'Persetujuan Fasilitasi', 'Berkas fasilitasi yang perlu Anda periksa kelengkapannya. Saat menyatakan lengkap, Anda sekaligus menandatangani matriks: pakai tanda tangan tersimpan atau tanda tangan sekarang di layar.'],
+                ['menu-persetujuan-fasilitasi', 'Persetujuan Fasilitasi', 'Naskah hasil perbaikan dari Perangkat Daerah yang perlu Anda cek: sudahkah semua hasil penelitian diterapkan. Saat menyatakan lengkap, Anda sekaligus menandatangani matriks: pakai tanda tangan tersimpan atau tanda tangan sekarang di layar.'],
                 ['menu-pengecekan-fasilitasi', 'Pengecekan Fasilitasi', 'Perbaikan fasilitasi dari Perangkat Daerah yang perlu Anda cek. Saat meneruskan ke Verifikator, tanda tangani matriks lagi.'],
                 ['menu-daftar-rancangan', 'Daftar Rancangan', 'Semua rancangan, untuk dicari atau dipantau.'],
             ],

@@ -89,6 +89,10 @@ describe('alur lengkap', function () {
         $n = $this->alur->jalankan($n, $this->pd, 'kembali_ke_peneliti');
         expect($n->tahap)->toBe(T::Penelitian);
 
+        // Perbaikan PD harus diterima Peneliti dulu sebelum diteruskan.
+        expect(fn () => $this->alur->jalankan($n, $this->peneliti, 'teruskan_ke_verifikator'))->toThrow(ValidationException::class);
+        $this->alur->terimaSesuaian($pasal->fresh(), $this->peneliti);
+
         // Peneliti meneruskan, Verifikator menolak: kembali ke Peneliti.
         $n = $this->alur->jalankan($n, $this->peneliti, 'teruskan_ke_verifikator');
         $n = $this->alur->jalankan($n, $this->verifikator, 'tolak_rancangan', 'Belum pas');
@@ -96,6 +100,7 @@ describe('alur lengkap', function () {
 
         $n = $this->alur->jalankan($n, $this->peneliti, 'teruskan_ke_verifikator');
         $n = $this->alur->jalankan($n, $this->verifikator, 'setujui_rancangan');
+        $this->alur->simpanNaskahFasilitasi($n, $this->pd, 'isi', 'naskah-perbaikan.docx');
         $n = $this->alur->jalankan($n, $this->pd, 'ajukan_fasilitasi');
         $n = $this->alur->jalankan($n, $this->peneliti, 'setujui_fasilitasi');
 
@@ -120,6 +125,7 @@ describe('alur lengkap', function () {
         semuaTetap($this, $n);
         $n = $this->alur->jalankan($n, $this->peneliti, 'teruskan_ke_verifikator');
         $n = $this->alur->jalankan($n, $this->verifikator, 'setujui_rancangan');
+        $this->alur->simpanNaskahFasilitasi($n, $this->pd, 'isi', 'naskah-perbaikan.docx');
         $n = $this->alur->jalankan($n, $this->pd, 'ajukan_fasilitasi');
         $n = $this->alur->jalankan($n, $this->peneliti, 'setujui_fasilitasi');
         $n = $this->alur->jalankan($n, $this->verifikator, 'finalkan');
@@ -306,6 +312,33 @@ describe('baris matriks', function () {
 
         expect(fn () => $this->alur->buangSisipan($satuSatunya, $this->peneliti))->toThrow(ValidationException::class)
             ->and($satuSatunya->fresh())->not->toBeNull();
+    });
+
+    it('naskah tanpa lampiran bisa diselesaikan lewat tombol Tanpa Lampiran', function () {
+        $n = naskahPenelitian($this);
+        $lampiran = B::create(['naskah_id' => $n->id, 'urutan' => 999, 'bagian' => 'lampiran', 'rumusan_awal' => null]);
+
+        // Satu-satunya lampiran yang kosong: tidak bisa dibuang, jadi ditetapkan sebagai "tanpa lampiran".
+        Livewire::actingAs($this->peneliti)
+            ->test(BarisKerja::class, ['baris' => $lampiran, 'naskah' => $n])
+            ->assertSee('Tanpa Lampiran')
+            ->assertDontSee('Hapus Baris')
+            ->call('tetap', null);
+
+        expect($lampiran->fresh()->status)->toBe(B::TETAP);
+    });
+
+    it('baris yang sudah disesuaikan PD tidak dibuang diam-diam lewat Tetap', function () {
+        $n = naskahPenelitian($this);
+        $b = $n->baris()->where('bagian', 'menimbang')->first();
+        $b->forceFill(['rumusan_penyempurnaan' => 'bahwa perbaikan dari PD', 'status' => B::DISESUAIKAN])->save();
+
+        Livewire::actingAs($this->peneliti)
+            ->test(BarisKerja::class, ['baris' => $b, 'naskah' => $n])
+            ->assertSee('Perangkat Daerah sudah memperbaiki baris ini')
+            ->assertSee('Terima Perbaikan')
+            ->assertSee('Pakai Rumusan Awal')
+            ->assertDontSeeHtml('>Tetap</button>');
     });
 
     it('Sisipkan Baris hanya ada pada bagian yang barisnya bisa lebih dari satu', function () {

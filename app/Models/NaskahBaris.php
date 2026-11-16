@@ -37,6 +37,9 @@ class NaskahBaris extends Model
     /** Status yang berarti rumusannya berbeda dari usulan awal, atau diminta diperbaiki. */
     public const BERUBAH = [self::DIUBAH, self::DIHAPUS, self::PERLU_PD, self::DISESUAIKAN];
 
+    /** Bagi Peneliti: belum diperiksa, termasuk perbaikan PD yang belum diterima (Terima Perbaikan). */
+    public const BELUM_DIPERIKSA = [self::BELUM, self::DISESUAIKAN];
+
     /** Bagian yang barisnya bisa lebih dari satu. Judul, Penutup, dan Lampiran selalu satu baris. */
     public const BAGIAN_BERULANG = ['menimbang', 'mengingat', 'memperhatikan', 'diktum', 'batang_tubuh'];
 

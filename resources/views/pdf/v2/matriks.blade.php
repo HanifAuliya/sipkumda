@@ -27,6 +27,9 @@
         .tabel-sel { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 2pt 0; font-size: 9pt; }
         .matriks .tabel-sel td { padding: 1pt 2pt; word-wrap: break-word; }
         .penanda { font-weight: bold; }
+        .penutup-matriks { page-break-inside: avoid; }
+        /* Tabel lanjutan merapat ke tabel utama, supaya garisnya tidak dobel. */
+        .matriks.ekor { margin-top: -1px; }
         /* Dompdf tidak mengenal flex: dua blok tanda tangan disusun dengan tabel tanpa garis. */
         .ttd { width: 100%; margin-top: 18pt; border-collapse: collapse; page-break-inside: avoid; }
         .ttd td { width: 35%; text-align: center; vertical-align: top; padding: 0; }
@@ -57,6 +60,11 @@
         <p>{{ mb_strtoupper($naskah->tentang) }}</p>
     </div>
 
+    @php
+        $isi = collect($isi)->values();
+        $badan = $isi->count() >= 2 ? $isi->slice(0, -1) : $isi;
+        $ekor = $isi->count() >= 2 ? $isi->last() : null;
+    @endphp
     <table class="matriks">
         <thead>
             <tr>
@@ -71,22 +79,21 @@
             </tr>
         </thead>
         <tbody>
-            @foreach ($isi as $baris)
-                <tr>
-                    <td class="kolom-no">{{ $baris['no'] }}</td>
-                    <td class="kolom-materi">{{ $baris['materi'] }}</td>
-                    <td class="kolom-rumusan">
-                        @if ($baris['penanda'] && ! $baris['sebaris'])
-                            <span class="penanda">{{ $baris['penanda'] }}</span><br>
-                        @endif
-                        @include('pdf.v2.partials.teks-matriks', ['teks' => $baris['rumusan'], 'penanda' => $baris['sebaris'] ? $baris['penanda'] : null])
-                    </td>
-                    <td class="kolom-sempurna">@include('pdf.v2.partials.teks-matriks', ['teks' => $baris['penyempurnaan'], 'penanda' => null])</td>
-                    <td class="kolom-ket"><div class="teks">{{ $baris['keterangan'] }}</div></td>
-                </tr>
+            @foreach ($badan as $baris)
+                @include('pdf.v2.partials.baris-matriks')
             @endforeach
         </tbody>
     </table>
+
+    {{-- Baris terakhir menempel pada tanda tangan, supaya tanda tangan tidak terlempar sendirian ke halaman baru. --}}
+    <div class="penutup-matriks">
+    @if ($ekor)
+        <table class="matriks ekor">
+            <tbody>
+                @include('pdf.v2.partials.baris-matriks', ['baris' => $ekor])
+            </tbody>
+        </table>
+    @endif
 
     <table class="ttd">
         <tr>
@@ -122,6 +129,7 @@
             </td>
         </tr>
     </table>
+    </div>
 </body>
 
 </html>

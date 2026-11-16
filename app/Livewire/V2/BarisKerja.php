@@ -39,6 +39,13 @@ class BarisKerja extends Component
         $this->dispatch('baris-selesai', id: $this->baris->id);
     }
 
+    /** Perbaikan dari PD diterima apa adanya. */
+    public function terimaSesuaian(?string $keterangan, AlurNaskah $alur): void
+    {
+        $this->jalankan(fn () => $alur->terimaSesuaian($this->baris, auth()->user(), $keterangan));
+        $this->dispatch('baris-selesai', id: $this->baris->id);
+    }
+
     /** @return bool berhasil atau tidak, supaya editor tetap terbuka saat isiannya ditolak */
     public function simpanPerbaikan(?string $teks, ?string $keterangan, AlurNaskah $alur, ?string $label = null): bool
     {

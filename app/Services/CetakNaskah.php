@@ -853,7 +853,9 @@ class CetakNaskah
      */
     public function pdfMatriks(Naskah $naskah): string
     {
-        $baris = $naskah->baris()->get();
+        // Naskah tanpa lampiran menyisakan satu baris lampiran kosong; tidak perlu dicetak di matriks.
+        $baris = $naskah->baris()->get()->reject(fn (NaskahBaris $b) => $b->bagian === 'lampiran'
+            && blank($b->rumusan_awal) && blank($b->rumusan_penyempurnaan))->values();
         $penanda = TemplateNaskah::penanda($naskah, $baris);
         $nomorMateri = 0;
         $sebelumnya = null;

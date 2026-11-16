@@ -25,6 +25,8 @@ per satu. Tekan **Selanjutnya** untuk lanjut atau **Lewati tur**. Tur bisa diula
 ## 1. Menugaskan peneliti
 
 Buka naskah dari **Pilih Peneliti**, tekan **Tugaskan Peneliti**, pilih peneliti, lalu **Lanjutkan**.
+Di samping nama tiap peneliti tertulis bebannya, misalnya "3 naskah berjalan, 1 menunggu dikerjakan",
+supaya tugas terbagi rata.
 Bila nanti perlu diganti: **Lainnya › Ganti Peneliti** di layar kerja.
 
 ## 2. Validasi rancangan
@@ -38,7 +40,9 @@ Periksa hasil penelitian di matriks (tab **Naskah › Perbandingan** menampilkan
 
 ## 3. Validasi fasilitasi
 
-Anda bisa membetulkan rumusan langsung di matriks.
+Anda bisa membetulkan rumusan langsung di matriks, termasuk judul lewat **Ubah Judul** (judul pengajuan,
+judul naskah, dan "Menetapkan" ikut berubah). Daftar **hal perlu diperiksa** di atas matriks, dan di jendela
+**Setuju**, mengingatkan isian "…" yang tertinggal atau judul yang tidak sama.
 - **Setuju**: naskah menjadi final dan isinya **dikunci**. Berikutnya penerbitan nota dinas.
 - **Lainnya › Kembalikan ke Perbaikan Fasilitasi (PD)** dengan alasan.
 

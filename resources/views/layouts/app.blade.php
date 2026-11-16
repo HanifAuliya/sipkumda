@@ -31,6 +31,11 @@
 
     @include('layouts.partials.tur')
 
+    {{-- Pesan dari halaman sebelumnya, mis. "Naskah diteruskan ke Verifikator" sesudah dibawa ke antrean. --}}
+    @if (session('toast'))
+        <div x-data x-init="$nextTick(() => window.notify?.toast(@js(session('toast'))))" hidden></div>
+    @endif
+
     {{-- Dipakai resources/js/navigasi.js bila server lambat saat berpindah menu. --}}
     <template id="kerangka-halaman">@include('layouts.partials.kerangka')</template>
 

@@ -1,7 +1,8 @@
 # Panduan Perangkat Daerah
 
 Anda menyusun rancangan, mengajukannya ke Bagian Hukum, menyesuaikan rumusan yang diminta Peneliti,
-lalu mengajukan fasilitasi. Semua dikerjakan pada satu naskah; Anda tidak perlu mengunggah ulang berkas.
+lalu mengajukan fasilitasi. Semua dikerjakan pada satu naskah. Saat fasilitasi Anda mengunggah naskah yang
+sudah direvisi sesuai hasil penelitian.
 
 ## Masuk
 
@@ -44,6 +45,8 @@ Pengajuan** berisi apa saja yang perlu disiapkan.
 
 1. Buka **Rancanganku › Ajukan Rancangan Baru**.
 2. Isi **Jenis Rancangan** (Peraturan Bupati atau Keputusan Bupati), **Tentang**, serta **Nomor** dan **Tanggal Nota Dinas PD**.
+   **Tentang** adalah judul rancangan: judul naskah dan bunyi "Menetapkan" diisi otomatis darinya, juga
+   bila file Word diunggah, jadi judul cukup diketik sekali di sini.
 3. Unggah **Nota Dinas Perangkat Daerah** (PDF yang sudah ditandatangani, wajib). Contohnya ada di Bahan Penting.
 4. Bila punya file Word rancangan, pilih **Bentuk File Rancangan**:
    - **Naskah Rancangan**: ditulis seperti naskah yang dicetak (judul, Menimbang, Mengingat, pasal atau diktum).
@@ -60,12 +63,17 @@ Pengajuan** berisi apa saja yang perlu disiapkan.
 ## 2. Menyusun di layar kerja
 
 - Panel kiri berisi bagian naskah (Judul, Menimbang, Mengingat, Batang Tubuh per BAB, Penutup, Lampiran).
-  Tanda centang hijau berarti bagian itu sudah terisi.
+  Tanda centang hijau berarti bagian itu sudah terisi. Bagian yang masih berisi isian **"…"** dari template
+  belum dianggap terisi.
 - Ketik rumusan di kotak **Rumusan**. Penomoran (a., 1., (1)) dan tabel ditampilkan seperti hasil cetak.
 - **Pratinjau Naskah** di kanan menunjukkan hasil cetaknya.
 - Tab **Naskah** untuk membaca seluruh naskah dan mengunduh Word/PDF; tab **Berkas** untuk lampiran.
+- Judul diubah lewat **Lainnya › Ubah Judul** (atau tombol **Ubah Judul** di bagian Judul). Judul
+  pengajuan, judul naskah, dan bunyi "Menetapkan" ikut berubah bersama.
 - Selama belum diajukan, draf bisa dibuang lewat **Lainnya › Buang Draf**.
 - Bila semua bagian sudah benar, tekan **Ajukan**. Nomor rancangan (mis. PB-2026-012) diberikan saat itu.
+  Tombol **Ajukan** terkunci selama masih ada isian **"…"** dari template (kecuali nomor, tahun, dan tanggal
+  penetapan). Daftar **hal perlu diperiksa** di atas matriks menyebut bagiannya; tekan untuk membukanya.
 
 Sesudah diajukan, rumusan awal tidak bisa diubah lagi; perubahan berikutnya lewat kolom penyempurnaan.
 
@@ -85,9 +93,17 @@ Bila Peneliti meminta perbaikan, naskah kembali menjadi giliran Anda dengan taha
 
 ## 4. Mengajukan fasilitasi
 
-Setelah rancangan disetujui Verifikator (tahap **Rancangan Disetujui**), buka naskah dan tekan
-**Ajukan fasilitasi**. Tidak ada berkas yang perlu diunggah lagi. Bila Verifikator mengembalikannya
-(**Perbaikan Fasilitasi**), sesuaikan rumusan seperti langkah 3 lalu **Kirim ke Peneliti**.
+Setelah rancangan disetujui Verifikator (tahap **Rancangan Disetujui**), revisi naskah Anda sesuai seluruh
+hasil penelitian, lalu ajukan fasilitasi untuk dicek Peneliti sebelum nota dinas terbit:
+
+1. Buka naskah dan tekan **Ajukan fasilitasi**.
+2. Sebagai bahan, unduh **naskah hasil penelitian (Word)** dari tautan di jendela itu: isinya sudah memuat
+   semua rumusan penyempurnaan.
+3. Unggah **Naskah hasil perbaikan** (Word atau PDF), lalu **Lanjutkan**.
+
+Bila Peneliti mengembalikannya karena belum sesuai, unggah naskah hasil perbaikan yang baru saat mengajukan
+lagi. Bila Verifikator mengembalikannya (**Perbaikan Fasilitasi**), sesuaikan rumusan seperti langkah 3,
+unggah naskah hasil perbaikan terbaru di tab **Berkas** bila perlu, lalu **Kirim ke Peneliti**.
 
 ## 5. Sesudah fasilitasi
 

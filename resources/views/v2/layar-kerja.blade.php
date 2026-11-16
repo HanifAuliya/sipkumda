@@ -17,7 +17,7 @@
     ];
     $pilihanFilter = [
         'semua' => ['Semua baris', $total],
-        'belum' => ['Belum diperiksa', $hitung[B::BELUM] ?? 0],
+        'belum' => ['Belum diperiksa', $jumlahBelum],
         'perlu' => ['Perlu perbaikan PD', $hitung[B::PERLU_PD] ?? 0],
         'diubah' => ['Yang diubah', ($hitung[B::DIUBAH] ?? 0) + ($hitung[B::DIHAPUS] ?? 0) + ($hitung[B::PERLU_PD] ?? 0) + ($hitung[B::DISESUAIKAN] ?? 0)],
         'berubah' => ['Berubah sejak giliran lalu', null],
@@ -158,7 +158,7 @@
                     <span class="font-semibold text-navy-900 dark:text-white">Perlu diperbaiki</span>
                     <span class="text-slate-500 dark:text-slate-400">{{ $hitung[B::PERLU_PD] ?? 0 }} baris</span>
                 </div>
-            @elseif ($tahap !== TahapNaskah::Draf)
+            @elseif ($tampilkanHitung)
                 <div>
                     <div class="flex items-baseline justify-between gap-2 text-sm">
                         <span class="font-semibold text-navy-900 dark:text-white">Baris diperiksa</span>
@@ -319,11 +319,15 @@
                     $aksiLain = collect($aksi)->filter(fn ($t, $k) => (! empty($t['mundur']) && ! str_starts_with($k, 'buka_kunci')) || $k === 'ganti_peneliti');
                     $aksiUtama = collect($aksi)->reject(fn ($t, $k) => ! empty($t['mundur']) || $k === 'ganti_peneliti');
                 @endphp
-                @if ($aksiLain->isNotEmpty() || $bolehBuang)
+                @if ($aksiLain->isNotEmpty() || $bolehBuang || $bolehUbahJudul)
                     <x-ui.dropdown width="w-80">
                         <x-slot:trigger>
                             <x-ui.button variant="outline" icon="chevron-down">Lainnya</x-ui.button>
                         </x-slot:trigger>
+                        @if ($bolehUbahJudul)
+                            {{-- Satu tempat mengubah judul: judul pengajuan, judul naskah, dan "Menetapkan" ikut berubah. --}}
+                            <x-ui.dropdown-item icon="type" wire:click="bukaUbahJudul" description="Judul pengajuan, judul naskah, dan bunyi Menetapkan ikut berubah.">Ubah Judul</x-ui.dropdown-item>
+                        @endif
                         @foreach ($aksiLain as $kunci => $tombol)
                             <x-ui.dropdown-item :icon="$tombol['ikon']" :danger="! empty($tombol['mundur'])" wire:click="pilihAksi('{{ $kunci }}')" wire:key="lain-{{ $kunci }}"
                                 :description="isset($tombol['ke']) ? 'Naskah kembali ke tahap ' . $tombol['ke']->label() . '. Giliran ' . $tombol['ke']->peran() . '.' : 'Tahap naskah tidak berubah.'">
@@ -361,13 +365,29 @@
 
         <div x-data x-on:blok-berubah.window="$nextTick(() => $el.scrollTop = 0)" class="flex-1 overflow-y-auto">
             <main class="mx-auto w-full max-w-[1600px] space-y-5 px-4 py-6 transition-opacity duration-150 sm:px-6" wire:loading.class="opacity-60" wire:target="tab, pilihBlok">
-                @if ($tab === 'kerja')
-                    @foreach ($aksi as $tombol)
-                        @if ($tombol['hambatan'])
-                            <x-ui.alert type="warning">{{ $tombol['hambatan'] }}</x-ui.alert>
-                            @break
-                        @endif
-                    @endforeach
+                @php
+                    $hambatanUtama = collect($aksi)->pluck('hambatan')->filter()->first();
+                    // Isian "…" sudah dirinci (dan bisa diklik) di daftar peringatan, jadi tidak ditulis dua kali.
+                    $kunciIsian = $hambatanUtama && str_starts_with($hambatanUtama, 'Masih ada isian') && $peringatan;
+                @endphp
+                @if ($tab === 'kerja' && $hambatanUtama && ! $kunciIsian)
+                    <x-ui.alert type="warning">{{ $hambatanUtama }}</x-ui.alert>
+                @endif
+
+                @if ($tab === 'kerja' && $naskahPerbaikan)
+                    {{-- Fasilitasi: naskah revisi PD dibandingkan dengan hasil penelitian di matriks. --}}
+                    <x-ui.alert type="primary" icon="file-earmark-check">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <span>Naskah hasil perbaikan dari PD: <strong>{{ $naskahPerbaikan->nama_asli }}</strong> · {{ $naskahPerbaikan->created_at->translatedFormat('d M Y H:i') }}</span>
+                            <span class="flex gap-2">
+                                @if (str_ends_with(strtolower($naskahPerbaikan->nama_asli), '.pdf'))
+                                    <x-ui.button size="sm" variant="outline" icon="eye" :data-url="route('naskah.berkas', [$naskah, $naskahPerbaikan, 'lihat' => 1])" :data-judul="$naskahPerbaikan->nama_asli"
+                                        x-on:click="$dispatch('lihat-pdf', { url: $el.dataset.url, judul: $el.dataset.judul })">Lihat</x-ui.button>
+                                @endif
+                                <x-ui.button size="sm" variant="outline" icon="download" :href="route('naskah.berkas', [$naskah, $naskahPerbaikan])">Unduh</x-ui.button>
+                            </span>
+                        </div>
+                    </x-ui.alert>
                 @endif
 
                 @if (filled($naskah->catatan_tahap))
@@ -407,10 +427,13 @@
                 @if ($peringatan)
                     <x-ui.alert type="warning" icon="exclamation-triangle-fill">
                         <details>
-                            <summary class="-my-2 py-2 font-semibold">{{ count($peringatan) }} hal pada penomoran perlu diperiksa</summary>
+                            <summary class="-my-2 py-2 font-semibold">{{ count($peringatan) }} hal perlu diperiksa{{ $kunciIsian ? ' · Ajukan terkunci sampai isian “…” dilengkapi' : '' }}</summary>
                             <ul class="mt-2 list-disc space-y-1 pl-5">
                                 @foreach ($peringatan as $p)
-                                    <li wire:key="peringatan-{{ $loop->index }}">{{ $p['pesan'] }}</li>
+                                    {{-- Klik membuka baris yang dimaksud. --}}
+                                    <li wire:key="peringatan-{{ $loop->index }}">
+                                        <button type="button" class="text-left underline decoration-dotted underline-offset-2 hover:decoration-solid" wire:click="bukaBaris({{ $p['baris_id'] }})">{{ $p['pesan'] }}</button>
+                                    </li>
                                 @endforeach
                             </ul>
                         </details>
@@ -430,7 +453,7 @@
 
         @if ($tab === 'kerja')
             @if ($blokAktif)
-                @php $selesaiBlok = collect($blokAktif['ids'])->filter(fn ($id) => $perId[$id]->status !== B::BELUM)->count(); @endphp
+                @php $selesaiBlok = collect($blokAktif['ids'])->filter(fn ($id) => ! in_array($perId[$id]->status, $statusBelum, true))->count(); @endphp
 
                 <x-ui.card :padding="false"
                     :title="$blokAktif['nama'].($blokAktif['sub'] ? ': '.$blokAktif['sub'] : '')"
@@ -448,7 +471,7 @@
                     <div class="divide-y divide-slate-100 dark:divide-navy-800">
                         @foreach ($daftarBaris as $b)
                             <livewire:v2.baris-kerja :baris="$b" :naskah="$naskah" :penanda="$penanda[$b->id] ?? null"
-                                :wire:key="'baris-'.$b->id.'-'.$naskah->giliran.'-'.($penanda[$b->id] ?? '')" />
+                                :wire:key="'baris-'.$b->id.'-'.$naskah->giliran.'-'.($penanda[$b->id] ?? '').(in_array($b->bagian, ['judul', 'diktum'], true) ? '-'.md5($naskah->tentang) : '')" />
                         @endforeach
                     </div>
                 </x-ui.card>
@@ -504,6 +527,11 @@
                                     <p class="text-sm text-slate-500 italic dark:text-slate-400">Alasan: {{ $file->keterangan }}</p>
                                 @endif
                             </div>
+                            @if (str_ends_with(strtolower($file->nama_asli), '.pdf'))
+                                {{-- Tanpa @js di atribut komponen: kompilator Blade Livewire salah membaca kurungnya. --}}
+                                <x-ui.button size="rapat" variant="outline" icon="eye" :data-url="route('naskah.berkas', [$naskah, $file, 'lihat' => 1])" :data-judul="$file->nama_asli"
+                                    x-on:click="$dispatch('lihat-pdf', { url: $el.dataset.url, judul: $el.dataset.judul })">Lihat</x-ui.button>
+                            @endif
                             <x-ui.button size="rapat" variant="outline" icon="download" :href="route('naskah.berkas', [$naskah, $file])">Unduh</x-ui.button>
                         </div>
                     @empty
@@ -515,8 +543,9 @@
                     <form wire:submit="unggahBerkas" class="flex flex-wrap items-end gap-3 rounded-2xl bg-white p-4 shadow-card dark:bg-navy-900 dark:shadow-none dark:ring-1 dark:ring-white/5">
                         <x-form.field label="Jenis" for="jenisBerkas" error="jenisBerkas">
                             <x-form.select id="jenisBerkas" wire:model="jenisBerkas">
-                                <option value="{{ NaskahBerkas::LAMPIRAN }}">{{ NaskahBerkas::LABEL[NaskahBerkas::LAMPIRAN] }}</option>
-                                <option value="{{ NaskahBerkas::BAHAN_PENDUKUNG }}">{{ NaskahBerkas::LABEL[NaskahBerkas::BAHAN_PENDUKUNG] }}</option>
+                                @foreach ($jenisUnggahan as $jenisPilihan)
+                                    <option value="{{ $jenisPilihan }}">{{ NaskahBerkas::LABEL[$jenisPilihan] }}</option>
+                                @endforeach
                             </x-form.select>
                         </x-form.field>
                         <x-form.field label="File" for="berkasBaru" error="berkasBaru" class="min-w-56 flex-1">
@@ -653,59 +682,7 @@
     </div>
 
     {{-- Konfirmasi perpindahan tahap --}}
-    <x-ui.modal id="modalAksi" :title="$aksiModal['label'] ?? 'Konfirmasi'" size="lg">
-        @error('aksi')
-            <x-ui.alert color="danger">{{ $message }}</x-ui.alert>
-        @enderror
-
-        @if (isset($aksiModal['ke']))
-            {{-- Setiap perpindahan menyebut asal, tujuan, dan pemegang giliran berikutnya. --}}
-            <x-ui.alert :type="! empty($aksiModal['mundur']) ? 'warning' : 'primary'" :icon="! empty($aksiModal['mundur']) ? 'arrow-return-left' : 'arrow-right'" class="mb-4">
-                Naskah berpindah dari <strong>{{ $tahap->label() }}</strong> ke <strong>{{ $aksiModal['ke']->label() }}</strong>.
-                Giliran berikutnya: <strong>{{ $aksiModal['ke']->peran() }}</strong>.
-            </x-ui.alert>
-        @endif
-
-        @if ($aksiTerpilih === 'ganti_peneliti')
-            <p class="mb-4 text-sm text-slate-600 dark:text-slate-300">
-                Peneliti sekarang: <strong class="text-navy-900 dark:text-white">{{ $naskah->peneliti->nama_user ?? '-' }}</strong>.
-                Tahap naskah tidak berubah. Peneliti baru langsung bisa membuka naskah ini, sedangkan peneliti lama tidak lagi.
-            </p>
-        @endif
-
-        @if (! empty($aksiModal['peneliti']))
-            <x-form.field :label="$aksiTerpilih === 'ganti_peneliti' ? 'Peneliti baru' : 'Peneliti'" for="penelitiId" error="penelitiId" required>
-                <x-form.select id="penelitiId" wire:model="penelitiId">
-                    <option value="">Pilih peneliti</option>
-                    @foreach ($peneliti as $orang)
-                        <option value="{{ $orang->id }}">{{ $orang->nama_user }}</option>
-                    @endforeach
-                </x-form.select>
-            </x-form.field>
-        @endif
-
-        @php
-            $isian = 'w-full rounded-lg border-0 text-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-primary-300 dark:bg-navy-800 dark:ring-navy-700';
-        @endphp
-
-        @if (! empty($aksiModal['ttd_peneliti']))
-            {{-- Langkah terakhir Peneliti di fasilitasi: menandatangani matriks. --}}
-            <div class="mb-4">
-                <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">Tanda Tangan Matriks <span class="text-rose-500">*</span></p>
-                <p class="mb-3 text-sm text-slate-500 dark:text-slate-400">Dicetak di matriks di atas nama dan NIP Anda setelah nota dinas terbit.</p>
-                <x-ttd.pilih sumber="sumberTtd" langsung="ttdLangsung" simpan="simpanTtd" error="ttd" :src="auth()->user()->ttdUrl()" />
-            </div>
-        @endif
-
-        <x-form.field :label="! empty($aksiModal['catatan']) ? 'Alasan' : 'Catatan (opsional)'" for="catatan" error="catatan" :required="! empty($aksiModal['catatan'])" class="mt-3">
-            <textarea id="catatan" wire:model="catatan" rows="3" class="{{ $isian }}"></textarea>
-        </x-form.field>
-
-        <x-slot:footer>
-            <x-ui.button variant="ghost" x-on:click="close()">Batal</x-ui.button>
-            <x-ui.button icon="check2" wire:click="jalankanAksi" loading="jalankanAksi">Lanjutkan</x-ui.button>
-        </x-slot:footer>
-    </x-ui.modal>
+    @include('v2.partials.modal-layar-kerja')
 
     {{-- Isi naskah pada versi lama --}}
     <x-ui.modal id="modalVersi" :title="$isiVersi ? 'Versi '.$isiVersi->versi : 'Versi'" :description="$isiVersi ? TahapNaskah::from($isiVersi->tahap)->label().' · '.$isiVersi->created_at->translatedFormat('d M Y H:i') : null" size="5xl">

@@ -79,6 +79,8 @@ class BuatNaskah extends Component
         if ($this->word) {
             try {
                 $baris = TemplateNaskah::denganPenutup($pembaca->baca($this->word->getRealPath(), $this->jenis, $this->bentuk)['baris'], $this->jenis);
+                // Judul cukup diketik sekali di formulir; judul dan "Menetapkan" di Word mengikutinya.
+                $baris = TemplateNaskah::selaraskanJudul($baris, $this->jenis, $this->tentang);
             } catch (RuntimeException $e) {
                 throw ValidationException::withMessages(['word' => $e->getMessage()]);
             }

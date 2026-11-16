@@ -133,6 +133,26 @@ window.confirmAction = ({
 
 Alpine.magic('confirm', () => window.confirmAction);
 
+/*
+ * wire:confirm="..." memakai dialog yang sama, bukan confirm() bawaan peramban, supaya semua konfirmasi
+ * seragam. Livewire menyimpan pemeriksanya di el.__livewire_confirm(action, instead); di sini diganti.
+ * wire:confirm.prompt (atributnya bernama lain) tetap memakai bawaan Livewire.
+ */
+Object.defineProperty(HTMLElement.prototype, '__livewire_confirm', {
+    configurable: true,
+    set(bawaan) {
+        this.__konfirmasiBawaan = bawaan;
+    },
+    get() {
+        const pesan = this.getAttribute('wire:confirm');
+        if (pesan === null) return this.__konfirmasiBawaan;
+
+        return (action, instead) =>
+            window.confirmAction({ title: 'Lanjutkan?', text: pesan.replaceAll('\\n', '\n') || 'Apakah Anda yakin?', confirmText: 'Ya' })
+                .then((ok) => (ok ? action() : instead()));
+    },
+});
+
 /**
  * Minta catatan wajib lewat dialog; menghasilkan teks, atau null bila dibatalkan.
  *   x-on:click="$prompt({ title: 'Setujui berkas?' }).then(c => c && $wire.setujui(1, c))"

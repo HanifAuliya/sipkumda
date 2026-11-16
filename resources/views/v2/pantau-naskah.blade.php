@@ -168,7 +168,7 @@
                                     keterangan-tersimpan="Pilih penanda tangan; tanda tangan Anda terpilih lebih dulu.">
                                     <x-form.field label="Penanda tangan" for="tandaTanganId" error="tandaTanganId">
                                         <x-form.select id="tandaTanganId" wire:model="tandaTanganId">
-                                            <option value="">Pilih tanda tangan</option>
+                                            <option value="" hidden>Pilih tanda tangan</option>
                                             @foreach ($daftarTtd as $ttd)
                                                 <option value="{{ $ttd->id }}">{{ $ttd->nama_ttd }} ({{ $ttd->jabatan }})</option>
                                             @endforeach
@@ -182,7 +182,7 @@
                         @else
                             <x-form.field label="Tanda tangan" for="tandaTanganId" error="tandaTanganId" required hint="Nomor dan tanda tangan ini otomatis masuk ke matriks.">
                                 <x-form.select id="tandaTanganId" wire:model="tandaTanganId">
-                                    <option value="">Pilih tanda tangan</option>
+                                    <option value="" hidden>Pilih tanda tangan</option>
                                     @foreach ($daftarTtd as $ttd)
                                         <option value="{{ $ttd->id }}">{{ $ttd->nama_ttd }} ({{ $ttd->jabatan }})</option>
                                     @endforeach
