@@ -264,7 +264,7 @@ aplikasi/      Laravel lengkap; .env, font, dan storage milik server tidak ikut 
 
 | Menu hPanel | Yang dibuat atau dicek |
 |---|---|
-| **Advanced › PHP Configuration** | PHP **8.3 atau lebih baru**. Ekstensi `gd`, `exif`, `zip`, `fileinfo`, `pdo_mysql`, `mbstring`, `intl` aktif |
+| **Advanced › PHP Configuration** | PHP **8.4 atau lebih baru** (paket Symfony 8 butuh 8.4.1+). Ekstensi `gd`, `exif`, `zip`, `fileinfo`, `pdo_mysql`, `mbstring`, `intl` aktif |
 | **Domains › Subdomains** | Buat subdomain, mis. `sifkumda`. Catat foldernya, mis. `public_html/sifkumda` |
 | **Security › SSL** | Pasang SSL gratis untuk subdomain itu |
 | **Databases › MySQL Databases** | Buat database dan penggunanya; catat nama (berawalan `u123456789_`) dan kata sandinya |
@@ -352,7 +352,7 @@ tanpa kata sandi). Bila log berisi `GAGAL`, perbaiki penyebabnya (biasanya isian
 diulang otomatis tiap menit.
 
 Bila log menyebut versi PHP terlalu rendah, ganti `php` di cron dengan alamat lengkap, mis.
-`/opt/alt/php83/usr/bin/php`.
+`/opt/alt/php84/usr/bin/php`.
 
 ### 9.5 Memperbarui aplikasi
 
