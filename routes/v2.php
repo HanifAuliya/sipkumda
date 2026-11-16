@@ -11,6 +11,7 @@ use App\Livewire\V2\PengaturanFormat;
 use App\Livewire\V2\PengaturanNaskah;
 use App\Livewire\V2\PengaturanPerangkatDaerah;
 use App\Support\FormatDokumen;
+use App\Livewire\V2\PengaturanWhatsApp;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 
@@ -80,6 +81,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('/pengaturan/perangkat-daerah', PengaturanPerangkatDaerah::class)
         ->middleware('role:Admin|Super Admin')
         ->name('perangkat-daerah');
+
+    Route::livewire('/whatsapp', PengaturanWhatsApp::class)
+        ->middleware('role:Admin|Super Admin')
+        ->name('whatsapp');
 
     Route::livewire('/pengaturan', PengaturanNaskah::class)
         ->middleware('role:Admin|Verifikator|Super Admin')

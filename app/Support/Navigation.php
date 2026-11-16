@@ -81,6 +81,7 @@ class Navigation
                     ['label' => 'Kelola TTD', 'route' => 'kelola-ttd.main', 'icon' => 'pen', 'roles' => ['Admin']],
                     ['label' => 'Template Bahan Penting', 'route' => 'bahan-penting', 'icon' => 'list-task', 'roles' => ['Admin']],
                     ['label' => 'Perangkat Daerah', 'route' => 'perangkat-daerah', 'icon' => 'building', 'roles' => ['Admin', 'Super Admin']],
+                    ['label' => 'WhatsApp', 'route' => 'whatsapp', 'icon' => 'whatsapp', 'roles' => ['Admin', 'Super Admin']],
                 ],
             ],
         ];

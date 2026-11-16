@@ -13,6 +13,9 @@ class Pengaturan extends Model
     /** JSON [kunci => nama] urutan paraf dan tanda tangan basah; kosong = urutan bawaan. */
     public const TAHAPAN_TTD = 'tahapan_ttd';
 
+    /** Cakupan notifikasi WhatsApp: tindakan | semua (lihat App\Support\Wa\AntreanWa). */
+    public const WA_CAKUPAN = 'wa_cakupan';
+
     protected $table = 'pengaturan';
 
     protected $fillable = ['kunci', 'nilai'];
