@@ -206,10 +206,10 @@ describe('persetujuan fasilitasi', function () {
         $penelitiLain = tap(User::factory()->create())->assignRole('Peneliti');
 
         expect($this->n->tahap)->toBe(T::PersetujuanFasilitasi)
-            ->and($this->alur->aksiTersedia($this->n, $this->peneliti))->toHaveKeys(['setujui_fasilitasi', 'tolak_fasilitasi'])
+            ->and($this->alur->aksiTersedia($this->n, $this->peneliti))->toHaveKey('setujui_fasilitasi')->not->toHaveKey('fasilitasi_ke_pd')
             ->and($this->alur->aksiTersedia($this->n, $this->admin))->toBe([])
             ->and($this->alur->aksiTersedia($this->n, $penelitiLain))->toBe([])
-            ->and($this->alur->modeBaris($this->n, $this->peneliti))->toBeNull()
+            ->and($this->alur->modeBaris($this->n, $this->peneliti))->toBe(AlurNaskah::MODE_TELITI)
             ->and($this->peneliti->notifications()->where('data->slug', $this->n->slug)->where('data->tahap', 'persetujuan_fasilitasi')->exists())->toBeTrue();
 
         expect(fn () => $this->alur->jalankan($this->n, $this->admin, 'setujui_fasilitasi'))->toThrow(HttpException::class);
@@ -219,9 +219,19 @@ describe('persetujuan fasilitasi', function () {
         expect($this->alur->jalankan($this->n, $this->peneliti, 'setujui_fasilitasi')->tahap)->toBe(T::ValidasiFasilitasi);
     });
 
-    it('Peneliti bisa mengembalikan ke PD dengan alasan', function () {
-        expect(fn () => $this->alur->jalankan($this->n, $this->peneliti, 'tolak_fasilitasi'))->toThrow(ValidationException::class);
-        expect($this->alur->jalankan($this->n, $this->peneliti, 'tolak_fasilitasi', 'Berkas kurang')->tahap)->toBe(T::Disetujui);
+    it('Peneliti menandai baris untuk PD lalu mengirimnya ke Perbaikan Fasilitasi', function () {
+        $pasal = $this->n->baris()->orderByDesc('urutan')->first();
+        $this->alur->mintaPerbaikan($pasal, $this->peneliti, 'Lengkapi tanggal berlakunya.');
+
+        expect($this->alur->aksiTersedia($this->n->fresh(), $this->peneliti))->toHaveKey('fasilitasi_ke_pd')->not->toHaveKey('setujui_fasilitasi');
+
+        $n = $this->alur->jalankan($this->n->fresh(), $this->peneliti, 'fasilitasi_ke_pd');
+        expect($n->tahap)->toBe(T::PerbaikanFasilitasi)
+            ->and($this->alur->modeBaris($n, $this->pd))->toBe(AlurNaskah::MODE_SESUAIKAN);
+
+        $this->alur->sesuaikan($pasal, $this->pd, 'Berlaku sejak diundangkan.');
+        $n = $this->alur->jalankan($n, $this->pd, 'perbaikan_ke_peneliti');
+        expect($n->tahap)->toBe(T::CekPeneliti);
     });
 });
 

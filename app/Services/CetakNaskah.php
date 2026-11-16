@@ -868,7 +868,7 @@ class CetakNaskah
             $materi = $bagianBaru ? TemplateNaskah::BAGIAN[$item->bagian] : '';
             $sempurna = match ($item->status) {
                 NaskahBaris::TETAP => 'Tetap;',
-                NaskahBaris::DIHAPUS => 'Dihapus;',
+                NaskahBaris::DIHAPUS, NaskahBaris::USUL_HAPUS => 'Dihapus;',
                 default => (string) $item->rumusan_penyempurnaan,
             };
 

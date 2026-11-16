@@ -17,7 +17,7 @@ class PemeriksaPenomoran
      */
     public static function periksa(Collection $baris): array
     {
-        $hidup = $baris->where('bagian', 'batang_tubuh')->where('status', '!=', NaskahBaris::DIHAPUS);
+        $hidup = $baris->where('bagian', 'batang_tubuh')->whereNotIn('status', NaskahBaris::TERHAPUS);
         $pesan = [];
 
         self::urutan($hidup, '/^Pasal\s+(\d+)$/u', 'Pasal', fn ($n) => (int) $n, $pesan);

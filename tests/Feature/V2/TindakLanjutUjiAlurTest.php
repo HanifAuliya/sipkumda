@@ -107,6 +107,47 @@ it('Ajukan fasilitasi tanpa unggahan: naskah hasil perbaikan disusun dari matrik
         ->and($this->actingAs($this->peneliti)->get(route('naskah.cetak', [$n, 'naskah-pdf']))->headers->get('Content-Disposition'))->toStartWith('attachment');
 });
 
+it('PD masih bisa menyempurnakan naskah sebelum mengajukan fasilitasi, dan Peneliti memeriksanya', function () {
+    $n = sampaiDisetujui($this, drafUji($this));
+    expect($this->alur->modeBaris($n, $this->pd))->toBe(AlurNaskah::MODE_SESUAIKAN);
+    Livewire::actingAs($this->pd)->test(LayarKerja::class, ['naskah' => $n])
+        ->assertSee('Rancangan sudah disetujui')->assertSee('Perubahan Anda');
+    Livewire::actingAs($this->pd)->test(App\Livewire\V2\BarisKerja::class, ['baris' => $n->baris()->where('bagian', 'menimbang')->first(), 'naskah' => $n])
+        ->assertSee('Sisipkan Baris')->assertSee('Hapus Rumusan')->assertSee('Perbaiki Rumusan');
+
+    $menimbang = $n->baris()->where('bagian', 'menimbang')->first();
+    $pasal = $n->baris()->where('bagian', 'batang_tubuh')->first();
+
+    // Memperbaiki, menyisipkan, dan mengusulkan hapus.
+    $this->alur->sesuaikan($pasal, $this->pd, 'Isi pasal yang disempurnakan.');
+    $sisipan = $this->alur->tambahSetelah($pasal, $this->pd);
+    expect($sisipan->status)->toBe(B::DISESUAIKAN)
+        ->and($this->alur->aksiTersedia($n->fresh(), $this->pd)['ajukan_fasilitasi']['hambatan'])->toContain('sisipan masih kosong');
+    $this->alur->sesuaikan($sisipan, $this->pd, 'Pasal baru dari PD.', 'Pasal 2');
+    $this->alur->usulHapus($menimbang, $this->pd);
+    expect($menimbang->fresh()->status)->toBe(B::USUL_HAPUS)->and($menimbang->fresh()->teksAkhir())->toBeNull();
+
+    // Sisipan PD yang belum diperiksa boleh dibuang lagi oleh PD; baris usulan awal tidak.
+    $buang = $this->alur->tambahSetelah($sisipan, $this->pd);
+    $this->alur->buangSisipan($buang, $this->pd);
+    expect(B::find($buang->id))->toBeNull();
+    expect(fn () => $this->alur->buangSisipan($pasal->fresh(), $this->pd))->toThrow(Symfony\Component\HttpKernel\Exception\HttpException::class);
+
+    $n = $this->alur->jalankan($n->fresh(), $this->pd, 'ajukan_fasilitasi');
+
+    // Peneliti wajib memutuskan setiap perubahan PD sebelum menyatakan lengkap.
+    expect($this->alur->aksiTersedia($n, $this->peneliti)['setujui_fasilitasi']['hambatan'])->toBe('3 baris belum diperiksa.');
+    Livewire::actingAs($this->peneliti)->test(App\Livewire\V2\BarisKerja::class, ['baris' => $menimbang->fresh(), 'naskah' => $n])
+        ->assertSee('mengusulkan baris ini dihapus')->assertSee('Terima Hapus');
+
+    $this->alur->terimaSesuaian($menimbang->fresh(), $this->peneliti);
+    $this->alur->terimaSesuaian($pasal->fresh(), $this->peneliti);
+    $this->alur->terimaSesuaian($sisipan->fresh(), $this->peneliti);
+    expect($menimbang->fresh()->status)->toBe(B::DIHAPUS)
+        ->and($sisipan->fresh()->label)->toBe('Pasal 2')
+        ->and($this->alur->aksiTersedia($n->fresh(), $this->peneliti)['setujui_fasilitasi']['hambatan'])->toBeNull();
+});
+
 it('arahan untuk PD tidak ikut tercetak setelah perbaikannya diterima', function () {
     $n = drafUji($this);
     $this->alur->jalankan($n, $this->pd, 'ajukan');

@@ -488,7 +488,7 @@ class LayarKerja extends Component
             'peneliti' => in_array($this->aksiTerpilih, ['tugaskan_peneliti', 'ganti_peneliti'], true)
                 ? $this->penelitiDenganBeban()
                 : collect(),
-            'barisUntukPd' => in_array($this->aksiTerpilih, ['kirim_ke_pd', 'cek_ke_pd'], true)
+            'barisUntukPd' => in_array($this->aksiTerpilih, ['kirim_ke_pd', 'cek_ke_pd', 'fasilitasi_ke_pd'], true)
                 ? $this->naskah->baris()->where('status', B::PERLU_PD)->get(['id', 'bagian', 'label', 'keterangan'])
                 : collect(),
             // Fasilitasi: Peneliti mengecek naskah hasil perbaikan, yaitu naskah yang dibuat dari isi matriks.

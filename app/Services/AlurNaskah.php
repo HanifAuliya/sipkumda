@@ -37,7 +37,7 @@ class AlurNaskah
     /** Pengubahan baris matriks yang tersedia bagi pemegang giliran. */
     public const MODE_SUSUN = 'susun';        // PD menyusun kolom 3
     public const MODE_TELITI = 'teliti';      // Peneliti mengisi kolom 4-5
-    public const MODE_SESUAIKAN = 'sesuaikan'; // PD memperbaiki kolom 4
+    public const MODE_SESUAIKAN = 'sesuaikan'; // PD memperbaiki kolom 4, menyisipkan, atau mengusulkan hapus
     public const MODE_KOREKSI = 'koreksi';    // Verifikator membetulkan langsung
 
     /**
@@ -58,7 +58,8 @@ class AlurNaskah
         'ajukan_fasilitasi' => ['dari' => T::Disetujui, 'ke' => T::PersetujuanFasilitasi, 'label' => 'Ajukan fasilitasi', 'ikon' => 'send', 'varian' => 'primary'],
         // ttd_peneliti: langkah terakhir Peneliti di fasilitasi, sekaligus menandatangani matriks.
         'setujui_fasilitasi' => ['dari' => T::PersetujuanFasilitasi, 'ke' => T::ValidasiFasilitasi, 'label' => 'Berkas fasilitasi lengkap', 'ikon' => 'check2', 'varian' => 'success', 'ttd_peneliti' => true],
-        'tolak_fasilitasi' => ['dari' => T::PersetujuanFasilitasi, 'ke' => T::Disetujui, 'label' => 'Kembalikan berkas fasilitasi ke PD', 'ikon' => 'arrow-return-left', 'varian' => 'outline-danger', 'catatan' => true, 'mundur' => true],
+        // Baris yang ditandai "Minta PD Perbaiki" dikirim ke PD; sesudahnya Peneliti mengecek lagi (Pengecekan Fasilitasi).
+        'fasilitasi_ke_pd' => ['dari' => T::PersetujuanFasilitasi, 'ke' => T::PerbaikanFasilitasi, 'label' => 'Kirim ke PD', 'ikon' => 'send', 'varian' => 'primary'],
         'finalkan' => ['dari' => T::ValidasiFasilitasi, 'ke' => T::Final, 'label' => 'Setuju', 'ikon' => 'patch-check', 'varian' => 'success'],
         'tolak_validasi' => ['dari' => T::ValidasiFasilitasi, 'ke' => T::PerbaikanFasilitasi, 'label' => 'Kembalikan ke Perbaikan Fasilitasi (PD)', 'ikon' => 'arrow-return-left', 'varian' => 'outline-danger', 'catatan' => true, 'mundur' => true],
         'perbaikan_ke_peneliti' => ['dari' => T::PerbaikanFasilitasi, 'ke' => T::CekPeneliti, 'label' => 'Kirim ke Peneliti', 'ikon' => 'send', 'varian' => 'primary'],
@@ -96,8 +97,9 @@ class AlurNaskah
 
         return match ($naskah->tahap) {
             T::Draf => self::MODE_SUSUN,
-            T::Penelitian, T::CekPeneliti => self::MODE_TELITI,
-            T::PerbaikanPd, T::PerbaikanFasilitasi => self::MODE_SESUAIKAN,
+            T::Penelitian, T::PersetujuanFasilitasi, T::CekPeneliti => self::MODE_TELITI,
+            // Sebelum mengajukan fasilitasi PD masih bisa menyempurnakan naskahnya; Peneliti memeriksa perubahannya.
+            T::PerbaikanPd, T::Disetujui, T::PerbaikanFasilitasi => self::MODE_SESUAIKAN,
             T::ValidasiFasilitasi => self::MODE_KOREKSI,
             default => null,
         };
@@ -200,8 +202,8 @@ class AlurNaskah
         $adaUntukPd = $naskah->baris()->where('status', B::PERLU_PD)->exists();
 
         return $adaUntukPd
-            ? ['teruskan_ke_verifikator', 'cek_ke_verifikator']
-            : ['kirim_ke_pd', 'cek_ke_pd'];
+            ? ['teruskan_ke_verifikator', 'cek_ke_verifikator', 'setujui_fasilitasi']
+            : ['kirim_ke_pd', 'cek_ke_pd', 'fasilitasi_ke_pd'];
     }
 
     private function pemegangAksi(Naskah $naskah, User $user, array $aksi): bool
@@ -622,8 +624,9 @@ class AlurNaskah
     {
         return match ($aksi) {
             'ajukan' => $this->hambatanAjukan($naskah),
-            'kirim_ke_pd', 'teruskan_ke_verifikator', 'cek_ke_pd', 'cek_ke_verifikator' => $this->hambatanTeliti($naskah),
-            'kembali_ke_peneliti', 'perbaikan_ke_peneliti' => $this->hambatanSesuaikan($naskah),
+            'kirim_ke_pd', 'teruskan_ke_verifikator', 'cek_ke_pd', 'cek_ke_verifikator',
+            'setujui_fasilitasi', 'fasilitasi_ke_pd' => $this->hambatanTeliti($naskah),
+            'kembali_ke_peneliti', 'perbaikan_ke_peneliti', 'ajukan_fasilitasi' => $this->hambatanSesuaikan($naskah),
             default => null,
         };
     }
@@ -662,7 +665,18 @@ class AlurNaskah
     {
         $belum = $naskah->baris()->where('status', B::PERLU_PD)->count();
 
-        return $belum ? "{$belum} baris belum disesuaikan." : null;
+        if ($belum) {
+            return "{$belum} baris belum disesuaikan.";
+        }
+
+        // Baris yang disisipkan PD tetapi belum diisi.
+        $kosong = $naskah->baris()->where('status', B::DISESUAIKAN)
+            ->where(fn ($q) => $q->whereNull('rumusan_awal')->orWhere('rumusan_awal', ''))
+            ->where(fn ($q) => $q->whereNull('rumusan_penyempurnaan')->orWhere('rumusan_penyempurnaan', ''))
+            ->where(fn ($q) => $q->whereNull('label')->orWhere('label', ''))
+            ->count();
+
+        return $kosong ? "{$kosong} baris sisipan masih kosong. Isi atau hapus dulu." : null;
     }
 
     /** Memindahkan naskah ke tahap berikutnya dan menyimpan versi. */
@@ -788,7 +802,7 @@ class AlurNaskah
      */
     private function tanpaArahanLama(B $b, ?string $keterangan): ?string
     {
-        return $b->status === B::DISESUAIKAN && $this->normal($keterangan) === $this->normal($b->keterangan) ? null : $keterangan;
+        return in_array($b->status, B::USULAN_PD, true) && $this->normal($keterangan) === $this->normal($b->keterangan) ? null : $keterangan;
     }
 
     public function tetapkan(B $baris, User $user, ?string $keterangan = null): B
@@ -801,15 +815,21 @@ class AlurNaskah
     }
 
     /** Peneliti/Verifikator menulis rumusan. Teks yang sama persis dengan kolom 3 berarti Tetap. */
-    /** Peneliti/Verifikator menerima rumusan yang sudah disesuaikan PD apa adanya. */
+    /** Peneliti/Verifikator menerima perbaikan PD apa adanya; usulan hapus menjadi Dihapus. */
     public function terimaSesuaian(B $baris, User $user, ?string $keterangan = null): B
     {
         return $this->ubahBaris($baris, $user, [self::MODE_TELITI, self::MODE_KOREKSI], function (B $b) use ($keterangan) {
-            if ($b->status !== B::DISESUAIKAN) {
+            if (! in_array($b->status, B::USULAN_PD, true)) {
                 $this->gagal('rumusan', 'Baris ini tidak sedang menunggu pemeriksaan perbaikan PD.');
             }
             $b->keterangan = $this->tanpaArahanLama($b, $keterangan);
-            $b->status = B::DIUBAH;
+
+            if ($b->status === B::USUL_HAPUS) {
+                $b->rumusan_penyempurnaan = null;
+                $b->status = B::DIHAPUS;
+            } else {
+                $b->status = B::DIUBAH;
+            }
         });
     }
 
@@ -848,7 +868,7 @@ class AlurNaskah
             if ($judul = $naskah->baris()->where('bagian', 'judul')->first()) {
                 $tulis($judul, TemplateNaskah::judulDenganTentang((string) $judul->teksAkhir(), $tentang));
             }
-            if ($naskah->jenis === 'Peraturan Bupati' && $diktum = $naskah->baris()->where('bagian', 'diktum')->where('status', '!=', B::DIHAPUS)->first()) {
+            if ($naskah->jenis === 'Peraturan Bupati' && $diktum = $naskah->baris()->where('bagian', 'diktum')->whereNotIn('status', B::TERHAPUS)->first()) {
                 $tulis($diktum, TemplateNaskah::diktumDenganTentang((string) $diktum->teksAkhir(), $tentang));
             }
 
@@ -913,12 +933,44 @@ class AlurNaskah
     }
 
     /** PD memperbaiki baris mana pun pada gilirannya, dan perubahannya selalu ditinjau Peneliti lagi. */
-    public function sesuaikan(B $baris, User $user, ?string $teks): B
+    public function sesuaikan(B $baris, User $user, ?string $teks, ?string $label = null): B
     {
-        return $this->ubahBaris($baris, $user, [self::MODE_SESUAIKAN], function (B $b) use ($teks) {
+        return $this->ubahBaris($baris, $user, [self::MODE_SESUAIKAN], function (B $b) use ($teks, $label) {
+            if ($b->sisipan()) {
+                // Pasal yang disisipkan PD diberi penandanya sendiri (BAB/Pasal).
+                if ($b->bagian === 'batang_tubuh' && filled($label)) {
+                    $b->label = trim($label);
+                }
+                if (blank($teks) && blank($b->label)) {
+                    $this->gagal('rumusan', 'Isi rumusannya, atau hapus baris ini bila tidak jadi dipakai.');
+                }
+            }
+
             $b->rumusan_penyempurnaan = $teks;
             $b->status = B::DISESUAIKAN;
         });
+    }
+
+    /** PD mengusulkan rumusan dihapus. Seperti perbaikan lain, Peneliti yang memutuskan. */
+    public function usulHapus(B $baris, User $user): B
+    {
+        return $this->ubahBaris($baris, $user, [self::MODE_SESUAIKAN], function (B $b) {
+            if (! in_array($b->bagian, B::BAGIAN_BERULANG, true) && ! $this->lampiranTambahan($b)) {
+                abort(403, 'Bagian ini wajib ada dan tidak bisa dihapus.');
+            }
+            if ($b->sisipan()) {
+                $this->gagal('rumusan', 'Baris sisipan dibuang lewat Hapus Baris.');
+            }
+
+            $b->rumusan_penyempurnaan = null;
+            $b->status = B::USUL_HAPUS;
+        });
+    }
+
+    /** Baris sisipan PD yang belum diperiksa Peneliti: PD boleh membuangnya lagi. */
+    public function sisipanPdTerbuka(B $baris, User $user): bool
+    {
+        return $baris->sisipan() && $baris->status === B::DISESUAIKAN && $baris->diubah_oleh === $user->id;
     }
 
     /**
@@ -943,7 +995,12 @@ class AlurNaskah
                 'urutan' => $urutan + 1,
                 'bagian' => $bagian ?? $acuan->bagian,
                 'label' => filled($label) ? trim($label) : null,
-                'status' => $mode === self::MODE_SUSUN ? B::BELUM : B::DIUBAH,
+                // Sisipan PD menunggu diperiksa Peneliti seperti perbaikan PD lainnya.
+                'status' => match ($mode) {
+                    self::MODE_SUSUN => B::BELUM,
+                    self::MODE_SESUAIKAN => B::DISESUAIKAN,
+                    default => B::DIUBAH,
+                },
                 'giliran_diubah' => $naskah->giliran,
                 'diubah_oleh' => $user->id,
             ]);
@@ -977,20 +1034,23 @@ class AlurNaskah
     {
         return $baris->bagian === 'lampiran'
             && B::where('naskah_id', $baris->naskah_id)->where('bagian', 'lampiran')
-                ->whereKeyNot($baris->id)->where('status', '!=', B::DIHAPUS)->exists();
+                ->whereKeyNot($baris->id)->whereNotIn('status', B::TERHAPUS)->exists();
     }
 
-    /** Peneliti membuang baris sisipan sungguhan. Baris usulan PD tetap lewat hapus() supaya jejaknya ada di matriks. */
+    /**
+     * Peneliti membuang baris sisipan sungguhan; PD hanya sisipannya sendiri yang belum diperiksa.
+     * Baris usulan PD tetap lewat hapus() supaya jejaknya ada di matriks.
+     */
     public function buangSisipan(B $baris, User $user): void
     {
         DB::transaction(function () use ($baris, $user) {
             $naskah = Naskah::whereKey($baris->naskah_id)->lockForUpdate()->firstOrFail();
+            $mode = $this->modeBaris($naskah, $user);
+            $baris->refresh();
 
-            if ($this->modeBaris($naskah, $user) !== self::MODE_TELITI) {
+            if (! ($mode === self::MODE_TELITI || ($mode === self::MODE_SESUAIKAN && $this->sisipanPdTerbuka($baris, $user)))) {
                 abort(403, 'Bukan giliran Anda untuk membuang baris.');
             }
-
-            $baris->refresh();
 
             if (! $baris->sisipan()) {
                 abort(403, 'Baris usulan Perangkat Daerah tidak bisa dibuang.');

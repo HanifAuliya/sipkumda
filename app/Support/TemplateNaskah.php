@@ -200,14 +200,14 @@ class TemplateNaskah
     {
         $hitung = ['menimbang' => 0, 'mengingat' => 0, 'memperhatikan' => 0, 'diktum' => 0, 'lampiran' => 0];
         $hasil = [];
-        $hanyaSatu = fn (string $bagian) => $baris->filter(fn (NaskahBaris $b) => $b->bagian === $bagian && $b->status !== NaskahBaris::DIHAPUS)->count() === 1;
+        $hanyaSatu = fn (string $bagian) => $baris->filter(fn (NaskahBaris $b) => $b->bagian === $bagian && ! $b->terhapus())->count() === 1;
         $satuPertimbangan = $hanyaSatu('menimbang');
         $satuPerhatian = $hanyaSatu('memperhatikan');
-        $lampiranTerisi = fn (NaskahBaris $b) => $b->bagian === 'lampiran' && $b->status !== NaskahBaris::DIHAPUS && filled($b->teksAkhir());
+        $lampiranTerisi = fn (NaskahBaris $b) => $b->bagian === 'lampiran' && ! $b->terhapus() && filled($b->teksAkhir());
         $banyakLampiran = $baris->filter($lampiranTerisi)->count() > 1;
 
         foreach ($baris as $item) {
-            $hidup = $item->status !== NaskahBaris::DIHAPUS;
+            $hidup = ! $item->terhapus();
 
             $hasil[$item->id] = match (true) {
                 ! $hidup => $item->label,

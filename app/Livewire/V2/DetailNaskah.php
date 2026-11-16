@@ -52,7 +52,7 @@ class DetailNaskah extends Component
             'naskah' => $naskah,
             'total' => $hitung->sum(),
             'belum' => $hitung[B::BELUM] ?? 0,
-            'diubah' => collect([B::DIUBAH, B::DIHAPUS, B::PERLU_PD, B::DISESUAIKAN])->sum(fn (string $s) => $hitung[$s] ?? 0),
+            'diubah' => collect(B::BERUBAH)->sum(fn (string $s) => $hitung[$s] ?? 0),
             'perlu' => $hitung[B::PERLU_PD] ?? 0,
             'berkas' => $naskah ? $naskah->berkas()->where('aktif', true)->get() : collect(),
             'giliranSaya' => $naskah?->giliranMilik(auth()->user()) ?? false,

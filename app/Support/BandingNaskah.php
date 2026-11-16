@@ -37,7 +37,7 @@ class BandingNaskah
 
             if ($item->bagian === 'lampiran') {
                 $jumlahAwal = count($blok);
-                TataLetakNaskah::bukaLampiran($blok, $lampiran, $item->status === NaskahBaris::DIHAPUS ? null : ($penanda[$item->id] ?? 'Lampiran'));
+                TataLetakNaskah::bukaLampiran($blok, $lampiran, $item->terhapus() ? null : ($penanda[$item->id] ?? 'Lampiran'));
                 $blok[] = ['tipe' => 'teks', 'baris' => self::teks($lama, $baru, true)];
                 TataLetakNaskah::tandaiAsal($blok, $jumlahAwal, $item->id);
                 self::tandaiUbahan($blok, $jumlahAwal, in_array($item->status, NaskahBaris::BERUBAH, true));
@@ -99,7 +99,7 @@ class BandingNaskah
     private static function nomorButir(NaskahBaris $item, ?string $sekarang, ?string $awal): ?HtmlString
     {
         return match (true) {
-            $item->status === NaskahBaris::DIHAPUS => filled($awal) ? self::beda($awal, null) : null,
+            $item->terhapus() => filled($awal) ? self::beda($awal, null) : null,
             blank($sekarang) => null,
             blank($item->rumusan_awal) => self::beda(null, $sekarang),
             default => self::beda($sekarang, $sekarang),
@@ -158,7 +158,7 @@ class BandingNaskah
         $label = (string) $item->label;
         $penanda = match (true) {
             $label === '' => null,
-            $item->status === NaskahBaris::DIHAPUS => self::beda($label, null),
+            $item->terhapus() => self::beda($label, null),
             $lama === '' => self::beda(null, $label),
             default => self::beda($label, $label),
         };

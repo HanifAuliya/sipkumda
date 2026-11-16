@@ -82,14 +82,14 @@ class TurPengenalan
         $daftar = [
             'Perangkat Daerah' => [
                 ['menu-rancanganku', 'Rancanganku', 'Ajukan rancangan baru dengan tombol Ajukan Rancangan Baru, lalu pantau tahapnya di sini. Template dan contoh berkas ada di tombol Bahan Penting.'],
-                ['menu-fasilitasiku', 'Fasilitasiku', 'Setelah rancangan disetujui, ajukan fasilitasi di sini. Naskah hasil perbaikan disusun otomatis dari matriks, jadi tidak perlu mengunggah file. Tindak lanjuti catatan peneliti di sini.'],
+                ['menu-fasilitasiku', 'Fasilitasiku', 'Setelah rancangan disetujui, ajukan fasilitasi di sini. Sebelum mengajukan, Anda masih bisa memperbaiki, menyisipkan, atau mengusulkan hapus baris; naskah hasil perbaikan disusun otomatis dari matriks, jadi tidak perlu mengunggah file.'],
                 ['menu-daftar-nota-dinas', 'Daftar Nota Dinas', 'Nota dinas dari Bagian Hukum untuk naskah Anda bisa diunduh di sini.'],
                 ['menu-dokumentasi', 'Dokumentasi', 'Produk hukum yang sudah ditetapkan dan diarsipkan.'],
             ],
             'Peneliti' => [
                 ['menu-penelitian-rancangan', 'Penelitian Rancangan', 'Rancangan yang ditugaskan kepada Anda. Periksa tiap baris: tetapkan, perbaiki, atau minta Perangkat Daerah menyesuaikan.'],
-                ['menu-persetujuan-fasilitasi', 'Persetujuan Fasilitasi', 'Naskah hasil perbaikan (disusun dari matriks) yang perlu Anda cek: sudahkah semua hasil penelitian diterapkan. Saat menyatakan lengkap, Anda sekaligus menandatangani matriks: pakai tanda tangan tersimpan atau tanda tangan sekarang di layar.'],
-                ['menu-pengecekan-fasilitasi', 'Pengecekan Fasilitasi', 'Perbaikan fasilitasi dari Perangkat Daerah yang perlu Anda cek. Saat meneruskan ke Verifikator, tanda tangani matriks lagi.'],
+                ['menu-persetujuan-fasilitasi', 'Persetujuan Fasilitasi', 'Naskah hasil perbaikan (disusun dari matriks) yang perlu Anda cek, termasuk perubahan terakhir dari Perangkat Daerah. Bila masih perlu diperbaiki, tandai barisnya lalu Kirim ke PD. Saat menyatakan lengkap, Anda sekaligus menandatangani matriks: pakai tanda tangan tersimpan atau tanda tangan sekarang di layar.'],
+                ['menu-pengecekan-fasilitasi', 'Pengecekan Fasilitasi', 'Perbaikan fasilitasi dari Perangkat Daerah (atas permintaan Anda atau Verifikator) yang perlu Anda cek. Saat meneruskan ke Verifikator, tanda tangani matriks lagi.'],
                 ['menu-daftar-rancangan', 'Daftar Rancangan', 'Semua rancangan, untuk dicari atau dipantau.'],
             ],
             'Verifikator' => [

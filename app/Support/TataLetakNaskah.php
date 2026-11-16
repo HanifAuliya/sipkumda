@@ -39,7 +39,7 @@ class TataLetakNaskah
             $teks = $item->teksAkhir();
 
             // Baris yang dihapus atau masih kosong tidak dicetak.
-            if ($item->status === NaskahBaris::DIHAPUS || (blank($teks) && blank($item->label))) {
+            if ($item->terhapus() || (blank($teks) && blank($item->label))) {
                 continue;
             }
 

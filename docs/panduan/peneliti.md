@@ -54,10 +54,13 @@ perubahan (merah dihapus, hijau ditambah).
 ## 2. Fasilitasi
 
 - **Persetujuan Fasilitasi**: **naskah hasil perbaikan** disusun otomatis dari matriks (PD tidak mengunggah
-  file); tampil di atas matriks dengan tombol **Lihat** dan **Word**. Periksa apakah semua hasil penelitian sudah
-  diterapkan, lalu
-  **Berkas fasilitasi lengkap**, atau **Kembalikan berkas fasilitasi ke PD** dengan alasan.
-- **Pengecekan Fasilitasi**: setelah PD memperbaiki permintaan Verifikator, periksa lagi lalu
+  file); tampil di atas matriks dengan tombol **Lihat** dan **Word**. Sebelum mengajukan, PD boleh
+  menyempurnakan naskahnya: baris yang diperbaiki, disisipkan, atau diusulkan dihapus PD muncul sebagai
+  *belum diperiksa*. Putuskan masing-masing (**Terima Perbaikan**, **Terima Hapus**, **Pakai Rumusan Awal**,
+  **Ubah**, atau **Hapus Baris** untuk sisipan), lalu **Berkas fasilitasi lengkap**. Bila masih ada yang
+  harus diperbaiki PD, pakai **Minta PD Perbaiki** pada barisnya lalu **Kirim ke PD**; naskah masuk
+  **Perbaikan Fasilitasi** dan kembali kepada Anda di **Pengecekan Fasilitasi**.
+- **Pengecekan Fasilitasi**: setelah PD memperbaiki permintaan Anda atau Verifikator, periksa lagi lalu
   **Selesai, teruskan ke Verifikator**, atau **Kirim ke PD** bila masih perlu perbaikan.
 
 **Tanda tangan matriks.** Saat menekan **Berkas fasilitasi lengkap** atau **Selesai, teruskan ke

@@ -14,12 +14,13 @@
         B::DIHAPUS => 'bg-rose-500',
         B::PERLU_PD => 'bg-orange-500',
         B::DISESUAIKAN => 'bg-cyan-500',
+        B::USUL_HAPUS => 'bg-rose-400',
     ];
     $pilihanFilter = [
         'semua' => ['Semua baris', $total],
         'belum' => ['Belum diperiksa', $jumlahBelum],
         'perlu' => ['Perlu perbaikan PD', $hitung[B::PERLU_PD] ?? 0],
-        'diubah' => ['Yang diubah', ($hitung[B::DIUBAH] ?? 0) + ($hitung[B::DIHAPUS] ?? 0) + ($hitung[B::PERLU_PD] ?? 0) + ($hitung[B::DISESUAIKAN] ?? 0)],
+        'diubah' => ['Yang diubah', collect(B::BERUBAH)->sum(fn ($s) => $hitung[$s] ?? 0)],
         'berubah' => ['Berubah sejak giliran lalu', null],
     ];
     $tabs = ['kerja' => ['table', 'Matriks'], 'naskah' => ['file-earmark-text', 'Naskah'], 'berkas' => ['paperclip', 'Berkas'], 'riwayat' => ['clock-history', 'Riwayat']];
@@ -153,7 +154,13 @@
                 <p class="mt-1.5 line-clamp-2 text-sm font-bold text-navy-900 dark:text-white">{{ $naskah->tentang }}</p>
             </div>
 
-            @if ($mode === A::MODE_SESUAIKAN)
+            @if ($mode === A::MODE_SESUAIKAN && $tahap === TahapNaskah::Disetujui)
+                {{-- Sebelum fasilitasi tidak ada yang diminta; yang dihitung perubahan PD sendiri. --}}
+                <div class="flex items-baseline justify-between gap-2 text-sm">
+                    <span class="font-semibold text-navy-900 dark:text-white">Perubahan Anda</span>
+                    <span class="text-slate-500 dark:text-slate-400">{{ collect(B::USULAN_PD)->sum(fn ($s) => $hitung[$s] ?? 0) }} baris</span>
+                </div>
+            @elseif ($mode === A::MODE_SESUAIKAN)
                 <div class="flex items-baseline justify-between gap-2 text-sm">
                     <span class="font-semibold text-navy-900 dark:text-white">Perlu diperbaiki</span>
                     <span class="text-slate-500 dark:text-slate-400">{{ $hitung[B::PERLU_PD] ?? 0 }} baris</span>
@@ -416,7 +423,11 @@
                     </div>
                 @endif
 
-                @if ($mode === A::MODE_SESUAIKAN && empty($hitung[B::PERLU_PD]))
+                @if ($mode === A::MODE_SESUAIKAN && $tahap === TahapNaskah::Disetujui)
+                    <x-ui.alert type="primary">
+                        Rancangan sudah disetujui. Bila masih ada yang perlu disempurnakan, perbaiki, sisipkan, atau usulkan hapus baris; perubahan Anda diperiksa Peneliti. Setelah itu tekan Ajukan fasilitasi.
+                    </x-ui.alert>
+                @elseif ($mode === A::MODE_SESUAIKAN && empty($hitung[B::PERLU_PD]))
                     <x-ui.alert type="primary">
                         Tidak ada baris yang ditandai untuk diperbaiki. Baca catatan di atas, periksa naskahnya, lalu kirim kembali bila sudah sesuai.
                     </x-ui.alert>
@@ -699,7 +710,7 @@
                         <tr wire:key="versi-baris-{{ $b['id'] }}" class="align-top">
                             <td class="py-2 pr-2 font-semibold">{{ $b['label'] ?: TemplateNaskah::BAGIAN[$b['bagian']] }}</td>
                             <td class="py-2 pr-3 whitespace-pre-line">{{ $b['rumusan_awal'] }}</td>
-                            <td class="py-2 pr-3 whitespace-pre-line">{{ $b['status'] === B::DIHAPUS ? 'Dihapus' : ($b['status'] === B::TETAP ? 'Tetap' : $b['rumusan_penyempurnaan']) }}</td>
+                            <td class="py-2 pr-3 whitespace-pre-line">{{ in_array($b['status'], B::TERHAPUS, true) ? 'Dihapus' : ($b['status'] === B::TETAP ? 'Tetap' : $b['rumusan_penyempurnaan']) }}</td>
                             <td class="py-2 text-slate-500">{{ $b['keterangan'] }}</td>
                         </tr>
                     @endforeach

@@ -86,6 +86,9 @@ Bila Peneliti meminta perbaikan, naskah kembali menjadi giliran Anda dengan taha
 
 1. Buka naskah (**Kerjakan**). Baris yang perlu diperbaiki ditandai dan disertai keterangan Peneliti.
 2. Tekan **Perbaiki Rumusan**, ubah isinya, lalu simpan; atau **Sudah Disesuaikan** bila rumusannya sudah benar.
+   Anda juga bisa **Sisipkan Baris** (misalnya pasal baru) atau **Hapus Rumusan** untuk mengusulkan baris
+   dihapus. Semua perubahan Anda diperiksa Peneliti; sisipan yang belum diperiksa masih bisa dibuang dengan
+   **Hapus Baris**.
 3. Setelah semua baris selesai, tekan **Kirim tindak lanjut**.
 
 ![Perbaikan PD: baris yang diminta Peneliti beserta keterangannya](../../public/img/panduan/pd-perbaikan.jpg)
@@ -97,11 +100,13 @@ Setelah rancangan disetujui Verifikator (tahap **Rancangan Disetujui**), ajukan 
 Peneliti sebelum nota dinas terbit. Naskah hasil perbaikan **tidak perlu diunggah**: SIFKUMDA menyusunnya
 otomatis dari matriks, yang sudah memuat seluruh hasil penelitian.
 
-1. Buka naskah dari menu **Fasilitasiku** dan tekan **Ajukan fasilitasi**.
-2. Tekan **Lihat naskah** untuk memeriksa naskah hasil perbaikan, lalu **Lanjutkan**.
+1. Buka naskah dari menu **Fasilitasiku**.
+2. Bila masih ada yang perlu disempurnakan, Anda bisa memperbaiki, menyisipkan, atau mengusulkan hapus baris
+   seperti pada Perbaikan PD. Perubahan ini diperiksa Peneliti saat fasilitasi.
+3. Tekan **Ajukan fasilitasi**, lalu **Lihat naskah** untuk memeriksa naskah hasil perbaikan, lalu **Lanjutkan**.
 
-Bila Verifikator mengembalikannya (**Perbaikan Fasilitasi**), sesuaikan rumusan pada baris yang ditandai
-sama seperti pada Perbaikan PD, lalu **Kirim ke Peneliti**.
+Bila Peneliti atau Verifikator meminta perbaikan (tahap **Perbaikan Fasilitasi**), sesuaikan baris yang
+ditandai seperti pada Perbaikan PD, lalu **Kirim ke Peneliti**.
 
 ## 5. Sesudah fasilitasi
 

@@ -63,9 +63,15 @@ class BarisKerja extends Component
         return $this->jalankan(fn () => $alur->mintaPerbaikan($this->baris, auth()->user(), $keterangan, $teks));
     }
 
-    public function simpanSesuaian(?string $teks, AlurNaskah $alur): void
+    /** @return bool berhasil atau tidak, supaya editor tetap terbuka saat isiannya ditolak */
+    public function simpanSesuaian(?string $teks, AlurNaskah $alur, ?string $label = null): bool
     {
-        $this->jalankan(fn () => $alur->sesuaikan($this->baris, auth()->user(), $teks));
+        return $this->jalankan(fn () => $alur->sesuaikan($this->baris, auth()->user(), $teks, $label));
+    }
+
+    public function usulHapus(AlurNaskah $alur): void
+    {
+        $this->jalankan(fn () => $alur->usulHapus($this->baris, auth()->user()));
     }
 
     public function tambah(AlurNaskah $alur): void
@@ -130,6 +136,7 @@ class BarisKerja extends Component
             'mode' => $alur->modeBaris($this->naskah, auth()->user()),
             // Lampiran wajib ada: tombol hapus hanya untuk lampiran tambahan.
             'lampiranTambahan' => $this->baris->bagian === 'lampiran' && $alur->lampiranTambahan($this->baris),
+            'sisipanSaya' => $alur->sisipanPdTerbuka($this->baris, auth()->user()),
         ]);
     }
 }

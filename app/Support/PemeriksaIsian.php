@@ -25,7 +25,7 @@ class PemeriksaIsian
      */
     public static function adaIsian(B $b): bool
     {
-        if (in_array($b->bagian, ['penutup', 'lampiran'], true) || $b->status === B::DIHAPUS) {
+        if (in_array($b->bagian, ['penutup', 'lampiran'], true) || $b->terhapus()) {
             return false;
         }
 
@@ -85,7 +85,7 @@ class PemeriksaIsian
      */
     public static function periksa(Naskah $naskah, Collection $baris): array
     {
-        $hidup = $baris->where('status', '!=', B::DIHAPUS);
+        $hidup = $baris->whereNotIn('status', B::TERHAPUS);
         $pesan = [];
 
         foreach ($hidup as $b) {
