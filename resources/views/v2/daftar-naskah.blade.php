@@ -8,6 +8,7 @@
         @endif
     </x-ui.page-header>
 
+    <div @class(['grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_24rem]' => $bebanPeneliti])>
     <x-ui.card>
         @isset($info['tab'])
             <x-ui.tabs>
@@ -68,4 +69,9 @@
 
         <div class="mt-5">{{ $halaman->links() }}</div>
     </x-ui.card>
+
+    @if ($bebanPeneliti)
+        @include('v2.partials.panel-beban-peneliti')
+    @endif
+    </div>
 </div>

@@ -194,7 +194,14 @@ it('Verifikator melihat beban tiap peneliti saat menugaskan, dan placeholder tid
     Livewire::actingAs($this->verifikator)->test(LayarKerja::class, ['naskah' => $n->fresh()])
         ->call('pilihAksi', 'tugaskan_peneliti')
         ->assertSee('Peneliti Satu · 1 naskah berjalan, 1 menunggu dikerjakan')
-        ->assertSeeHtml('<option value="" hidden>Pilih peneliti</option>');
+        ->assertSeeHtml('<option value="" hidden>Pilih peneliti</option>')
+        ->assertSee('Rancangan yang dipegang Peneliti Satu');
+
+    // Halaman Pilih Peneliti menampilkan rancangan yang dipegang tiap peneliti.
+    $this->actingAs($this->verifikator)->get(route('daftar', 'pilih-peneliti'))->assertOk()
+        ->assertSee('Beban Peneliti')->assertSee('Peneliti Satu')->assertSee($lain->fresh()->nomor_tampil)
+        ->assertSee('1 menunggu dikerjakan');
+    $this->actingAs($this->verifikator)->get(route('daftar', 'penelitian'))->assertDontSee('Beban Peneliti');
 });
 
 it('jendela Kirim ke PD menyebut baris yang ditandai', function () {

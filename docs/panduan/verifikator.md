@@ -26,7 +26,9 @@ per satu. Tekan **Selanjutnya** untuk lanjut atau **Lewati tur**. Tur bisa diula
 
 Buka naskah dari **Pilih Peneliti**, tekan **Tugaskan Peneliti**, pilih peneliti, lalu **Lanjutkan**.
 Di samping nama tiap peneliti tertulis bebannya, misalnya "3 naskah berjalan, 1 menunggu dikerjakan",
-supaya tugas terbagi rata.
+dan setelah dipilih tampil daftar rancangan yang sedang dipegangnya, supaya tugas terbagi rata.
+Panel **Beban Peneliti** di halaman Pilih Peneliti juga menampilkan rancangan yang dipegang tiap peneliti;
+klik namanya untuk membuka daftarnya, dan klik rancangan untuk melihat detailnya.
 Bila nanti perlu diganti: **Lainnya › Ganti Peneliti** di layar kerja.
 
 ## 2. Validasi rancangan

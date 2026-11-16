@@ -9,6 +9,7 @@ use App\Models\NaskahBerkas;
 use App\Models\User;
 use App\Services\AlurNaskah;
 use App\Support\BandingNaskah;
+use App\Support\BebanPeneliti;
 use App\Support\BlokNaskah;
 use App\Support\PemeriksaIsian;
 use App\Support\PemeriksaPenomoran;
@@ -348,18 +349,7 @@ class LayarKerja extends Component
     /** Peneliti beserta jumlah naskah yang sedang ditanganinya dan yang menunggu dikerjakannya. */
     private function penelitiDenganBeban(): Collection
     {
-        $berjalan = [TahapNaskah::Penelitian, TahapNaskah::PerbaikanPd, TahapNaskah::ValidasiRancangan, TahapNaskah::Disetujui,
-            TahapNaskah::PersetujuanFasilitasi, TahapNaskah::ValidasiFasilitasi, TahapNaskah::PerbaikanFasilitasi, TahapNaskah::CekPeneliti];
-        $menunggu = [TahapNaskah::Penelitian, TahapNaskah::PersetujuanFasilitasi, TahapNaskah::CekPeneliti];
-        $hitung = fn (array $tahap) => Naskah::whereIn('tahap', $tahap)->whereNotNull('peneliti_id')
-            ->selectRaw('peneliti_id, count(*) as n')->groupBy('peneliti_id')->pluck('n', 'peneliti_id');
-        [$aktif, $antre] = [$hitung($berjalan), $hitung($menunggu)];
-
-        return User::role('Peneliti')->whereKeyNot($this->naskah->peneliti_id ?? 0)->orderBy('nama_user')->get(['id', 'nama_user'])
-            ->each(function (User $u) use ($aktif, $antre) {
-                $u->beban_aktif = (int) ($aktif[$u->id] ?? 0);
-                $u->beban_menunggu = (int) ($antre[$u->id] ?? 0);
-            });
+        return BebanPeneliti::daftar($this->naskah->peneliti_id);
     }
 
     /** Jenis berkas yang bisa diunggah di tab Berkas. Naskahnya sendiri tidak diunggah: dibuat dari isi matriks. */

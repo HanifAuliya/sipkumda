@@ -32,14 +32,25 @@
         @endif
 
         @if (! empty($aksiModal['peneliti']))
-            <x-form.field :label="$aksiTerpilih === 'ganti_peneliti' ? 'Peneliti baru' : 'Peneliti'" for="penelitiId" error="penelitiId" required>
-                <x-form.select id="penelitiId" wire:model="penelitiId">
-                    <option value="" hidden>Pilih peneliti</option>
-                    @foreach ($peneliti as $orang)
-                        <option value="{{ $orang->id }}">{{ $orang->nama_user }} · {{ $orang->beban_aktif }} naskah berjalan, {{ $orang->beban_menunggu }} menunggu dikerjakan</option>
-                    @endforeach
-                </x-form.select>
-            </x-form.field>
+            {{-- Rancangan yang sedang dipegang peneliti terpilih tampil di bawahnya, supaya tugas terbagi rata. --}}
+            <div x-data="{ pilih: '{{ $penelitiId }}' }" x-on:change="pilih = $event.target.value">
+                <x-form.field :label="$aksiTerpilih === 'ganti_peneliti' ? 'Peneliti baru' : 'Peneliti'" for="penelitiId" error="penelitiId" required>
+                    <x-form.select id="penelitiId" wire:model="penelitiId">
+                        <option value="" hidden>Pilih peneliti</option>
+                        @foreach ($peneliti as $orang)
+                            <option value="{{ $orang->id }}">{{ $orang->nama_user }} · {{ $orang->beban_aktif }} naskah berjalan, {{ $orang->beban_menunggu }} menunggu dikerjakan</option>
+                        @endforeach
+                    </x-form.select>
+                </x-form.field>
+                @foreach ($peneliti as $orang)
+                    <div x-show="pilih === '{{ $orang->id }}'" x-cloak class="mb-4 rounded-lg bg-slate-50 px-3 py-2 dark:bg-navy-800/60">
+                        <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">Rancangan yang dipegang {{ $orang->nama_user }}</p>
+                        <div class="max-h-48 overflow-y-auto">
+                            @include('v2.partials.naskah-peneliti', ['daftar' => $orang->naskahAktif])
+                        </div>
+                    </div>
+                @endforeach
+            </div>
         @endif
 
         @php

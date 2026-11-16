@@ -4,6 +4,7 @@ namespace App\Livewire\V2;
 
 use App\Enums\TahapNaskah as T;
 use App\Models\Naskah;
+use App\Support\BebanPeneliti;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
@@ -170,6 +171,8 @@ class DaftarNaskah extends Component
                 'riwayat' => $info['tab'][1],
             ]) : [],
             'bisaBuat' => $this->kelompok === 'rancanganku' && Gate::allows('create', Naskah::class),
+            // Pilih Peneliti: rancangan yang sedang dipegang tiap peneliti, sebagai bahan menugaskan.
+            'bebanPeneliti' => $this->kelompok === 'pilih-peneliti' ? BebanPeneliti::daftar() : null,
         ])->title($info['judul']);
     }
 }
