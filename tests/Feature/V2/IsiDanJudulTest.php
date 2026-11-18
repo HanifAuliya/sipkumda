@@ -101,11 +101,12 @@ it('merinci baris yang menghalangi pengajuan: kosong, berisi spasi saja, atau ma
 it('jendela Ajukan merangkum galat, baris kosong, dan peringatan tanpa kolom catatan', function () {
     $n = drafLengkap($this);
     $pasal1 = $n->baris()->where('label', 'Pasal 1')->first();
-    $pasal1->update(['rumusan_awal' => 'Ketentuan lebih lanjut diatur sesuai Pasal 9 Peraturan Bupati ini.']);
+    // Isian "..." adalah galat; rujukan ke pasal yang tidak ada dan judul yang berbeda hanya peringatan.
+    $pasal1->update(['rumusan_awal' => "Ketentuan lebih lanjut diatur sesuai Pasal 9 Peraturan Bupati ini.\nBesarnya Rp... per orang."]);
     $n->baris()->where('bagian', 'judul')->first()->update(['rumusan_awal' => "PERATURAN BUPATI HULU SUNGAI TENGAH\nNOMOR ... TAHUN ...\nTENTANG\nJUDUL LAIN"]);
 
-    // Galat penomoran menghalangi pengajuan, tetapi tombol Ajukan tetap bisa dibuka untuk melihat rinciannya.
-    expect($this->alur->aksiTersedia($n, $this->pd)['ajukan']['hambatan'])->toContain('Pasal 1 merujuk ke Pasal 9');
+    // Tombol Ajukan tetap bisa dibuka untuk melihat rinciannya.
+    expect($this->alur->aksiTersedia($n, $this->pd)['ajukan']['hambatan'])->toContain('Masih ada isian');
 
     Livewire::actingAs($this->pd)->test(LayarKerja::class, ['naskah' => $n])
         ->call('pilihAksi', 'ajukan')
@@ -116,8 +117,8 @@ it('jendela Ajukan merangkum galat, baris kosong, dan peringatan tanpa kolom cat
         ->call('jalankanAksi')
         ->assertHasErrors('aksi');
 
-    // Galat diperbaiki: peringatan judul saja tidak menghalangi.
-    $pasal1->update(['rumusan_awal' => 'Desa adalah desa di Kabupaten Hulu Sungai Tengah.']);
+    // Isian diganti: rujukan pasal dan judul tinggal peringatan, jadi tetap bisa diajukan.
+    $pasal1->update(['rumusan_awal' => 'Ketentuan lebih lanjut diatur sesuai Pasal 9 Peraturan Bupati ini.']);
 
     Livewire::actingAs($this->pd)->test(LayarKerja::class, ['naskah' => $n->fresh()])
         ->call('pilihAksi', 'ajukan')

@@ -10,9 +10,10 @@ use Illuminate\Support\Collection;
 /**
  * Pemeriksaan rancangan sebelum diajukan PD, untuk ringkasan di layar kerja dan jendela Ajukan:
  * - kosong: baris yang belum diisi;
- * - galat: pasti salah dan menghalangi pengajuan (isian "…", penomoran pasal/BAB, rujukan ke pasal yang
- *   tidak ada, Nota Dinas PD belum ada);
- * - peringatan: kemungkinan salah, tidak menghalangi (judul berbeda dengan judul pengajuan, rujukan ayat).
+ * - galat: yang pasti harus dibereskan dan menghalangi pengajuan (isian "…" dari template, Nota Dinas PD
+ *   belum ada);
+ * - peringatan: hasil deteksi sistem yang bisa keliru, tidak menghalangi (penomoran BAB/Pasal, rujukan pasal
+ *   dan ayat, judul berbeda dengan judul pengajuan).
  *
  * Penghalang yang sama diperiksa ulang di AlurNaskah::hambatanAjukan.
  */
@@ -25,7 +26,6 @@ class PemeriksaAjukan
     public static function periksa(Naskah $naskah, Collection $baris): array
     {
         $kurang = collect(PemeriksaIsian::kurangLengkap($naskah, $baris));
-        $penomoran = collect(PemeriksaPenomoran::periksa($baris));
         $notaAda = $naskah->berkas()->where('jenis', NaskahBerkas::NOTA_DINAS_PD)->where('aktif', true)->exists();
 
         return [
@@ -33,11 +33,10 @@ class PemeriksaAjukan
             'galat' => [
                 ...($notaAda ? [] : [['baris_id' => null, 'pesan' => 'Nota Dinas PD belum diunggah.']]),
                 ...$kurang->where('kosong', false)->values()->all(),
-                ...$penomoran->where('jenis', PemeriksaPenomoran::GALAT)->values()->all(),
             ],
             'peringatan' => [
                 ...PemeriksaIsian::periksa($naskah, $baris, false),
-                ...$penomoran->where('jenis', PemeriksaPenomoran::PERINGATAN)->values()->all(),
+                ...PemeriksaPenomoran::periksa($baris),
             ],
         ];
     }

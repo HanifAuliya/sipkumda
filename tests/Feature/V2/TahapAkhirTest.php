@@ -964,10 +964,43 @@ a. huruf.
         ]));
 
         expect($temuan)->toBe([
-            ['baris_id' => 2, 'pesan' => 'Pasal 2 merujuk ke Pasal 5, yang tidak ada di naskah ini.', 'jenis' => PemeriksaPenomoran::GALAT],
+            ['baris_id' => 2, 'pesan' => 'Pasal 2 merujuk ke Pasal 5, yang tidak ada di naskah ini.', 'jenis' => PemeriksaPenomoran::PERINGATAN],
             ['baris_id' => 2, 'pesan' => 'Pasal 2 merujuk ke Pasal 1 ayat (3), padahal Pasal 1 tidak memuat ayat itu.', 'jenis' => PemeriksaPenomoran::PERINGATAN],
             ['baris_id' => 3, 'pesan' => 'Pasal 3 merujuk ke ayat (4), padahal Pasal 3 tidak memuat ayat itu.', 'jenis' => PemeriksaPenomoran::PERINGATAN],
         ]);
+    });
+
+    it('peraturan perubahan: nomor pasal yang diubah boleh melompat, yang diperiksa Pasal Romawi dan butir perubahan', function () {
+        // Pola Perbup HST 11/2026 (perubahan atas Perbup 9/2025): Pasal I berisi butir perubahan, Pasal II mulai berlaku.
+        $sah = barisPeriksa([
+            ['Pasal I', "Beberapa ketentuan dalam Peraturan Bupati Nomor 9 Tahun 2025 diubah sebagai berikut:\n1. Ketentuan Pasal 1 diubah sehingga berbunyi sebagai berikut:"],
+            ['Pasal 1', "Dalam Peraturan Bupati ini yang dimaksud dengan:\n1. Daerah adalah Kabupaten.\n2. Ketentuan ayat (3) Pasal 9 diubah sehingga berbunyi sebagai berikut:"],
+            ['Pasal 9', "(1) Sebagaimana dimaksud dalam Pasal 40.\n3. Di antara Pasal 19 dan Pasal 20 disisipkan 1 (satu) pasal, yakni Pasal 19A sehingga berbunyi sebagai berikut:"],
+            ['Pasal 19A', 'Isi.'],
+            ['Pasal II', 'Peraturan Bupati ini mulai berlaku pada tanggal diundangkan.'],
+        ]);
+
+        expect(PemeriksaPenomoran::perubahan($sah))->toBeTrue()
+            ->and(PemeriksaPenomoran::periksa($sah))->toBe([]);
+
+        $salah = barisPeriksa([
+            ['Pasal I', "Beberapa ketentuan diubah sebagai berikut:\n1. Ketentuan Pasal 1 diubah sehingga berbunyi sebagai berikut:"],
+            ['Pasal 1', "Isi.\n2. Ketentuan Pasal 9 diubah sehingga berbunyi sebagai berikut:"],
+            ['Pasal 10', "Isi.\n4. Ketentuan Pasal 5 diubah sehingga berbunyi sebagai berikut:"],
+            ['Pasal 5', 'Isi.'],
+            ['Pasal III', 'Peraturan Bupati ini mulai berlaku pada tanggal diundangkan.'],
+        ]);
+
+        expect(array_column(PemeriksaPenomoran::periksa($salah), 'pesan', 'pesan'))->toHaveKeys([
+            'Nomor melompat dari Pasal I ke Pasal III.',
+            'Butir perubahan angka 2 menyebut Pasal 9, tetapi pasal sesudahnya Pasal 10.',
+            'Nomor butir perubahan melompat dari angka 2 ke angka 4.',
+            'Pasal 5 ditulis sesudah Pasal 10. Butir perubahan biasanya urut menurut nomor pasal.',
+        ])->and(collect(PemeriksaPenomoran::periksa($salah))->pluck('jenis')->unique()->all())
+            ->toBe([PemeriksaPenomoran::PERINGATAN]);
+
+        // Judul "PERUBAHAN ATAS" sudah cukup untuk dikenali, sebelum Pasal I ditulis.
+        expect(PemeriksaPenomoran::perubahan(collect([new B(['bagian' => 'judul', 'rumusan_awal' => "PERATURAN BUPATI\nTENTANG\nPERUBAHAN KEDUA ATAS PERATURAN BUPATI NOMOR 9 TAHUN 2025"])])))->toBeTrue();
     });
 
     it('pasal yang dihapus tidak dihitung ada', function () {

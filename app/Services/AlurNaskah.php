@@ -15,7 +15,6 @@ use App\Models\User;
 use App\Notifications\NaskahNotification;
 use App\Support\FormatDokumen;
 use App\Support\PemeriksaIsian;
-use App\Support\PemeriksaPenomoran;
 use App\Support\PesanNotifikasi;
 use App\Support\TandaTanganLangsung;
 use App\Support\TandaTanganPeneliti;
@@ -649,15 +648,9 @@ class AlurNaskah
         // Template yang belum diisi ("bahwa ...", "Pasal 1 (1) ...") jangan sampai ikut diajukan.
         $isian = PemeriksaIsian::barisBerisian($baris);
 
-        if ($isian->isNotEmpty()) {
-            return 'Masih ada isian “…” dari template di ' . PemeriksaIsian::daftarNama($isian) . '. Lengkapi dulu sebelum diajukan.';
-        }
-
-        // Nomor pasal melompat, ganda, atau terbalik, dan rujukan ke pasal yang tidak ada di naskah ini.
-        $galat = collect(PemeriksaPenomoran::periksa($baris))->where('jenis', PemeriksaPenomoran::GALAT);
-
-        return $galat->isNotEmpty()
-            ? "Ada {$galat->count()} galat penomoran atau rujukan pasal: {$galat->first()['pesan']} Perbaiki dulu sebelum diajukan."
+        // Penomoran dan rujukan pasal hanya peringatan (PemeriksaPenomoran), tidak menghalangi.
+        return $isian->isNotEmpty()
+            ? 'Masih ada isian “…” dari template di ' . PemeriksaIsian::daftarNama($isian) . '. Lengkapi dulu sebelum diajukan.'
             : null;
     }
 
