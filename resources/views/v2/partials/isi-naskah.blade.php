@@ -1,23 +1,49 @@
 {{--
-    Bentuk naskah bila dicetak saat ini. Isinya dari TataLetakNaskah, sama dengan Word dan PDF,
-    atau dari BandingNaskah bila perubahannya ditandai ($tandaiUbahan).
+    Bentuk naskah bila dicetak saat ini, digambar dengan aturan yang sama dengan PDF (pdf/v2/naskah) dan format
+    dari menu Format Dokumen: kertas, tepi, huruf, rata kanan-kiri, dan lebar kolom dalam cm. Kertasnya selebar
+    kertas asli, lalu diperkecil supaya muat di layar, jadi pemenggalan barisnya sama dengan PDF.
+    Isinya dari TataLetakNaskah, atau dari BandingNaskah bila perubahannya ditandai ($tandaiUbahan).
+
+    $blok susunan blok, $jenis jenis naskah, $ringkas untuk panel pratinjau, $tombolBaris tombol menuju baris di Matriks.
+    CSS-nya di resources/css/app.css (.kertas-naskah).
 --}}
 @php
     $ringkas ??= false;
     $tandaiUbahan ??= false;
     $tombolBaris ??= false;
     $bisaUbah ??= false;
-    $sel = 'align-top pb-1';
-    // Pada panel sempit, rata kanan-kiri membuat jarak antarkata terlalu renggang.
-    $rata = $ringkas ? 'text-left' : 'text-justify';
-    // Kolom label Menimbang dan KESATU; dilebarkan bila ada Memperhatikan, seperti pada cetakan.
-    $labelPanjang = collect($blok)->contains(fn (array $b) => $b['tipe'] === 'daftar' && str_starts_with((string) $b['label'], 'Memperhatikan'));
-    $lebarLabel = match (true) {
-        $ringkas && $labelPanjang => 'w-28',
-        $ringkas => 'w-24',
-        $labelPanjang => 'w-32',
-        default => 'w-28',
-    };
+
+    ['f' => $f, 'blok' => $blok, 'paraf' => $paraf, 'spasi' => $spasi] = App\Services\CetakNaskah::tampilanLayar($jenis, $blok);
+
+    $m = $f['margin'];
+    $lebarKertas = (float) $f['kertas']['lebar'];
+    $lebarIsi = $lebarKertas - (float) $m['kiri'] - (float) $m['kanan'];
+    $ruangKop = max(0, (float) $m['atas_pertama'] - (float) $m['atas']);
+    $kiriTtd = min((float) $f['penutup']['kiri'], max(0, $lebarIsi - 4));
+    $huruf = $f['huruf']['nama'] === 'Arial' ? "'Arial', Helvetica, sans-serif" : "'{$f['huruf']['nama']}', 'Times New Roman', Times, serif";
+    $teksKop = $f['kop']['tampil'] ? trim((string) $f['kop']['teks']) : '';
+    $tampilLambang = $f['kop']['tampil'] && $f['kop']['lebar_lambang'] > 0;
+
+    $gaya = collect([
+        '--k-huruf' => $huruf,
+        '--k-ukuran' => $f['huruf']['ukuran'].'pt',
+        '--k-spasi' => $spasi,
+        '--k-atas' => $m['atas'].'cm',
+        '--k-bawah' => $m['bawah'].'cm',
+        '--k-kiri' => $m['kiri'].'cm',
+        '--k-kanan' => $m['kanan'].'cm',
+        '--k-ukuran-kop' => $f['kop']['ukuran'].'pt',
+        '--k-ruang-kop' => $ruangKop.'cm',
+        '--k-lambang' => $f['kop']['lebar_lambang'].'cm',
+        '--k-label' => $f['konsiderans']['lebar_label'].'cm',
+        '--k-kiri-ttd' => $kiriTtd.'cm',
+        '--k-lebar-ttd' => min(7, $lebarIsi - $kiriTtd).'cm',
+        '--k-ukuran-paraf' => min(11, (float) $f['huruf']['ukuran']).'pt',
+        'width' => $lebarKertas.'cm',
+    ])->map(fn ($nilai, $kunci) => "{$kunci}: {$nilai}")->implode('; ');
+
+    // 1 cm CSS = 96 / 2,54 px.
+    $lebarPx = round($lebarKertas * 96 / 2.54, 2);
 
     // Satu baris naskah bisa menjadi beberapa blok (label dan isi), tetapi tombolnya cukup satu.
     $sudahBertombol = [];
@@ -31,111 +57,141 @@
     };
 @endphp
 
-<div @class([
-    "bg-white text-black shadow-card font-['Bookman_Old_Style',Georgia,'Times_New_Roman',serif]",
-    'v2-diff v2-kertas' => $tandaiUbahan,
-    'kertas-pratinjau rounded-lg px-5 py-6 text-sm leading-relaxed' => $ringkas,
-    'mx-auto max-w-3xl px-8 py-12 text-[0.95rem] leading-relaxed sm:px-16' => ! $ringkas,
-])>
-    <img src="{{ asset('assets/img/garuda.png') }}" alt="Lambang Garuda Pancasila" @class(['mx-auto mb-2', 'w-14' => $ringkas, 'w-[70px]' => ! $ringkas])>
-    <p class="text-center font-bold">{{ App\Support\TataLetakNaskah::KOP }}</p>
+<div x-data="{
+        skala: 1,
+        ukur() {
+            const lebar = this.$el.clientWidth;
+            if (lebar > 0) this.skala = Math.min(1, lebar / {{ $lebarPx }});
+        },
+    }"
+    x-init="ukur(); new ResizeObserver(() => ukur()).observe($el)">
+    <div x-bind:style="{ zoom: skala }" style="{{ $gaya }}" @class([
+        'kertas-naskah mx-auto shadow-card',
+        'v2-diff v2-kertas' => $tandaiUbahan,
+        'kertas-pratinjau rounded-lg' => $ringkas,
+    ])>
+        <div @class(['kop', 'ruang-kop' => $ruangKop > 0, 'kop-biasa' => $ruangKop <= 0])>
+            @if ($tampilLambang)
+                <div class="lambang"><img src="{{ asset('assets/img/garuda.png') }}" alt="Lambang Garuda Pancasila"></div>
+            @endif
+            @if ($teksKop !== '')
+                {{ $teksKop }}
+            @endif
+        </div>
 
-    @foreach ($blok as $b)
-        @if ($b['tipe'] === 'tengah')
-            <div class="group relative mt-5 mb-2 text-center" data-baris="{{ $b['id'] ?? '' }}">
-                @foreach ($b['baris'] as $baris)
-                    <p>{{ $baris }}</p>
-                @endforeach
-                @if ($perluTombol($b['id'] ?? null))
-                    @include('v2.partials.tombol-baris', ['id' => $b['id'], 'diubah' => $b['diubah'] ?? false])
-                @endif
-            </div>
-        @elseif ($b['tipe'] === 'daftar')
-            <table class="mb-3 w-full border-collapse">
-                @foreach ($b['butir'] as $i => $butir)
-                    @php $idButir = $b['ids'][$i] ?? $b['id'] ?? null; @endphp
-                    <tr class="group relative" data-baris="{{ $idButir }}">
-                        <td class="{{ $sel }} {{ $lebarLabel }}">{{ $i === 0 ? $b['label'] : '' }}</td>
-                        <td class="{{ $sel }} w-4">{{ $i === 0 ? ':' : '' }}</td>
-                        @if ($butir['nomor'])
-                            <td class="{{ $sel }} w-7">{{ $butir['nomor'] }}</td>
-                        @endif
-                        <td class="{{ $sel }} {{ $rata }} whitespace-pre-line">{{ $butir['isi'] }}@if ($perluTombol($idButir))@include('v2.partials.tombol-baris', ['id' => $idButir, 'diubah' => $b['diubahButir'][$i] ?? false])@endif</td>
-                    </tr>
-                @endforeach
-            </table>
-        @elseif ($b['tipe'] === 'diktum')
-            {{-- Lebar kolom tetap: tabel di dalam diktum tidak boleh mendorong isi keluar kertas pada layar sempit. --}}
-            <table class="mb-3 w-full table-fixed border-collapse">
-                <tr>
-                    <td class="{{ $sel }} {{ $lebarLabel }}">{{ $b['pembuka'] }}</td>
-                    <td class="{{ $sel }} w-4">:</td>
-                    <td class="{{ $sel }}"></td>
-                </tr>
-                @foreach ($b['butir'] as $i => $butir)
-                    @php $idButir = $b['ids'][$i] ?? null; @endphp
-                    <tr class="group relative" data-baris="{{ $idButir }}">
-                        <td class="{{ $sel }} {{ $lebarLabel }}">{{ $butir['nomor'] }}</td>
-                        <td class="{{ $sel }} w-4">:</td>
-                        <td class="{{ $sel }}">
-                            @include('v2.partials.baris-teks', ['daftar' => $butir['baris'], 'rata' => $rata])
-                            @if ($perluTombol($idButir))
-                                @include('v2.partials.tombol-baris', ['id' => $idButir, 'diubah' => $b['diubahButir'][$i] ?? false])
+        @foreach ($blok as $b)
+            @if ($b['tipe'] === 'tengah')
+                <div class="tengah group relative" data-baris="{{ $b['id'] ?? '' }}">
+                    @foreach ($b['baris'] as $baris)
+                        <p>{{ $baris }}</p>
+                    @endforeach
+                    @if ($perluTombol($b['id'] ?? null))
+                        @include('v2.partials.tombol-baris', ['id' => $b['id'], 'diubah' => $b['diubah'] ?? false])
+                    @endif
+                </div>
+            @elseif ($b['tipe'] === 'daftar')
+                <table class="daftar">
+                    @foreach ($b['butir'] as $i => $butir)
+                        @php $idButir = $b['ids'][$i] ?? $b['id'] ?? null; @endphp
+                        <tr class="group relative" data-baris="{{ $idButir }}">
+                            <td class="label">{{ $i === 0 ? $b['label'] : '' }}</td>
+                            @unless ($b['rapat'])
+                                <td class="titik">{{ $i === 0 ? ':' : '' }}</td>
+                            @endunless
+                            @if ($butir['nomor'])
+                                <td class="nomor">{{ $butir['nomor'] }}</td>
                             @endif
-                        </td>
+                            <td class="isi">{{ $butir['isi'] }}@if ($perluTombol($idButir))@include('v2.partials.tombol-baris', ['id' => $idButir, 'diubah' => $b['diubahButir'][$i] ?? false])@endif</td>
+                        </tr>
+                    @endforeach
+                </table>
+            @elseif ($b['tipe'] === 'diktum')
+                <table class="daftar">
+                    <tr>
+                        <td class="label">{{ $b['pembuka'] }}</td>
+                        <td class="titik">{{ $b['rapat'] ? '' : ':' }}</td>
+                        <td></td>
                     </tr>
-                @endforeach
-            </table>
-        @elseif ($b['tipe'] === 'lampiran')
-            {{-- Lampiran dimulai di halaman baru; kepalanya di sisi kanan seperti pada naskah cetak. --}}
-            <div class="-mx-5 my-10 border-t-2 border-dashed border-slate-300 sm:-mx-16" role="separator" aria-label="Halaman lampiran"></div>
-            <div class="mb-6 ml-auto w-full max-w-[60%] text-left max-sm:max-w-full">
-                @foreach ($b['kepala'] as $baris)
-                    <p>{{ $baris }}</p>
-                @endforeach
-            </div>
-        @elseif ($b['tipe'] === 'ttd')
-            <div class="mt-8 ml-auto w-fit max-w-full">
-                @foreach ($b['baris'] as $baris)
-                    <p class="min-h-6 text-center">{{ $baris }}</p>
-                @endforeach
-            </div>
-        @elseif ($b['tipe'] === 'penutup')
-            <div class="group relative mt-8" data-baris="{{ $b['id'] ?? '' }}">
-                {{-- Lebar blok mengikuti baris terpanjang, supaya jabatan dan nama rata tengah sesamanya. --}}
-                <div class="ml-auto w-fit max-w-full">
-                    @foreach ($b['ditetapkan'] as $baris)
-                        <p @class(['min-h-6', 'text-center' => ! App\Support\TataLetakNaskah::barisTempatTanggal($baris)])>{{ $baris }}</p>
+                    @foreach ($b['butir'] as $i => $butir)
+                        @php $idButir = $b['ids'][$i] ?? null; @endphp
+                        <tr class="group relative" data-baris="{{ $idButir }}">
+                            <td class="label">{{ $butir['nomor'] }}</td>
+                            <td class="titik">:</td>
+                            <td>
+                                @foreach ($butir['baris'] as $baris)
+                                    @include('pdf.v2.partials.baris-isi', ['baris' => $baris])
+                                @endforeach
+                                @if ($perluTombol($idButir))
+                                    @include('v2.partials.tombol-baris', ['id' => $idButir, 'diubah' => $b['diubahButir'][$i] ?? false])
+                                @endif
+                            </td>
+                        </tr>
+                    @endforeach
+                </table>
+            @elseif ($b['tipe'] === 'lampiran')
+                {{-- Lampiran dimulai di halaman baru; kepalanya sejajar dengan blok tanda tangan. --}}
+                <div class="halaman-baru" role="separator" aria-label="Halaman lampiran"></div>
+                <div class="kepala-lampiran">
+                    @foreach ($b['kepala'] as $baris)
+                        <p>{{ $baris }}</p>
                     @endforeach
                 </div>
-                @if ($b['diundangkan'])
-                    <div class="mt-6 w-fit max-w-full">
-                        @foreach ($b['diundangkan'] as $baris)
-                            <p @class(['min-h-6', 'text-center' => ! App\Support\TataLetakNaskah::barisTempatTanggal($baris)])>{{ $baris }}</p>
-                        @endforeach
+            @elseif ($b['tipe'] === 'ttd')
+                <div class="penutup ditetapkan">
+                    @foreach ($b['baris'] as $baris)
+                        <p class="jabatan">{{ $baris }}</p>
+                    @endforeach
+                </div>
+            @elseif ($b['tipe'] === 'penutup')
+                <div class="group relative" data-baris="{{ $b['id'] ?? '' }}">
+                    <div class="penutup">
+                        <div class="ditetapkan">
+                            @foreach ($b['ditetapkan'] as $baris)
+                                <p @class(['jabatan' => ! App\Support\TataLetakNaskah::barisTempatTanggal($baris)])>{{ $baris }}</p>
+                            @endforeach
+                        </div>
+                        @if ($b['diundangkan'])
+                            <div class="diundangkan">
+                                @foreach ($b['diundangkan'] as $baris)
+                                    <p @class(['jabatan' => ! App\Support\TataLetakNaskah::barisTempatTanggal($baris)])>{{ $baris }}</p>
+                                @endforeach
+                            </div>
+                        @endif
+                        @if ($b['berita'])
+                            <p class="berita">{{ $b['berita'] }}</p>
+                        @endif
+                        @if ($b['tembusan'])
+                            <div class="tembusan">
+                                @foreach ($b['tembusan'] as $baris)
+                                    <p>{{ $baris }}</p>
+                                @endforeach
+                            </div>
+                        @endif
                     </div>
-                @endif
-                @if ($b['berita'])
-                    <p class="mt-6">{{ $b['berita'] }}</p>
-                @endif
-                @if ($b['tembusan'])
-                    <div class="mt-6">
-                        @foreach ($b['tembusan'] as $baris)
-                            <p>{{ $baris }}</p>
-                        @endforeach
-                    </div>
-                @endif
-                @if ($perluTombol($b['id'] ?? null))
-                    @include('v2.partials.tombol-baris', ['id' => $b['id'], 'diubah' => $b['diubah'] ?? false])
-                @endif
-            </div>
-        @else
-            <div class="group relative" data-baris="{{ $b['id'] ?? '' }}">
-                @include('v2.partials.baris-teks', ['daftar' => $b['baris'], 'rata' => $rata])
-                @if ($perluTombol($b['id'] ?? null))
-                    @include('v2.partials.tombol-baris', ['id' => $b['id'], 'diubah' => $b['diubah'] ?? false])
-                @endif
-            </div>
-        @endif
-    @endforeach
+
+                    @if ($paraf)
+                        <table class="paraf">
+                            <tr><td class="jabatan-paraf judul-paraf">{{ $f['paraf']['judul'] }}</td><td class="kosong"></td></tr>
+                            @foreach ($paraf as $jabatan)
+                                <tr><td class="jabatan-paraf">{{ $jabatan }}</td><td class="kosong"></td></tr>
+                            @endforeach
+                        </table>
+                    @endif
+
+                    @if ($perluTombol($b['id'] ?? null))
+                        @include('v2.partials.tombol-baris', ['id' => $b['id'], 'diubah' => $b['diubah'] ?? false])
+                    @endif
+                </div>
+            @else
+                <div class="group relative" data-baris="{{ $b['id'] ?? '' }}">
+                    @foreach ($b['baris'] as $baris)
+                        @include('pdf.v2.partials.baris-isi', ['baris' => $baris])
+                    @endforeach
+                    @if ($perluTombol($b['id'] ?? null))
+                        @include('v2.partials.tombol-baris', ['id' => $b['id'], 'diubah' => $b['diubah'] ?? false])
+                    @endif
+                </div>
+            @endif
+        @endforeach
+    </div>
 </div>

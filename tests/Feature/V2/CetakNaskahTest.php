@@ -135,11 +135,33 @@ describe('tata letak', function () {
 
         $html = view('v2.partials.isi-naskah', [
             'blok' => BandingNaskah::susun($n, $n->baris()->get()),
+            'jenis' => $n->jenis,
             'tandaiUbahan' => true,
         ])->render();
 
         expect($html)->toContain('Menetapkan', 'KESATU', '<ins>', 'Tembusan :')
             ->and($html)->not->toContain('&lt;ins&gt;');
+    });
+
+    it('isi naskah di layar memakai format PDF: kertas, tepi, rata, dan titik dua konsiderans', function () {
+        $tampil = fn (Naskah $n) => view('v2.partials.isi-naskah', [
+            'blok' => TataLetakNaskah::susun($n, $n->baris()->get()),
+            'jenis' => $n->jenis,
+            'ringkas' => true,
+        ])->render();
+
+        // Peraturan Bupati: titik dua dalam kolom sendiri, kertas F4 21,59 cm, tepi kiri 3 cm.
+        $perbup = $tampil(naskahCetak($this->pd));
+        expect($perbup)->toContain('width: 21.59cm', '--k-kiri: 3cm', '<td class="titik">:</td>', '<td class="label">Menimbang</td>');
+
+        // Keputusan Bupati: "Menimbang:" rapat tanpa kolom titik dua, seperti pada PDF.
+        $sk = $tampil(naskahCetak($this->pd, 'Keputusan Bupati', [
+            ['bagian' => 'judul', 'label' => null, 'teks' => "KEPUTUSAN BUPATI\nTENTANG\nHIBAH"],
+            ['bagian' => 'menimbang', 'label' => null, 'teks' => 'bahwa satu;'],
+            ['bagian' => 'diktum', 'label' => null, 'teks' => 'Menetapkan penerima.'],
+        ]));
+        expect($sk)->toContain('width: 21.5cm', 'MEMUTUSKAN:')
+            ->toMatch('/<td class="label">Menimbang:<\/td>\s*<td class="isi">bahwa satu;/');
     });
 
     it('Word dan PDF memuat butir diktum, tabel diktum, dan tembusan', function () {

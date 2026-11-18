@@ -390,7 +390,7 @@
                 <x-ui.button size="sm" variant="outline" icon="eye-slash" wire:click="$set('lihatIsi', false)" loading="$set('lihatIsi', false)"
                     x-on:click="$root.parentElement.scrollIntoView({ behavior: 'smooth', block: 'start' })">Sembunyikan</x-ui.button>
             </div>
-            @include('v2.partials.isi-naskah', ['blok' => $blokNaskah])
+            @include('v2.partials.isi-naskah', ['blok' => $blokNaskah, 'jenis' => $naskah->jenis])
         </section>
     @endif
 </div>

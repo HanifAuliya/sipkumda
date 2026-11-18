@@ -473,11 +473,13 @@
                     }">
                     @if ($tahap !== TahapNaskah::Draf && $mode !== A::MODE_SESUAIKAN)
                         <x-slot:actions>
-                            <x-ui.badge :color="$selesaiBlok === count($blokAktif['ids']) ? 'success' : 'slate'" size="lg">{{ $selesaiBlok }} dari {{ count($blokAktif['ids']) }} baris diperiksa</x-ui.badge>
+                            @php $blokSelesai = $selesaiBlok === count($blokAktif['ids']); @endphp
+                            <x-ui.badge :color="$blokSelesai ? 'success' : 'danger'" :icon="$blokSelesai ? 'check2-circle' : 'exclamation-circle'" size="lg">{{ $selesaiBlok }} dari {{ count($blokAktif['ids']) }} baris diperiksa</x-ui.badge>
                         </x-slot:actions>
                     @endif
 
-                    <div class="divide-y divide-slate-100 dark:divide-navy-800">
+                    {{-- Satu kartu per baris dengan jarak di antaranya, supaya batas antarpasal terlihat jelas. --}}
+                    <div class="space-y-4 rounded-b-2xl bg-slate-50 p-3 sm:p-4 dark:border-navy-800 dark:bg-navy-950/40">
                         @foreach ($daftarBaris as $b)
                             <livewire:v2.baris-kerja :baris="$b" :naskah="$naskah" :penanda="$penanda[$b->id] ?? null"
                                 :wire:key="'baris-'.$b->id.'-'.$naskah->giliran.'-'.($penanda[$b->id] ?? '').(in_array($b->bagian, ['judul', 'diktum'], true) ? '-'.md5($naskah->tentang) : '')" />
@@ -516,10 +518,10 @@
                     {{ collect(B::BERUBAH)->sum(fn (string $s) => $hitung[$s] ?? 0) }} baris berubah dari {{ $total }} baris.
                     <del>Merah</del> dihapus, <ins>hijau</ins> ditambah. Tekan tombol di tepi kertas untuk menuju barisnya di Matriks.
                 </p>
-                @include('v2.partials.isi-naskah', ['blok' => $blokNaskah, 'tandaiUbahan' => true, 'tombolBaris' => true, 'bisaUbah' => (bool) $mode])
+                @include('v2.partials.isi-naskah', ['blok' => $blokNaskah, 'jenis' => $naskah->jenis, 'tandaiUbahan' => true, 'tombolBaris' => true, 'bisaUbah' => (bool) $mode])
             @else
                 <p class="mx-auto max-w-4xl text-sm text-slate-500 dark:text-slate-400">Bentuk naskah bila dicetak saat ini. Nomor, tanggal, dan tanda tangan diisi saat penandatanganan basah.</p>
-                @include('v2.partials.isi-naskah', ['blok' => $blokNaskah])
+                @include('v2.partials.isi-naskah', ['blok' => $blokNaskah, 'jenis' => $naskah->jenis])
             @endif
         @elseif ($tab === 'berkas')
             <div class="mx-auto max-w-4xl space-y-4">
@@ -665,7 +667,7 @@
 
     {{-- Pratinjau naskah: bisa digulir sendiri dan menyorot bagian yang sedang dikerjakan. --}}
     <aside x-show="pratinjau && $wire.tab === 'kerja'" x-cloak aria-label="Pratinjau naskah"
-        class="fixed inset-0 z-40 flex flex-col bg-surface xl:static xl:z-auto xl:w-[28rem] xl:shrink-0 2xl:w-[34rem] dark:bg-navy-950 dark:ring-1 dark:ring-white/5">
+        class="fixed inset-0 z-40 flex flex-col bg-surface xl:static xl:z-auto xl:w-[34rem] xl:shrink-0 2xl:w-[42rem] dark:bg-navy-950 dark:ring-1 dark:ring-white/5">
         <style wire:ignore x-text="gaya"></style>
         <div class="flex shrink-0 items-center justify-between gap-2 bg-white px-4 py-2.5 shadow-card dark:bg-navy-900 dark:shadow-none">
             <h2 class="text-sm font-bold">Pratinjau Naskah</h2>

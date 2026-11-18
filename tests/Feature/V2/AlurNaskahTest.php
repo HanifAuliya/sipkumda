@@ -920,6 +920,42 @@ describe('minta PD perbaiki', function () {
             ->and($baris->fresh()->keterangan)->toBe('Lengkapi besaran');
     });
 
+    it('keterangan disimpan lewat tombolnya sendiri tanpa mengubah status baris', function () {
+        $n = naskahPenelitian($this);
+        $baris = $n->baris()->where('bagian', 'menimbang')->first();
+
+        $komponen = Livewire::actingAs($this->peneliti)->test(BarisKerja::class, ['baris' => $baris, 'naskah' => $n])
+            ->assertSee(['Tambah Keterangan', 'Belum diperiksa']);
+
+        // Sebelum diputuskan: status tetap Belum diperiksa.
+        $komponen->call('simpanKeterangan', '  Sesuaikan dengan Perda  ')->assertReturned(true)->assertHasNoErrors()
+            ->assertSee(['Ubah Keterangan', 'Sesuaikan dengan Perda']);
+        expect($baris->fresh()->status)->toBe(B::BELUM)
+            ->and($baris->fresh()->keterangan)->toBe('Sesuaikan dengan Perda');
+
+        // Sesudah Tetap: keterangannya ikut dan bisa diubah lagi tanpa membatalkan Tetap.
+        $komponen->call('tetap', 'Sesuaikan dengan Perda');
+        $komponen->call('simpanKeterangan', 'Sudah sesuai');
+        expect($baris->fresh()->status)->toBe(B::TETAP)
+            ->and($baris->fresh()->keterangan)->toBe('Sudah sesuai');
+
+        $komponen->call('simpanKeterangan', '');
+        expect($baris->fresh()->keterangan)->toBeNull();
+    });
+
+    it('arahan ke PD tidak bisa dikosongkan lewat keterangan, dan PD tidak bisa menulis keterangan', function () {
+        $n = naskahPenelitian($this);
+        $baris = $n->baris()->where('bagian', 'menimbang')->first();
+        $komponen = Livewire::actingAs($this->peneliti)->test(BarisKerja::class, ['baris' => $baris, 'naskah' => $n]);
+
+        $komponen->call('mintaPd', null, 'Lengkapi besaran');
+        $komponen->call('simpanKeterangan', '')->assertReturned(false)->assertHasErrors('keterangan');
+        expect($baris->fresh()->keterangan)->toBe('Lengkapi besaran');
+
+        expect(fn () => $this->alur->simpanKeterangan($baris->fresh(), $this->pd, 'catatan PD'))
+            ->toThrow(Symfony\Component\HttpKernel\Exception\HttpException::class);
+    });
+
     it('panel tidak ada untuk Verifikator yang mengoreksi', function () {
         $n = naskahPenelitian($this);
         $baris = $n->baris()->where('bagian', 'menimbang')->first();

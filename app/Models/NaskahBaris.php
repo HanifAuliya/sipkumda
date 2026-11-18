@@ -28,14 +28,25 @@ class NaskahBaris extends Model
         self::USUL_HAPUS => 'Diusulkan dihapus PD',
     ];
 
+    /** Merah berarti masih menunggu tindakan Peneliti; yang sudah diputuskan tidak merah. */
     public const WARNA_STATUS = [
-        self::BELUM => 'slate',
+        self::BELUM => 'danger',
         self::TETAP => 'success',
         self::DIUBAH => 'primary',
-        self::DIHAPUS => 'danger',
+        self::DIHAPUS => 'slate',
         self::PERLU_PD => 'warning',
         self::DISESUAIKAN => 'info',
         self::USUL_HAPUS => 'danger',
+    ];
+
+    public const IKON_STATUS = [
+        self::BELUM => 'exclamation-circle',
+        self::TETAP => 'check2-circle',
+        self::DIUBAH => 'pencil-square',
+        self::DIHAPUS => 'trash',
+        self::PERLU_PD => 'person-exclamation',
+        self::DISESUAIKAN => 'arrow-repeat',
+        self::USUL_HAPUS => 'exclamation-circle',
     ];
 
     /** Status yang berarti rumusannya berbeda dari usulan awal, atau diminta diperbaiki. */

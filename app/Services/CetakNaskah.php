@@ -227,6 +227,31 @@ class CetakNaskah
         return $format;
     }
 
+    /**
+     * Bahan isi naskah di layar yang sama dengan PDF: format Jenis naskahnya (kolom label ikut dilebarkan bila
+     * ada Memperhatikan), blok dengan gaya titik dua konsiderans, dan jabatan paraf hierarki.
+     * $susunan dari TataLetakNaskah atau BandingNaskah.
+     *
+     * spasi: line-height CSS yang menghasilkan jarak baris sama dengan PDF.
+     *
+     * @return array{f: array, blok: array, paraf: list<string>, spasi: float}
+     */
+    public static function tampilanLayar(string $jenis, array $susunan): array
+    {
+        $f = self::lebarLabel(FormatDokumen::naskah($jenis), $susunan);
+        $paraf = $f['paraf']['tampil'] ? array_values(array_filter(array_map('trim', $f['paraf']['jabatan'] ?? []), 'strlen')) : [];
+        $spasi = (float) $f['huruf']['spasi'] * 1.2 * (self::TINGGI_BARIS_DOMPDF[$f['huruf']['nama']] ?? 1.0);
+
+        return ['f' => $f, 'blok' => self::gayaKonsiderans($susunan, $f), 'paraf' => $paraf, 'spasi' => round($spasi, 4)];
+    }
+
+    /**
+     * Jarak baris PDF dibanding line-height CSS-nya, per huruf. DomPDF mengalikan line-height dengan tinggi huruf
+     * (ascent + descent, dikali font_height_ratio 1,1 di config/dompdf.php), sedangkan browser tidak.
+     * Diukur dengan FontMetrics::getFontHeight($font, 12) / 12.
+     */
+    private const TINGGI_BARIS_DOMPDF = ['Bookman Old Style' => 1.2914, 'Times New Roman' => 0.99, 'Arial' => 1.0175];
+
     private static function gayaKonsiderans(array $susunan, array $format): array
     {
         $rapat = ($format['konsiderans']['titik_dua'] ?? 'kolom') === 'rapat';
@@ -239,7 +264,8 @@ class CetakNaskah
             }
 
             match ($blok['tipe']) {
-                'tengah' => $blok['baris'] = array_map(fn ($b) => preg_replace('/^MEMUTUSKAN\s*:$/u', 'MEMUTUSKAN:', $b), $blok['baris']),
+                // Teks bertanda perubahan (HtmlString) dibiarkan: preg_replace mengubahnya menjadi teks biasa.
+                'tengah' => $blok['baris'] = array_map(fn ($b) => is_string($b) ? preg_replace('/^MEMUTUSKAN\s*:$/u', 'MEMUTUSKAN:', $b) : $b, $blok['baris']),
                 'daftar' => $blok['label'] .= ':',
                 'diktum' => $blok['pembuka'] .= ':',
                 default => null,

@@ -57,6 +57,11 @@
         batal() { this.ubah = false; this.teks = this.semula; },
         bukaMinta() { this.ketSemula = this.ket; this.minta = true; setTimeout(() => this.$refs.arahan.focus(), 30); },
         batalMinta() { this.minta = false; this.ket = this.ketSemula; this.$wire.$refresh(); },
+        {{-- Keterangan disimpan sendiri, tanpa mengubah status baris. --}}
+        catat: false,
+        bukaCatat() { this.ketSemula = this.ket; this.catat = true; setTimeout(() => this.$refs.catatan.focus(), 30); },
+        batalCatat() { this.catat = false; this.ket = this.ketSemula; },
+        simpanCatat() { this.$wire.simpanKeterangan(this.ket).then((berhasil) => { if (berhasil) this.catat = false; }); },
         selesai() { this.ubah = false; this.semula = this.teks; },
         kembalikan() { this.teks = this.semula = @js($awal); },
         {{-- Diberi event input supaya simpan otomatis saat menyusun ikut berjalan. --}}
@@ -82,8 +87,8 @@
     x-on:click="$dispatch('pratinjau-fokus', { id: {{ $baris->id }} })"
     x-on:focusin="$dispatch('pratinjau-fokus', { id: {{ $baris->id }} })"
     x-on:buka-editor="@if ($mode) buka(); @endif sorotan = true; setTimeout(() => sorotan = false, 1800)"
-    x-bind:class="sorotan && 'bg-primary-50 dark:bg-primary-500/10'"
-    class="@container scroll-mt-4 px-5 py-6 transition-colors sm:px-6">
+    x-bind:class="sorotan && 'outline-2 outline-offset-2 outline-primary-400'"
+    class="@container scroll-mt-4 rounded-xl bg-white px-5 py-5 ring-1 ring-slate-200 sm:px-6 dark:bg-navy-900 dark:ring-navy-700">
 
     @if ($mode === A::MODE_SUSUN)
         {{-- PD menyusun rumusan: penanda di kiri, isian di kanan. Tersimpan otomatis saat berhenti mengetik. --}}
@@ -133,79 +138,99 @@
             </div>
         </div>
     @else
-        <header class="mb-3 flex flex-wrap items-center justify-between gap-2">
+        @php
+            // Keterangan ditulis lewat tombolnya sendiri. Pada baris Perlu perbaikan PD isinya arahan ke PD,
+            // yang diubah lewat Ubah Arahan ke PD.
+            $bisaKeterangan = in_array($mode, [A::MODE_TELITI, A::MODE_KOREKSI], true) && $status !== B::PERLU_PD;
+        @endphp
+
+        {{-- Kepala kartu: setiap baris (pasal, butir) berkartu sendiri supaya batasnya jelas saat diperiksa. --}}
+        <header class="-mx-5 -mt-5 mb-4 flex flex-wrap items-center justify-between gap-2 rounded-t-xl border-b border-slate-200 bg-slate-50 px-5 py-3 sm:-mx-6 sm:px-6 dark:border-navy-700 dark:bg-navy-800/60">
             <h3 class="text-base font-bold">{{ $judul }}</h3>
-            <x-ui.badge size="lg" :color="B::WARNA_STATUS[$status]">{{ B::LABEL_STATUS[$status] }}</x-ui.badge>
+            <x-ui.badge size="lg" :color="B::WARNA_STATUS[$status]" :icon="B::IKON_STATUS[$status]">{{ B::LABEL_STATUS[$status] }}</x-ui.badge>
         </header>
 
-        {{-- Mengikuti kolom matriks: rumusan awal, rumusan penyempurnaan, keterangan. --}}
-        <div class="grid gap-4 @xl:grid-cols-2 @5xl:grid-cols-[minmax(0,5fr)_minmax(0,5fr)_minmax(0,3fr)]">
-            <div class="min-w-0">
-                <p class="{{ $judulKolom }}">Rumusan Awal</p>
-                <div class="{{ $serif }} {{ $kotak }} bg-slate-50 dark:bg-navy-800/60">
-                    @if ($awal !== '')
-                        @include('v2.partials.rumusan', ['teks' => $awal, 'lama' => null])
-                    @else
-                        —
-                    @endif
+        {{-- Rumusan penyempurnaan di bawah rumusan awal, supaya keduanya selebar mungkin dan mudah dibandingkan. --}}
+        <div>
+            <div class="min-w-0 space-y-4">
+                <div>
+                    <p class="{{ $judulKolom }}">Rumusan Awal</p>
+                    <div class="{{ $serif }} {{ $kotak }} bg-slate-50 dark:bg-navy-800/60">
+                        @if ($awal !== '')
+                            @include('v2.partials.rumusan', ['teks' => $awal, 'lama' => null])
+                        @else
+                            —
+                        @endif
+                    </div>
+                </div>
+
+                <div class="min-w-0">
+                    <p class="{{ $judulKolom }}">Rumusan Penyempurnaan</p>
+
+                    <div x-show="!ubah" class="{{ $serif }} {{ $kotak }} v2-diff ring-1 ring-slate-200 ring-inset dark:ring-navy-700">
+                        @if ($status === B::DIHAPUS)
+                            <span class="font-sans font-semibold text-rose-600 dark:text-rose-300">Dihapus</span>
+                        @elseif ($status === B::USUL_HAPUS)
+                            <span class="font-sans font-semibold text-rose-600 dark:text-rose-300">Diusulkan dihapus PD</span>
+                        @elseif ($status === B::TETAP)
+                            <span class="font-sans font-semibold text-emerald-600 dark:text-emerald-300">Tetap</span>
+                        @elseif ($sempurna !== '')
+                            @include('v2.partials.rumusan', ['teks' => $sempurna, 'lama' => $awal])
+                        @elseif ($status === B::PERLU_PD)
+                            <span class="font-sans text-sm font-semibold text-orange-600 dark:text-orange-300">Menunggu perbaikan PD</span>
+                        @else
+                            <span class="font-sans text-sm text-slate-400">Belum ada penyempurnaan</span>
+                        @endif
+                    </div>
+
+                    <div x-show="ubah" x-cloak class="mt-1.5 space-y-2">
+                        @if ($bisaDiberiPenanda)
+                            <div>
+                                <label class="{{ $judulKolom }}" for="penanda-{{ $baris->id }}">BAB / Pasal</label>
+                                <input id="penanda-{{ $baris->id }}" type="text" x-model="label" placeholder="Contoh: Pasal 5" class="{{ $bidang }} mt-1.5 font-semibold">
+                            </div>
+                        @endif
+                        @php $barisAwal = min(16, max(5, substr_count($awal, "\n") + 3 + (int) (mb_strlen($awal) / 50))); @endphp
+                        @if ($pakaiEditor)
+                            <div x-ref="editor">
+                                @include('v2.partials.editor-rumusan', ['barisMinimal' => $barisAwal, 'label' => "Rumusan penyempurnaan {$judul}"])
+                            </div>
+                            <p class="text-sm text-slate-500 dark:text-slate-400">{{ $petunjukTabel }}</p>
+                        @else
+                            <textarea x-ref="editor" rows="{{ $barisAwal }}" x-model="teks" aria-label="Rumusan penyempurnaan {{ $judul }}"
+                                class="{{ $bidang }} {{ $serif }}"></textarea>
+                        @endif
+                    </div>
+                    @error('rumusan')
+                        <p class="mt-1 text-sm font-medium text-rose-600 dark:text-rose-300">{{ $message }}</p>
+                    @enderror
                 </div>
             </div>
+        </div>
 
-            <div class="min-w-0">
-                <p class="{{ $judulKolom }}">Rumusan Penyempurnaan</p>
-
-                <div x-show="!ubah" class="{{ $serif }} {{ $kotak }} v2-diff ring-1 ring-slate-200 ring-inset dark:ring-navy-700">
-                    @if ($status === B::DIHAPUS)
-                        <span class="font-sans font-semibold text-rose-600 dark:text-rose-300">Dihapus</span>
-                    @elseif ($status === B::USUL_HAPUS)
-                        <span class="font-sans font-semibold text-rose-600 dark:text-rose-300">Diusulkan dihapus PD</span>
-                    @elseif ($status === B::TETAP)
-                        <span class="font-sans font-semibold text-emerald-600 dark:text-emerald-300">Tetap</span>
-                    @elseif ($sempurna !== '')
-                        @include('v2.partials.rumusan', ['teks' => $sempurna, 'lama' => $awal])
-                    @elseif ($status === B::PERLU_PD)
-                        <span class="font-sans text-sm font-semibold text-orange-600 dark:text-orange-300">Menunggu perbaikan PD</span>
-                    @else
-                        <span class="font-sans text-sm text-slate-400">Belum ada penyempurnaan</span>
-                    @endif
-                </div>
-
-                <div x-show="ubah" x-cloak class="mt-1.5 space-y-2">
-                    @if ($bisaDiberiPenanda)
-                        <div>
-                            <label class="{{ $judulKolom }}" for="penanda-{{ $baris->id }}">BAB / Pasal</label>
-                            <input id="penanda-{{ $baris->id }}" type="text" x-model="label" placeholder="Contoh: Pasal 5" class="{{ $bidang }} mt-1.5 font-semibold">
-                        </div>
-                    @endif
-                    @php $barisAwal = min(16, max(5, substr_count($awal, "\n") + 3 + (int) (mb_strlen($awal) / 50))); @endphp
-                    @if ($pakaiEditor)
-                        <div x-ref="editor">
-                            @include('v2.partials.editor-rumusan', ['barisMinimal' => $barisAwal, 'label' => "Rumusan penyempurnaan {$judul}"])
-                        </div>
-                        <p class="text-sm text-slate-500 dark:text-slate-400">{{ $petunjukTabel }}</p>
-                    @else
-                        <textarea x-ref="editor" rows="{{ $barisAwal }}" x-model="teks" aria-label="Rumusan penyempurnaan {{ $judul }}"
-                            class="{{ $bidang }} {{ $serif }}"></textarea>
-                    @endif
-                </div>
-                @error('rumusan')
-                    <p class="mt-1 text-sm font-medium text-rose-600 dark:text-rose-300">{{ $message }}</p>
-                @enderror
+        {{-- Keterangan tersimpan; hanya tampil bila ada isinya. --}}
+        @if (filled($baris->keterangan))
+            <div class="mt-4 rounded-lg bg-amber-50 px-3.5 py-2.5 text-sm ring-1 ring-amber-200/70 ring-inset dark:bg-amber-500/10 dark:ring-amber-400/20" x-show="!catat && !minta">
+                <p class="font-semibold text-amber-800 dark:text-amber-200">{{ $status === B::PERLU_PD ? 'Arahan ke PD' : 'Keterangan' }}</p>
+                <p class="mt-0.5 leading-relaxed whitespace-pre-line text-slate-700 dark:text-slate-200">{{ $baris->keterangan }}</p>
             </div>
+        @endif
 
-            <div class="min-w-0 @xl:col-span-2 @5xl:col-span-1" x-show="!minta">
-                @if ($mode && $mode !== A::MODE_SESUAIKAN)
-                    <label class="{{ $judulKolom }}" for="ket-{{ $baris->id }}">Keterangan</label>
-                    <textarea id="ket-{{ $baris->id }}" x-model="ket" rows="4" placeholder="Alasan atau arahan untuk Perangkat Daerah" class="{{ $bidang }} mt-1.5"></textarea>
-                @else
-                    <p class="{{ $judulKolom }}">Keterangan</p>
-                    <div class="{{ $kotak }} text-sm leading-relaxed whitespace-pre-line ring-1 ring-slate-200 ring-inset dark:ring-navy-700">{{ filled($baris->keterangan) ? $baris->keterangan : '—' }}</div>
-                @endif
+        @if ($bisaKeterangan)
+            {{-- Dibuka tombol Tambah/Ubah Keterangan; tersimpan tanpa mengubah status baris. --}}
+            <div x-show="catat" x-cloak class="mt-4 rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200 ring-inset dark:bg-navy-800/60 dark:ring-navy-700">
+                <label class="{{ $judulKolom }}" for="ket-{{ $baris->id }}">Keterangan</label>
+                <textarea id="ket-{{ $baris->id }}" x-ref="catatan" x-model="ket" rows="3" placeholder="Alasan perubahan atau catatan untuk baris ini" class="{{ $bidang }} mt-1.5"></textarea>
                 @error('keterangan')
                     <p class="mt-1 text-sm font-medium text-rose-600 dark:text-rose-300">{{ $message }}</p>
                 @enderror
+                <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Tercetak di kolom Keterangan pada matriks. Status baris tidak berubah.</p>
+                <div class="mt-3 flex flex-wrap justify-end gap-2">
+                    <x-ui.button size="rapat" variant="outline" x-on:click="batalCatat()">Batal</x-ui.button>
+                    <x-ui.button size="rapat" icon="check2" x-on:click="simpanCatat()">Simpan Keterangan</x-ui.button>
+                </div>
             </div>
-        </div>
+        @endif
 
         @if ($mode === A::MODE_TELITI)
             {{-- Dibuka tombol Minta PD Perbaiki: kapan dipakai, apa yang ditulis, dan apa yang terjadi sesudahnya. --}}
@@ -234,18 +259,21 @@
 
         @if ($mode === A::MODE_TELITI || $mode === A::MODE_KOREKSI)
             @if ($status === B::DISESUAIKAN)
-                <p class="mt-4 flex items-start gap-2 text-sm text-teal-700 dark:text-teal-300" x-show="!ubah && !minta">
+                <p class="mt-4 flex items-start gap-2 text-sm text-teal-700 dark:text-teal-300" x-show="!ubah && !minta && !catat">
                     <i class="bi bi-info-circle mt-0.5" aria-hidden="true"></i>
                     {{ $baris->sisipan() ? 'Perangkat Daerah menyisipkan baris ini. Periksa lalu Terima Perbaikan, Ubah, atau Hapus Baris bila tidak perlu.' : 'Perangkat Daerah sudah memperbaiki baris ini. Periksa lalu Terima Perbaikan, atau Ubah bila masih perlu disempurnakan.' }}
                 </p>
             @elseif ($status === B::USUL_HAPUS)
-                <p class="mt-4 flex items-start gap-2 text-sm text-rose-700 dark:text-rose-300" x-show="!ubah && !minta">
+                <p class="mt-4 flex items-start gap-2 text-sm text-rose-700 dark:text-rose-300" x-show="!ubah && !minta && !catat">
                     <i class="bi bi-info-circle mt-0.5" aria-hidden="true"></i>
                     Perangkat Daerah mengusulkan baris ini dihapus. Terima Hapus, atau Pakai Rumusan Awal bila baris ini tetap diperlukan.
                 </p>
             @endif
-            <div class="mt-4 flex flex-wrap items-center justify-between gap-2" x-show="!ubah && !minta">
+            <div class="mt-4 flex flex-wrap items-center justify-between gap-2" x-show="!ubah && !minta && !catat">
                 <div class="flex flex-wrap gap-2">
+                    @if ($bisaKeterangan)
+                        <x-ui.button size="rapat" variant="ghost" icon="chat-left-text" title="Catatan di kolom Keterangan matriks" x-on:click="bukaCatat()">{{ filled($baris->keterangan) ? 'Ubah Keterangan' : 'Tambah Keterangan' }}</x-ui.button>
+                    @endif
                     @if ($mode === A::MODE_TELITI && $bisaDitambah)
                         <x-ui.button size="rapat" variant="ghost" icon="plus-lg" wire:click="tambah">{{ $baris->bagian === 'lampiran' ? 'Sisipkan Lampiran' : 'Sisipkan Baris' }}</x-ui.button>
                     @endif

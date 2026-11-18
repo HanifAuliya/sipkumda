@@ -918,6 +918,22 @@ class AlurNaskah
         });
     }
 
+    /**
+     * Kolom Keterangan saja, tanpa mengubah rumusan maupun status, jadi bisa ditulis sebelum atau sesudah
+     * barisnya diputuskan. Pada baris Perlu perbaikan PD keterangannya adalah arahan, jadi tidak boleh kosong.
+     */
+    public function simpanKeterangan(B $baris, User $user, ?string $keterangan): B
+    {
+        $keterangan = filled($keterangan) ? trim($keterangan) : null;
+
+        return $this->ubahBaris($baris, $user, [self::MODE_TELITI, self::MODE_KOREKSI], function (B $b) use ($keterangan) {
+            if ($b->status === B::PERLU_PD && $keterangan === null) {
+                $this->gagal('keterangan', 'Arahan untuk PD tidak boleh kosong.');
+            }
+            $b->keterangan = $keterangan;
+        });
+    }
+
     /** Peneliti cukup menulis arahan; kolom 4 boleh kosong dan PD yang merumuskan. */
     public function mintaPerbaikan(B $baris, User $user, ?string $arahan, ?string $teks = null): B
     {

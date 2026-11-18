@@ -217,6 +217,63 @@
     color: #047857;
 }
 
+/*
+ * Isi naskah di layar (v2/partials/isi-naskah): aturannya sama dengan resources/views/pdf/v2/naskah.blade.php
+ * dan ukurannya dalam cm dan pt dari menu Format Dokumen, supaya rata, lebar kolom, dan pemenggalan barisnya
+ * sama dengan PDF. Kertasnya selebar kertas asli lalu diperkecil (zoom) agar muat di layar.
+ * Ubah keduanya bersamaan.
+ */
+.kertas-naskah {
+    box-sizing: border-box;
+    background: #fff;
+    color: #000;
+    color-scheme: light;
+    font-family: var(--k-huruf);
+    font-size: var(--k-ukuran);
+    line-height: var(--k-spasi);
+    padding: var(--k-atas) var(--k-kanan) var(--k-bawah) var(--k-kiri);
+    --color-slate-500: oklch(55.4% 0.046 257.417);
+    --color-rose-500: oklch(64.5% 0.246 16.439);
+}
+
+.kertas-naskah p { margin: 0; }
+.kertas-naskah .kop { text-align: center; font-weight: bold; font-size: var(--k-ukuran-kop); }
+.kertas-naskah .ruang-kop { height: var(--k-ruang-kop); overflow: hidden; }
+.kertas-naskah .kop-biasa { margin-bottom: 14pt; }
+.kertas-naskah .lambang { margin-bottom: 6pt; }
+.kertas-naskah .lambang img { display: inline-block; width: var(--k-lambang); }
+.kertas-naskah .tengah { text-align: center; margin: 12pt 0 6pt; }
+.kertas-naskah .ruang-kop + .tengah { margin-top: 0; }
+.kertas-naskah table { width: 100%; border-collapse: collapse; }
+.kertas-naskah td { vertical-align: top; padding: 0 0 3pt; text-align: justify; }
+.kertas-naskah td.label { width: var(--k-label); text-align: left; }
+.kertas-naskah td.titik { width: .5cm; text-align: left; }
+.kertas-naskah td.nomor { width: .8cm; text-align: left; }
+.kertas-naskah .isi { white-space: pre-line; }
+.kertas-naskah .paragraf { text-align: justify; margin: 0 0 3pt; }
+.kertas-naskah .daftar { margin-bottom: 8pt; }
+.kertas-naskah .tabel-isi { margin: 4pt 0 8pt; }
+.kertas-naskah .tabel-isi td { border: 1px solid #000; padding: 2pt 4pt; font-size: 11pt; text-align: left; vertical-align: middle; }
+.kertas-naskah .penutup { margin-top: 16pt; }
+.kertas-naskah .penutup p { min-height: 14pt; }
+.kertas-naskah .ditetapkan { margin-left: var(--k-kiri-ttd); width: var(--k-lebar-ttd); }
+.kertas-naskah .diundangkan { margin-top: 14pt; width: 8.1cm; }
+.kertas-naskah .penutup .jabatan { text-align: center; }
+.kertas-naskah .penutup .berita { margin-top: 14pt; }
+.kertas-naskah .tembusan { margin-top: 14pt; }
+.kertas-naskah .paraf { width: 8cm; margin-top: 18pt; font-size: var(--k-ukuran-paraf); line-height: 1.2; }
+.kertas-naskah .paraf td { border: 1px solid #000; height: .55cm; padding: .1cm .15cm; text-align: left; vertical-align: middle; }
+.kertas-naskah .paraf td.jabatan-paraf { width: 6.2cm; }
+.kertas-naskah .paraf td.kosong { width: 1.8cm; }
+.kertas-naskah .paraf .judul-paraf { text-align: center; }
+.kertas-naskah .kepala-lampiran { margin-left: var(--k-kiri-ttd); margin-bottom: 18pt; }
+
+/* Lampiran mulai di halaman baru: garis putus-putus selebar kertas, lalu tepi atas halaman berikutnya. */
+.kertas-naskah .halaman-baru {
+    margin: var(--k-bawah) calc(-1 * var(--k-kanan)) var(--k-atas) calc(-1 * var(--k-kiri));
+    border-top: 2px dashed #cbd5e1;
+}
+
 @layer base {
     html {
         -webkit-tap-highlight-color: transparent;

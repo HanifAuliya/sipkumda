@@ -57,6 +57,12 @@ class BarisKerja extends Component
         $this->jalankan(fn () => $alur->hapus($this->baris, auth()->user(), $keterangan));
     }
 
+    /** @return bool berhasil atau tidak, supaya kotak keterangan tetap terbuka saat isiannya ditolak */
+    public function simpanKeterangan(?string $keterangan, AlurNaskah $alur): bool
+    {
+        return $this->jalankan(fn () => $alur->simpanKeterangan($this->baris, auth()->user(), $keterangan));
+    }
+
     /** @return bool berhasil atau tidak, supaya panel arahan tetap terbuka saat isiannya ditolak */
     public function mintaPd(?string $teks, ?string $keterangan, AlurNaskah $alur): bool
     {
