@@ -109,7 +109,64 @@
             </div>
         @endif
 
-        @if (isset($aksiModal['ke']) && empty($aksiModal['mundur']) && $peringatan)
+        @php $periksaAjukan = $aksiTerpilih === 'ajukan' && $hasilPeriksa; @endphp
+        @if ($periksaAjukan)
+            {{-- Hasil pemeriksaan rancangan: galat dan baris kosong menghalangi, peringatan tidak. --}}
+            @php
+                $terhalang = App\Support\PemeriksaAjukan::terhalang($hasilPeriksa);
+                $kotakHitung = [
+                    ['jumlah' => count($hasilPeriksa['galat']), 'label' => 'Galat', 'warna' => 'text-rose-600 dark:text-rose-300', 'ket' => 'harus diperbaiki'],
+                    ['jumlah' => count($hasilPeriksa['kosong']), 'label' => 'Baris kosong', 'warna' => 'text-rose-600 dark:text-rose-300', 'ket' => 'harus diisi'],
+                    ['jumlah' => count($hasilPeriksa['peringatan']), 'label' => 'Peringatan', 'warna' => 'text-amber-600 dark:text-amber-300', 'ket' => 'boleh tetap diajukan'],
+                ];
+                $daftarPeriksa = [
+                    ['judul' => 'Galat', 'isi' => $hasilPeriksa['galat'], 'kelas' => 'bg-rose-50 text-rose-800 dark:bg-rose-500/10 dark:text-rose-200', 'ikon' => 'x-circle-fill'],
+                    ['judul' => 'Baris kosong', 'isi' => $hasilPeriksa['kosong'], 'kelas' => 'bg-rose-50 text-rose-800 dark:bg-rose-500/10 dark:text-rose-200', 'ikon' => 'x-circle-fill'],
+                    ['judul' => 'Peringatan', 'isi' => $hasilPeriksa['peringatan'], 'kelas' => 'bg-amber-50 text-amber-800 dark:bg-amber-500/10 dark:text-amber-200', 'ikon' => 'exclamation-triangle-fill'],
+                ];
+            @endphp
+            <div class="mb-4 grid grid-cols-3 gap-2 sm:gap-3">
+                @foreach ($kotakHitung as $k)
+                    <div class="rounded-xl bg-slate-50 px-2 py-3 text-center ring-1 ring-slate-200/70 ring-inset dark:bg-navy-800/60 dark:ring-navy-700">
+                        <p @class(['text-2xl font-bold', $k['jumlah'] ? $k['warna'] : 'text-slate-400 dark:text-slate-500'])>{{ $k['jumlah'] }}</p>
+                        <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">{{ $k['label'] }}</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">{{ $k['ket'] }}</p>
+                    </div>
+                @endforeach
+            </div>
+
+            @if (! $terhalang && ! $hasilPeriksa['peringatan'])
+                <x-ui.alert type="success" class="mb-4">Tidak ada galat maupun peringatan. Rancangan siap diajukan.</x-ui.alert>
+            @elseif (! $terhalang)
+                <x-ui.alert type="success" class="mb-4">Tidak ada galat. Peringatan di bawah boleh diperiksa dulu, tetapi tidak menghalangi pengajuan.</x-ui.alert>
+            @else
+                <x-ui.alert type="danger" class="mb-4">Perbaiki galat dan isi baris yang kosong dulu. Klik butirnya untuk membuka barisnya.</x-ui.alert>
+            @endif
+
+            <div class="mb-2 max-h-72 space-y-3 overflow-y-auto">
+                @foreach ($daftarPeriksa as $kelompok)
+                    @continue (! $kelompok['isi'])
+                    <div>
+                        <p class="mb-1 text-sm font-semibold text-slate-700 dark:text-slate-200">{{ $kelompok['judul'] }} ({{ count($kelompok['isi']) }})</p>
+                        <ul class="space-y-1">
+                            @foreach ($kelompok['isi'] as $p)
+                                <li wire:key="periksa-{{ $kelompok['judul'] }}-{{ $loop->index }}" class="flex items-start gap-2 rounded-lg px-3 py-2 text-sm {{ $kelompok['kelas'] }}">
+                                    <i class="bi bi-{{ $kelompok['ikon'] }} mt-0.5" aria-hidden="true"></i>
+                                    @if ($p['baris_id'])
+                                        <button type="button" class="min-w-0 text-left underline decoration-dotted underline-offset-2 hover:decoration-solid"
+                                            x-on:click="close()" wire:click="bukaBaris({{ $p['baris_id'] }})">{{ $p['pesan'] }}</button>
+                                    @else
+                                        <span class="min-w-0">{{ $p['pesan'] }}</span>
+                                    @endif
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endforeach
+            </div>
+        @endif
+
+        @if (isset($aksiModal['ke']) && empty($aksiModal['mundur']) && $peringatan && ! $periksaAjukan)
             {{-- Hanya mengingatkan: keputusan tetap di tangan pengguna. --}}
             <x-ui.alert type="warning" icon="exclamation-triangle-fill" class="mb-4">
                 <p class="font-semibold">Masih ada {{ count($peringatan) }} hal yang perlu diperiksa:</p>
@@ -133,14 +190,17 @@
             </div>
         @endif
 
-        <x-form.field :label="! empty($aksiModal['catatan']) ? 'Alasan' : 'Catatan (opsional)'" for="catatan" error="catatan" :required="! empty($aksiModal['catatan'])" class="mt-3">
-            <textarea id="catatan" wire:model="catatan" rows="3" class="{{ $isian }}"></textarea>
-        </x-form.field>
+        {{-- Saat mengajukan rancangan, catatan tidak diperlukan; hasil pemeriksaan di atas yang ditampilkan. --}}
+        @unless ($periksaAjukan)
+            <x-form.field :label="! empty($aksiModal['catatan']) ? 'Alasan' : 'Catatan (opsional)'" for="catatan" error="catatan" :required="! empty($aksiModal['catatan'])" class="mt-3">
+                <textarea id="catatan" wire:model="catatan" rows="3" class="{{ $isian }}"></textarea>
+            </x-form.field>
+        @endunless
 
         <x-slot:footer>
             <x-ui.button variant="ghost" x-on:click="close()">Batal</x-ui.button>
             <x-ui.button icon="check2" wire:click="jalankanAksi" loading="jalankanAksi"
-                :disabled="$aksiTerpilih === 'setujui_berkas' && count($periksaBerkas) < count(\App\Livewire\V2\LayarKerja::PERIKSA_BERKAS)">Lanjutkan</x-ui.button>
+                :disabled="($aksiTerpilih === 'setujui_berkas' && count($periksaBerkas) < count(\App\Livewire\V2\LayarKerja::PERIKSA_BERKAS)) || ($periksaAjukan && App\Support\PemeriksaAjukan::terhalang($hasilPeriksa))">{{ $periksaAjukan ? 'Ajukan' : 'Lanjutkan' }}</x-ui.button>
         </x-slot:footer>
     </x-ui.modal>
 

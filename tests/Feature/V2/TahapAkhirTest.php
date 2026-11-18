@@ -948,6 +948,28 @@ a. huruf.
         expect($pesan)->toBe(['Pasal 1 merujuk ke Pasal 80, yang tidak ada di naskah ini.']);
     });
 
+    it('rujukan ke pasal naskah ini dibedakan dari pasal peraturan lain', function () {
+        $temuan = PemeriksaPenomoran::periksa(barisPeriksa([
+            ['Pasal 1', "(1) Satu.\n(2) Dua."],
+            ['Pasal 2', implode(' ', [
+                'Sesuai Pasal 5 Peraturan Bupati ini.',               // naskah ini: Pasal 5 tidak ada
+                'Pasal 7 dan Pasal 8 Undang-Undang Nomor 23 Tahun 2014.', // peraturan lain
+                'Pasal 12 ayat (1) huruf a angka 2 Peraturan Menteri Dalam Negeri.', // peraturan lain
+                'Pasal 9 dari Peraturan Daerah.',                     // peraturan lain
+                'Lihat Pasal 1 ayat (3).',                            // ayat tidak ada
+                'Dikenakan Pajak Penghasilan Pasal 21.',              // istilah pajak
+                'Di antara Pasal 19 dan Pasal 20 disisipkan 1 (satu) pasal.', // peraturan perubahan
+            ])],
+            ['Pasal 3', "(1) Isi.\n(2) Sebagaimana dimaksud pada ayat (1) dan ayat (4)."],
+        ]));
+
+        expect($temuan)->toBe([
+            ['baris_id' => 2, 'pesan' => 'Pasal 2 merujuk ke Pasal 5, yang tidak ada di naskah ini.', 'jenis' => PemeriksaPenomoran::GALAT],
+            ['baris_id' => 2, 'pesan' => 'Pasal 2 merujuk ke Pasal 1 ayat (3), padahal Pasal 1 tidak memuat ayat itu.', 'jenis' => PemeriksaPenomoran::PERINGATAN],
+            ['baris_id' => 3, 'pesan' => 'Pasal 3 merujuk ke ayat (4), padahal Pasal 3 tidak memuat ayat itu.', 'jenis' => PemeriksaPenomoran::PERINGATAN],
+        ]);
+    });
+
     it('pasal yang dihapus tidak dihitung ada', function () {
         $pesan = array_column(PemeriksaPenomoran::periksa(barisPeriksa([
             ['Pasal 1', 'Lihat Pasal 2.'], ['Pasal 2', 'Isi', B::DIHAPUS],

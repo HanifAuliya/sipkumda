@@ -11,6 +11,7 @@ use App\Services\AlurNaskah;
 use App\Support\BandingNaskah;
 use App\Support\BebanPeneliti;
 use App\Support\BlokNaskah;
+use App\Support\PemeriksaAjukan;
 use App\Support\PemeriksaIsian;
 use App\Support\PemeriksaPenomoran;
 use App\Support\TandaTanganLangsung;
@@ -451,6 +452,9 @@ class LayarKerja extends Component
             $this->dispatch('pratinjau-sorot', ids: $blokAktif['ids']);
         }
 
+        // Saat menyusun: baris kosong, galat (menghalangi Ajukan), dan peringatan, untuk layar dan jendela Ajukan.
+        $hasilPeriksa = $mode === AlurNaskah::MODE_SUSUN ? PemeriksaAjukan::periksa($this->naskah, $barisLengkap) : null;
+
         return view('v2.layar-kerja', [
             'banding' => $banding,
             'bisaUnduh' => $bisaUnduh,
@@ -487,12 +491,15 @@ class LayarKerja extends Component
             // Sebelum penelitian belum ada baris yang diperiksa, jadi penghitungnya tidak berarti.
             'tampilkanHitung' => ! in_array($this->naskah->tahap, [TahapNaskah::Draf, TahapNaskah::PersetujuanBerkas, TahapNaskah::PilihPeneliti], true),
             // Isi naskah lebih dulu (isian "…", judul, Menetapkan), lalu penomoran.
-            // Pada Draf, isian "…" dirinci di daftar kurangLengkap, jadi tidak ditulis dua kali.
-            'peringatan' => $this->tab === 'kerja' && $bertugas
-                ? [...PemeriksaIsian::periksa($this->naskah, $barisLengkap, $mode !== AlurNaskah::MODE_SUSUN), ...PemeriksaPenomoran::periksa($barisLengkap->where('bagian', 'batang_tubuh')->values())]
-                : [],
-            // Yang menghalangi Ajukan: baris kosong dan isian "…", masing-masing bisa diklik menuju barisnya.
-            'kurangLengkap' => $mode === AlurNaskah::MODE_SUSUN ? PemeriksaIsian::kurangLengkap($this->naskah, $barisLengkap) : [],
+            // Saat menyusun, galat dirinci di daftar penghalang Ajukan; di sini cukup peringatannya.
+            'peringatan' => match (true) {
+                $hasilPeriksa !== null => $this->tab === 'kerja' ? $hasilPeriksa['peringatan'] : [],
+                $this->tab === 'kerja' && $bertugas => [...PemeriksaIsian::periksa($this->naskah, $barisLengkap), ...PemeriksaPenomoran::periksa($barisLengkap->where('bagian', 'batang_tubuh')->values())],
+                default => [],
+            },
+            'hasilPeriksa' => $hasilPeriksa,
+            // Yang menghalangi Ajukan: baris kosong dan galat, masing-masing bisa diklik menuju barisnya.
+            'kurangLengkap' => $hasilPeriksa ? [...$hasilPeriksa['kosong'], ...$hasilPeriksa['galat']] : [],
             'nota' => $this->naskah->tahap->langkah() >= 4 || $this->naskah->tahap === TahapNaskah::ValidasiFasilitasi ? $this->naskah->notaDinas()->first() : null,
             'ttdSelesai' => count(array_intersect_key($this->naskah->tahapan_ttd ?? [], AlurNaskah::tahapanTtd())),
             'isiVersi' => $this->versiTerpilih ? $this->naskah->versi()->find($this->versiTerpilih) : null,

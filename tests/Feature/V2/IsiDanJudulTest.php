@@ -87,7 +87,7 @@ it('merinci baris yang menghalangi pengajuan: kosong, berisi spasi saja, atau ma
 
     // Daftarnya tampil di layar kerja, terbuka, dan setiap butir membuka barisnya.
     Livewire::actingAs($this->pd)->test(LayarKerja::class, ['naskah' => $n])
-        ->assertSee(['Belum bisa diajukan: 2 baris perlu dilengkapi', 'masih berisi titik-titik isian'])
+        ->assertSee(['Belum bisa diajukan: 1 galat, 1 baris kosong', 'masih berisi titik-titik isian'])
         ->assertSeeHtml('wire:click="bukaBaris(' . $mengingat->id . ')"')
         // Pesan umumnya cukup di tooltip tombol Ajukan, tidak menjadi kotak peringatan kedua.
         ->assertSeeHtml('title="1 baris masih kosong."')
@@ -96,6 +96,36 @@ it('merinci baris yang menghalangi pengajuan: kosong, berisi spasi saja, atau ma
     // Kartu barisnya juga menyebut alasannya.
     Livewire::actingAs($this->pd)->test(BarisKerja::class, ['baris' => $mengingat->fresh(), 'naskah' => $n])
         ->assertSee('Masih ada titik-titik isian');
+});
+
+it('jendela Ajukan merangkum galat, baris kosong, dan peringatan tanpa kolom catatan', function () {
+    $n = drafLengkap($this);
+    $pasal1 = $n->baris()->where('label', 'Pasal 1')->first();
+    $pasal1->update(['rumusan_awal' => 'Ketentuan lebih lanjut diatur sesuai Pasal 9 Peraturan Bupati ini.']);
+    $n->baris()->where('bagian', 'judul')->first()->update(['rumusan_awal' => "PERATURAN BUPATI HULU SUNGAI TENGAH\nNOMOR ... TAHUN ...\nTENTANG\nJUDUL LAIN"]);
+
+    // Galat penomoran menghalangi pengajuan, tetapi tombol Ajukan tetap bisa dibuka untuk melihat rinciannya.
+    expect($this->alur->aksiTersedia($n, $this->pd)['ajukan']['hambatan'])->toContain('Pasal 1 merujuk ke Pasal 9');
+
+    Livewire::actingAs($this->pd)->test(LayarKerja::class, ['naskah' => $n])
+        ->call('pilihAksi', 'ajukan')
+        ->assertSee(['Galat', 'Baris kosong', 'Peringatan', 'harus diperbaiki', 'boleh tetap diajukan'])
+        ->assertSee('Pasal 1 merujuk ke Pasal 9, yang tidak ada di naskah ini.')
+        ->assertSee('Judul di naskah berbeda')
+        ->assertDontSee('Catatan (opsional)')
+        ->call('jalankanAksi')
+        ->assertHasErrors('aksi');
+
+    // Galat diperbaiki: peringatan judul saja tidak menghalangi.
+    $pasal1->update(['rumusan_awal' => 'Desa adalah desa di Kabupaten Hulu Sungai Tengah.']);
+
+    Livewire::actingAs($this->pd)->test(LayarKerja::class, ['naskah' => $n->fresh()])
+        ->call('pilihAksi', 'ajukan')
+        ->assertSee('Tidak ada galat. Peringatan di bawah boleh diperiksa dulu')
+        ->call('jalankanAksi')
+        ->assertHasNoErrors();
+
+    expect($n->fresh()->tahap->value)->toBe('persetujuan_berkas');
 });
 
 it('memperingatkan judul dan Menetapkan yang berbeda dengan judul pengajuan', function () {
