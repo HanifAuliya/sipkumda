@@ -23,7 +23,9 @@
         'diubah' => ['Yang diubah', collect(B::BERUBAH)->sum(fn ($s) => $hitung[$s] ?? 0)],
         'berubah' => ['Berubah sejak giliran lalu', null],
     ];
-    $tabs = ['kerja' => ['table', 'Matriks'], 'naskah' => ['file-earmark-text', 'Naskah'], 'berkas' => ['paperclip', 'Berkas'], 'riwayat' => ['clock-history', 'Riwayat']];
+    // Saat penyusunan belum ada matriks (rumusan awal vs penyempurnaan); yang dikerjakan rumusan naskahnya.
+    $tabKerja = $tahap === TahapNaskah::Draf ? ['pencil-square', 'Rumusan'] : ['table', 'Matriks'];
+    $tabs = ['kerja' => $tabKerja, 'naskah' => ['file-earmark-text', 'Naskah'], 'berkas' => ['paperclip', 'Berkas'], 'riwayat' => ['clock-history', 'Riwayat']];
     if (! $bisaUnduh) {
         unset($tabs['berkas']);
     }
@@ -135,19 +137,21 @@
         x-bind:class="{ 'translate-x-0': sidebarOpen, 'lg:w-16!': ! panelKiri, 'lg:transition-none': ! siap }" aria-label="Bagian naskah">
         <div class="flex h-full w-full flex-col transition-opacity duration-150 lg:w-72"
             x-bind:class="! panelKiri && 'lg:invisible lg:opacity-0'">
-        <div class="space-y-3 border-b border-slate-100 p-4 dark:border-navy-800">
-            <div class="-my-1 flex items-center justify-between gap-2">
-                <h2 class="truncate text-base font-bold tracking-wide text-navy-900 dark:text-white" title="Nomor rancangan">{{ $naskah->nomor_tampil }}</h2>
-                <button type="button" class="-mr-2 hidden size-9 shrink-0 place-items-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-navy-900 lg:grid dark:text-slate-400 dark:hover:bg-navy-800 dark:hover:text-white"
-                    x-on:click="panelKiri = false" aria-controls="panel-bagian" aria-expanded="true" aria-label="Tutup panel bagian" title="Tutup panel">
-                    <i class="bi bi-chevron-double-left text-base" aria-hidden="true"></i>
-                </button>
-                <button type="button" class="-mr-2 grid size-9 shrink-0 place-items-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-navy-900 lg:hidden dark:text-slate-400 dark:hover:bg-navy-800 dark:hover:text-white"
-                    x-on:click="sidebarOpen = false" aria-label="Tutup daftar bagian">
-                    <i class="bi bi-x-lg text-base" aria-hidden="true"></i>
-                </button>
-            </div>
+        {{-- Tinggi kepala panel kiri, bilah tab, dan kepala pratinjau sama (h-16), supaya garisnya sejajar. --}}
+        <div class="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-slate-100 px-4 dark:border-navy-800">
+            <h2 class="truncate text-base font-bold tracking-wide text-navy-900 dark:text-white" title="Nomor rancangan">{{ $naskah->nomor_tampil }}</h2>
+            <button type="button" class="-mr-2 hidden size-9 shrink-0 place-items-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-navy-900 lg:grid dark:text-slate-400 dark:hover:bg-navy-800 dark:hover:text-white"
+                x-on:click="panelKiri = false" aria-controls="panel-bagian" aria-expanded="true" aria-label="Tutup panel bagian" title="Tutup panel">
+                <i class="bi bi-chevron-double-left text-base" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="-mr-2 grid size-9 shrink-0 place-items-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-navy-900 lg:hidden dark:text-slate-400 dark:hover:bg-navy-800 dark:hover:text-white"
+                x-on:click="sidebarOpen = false" aria-label="Tutup daftar bagian">
+                <i class="bi bi-x-lg text-base" aria-hidden="true"></i>
+            </button>
+        </div>
 
+        @php $adaRingkasan = $mode === A::MODE_SESUAIKAN || $tampilkanHitung; @endphp
+        <div @class(['space-y-3 border-b border-slate-100 p-4 dark:border-navy-800', 'lg:hidden' => ! $adaRingkasan])>
             {{-- Di layar lebar keterangan ini ada di header. --}}
             <div class="lg:hidden">
                 <x-ui.badge :color="$tahap->warna()">{{ $tahap->label() }}</x-ui.badge>
@@ -268,13 +272,13 @@
         </div>
 
         {{-- Lajur ringkas saat panel ditutup (layar lebar): nomor bagian dengan titik status, nama lengkap di keterangan. --}}
-        <div class="absolute inset-y-0 left-0 hidden w-16 flex-col items-center py-3 transition-opacity duration-200 lg:flex"
+        <div class="absolute inset-y-0 left-0 hidden w-16 flex-col items-center pb-3 transition-opacity duration-200 lg:flex"
             x-bind:class="panelKiri ? 'invisible opacity-0' : 'opacity-100'" x-cloak>
-            <button type="button" class="grid size-10 shrink-0 place-items-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-navy-900 dark:text-slate-400 dark:hover:bg-navy-800 dark:hover:text-white"
+            <button type="button" class="my-3 grid size-10 shrink-0 place-items-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-navy-900 dark:text-slate-400 dark:hover:bg-navy-800 dark:hover:text-white"
                 x-on:click="panelKiri = true" aria-controls="panel-bagian" aria-expanded="false" aria-label="Buka panel bagian" title="Buka panel bagian">
                 <i class="bi bi-chevron-double-right text-base" aria-hidden="true"></i>
             </button>
-            <div class="my-2 h-px w-8 shrink-0 bg-slate-100 dark:bg-navy-800" aria-hidden="true"></div>
+            <div class="mb-2 h-px w-8 shrink-0 bg-slate-100 dark:bg-navy-800" aria-hidden="true"></div>
             <nav class="tanpa-scrollbar flex w-full flex-1 flex-col items-center gap-1.5 overflow-y-auto pb-1" aria-label="Pindah bagian">
                 @foreach ($daftarBlok as $b)
                     @php
@@ -310,7 +314,7 @@
 
     {{-- Kolom kerja --}}
     <div class="flex min-w-0 flex-1 flex-col">
-        <div class="@container flex shrink-0 flex-wrap items-center gap-x-2 gap-y-2 bg-white px-4 py-2.5 lg:gap-x-4 shadow-card sm:px-6 dark:bg-navy-900 dark:shadow-none dark:ring-1 dark:ring-white/5">
+        <div class="@container flex min-h-16 shrink-0 flex-wrap items-center gap-x-2 gap-y-2 border-b border-slate-100 bg-white px-4 py-2 lg:gap-x-4 sm:px-6 dark:border-navy-800 dark:bg-navy-900">
             {{-- Ikon tab disembunyikan saat lajurnya sempit. Bila tab dan tombol aksi tidak muat sebaris, tombol aksi turun ke baris berikutnya. --}}
             <x-ui.tabs class="max-w-full max-lg:grow max-sm:[&_[role=tab]]:px-2.5 [&_i]:hidden @3xl:[&_i]:inline-block">
                 @foreach ($tabs as $kunci => [$ikon, $nama])
@@ -689,8 +693,8 @@
     <aside x-show="pratinjau && $wire.tab === 'kerja'" x-cloak aria-label="Pratinjau naskah"
         class="fixed inset-0 z-40 flex flex-col bg-surface xl:static xl:z-auto xl:w-[34rem] xl:shrink-0 2xl:w-[42rem] dark:bg-navy-950 dark:ring-1 dark:ring-white/5">
         <style wire:ignore x-text="gaya"></style>
-        <div class="flex shrink-0 items-center justify-between gap-2 bg-white px-4 py-2.5 shadow-card dark:bg-navy-900 dark:shadow-none">
-            <h2 class="text-sm font-bold">Pratinjau Naskah</h2>
+        <div class="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-slate-100 bg-white px-4 dark:border-navy-800 dark:bg-navy-900">
+            <h2 class="text-base font-bold text-navy-900 dark:text-white">Pratinjau Naskah</h2>
             <div class="flex items-center gap-2">
                 @if ($tahap !== TahapNaskah::Draf)
                     <x-ui.button size="rapat" icon="layout-split" variant="outline" x-show="! bandingPratinjau"
