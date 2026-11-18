@@ -29,6 +29,17 @@
     $kotak = 'mt-1.5 min-h-24 rounded-lg px-3.5 py-3';
     $judulKolom = 'block text-sm font-semibold text-slate-500 dark:text-slate-400';
     $petunjukTabel = 'Enter membuat butir berikutnya, Tab dan Shift+Tab mengatur tingkat. Tabel dari Word atau Excel bisa langsung ditempel (Ctrl+V).';
+
+    // Saat menyusun: alasan baris ini menghalangi Ajukan (sama dengan daftar di atas lembar kerja).
+    $kurangSusun = null;
+    if ($mode === A::MODE_SUSUN && $baris->bagian !== 'lampiran') {
+        $cuplikanIsian = App\Support\PemeriksaIsian::cuplikanIsian($baris);
+        $kurangSusun = match (true) {
+            blank($awal) => 'Belum diisi.',
+            $cuplikanIsian !== null => "Masih ada titik-titik isian: “{$cuplikanIsian}”. Ganti dengan isi sebenarnya.",
+            default => null,
+        };
+    }
 @endphp
 
 <article id="baris-{{ $baris->id }}" data-baris="{{ $baris->id }}"
@@ -52,6 +63,7 @@
         {{-- Rumusan pasal dan lampiran memakai editor bernomor; editor-nya pembungkus, bukan kotak teks. --}}
         fokusEditor() {
             const editor = this.$refs.editor;
+            if (! editor) return;
             (editor.matches('textarea') ? editor : editor.querySelector('textarea'))?.focus();
         },
         batal() { this.ubah = false; this.teks = this.semula; },
@@ -88,7 +100,11 @@
     x-on:focusin="$dispatch('pratinjau-fokus', { id: {{ $baris->id }} })"
     x-on:buka-editor="@if ($mode) buka(); @endif sorotan = true; setTimeout(() => sorotan = false, 1800)"
     x-bind:class="sorotan && 'outline-2 outline-offset-2 outline-primary-400'"
-    class="@container scroll-mt-4 rounded-xl bg-white px-5 py-5 ring-1 ring-slate-200 sm:px-6 dark:bg-navy-900 dark:ring-navy-700">
+    @class([
+        '@container scroll-mt-4 rounded-xl bg-white px-5 py-5 sm:px-6 dark:bg-navy-900',
+        'ring-1 ring-slate-200 dark:ring-navy-700' => ! $kurangSusun,
+        'ring-2 ring-rose-300 dark:ring-rose-500/50' => $kurangSusun,
+    ])>
 
     @if ($mode === A::MODE_SUSUN)
         {{-- PD menyusun rumusan: penanda di kiri, isian di kanan. Tersimpan otomatis saat berhenti mengetik. --}}
@@ -103,6 +119,12 @@
                     <h3 class="text-base font-bold">{{ $judul }}</h3>
                 @endif
                 <p x-show="!tersimpan" x-cloak class="mt-2 text-sm text-slate-500"><i class="bi bi-cloud-arrow-up"></i> Menyimpan…</p>
+                @if ($kurangSusun)
+                    <p class="mt-2 flex items-start gap-1.5 text-sm font-medium text-rose-600 dark:text-rose-300" x-show="tersimpan">
+                        <i class="bi bi-exclamation-circle mt-0.5" aria-hidden="true"></i>
+                        <span class="min-w-0 break-words">{{ $kurangSusun }}</span>
+                    </p>
+                @endif
             </div>
 
             <div class="min-w-0">

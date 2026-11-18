@@ -376,9 +376,25 @@
                     $hambatanUtama = collect($aksi)->pluck('hambatan')->filter()->first();
                     // Isian "…" sudah dirinci (dan bisa diklik) di daftar peringatan, jadi tidak ditulis dua kali.
                     $kunciIsian = $hambatanUtama && str_starts_with($hambatanUtama, 'Masih ada isian') && $peringatan;
+                    // Hambatan tentang baris sudah dirinci di daftar kurangLengkap; hambatan lain (mis. Nota Dinas) tetap tampil.
+                    $hambatanBaris = $kurangLengkap && $hambatanUtama && (str_ends_with($hambatanUtama, 'baris masih kosong.') || str_starts_with($hambatanUtama, 'Masih ada isian'));
                 @endphp
-                @if ($tab === 'kerja' && $hambatanUtama && ! $kunciIsian)
+                @if ($tab === 'kerja' && $hambatanUtama && ! $kunciIsian && ! $hambatanBaris)
                     <x-ui.alert type="warning">{{ $hambatanUtama }}</x-ui.alert>
+                @endif
+                @if ($tab === 'kerja' && $kurangLengkap)
+                    {{-- Draf: baris yang menghalangi Ajukan, dirinci dan bisa diklik menuju barisnya. --}}
+                    <x-ui.alert type="danger">
+                        <p class="font-semibold">Belum bisa diajukan: {{ count($kurangLengkap) }} baris perlu dilengkapi</p>
+                        <p class="mt-0.5">Klik untuk membuka barisnya. Titik-titik (“...”) dianggap isian template yang belum diganti, termasuk yang berasal dari file Word.</p>
+                        <ul class="mt-2 list-disc space-y-1 pl-5">
+                            @foreach ($kurangLengkap as $k)
+                                <li wire:key="kurang-{{ $k['baris_id'] }}">
+                                    <button type="button" class="text-left underline decoration-dotted underline-offset-2 hover:decoration-solid" wire:click="bukaBaris({{ $k['baris_id'] }})">{{ $k['pesan'] }}</button>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </x-ui.alert>
                 @endif
 
                 @if ($tab === 'kerja' && $periksaNaskah)

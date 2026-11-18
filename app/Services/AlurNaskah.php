@@ -637,16 +637,16 @@ class AlurNaskah
             return 'Nota Dinas PD belum diunggah.';
         }
 
-        $kosong = $naskah->baris()->whereNot('bagian', 'lampiran')
-            ->where(fn ($q) => $q->whereNull('rumusan_awal')->orWhere('rumusan_awal', ''))
-            ->count();
+        // Sama dengan daftar "belum lengkap" di layar kerja: baris berisi spasi saja juga dihitung kosong.
+        $baris = $naskah->baris()->get();
+        $kosong = collect(PemeriksaIsian::kurangLengkap($naskah, $baris))->where('kosong', true)->count();
 
         if ($kosong) {
             return "{$kosong} baris masih kosong.";
         }
 
         // Template yang belum diisi ("bahwa ...", "Pasal 1 (1) ...") jangan sampai ikut diajukan.
-        $isian = PemeriksaIsian::barisBerisian($naskah->baris()->get());
+        $isian = PemeriksaIsian::barisBerisian($baris);
 
         return $isian->isNotEmpty()
             ? 'Masih ada isian “…” dari template di ' . PemeriksaIsian::daftarNama($isian) . '. Lengkapi dulu sebelum diajukan.'

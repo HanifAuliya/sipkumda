@@ -43,6 +43,64 @@ class PemeriksaIsian
         return $b->label ?: TemplateNaskah::BAGIAN[$b->bagian];
     }
 
+    /** Nama dengan nomornya, mis. "Dasar Hukum Mengingat angka 3", supaya jelas baris yang mana. */
+    public static function namaDenganNomor(B $b, ?string $penanda): string
+    {
+        $nama = self::nama($b);
+
+        return match (true) {
+            $penanda === null || filled($b->label) => $nama,
+            (bool) preg_match('/^(\d+)\.$/', $penanda, $m) => "{$nama} angka {$m[1]}",
+            (bool) preg_match('/^([a-z])\.$/', $penanda, $m) => "{$nama} huruf {$m[1]}",
+            default => "{$nama} {$penanda}",
+        };
+    }
+
+    /** Potongan teks di sekitar isian "…" pertama, supaya mudah ditemukan; null bila tidak ada isian. */
+    public static function cuplikanIsian(B $b): ?string
+    {
+        if (! self::adaIsian($b)) {
+            return null;
+        }
+
+        $teks = Str::squish((string) $b->teksAkhir());
+        preg_match(self::POLA_ISIAN, $teks, $m, PREG_OFFSET_CAPTURE);
+        $posisi = mb_strlen(substr($teks, 0, $m[0][1]));
+        $mulai = max(0, $posisi - 35);
+        $potong = mb_substr($teks, $mulai, 70 + mb_strlen($m[0][0]));
+
+        return ($mulai > 0 ? '…' : '') . $potong . ($mulai + mb_strlen($potong) < mb_strlen($teks) ? '…' : '');
+    }
+
+    /**
+     * Baris yang menghalangi pengajuan rancangan: kosong, atau masih berisi isian "…" dari template.
+     * Lampiran boleh kosong.
+     *
+     * @param  Collection<int, B>  $baris  semua baris naskah, urut
+     * @return list<array{baris_id: int, pesan: string, kosong: bool}>
+     */
+    public static function kurangLengkap(Naskah $naskah, Collection $baris): array
+    {
+        $penanda = TemplateNaskah::penanda($naskah, $baris);
+        $hasil = [];
+
+        foreach ($baris as $b) {
+            if ($b->bagian === 'lampiran' || $b->terhapus()) {
+                continue;
+            }
+
+            $nama = self::namaDenganNomor($b, $penanda[$b->id] ?? null);
+
+            if (blank($b->rumusan_awal)) {
+                $hasil[] = ['baris_id' => $b->id, 'pesan' => "{$nama} belum diisi.", 'kosong' => true];
+            } elseif ($cuplikan = self::cuplikanIsian($b)) {
+                $hasil[] = ['baris_id' => $b->id, 'pesan' => "{$nama} masih berisi titik-titik isian: “{$cuplikan}”", 'kosong' => false];
+            }
+        }
+
+        return $hasil;
+    }
+
     /** Nama baris yang masih berisi isian, untuk pesan penghambat pengajuan. */
     public static function barisBerisian(Collection $baris): Collection
     {
@@ -81,14 +139,15 @@ class PemeriksaIsian
 
     /**
      * @param  Collection<int, B>  $baris  semua baris naskah, urut
+     * @param  bool  $denganIsian  false saat isian "…" sudah dirinci terpisah (kurangLengkap, pada Draf)
      * @return array<int, array{baris_id: int, pesan: string}>
      */
-    public static function periksa(Naskah $naskah, Collection $baris): array
+    public static function periksa(Naskah $naskah, Collection $baris, bool $denganIsian = true): array
     {
         $hidup = $baris->whereNotIn('status', B::TERHAPUS);
         $pesan = [];
 
-        foreach ($hidup as $b) {
+        foreach ($denganIsian ? $hidup : [] as $b) {
             if (self::adaIsian($b)) {
                 $pesan[] = ['baris_id' => $b->id, 'pesan' => self::nama($b) . ' masih berisi isian “…” dari template.'];
             }

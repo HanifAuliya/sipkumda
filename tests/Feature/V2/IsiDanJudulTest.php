@@ -73,6 +73,31 @@ it('rancangan yang masih berisi isian template tidak bisa diajukan', function ()
     expect($this->alur->jalankan(drafLengkap($this), $this->pd, 'ajukan')->tahap->value)->toBe('persetujuan_berkas');
 });
 
+it('merinci baris yang menghalangi pengajuan: kosong, berisi spasi saja, atau masih bertitik-titik', function () {
+    $n = drafLengkap($this);
+    $mengingat = $n->baris()->where('bagian', 'mengingat')->first();
+    $n->baris()->create(['bagian' => 'mengingat', 'urutan' => $mengingat->urutan, 'rumusan_awal' => "  \n ", 'status' => B::BELUM]);
+    $mengingat->update(['rumusan_awal' => 'Undang-Undang Nomor 6 Tahun 2014 tentang Desa (Lembaran Negara Republik Indonesia Tahun 2014 Nomor ...);']);
+
+    $kurang = collect(PemeriksaIsian::kurangLengkap($n, $n->baris()->get()));
+
+    expect($kurang)->toHaveCount(2)
+        ->and($kurang->pluck('pesan')->implode(' | '))->toContain('belum diisi.', 'masih berisi titik-titik isian', 'Nomor ...)')
+        ->and($this->alur->aksiTersedia($n, $this->pd)['ajukan']['hambatan'])->toBe('1 baris masih kosong.');
+
+    // Daftarnya tampil di layar kerja, terbuka, dan setiap butir membuka barisnya.
+    Livewire::actingAs($this->pd)->test(LayarKerja::class, ['naskah' => $n])
+        ->assertSee(['Belum bisa diajukan: 2 baris perlu dilengkapi', 'masih berisi titik-titik isian'])
+        ->assertSeeHtml('wire:click="bukaBaris(' . $mengingat->id . ')"')
+        // Pesan umumnya cukup di tooltip tombol Ajukan, tidak menjadi kotak peringatan kedua.
+        ->assertSeeHtml('title="1 baris masih kosong."')
+        ->assertDontSeeHtml('<div class="min-w-0 flex-1">' . "\n" . '        1 baris masih kosong.');
+
+    // Kartu barisnya juga menyebut alasannya.
+    Livewire::actingAs($this->pd)->test(BarisKerja::class, ['baris' => $mengingat->fresh(), 'naskah' => $n])
+        ->assertSee('Masih ada titik-titik isian');
+});
+
 it('memperingatkan judul dan Menetapkan yang berbeda dengan judul pengajuan', function () {
     $n = drafLengkap($this);
     expect(PemeriksaIsian::periksa($n, $n->baris()->get()))->toBe([]);
