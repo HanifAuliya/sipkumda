@@ -70,12 +70,19 @@ class NaskahBaris extends Model
      */
     public const BAGIAN_BISA_DITAMBAH = [...self::BAGIAN_BERULANG, 'lampiran'];
 
+    /** Isi baris lampiran dari editor seperti Word, disimpan sebagai HTML yang sudah dibersihkan (HtmlLampiran). */
+    public const FORMAT_HTML = 'html';
+
+    /** Lampiran berupa berkas PDF; rumusan berisi id NaskahBerkas (jenis lampiran_baris), satu per versi. */
+    public const FORMAT_BERKAS = 'berkas';
+
     protected $table = 'naskah_baris';
 
     protected $fillable = [
         'naskah_id',
         'urutan',
         'bagian',
+        'format',
         'label',
         'rumusan_awal',
         'rumusan_penyempurnaan',
@@ -103,6 +110,24 @@ class NaskahBaris extends Model
     public function sisipan(): bool
     {
         return blank($this->rumusan_awal) && in_array($this->bagian, self::BAGIAN_BISA_DITAMBAH, true);
+    }
+
+    public function html(): bool
+    {
+        return $this->format === self::FORMAT_HTML;
+    }
+
+    public function berkas(): bool
+    {
+        return $this->format === self::FORMAT_BERKAS;
+    }
+
+    /** Berkas PDF lampiran untuk id yang tersimpan di rumusan (kolom 3 atau 4). */
+    public function berkasLampiran(?string $id): ?NaskahBerkas
+    {
+        return $this->berkas() && ctype_digit((string) $id)
+            ? NaskahBerkas::where('naskah_id', $this->naskah_id)->where('jenis', NaskahBerkas::LAMPIRAN_BARIS)->find((int) $id)
+            : null;
     }
 
     public function terhapus(): bool

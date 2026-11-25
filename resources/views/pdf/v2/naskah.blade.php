@@ -60,6 +60,13 @@
         .kepala-lampiran { page-break-before: always; margin-left: {{ $kiriTtd }}cm; margin-bottom: 18pt; }
         .kepala-lampiran p { margin: 0; }
         .paraf .judul-paraf { text-align: center; }
+        /* Lampiran dari editor: tabel bergaris seperti di layar, gaya per sel dari editor tetap berlaku. */
+        .lampiran-html p { margin: 0 0 4pt; }
+        .lampiran-html table { width: 100%; margin: 4pt 0 8pt; }
+        .lampiran-html td, .lampiran-html th { border: 1px solid #000; padding: 2pt 4pt; text-align: left; vertical-align: top; }
+        .lampiran-html th { font-weight: bold; text-align: center; }
+        .lampiran-html ol, .lampiran-html ul { margin: 0 0 4pt; padding-left: 0.8cm; }
+        .lampiran-html h2, .lampiran-html h3 { text-align: center; font-size: {{ $f['huruf']['ukuran'] }}pt; margin: 6pt 0; }
     </style>
 </head>
 
@@ -118,6 +125,15 @@
                 @foreach ($b['kepala'] as $baris)
                     <p>{{ $baris }}</p>
                 @endforeach
+            </div>
+        @elseif ($b['tipe'] === 'html')
+            {{-- Lampiran dari editor; HTML-nya sudah dibersihkan saat disimpan (HtmlLampiran). --}}
+            <div class="lampiran-html">{!! $b['html'] !!}</div>
+        @elseif ($b['tipe'] === 'berkas')
+            {{-- PDF lampiran digabung di belakang naskah saat diunduh lewat "Naskah + Lampiran PDF". --}}
+            <div class="kepala-lampiran" style="margin-left: 0; text-align: center">
+                <p><strong>{{ $b['label'] }}</strong></p>
+                <p>Terlampir dalam berkas PDF tersendiri{{ $b['berkas'] ? ': ' . $b['berkas']->nama_asli : '' }}.</p>
             </div>
         @elseif ($b['tipe'] === 'ttd')
             <div class="penutup ditetapkan">

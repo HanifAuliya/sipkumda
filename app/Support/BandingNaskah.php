@@ -37,8 +37,19 @@ class BandingNaskah
 
             if ($item->bagian === 'lampiran') {
                 $jumlahAwal = count($blok);
-                TataLetakNaskah::bukaLampiran($blok, $lampiran, $item->terhapus() ? null : ($penanda[$item->id] ?? 'Lampiran'));
-                $blok[] = ['tipe' => 'teks', 'baris' => self::teks($lama, $baru, true)];
+
+                // Lampiran editor dan PDF tidak bisa ditandai per kata: yang tampil versi terakhirnya, dan tombol
+                // di tepi kertas menandai bahwa lampiran itu berubah.
+                if ($item->berkas()) {
+                    TataLetakNaskah::tutupLampiran($blok, $lampiran);
+                    $blok[] = TataLetakNaskah::blokBerkas($item, $baru !== '' ? $baru : $lama, $penanda[$item->id] ?? 'Lampiran');
+                } elseif ($item->html()) {
+                    TataLetakNaskah::bukaLampiran($blok, $lampiran, $item->terhapus() ? null : ($penanda[$item->id] ?? 'Lampiran'));
+                    $blok[] = ['tipe' => 'html', 'html' => $baru !== '' ? $baru : $lama];
+                } else {
+                    TataLetakNaskah::bukaLampiran($blok, $lampiran, $item->terhapus() ? null : ($penanda[$item->id] ?? 'Lampiran'));
+                    $blok[] = ['tipe' => 'teks', 'baris' => self::teks($lama, $baru, true)];
+                }
                 TataLetakNaskah::tandaiAsal($blok, $jumlahAwal, $item->id);
                 self::tandaiUbahan($blok, $jumlahAwal, in_array($item->status, NaskahBaris::BERUBAH, true));
 

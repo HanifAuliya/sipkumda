@@ -11,6 +11,7 @@ use App\Models\PerangkatDaerah;
 use App\Models\TandaTangan;
 use App\Models\User;
 use App\Support\FormatDokumen;
+use App\Support\HtmlLampiran;
 use App\Support\TandaTanganPeneliti;
 use App\Support\TataLetakNaskah;
 use App\Support\TemplateNaskah;
@@ -132,6 +133,8 @@ class CetakNaskah
                 'penutup' => $this->wordPenutup($halaman, $blok),
                 'lampiran' => $this->wordKepalaLampiran($halaman, $blok),
                 'ttd' => $this->wordTtdLampiran($halaman, $blok),
+                'html' => $this->wordHtmlLampiran($halaman, $blok),
+                'berkas' => $this->wordBerkasLampiran($halaman, $blok),
                 default => $this->wordTeks($halaman, $blok),
             };
         }
@@ -530,6 +533,41 @@ class CetakNaskah
         $halaman->addTextBreak(1, null, ['spaceAfter' => 0]);
     }
 
+    /**
+     * Lampiran dari editor. PhpWord membaca XHTML, jadi HTML bersihnya ditulis ulang dalam bentuk XML dulu.
+     * Bila tetap gagal dibaca, isinya ditulis sebagai teks biasa supaya Word-nya tetap jadi.
+     */
+    private function wordHtmlLampiran(Section $halaman, array $blok): void
+    {
+        $dom = new \DOMDocument();
+        $sebelumnya = libxml_use_internal_errors(true);
+        $dom->loadHTML('<?xml encoding="UTF-8"><div>' . $blok['html'] . '</div>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD | LIBXML_NONET);
+        libxml_clear_errors();
+        libxml_use_internal_errors($sebelumnya);
+
+        $xhtml = '';
+        foreach ($dom->documentElement?->childNodes ?? [] as $anak) {
+            $xhtml .= $dom->saveXML($anak);
+        }
+
+        try {
+            \PhpOffice\PhpWord\Shared\Html::addHtml($halaman, $xhtml, false, false);
+        } catch (\Throwable $e) {
+            Log::warning('Lampiran HTML tidak terbaca PhpWord; ditulis sebagai teks.', ['galat' => $e->getMessage()]);
+
+            foreach (explode("\n", HtmlLampiran::teks($blok['html'])) as $baris) {
+                $halaman->addText($baris, null, ['spaceAfter' => 0]);
+            }
+        }
+    }
+
+    /** Lampiran berupa PDF tidak bisa dimasukkan ke Word: di tempatnya ditulis catatan. */
+    private function wordBerkasLampiran(Section $halaman, array $blok): void
+    {
+        $halaman->addText($blok['label'], ['bold' => true], ['alignment' => Jc::CENTER, 'pageBreakBefore' => true, 'spaceAfter' => 120]);
+        $halaman->addText('Terlampir dalam berkas PDF tersendiri' . ($blok['berkas'] ? ': ' . $blok['berkas']->nama_asli : '') . '.', null, ['alignment' => Jc::CENTER]);
+    }
+
     /** Tanda tangan penutup lampiran: jabatan dan nama, tanpa tempat dan tanggal. */
     private function wordTtdLampiran(Section $halaman, array $blok): void
     {
@@ -892,13 +930,20 @@ class CetakNaskah
 
             $no = $bagianBaru ? ++$nomorMateri . '.' : '';
             $materi = $bagianBaru ? TemplateNaskah::BAGIAN[$item->bagian] : '';
+            // Lampiran editor dicetak sebagai teks dengan tabel "| a | b |"; lampiran PDF cukup disebut nama berkasnya.
+            $isiKolom = fn (?string $nilai) => match (true) {
+                blank($nilai) => '',
+                $item->html() => HtmlLampiran::teks($nilai),
+                $item->berkas() => ($pdf = $item->berkasLampiran($nilai)) ? "Terlampir: berkas PDF {$pdf->nama_asli}" : '',
+                default => (string) $nilai,
+            };
             $sempurna = match ($item->status) {
                 NaskahBaris::TETAP => 'Tetap;',
                 NaskahBaris::DIHAPUS, NaskahBaris::USUL_HAPUS => 'Dihapus;',
-                default => (string) $item->rumusan_penyempurnaan,
+                default => $isiKolom($item->rumusan_penyempurnaan),
             };
 
-            $rumusan = self::potong((string) $item->rumusan_awal, 72);
+            $rumusan = self::potong($isiKolom($item->rumusan_awal), 72);
             $penyempurnaan = self::potong($sempurna, 50);
             $keterangan = self::potong((string) $item->keterangan, 28);
 

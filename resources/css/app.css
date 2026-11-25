@@ -268,6 +268,26 @@
 .kertas-naskah .paraf .judul-paraf { text-align: center; }
 .kertas-naskah .kepala-lampiran { margin-left: var(--k-kiri-ttd); margin-bottom: 18pt; }
 
+/*
+ * Lampiran dari editor seperti Word (HtmlLampiran): di kartu baris, di kertas pratinjau, dan di editornya.
+ * Tabel bergaris seperti di Word; gaya per sel dari editor (rata, lebar, garis) menimpa bawaan ini.
+ */
+.lampiran-html p { margin: 0 0 .35em; }
+.lampiran-html table { width: 100%; border-collapse: collapse; margin: .35em 0 .7em; }
+.lampiran-html td, .lampiran-html th { border: 1px solid currentColor; padding: .15em .35em; vertical-align: top; }
+.lampiran-html th { font-weight: bold; text-align: center; }
+.lampiran-html ol { list-style: decimal; padding-left: 1.6em; margin: 0 0 .35em; }
+.lampiran-html ul { list-style: disc; padding-left: 1.6em; margin: 0 0 .35em; }
+.lampiran-html h2, .lampiran-html h3 { font-size: 1em; font-weight: bold; text-align: center; margin: .5em 0; }
+.lampiran-html strong, .lampiran-html b { font-weight: bold; }
+.lampiran-html em, .lampiran-html i { font-style: italic; }
+.lampiran-html u { text-decoration: underline; }
+.kertas-naskah .lampiran-html td, .kertas-naskah .lampiran-html th { border-color: #000; padding: 2pt 4pt; text-align: left; }
+
+/* Editor lampiran: huruf naskah dan tinggi minimal; warna tetap terang di mode gelap, seperti kertas. */
+.editor-lampiran .ck-editor__editable { min-height: 14rem; font-family: 'Bookman Old Style', Georgia, 'Times New Roman', serif; font-size: .9375rem; color: #000; background: #fff; }
+.editor-lampiran .ck.ck-editor__main > .ck-editor__editable:not(.ck-focused) { border-color: var(--color-slate-200); }
+
 /* Lampiran mulai di halaman baru: garis putus-putus selebar kertas, lalu tepi atas halaman berikutnya. */
 .kertas-naskah .halaman-baru {
     margin: var(--k-bawah) calc(-1 * var(--k-kanan)) var(--k-atas) calc(-1 * var(--k-kiri));

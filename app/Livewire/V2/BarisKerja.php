@@ -4,13 +4,14 @@ namespace App\Livewire\V2;
 
 use App\Models\Naskah;
 use App\Models\NaskahBaris;
+use App\Models\NaskahBerkas;
 use App\Services\AlurNaskah;
-use App\Support\TataLetakNaskah;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Locked;
-use Livewire\Attributes\Renderless;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 /**
  * Satu baris matriks sebagai komponen sendiri: menyimpan satu baris tidak merender ulang
@@ -19,6 +20,8 @@ use Livewire\Component;
  */
 class BarisKerja extends Component
 {
+    use WithFileUploads;
+
     #[Locked]
     public NaskahBaris $baris;
 
@@ -27,6 +30,51 @@ class BarisKerja extends Component
 
     #[Locked]
     public ?string $penanda = null;
+
+    /** PDF lampiran yang sedang diunggah (baris lampiran berbentuk berkas). */
+    public $pdfLampiran;
+
+    /**
+     * Mengunggah PDF lampiran. Setiap unggahan menjadi berkas tersendiri (versi), lalu disimpan sebagai isi
+     * baris sesuai giliran: rumusan awal saat menyusun, perbaikan Peneliti, atau penyesuaian PD.
+     */
+    public function unggahLampiran(AlurNaskah $alur): void
+    {
+        Gate::authorize('view', $this->naskah);
+        abort_unless($this->baris->berkas(), 403);
+
+        $this->validate(['pdfLampiran' => 'required|file|mimes:pdf|max:20480'], [], ['pdfLampiran' => 'PDF lampiran']);
+
+        $mode = $alur->modeBaris($this->naskah, auth()->user());
+        abort_unless(in_array($mode, [AlurNaskah::MODE_SUSUN, AlurNaskah::MODE_TELITI, AlurNaskah::MODE_KOREKSI, AlurNaskah::MODE_SESUAIKAN], true), 403);
+
+        $berkas = $this->naskah->berkas()->create([
+            'jenis' => NaskahBerkas::LAMPIRAN_BARIS,
+            'path' => $this->pdfLampiran->store("naskah/{$this->naskah->slug}/lampiran", 'local'),
+            'nama_asli' => $this->pdfLampiran->getClientOriginalName(),
+            'diunggah_oleh' => auth()->id(),
+        ]);
+        $id = (string) $berkas->id;
+
+        $tersimpan = $this->jalankan(fn () => match ($mode) {
+            AlurNaskah::MODE_SUSUN => $alur->susun($this->baris, auth()->user(), $this->baris->label, $id),
+            AlurNaskah::MODE_SESUAIKAN => $alur->sesuaikan($this->baris, auth()->user(), $id),
+            default => $alur->perbaiki($this->baris, auth()->user(), $id, $this->baris->keterangan),
+        });
+
+        if (! $tersimpan) {
+            Storage::disk('local')->delete($berkas->path);
+            $berkas->delete();
+        }
+
+        $this->reset('pdfLampiran');
+    }
+
+    /** Saat penyusunan: lampiran diketik di editor, atau berupa berkas PDF. */
+    public function aturFormat(string $format, AlurNaskah $alur): void
+    {
+        $this->jalankan(fn () => $alur->aturFormatLampiran($this->baris, auth()->user(), $format));
+    }
 
     public function simpanSusun(?string $label, ?string $teks, AlurNaskah $alur): void
     {

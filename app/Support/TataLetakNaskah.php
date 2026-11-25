@@ -45,9 +45,18 @@ class TataLetakNaskah
 
             if ($item->bagian === 'lampiran') {
                 $jumlahAwal = count($blok);
-                // Satu baris satu lampiran: LAMPIRAN, atau LAMPIRAN I, II bila lebih dari satu.
-                self::bukaLampiran($blok, $lampiran, $penanda[$item->id] ?? 'Lampiran');
-                $blok[] = ['tipe' => 'teks', 'baris' => self::barisTeks($teks, true)];
+
+                if ($item->berkas()) {
+                    // PDF lampiran memuat kepala dan tanda tangannya sendiri; disisipkan apa adanya.
+                    self::tutupLampiran($blok, $lampiran);
+                    $blok[] = self::blokBerkas($item, $teks, $penanda[$item->id] ?? 'Lampiran');
+                } else {
+                    // Satu baris satu lampiran: LAMPIRAN, atau LAMPIRAN I, II bila lebih dari satu.
+                    self::bukaLampiran($blok, $lampiran, $penanda[$item->id] ?? 'Lampiran');
+                    $blok[] = $item->html()
+                        ? ['tipe' => 'html', 'html' => $teks]
+                        : ['tipe' => 'teks', 'baris' => self::barisTeks($teks, true)];
+                }
                 self::tandaiAsal($blok, $jumlahAwal, $item->id);
 
                 continue;
@@ -130,6 +139,17 @@ class TataLetakNaskah
         self::tutupLampiran($blok, $lampiran);
         $blok[] = ['tipe' => 'lampiran', 'kepala' => [filled($label) ? mb_strtoupper(trim($label)) : 'LAMPIRAN', ...$lampiran['judul']]];
         $lampiran['terbuka'] = true;
+    }
+
+    /**
+     * Lampiran berupa PDF: di layar ditampilkan dengan penampil PDF, di PDF naskah digabung di belakang
+     * (lihat gabung-pdf.js), di Word ditulis sebagai catatan.
+     *
+     * @return array{tipe: 'berkas', label: string, berkas: ?\App\Models\NaskahBerkas}
+     */
+    public static function blokBerkas(NaskahBaris $baris, ?string $id, ?string $label): array
+    {
+        return ['tipe' => 'berkas', 'label' => mb_strtoupper(trim($label ?: 'Lampiran')), 'berkas' => $baris->berkasLampiran($id)];
     }
 
     public static function tutupLampiran(array &$blok, array &$lampiran): void

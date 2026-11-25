@@ -20,6 +20,9 @@ class NaskahBerkas extends Model
     /** PDF nota dinas yang dibekukan saat terbit; versi yang diterbitkan ulang menggantikan yang aktif. */
     public const NOTA_DINAS = 'nota_dinas';
 
+    /** PDF lampiran yang menjadi isi satu baris lampiran di matriks (NaskahBaris::FORMAT_BERKAS); satu berkas per versi. */
+    public const LAMPIRAN_BARIS = 'lampiran_baris';
+
     public const LABEL = [
         self::NOTA_DINAS_PD => 'Nota Dinas PD',
         self::WORD_ASLI => 'Word asli',
@@ -27,6 +30,7 @@ class NaskahBerkas extends Model
         self::BAHAN_PENDUKUNG => 'Bahan pendukung',
         self::NASKAH_FASILITASI => 'Naskah hasil perbaikan',
         self::NOTA_DINAS => 'Nota Dinas',
+        self::LAMPIRAN_BARIS => 'Lampiran (PDF di matriks)',
     ];
 
     protected $table = 'naskah_berkas';

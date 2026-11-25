@@ -136,6 +136,30 @@
                         <p>{{ $baris }}</p>
                     @endforeach
                 </div>
+            @elseif ($b['tipe'] === 'html')
+                {{-- Lampiran dari editor; HTML-nya sudah dibersihkan saat disimpan (HtmlLampiran). --}}
+                <div class="lampiran-html group relative" data-baris="{{ $b['id'] ?? '' }}">
+                    {!! $b['html'] !!}
+                    @if ($perluTombol($b['id'] ?? null))
+                        @include('v2.partials.tombol-baris', ['id' => $b['id'], 'diubah' => $b['diubah'] ?? false])
+                    @endif
+                </div>
+            @elseif ($b['tipe'] === 'berkas')
+                {{-- Lampiran berupa PDF: ditampilkan apa adanya; saat dicetak digabung di belakang naskah. --}}
+                <div class="halaman-baru" role="separator" aria-label="Halaman lampiran"></div>
+                <div class="lampiran-berkas group relative" data-baris="{{ $b['id'] ?? '' }}">
+                    @if ($b['berkas'])
+                        @php $urlBerkas = route('naskah.berkas', [$b['berkas']->naskah, $b['berkas'], 'lihat' => 1]); @endphp
+                        <p class="text-center font-bold">{{ $b['label'] }}</p>
+                        <p class="mb-2 text-center" style="font-size: 10pt">(berkas PDF: {{ $b['berkas']->nama_asli }})</p>
+                        <iframe src="{{ $urlBerkas }}#view=FitH" title="{{ $b['label'] }}" loading="lazy" style="width: 100%; height: 26cm; border: 1px solid #cbd5e1"></iframe>
+                    @else
+                        <p class="text-center">{{ $b['label'] }}: PDF lampiran belum diunggah.</p>
+                    @endif
+                    @if ($perluTombol($b['id'] ?? null))
+                        @include('v2.partials.tombol-baris', ['id' => $b['id'], 'diubah' => $b['diubah'] ?? false])
+                    @endif
+                </div>
             @elseif ($b['tipe'] === 'ttd')
                 <div class="penutup ditetapkan">
                     @foreach ($b['baris'] as $baris)

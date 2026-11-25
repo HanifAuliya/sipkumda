@@ -85,6 +85,12 @@ class PemeriksaIsian
         $hasil = [];
 
         foreach ($baris as $b) {
+            // Lampiran boleh kosong, kecuali yang dipilih berupa PDF: berkasnya wajib diunggah.
+            if ($b->bagian === 'lampiran' && $b->berkas() && ! $b->terhapus() && ! $b->berkasLampiran($b->teksAkhir())) {
+                $hasil[] = ['baris_id' => $b->id, 'pesan' => ($penanda[$b->id] ?? 'Lampiran') . ': PDF lampiran belum diunggah.', 'kosong' => true];
+
+                continue;
+            }
             if ($b->bagian === 'lampiran' || $b->terhapus()) {
                 continue;
             }

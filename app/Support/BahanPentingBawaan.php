@@ -202,7 +202,7 @@ class BahanPentingBawaan
             ['Konsiderans Menimbang', 'Memuat alasan pengaturan dan diakhiri kalimat "perlu menetapkan ... tentang ...".'],
             ['Dasar hukum Mengingat', 'Lengkap dengan tahun, nomor Lembaran Negara/Daerah, dan Tambahan Lembaran Negara bila ada; diurutkan menurut hierarki.'],
             ['Isi naskah', 'Peraturan Bupati: BAB dan Pasal berurutan, ditutup Ketentuan Penutup. Keputusan Bupati: diktum KESATU, KEDUA, dan seterusnya.'],
-            [NaskahBerkas::LABEL[NaskahBerkas::LAMPIRAN] . ' (bila ada)', 'Diunggah terpisah di tab Berkas, bukan di dalam file Word naskah.'],
+            [NaskahBerkas::LABEL[NaskahBerkas::LAMPIRAN] . ' (bila ada)', 'Diketik atau ditempel dari Word di editor bagian Lampiran pada layar kerja; lampiran yang terlalu rumit diunggah sebagai PDF di baris lampiran itu.'],
             [NaskahBerkas::LABEL[NaskahBerkas::BAHAN_PENDUKUNG] . ' (bila ada)', 'Kajian, data, atau dokumen rujukan; diunggah di tab Berkas.'],
         ] as $i => [$apa, $ket]) {
             $tabel->addRow();

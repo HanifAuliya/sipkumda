@@ -33,7 +33,7 @@ class TemplateNaskah
         'diktum' => 'Isi bagian yang ditetapkan. Pada Keputusan Bupati, KESATU, KEDUA, dan seterusnya dibuat otomatis; rincian a., b. ditulis per baris di dalam diktumnya.',
         'batang_tubuh' => 'Satu baris untuk satu BAB atau Pasal. Ayat dan butir ditulis di dalam isi pasalnya.',
         'penutup' => 'Nama pejabat diambil dari Pengaturan. Tanggal dan nomor dikosongkan untuk tanda tangan basah.',
-        'lampiran' => 'Opsional. Satu baris untuk satu lampiran, dicetak di halaman baru sesudah tanda tangan. Bila lebih dari satu, LAMPIRAN I, II, dan seterusnya dibuat otomatis.',
+        'lampiran' => 'Opsional. Satu baris untuk satu lampiran, dicetak di halaman baru sesudah tanda tangan; LAMPIRAN I, II dibuat otomatis bila lebih dari satu. Ketik atau tempel dari Word di editor, atau unggah PDF untuk lampiran yang terlalu rumit.',
     ];
 
     private const DIKTUM = [

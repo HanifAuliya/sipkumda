@@ -529,6 +529,15 @@
                     <div class="ml-auto flex flex-wrap justify-end gap-2">
                         <x-ui.button size="rapat" variant="outline" icon="file-earmark-word" :href="route('naskah.cetak', [$naskah, 'naskah-word'])">Naskah Word</x-ui.button>
                         <x-ui.button size="rapat" variant="outline" icon="file-earmark-pdf" :href="route('naskah.cetak', [$naskah, 'naskah-pdf'])">Naskah PDF</x-ui.button>
+                        @if ($urlGabungPdf)
+                            {{-- Lampiran berupa PDF digabung di belakang naskah, di browser. --}}
+                            <span x-data="gabungPdf(@js($urlGabungPdf), @js($naskah->nomor_tampil . ' - Naskah dan Lampiran.pdf'))" class="inline-flex flex-col">
+                                <x-ui.button size="rapat" variant="outline-primary" icon="file-earmark-pdf" x-on:click="unduh()" x-bind:disabled="proses">
+                                    <span x-text="proses ? 'Menggabungkan…' : 'Naskah + Lampiran PDF'">Naskah + Lampiran PDF</span>
+                                </x-ui.button>
+                                <span x-show="galat" x-cloak x-text="galat" class="mt-1 text-sm text-rose-600 dark:text-rose-300"></span>
+                            </span>
+                        @endif
                         <x-ui.button size="rapat" variant="outline" icon="table" :href="route('naskah.cetak', [$naskah, 'matriks-pdf'])">Matriks PDF</x-ui.button>
                         @if ($nota)
                             <x-ui.button size="rapat" variant="outline" icon="file-earmark-text" :href="route('naskah.cetak', [$naskah, 'nota-dinas'])">Nota Dinas</x-ui.button>
@@ -632,6 +641,10 @@
                                     $lama = json_decode((string) $r->sebelum, true) ?? [];
                                     $teksLama = ($lama['penyempurnaan'] ?? null) ?: ($lama['awal'] ?? '');
                                     $teksBaru = ($rincian['penyempurnaan'] ?? null) ?: ($rincian['awal'] ?? '');
+                                    // Lampiran dari editor dibandingkan sebagai teks, bukan kode HTML-nya.
+                                    if (App\Support\HtmlLampiran::tampakHtml($teksLama) || App\Support\HtmlLampiran::tampakHtml($teksBaru)) {
+                                        [$teksLama, $teksBaru] = [App\Support\HtmlLampiran::teks($teksLama), App\Support\HtmlLampiran::teks($teksBaru)];
+                                    }
                                 @endphp
                                 @if ($teksLama !== $teksBaru)
                                     <details class="mt-1">

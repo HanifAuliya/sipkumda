@@ -14,6 +14,7 @@ use App\Models\TandaTangan;
 use App\Models\User;
 use App\Notifications\NaskahNotification;
 use App\Support\FormatDokumen;
+use App\Support\HtmlLampiran;
 use App\Support\PemeriksaIsian;
 use App\Support\PesanNotifikasi;
 use App\Support\TandaTanganLangsung;
@@ -776,6 +777,7 @@ class AlurNaskah
             $sebelum = $this->ringkasBaris($baris);
 
             $ubah($baris, $naskah);
+            $this->amankanIsiLampiran($baris);
 
             $baris->giliran_diubah = $naskah->giliran;
             $baris->diubah_oleh = $user->id;
@@ -784,6 +786,42 @@ class AlurNaskah
             $this->catatBaris($naskah, $baris, $user, $sebelum);
 
             return $baris;
+        });
+    }
+
+    /**
+     * Lampiran dari editor disimpan sebagai HTML yang sudah dibersihkan; lampiran berkas hanya boleh menunjuk
+     * PDF lampiran milik naskah yang sama.
+     */
+    private function amankanIsiLampiran(B $b): void
+    {
+        if ($b->html()) {
+            $b->rumusan_awal = HtmlLampiran::bersihkan($b->rumusan_awal);
+            $b->rumusan_penyempurnaan = HtmlLampiran::bersihkan($b->rumusan_penyempurnaan);
+        }
+
+        if ($b->berkas()) {
+            foreach (['rumusan_awal', 'rumusan_penyempurnaan'] as $kolom) {
+                if (filled($b->{$kolom}) && ! $b->berkasLampiran($b->{$kolom})) {
+                    $this->gagal('rumusan', 'Berkas lampiran tidak ditemukan. Unggah ulang PDF-nya.');
+                }
+            }
+        }
+    }
+
+    /**
+     * Saat penyusunan, PD memilih isi lampiran: diketik di editor (html) atau berkas PDF (berkas).
+     * Isinya dikosongkan karena bentuknya berbeda.
+     */
+    public function aturFormatLampiran(B $baris, User $user, string $format): B
+    {
+        if (! in_array($format, [B::FORMAT_HTML, B::FORMAT_BERKAS], true) || $baris->bagian !== 'lampiran') {
+            abort(403, 'Bentuk lampiran tidak dikenal.');
+        }
+
+        return $this->ubahBaris($baris, $user, [self::MODE_SUSUN], function (B $b) use ($format) {
+            $b->format = $format;
+            $b->rumusan_awal = null;
         });
     }
 
@@ -894,6 +932,11 @@ class AlurNaskah
                 if (blank($teks) && blank($b->label)) {
                     $this->gagal('rumusan', 'Isi rumusannya, atau hapus baris ini bila tidak jadi dipakai.');
                 }
+            }
+
+            // HTML lampiran dibandingkan sesudah dibersihkan, seperti yang akan tersimpan.
+            if ($b->html()) {
+                $teks = HtmlLampiran::bersihkan($teks);
             }
 
             $sama = $this->normal($teks) === $this->normal($b->rumusan_awal);
@@ -1007,10 +1050,14 @@ class AlurNaskah
             $urutan = B::whereKey($acuan->id)->value('urutan');
             B::where('naskah_id', $naskah->id)->where('urutan', '>', $urutan)->increment('urutan');
 
+            $bagianBaru = $bagian ?? $acuan->bagian;
+
             $baru = B::create([
                 'naskah_id' => $naskah->id,
                 'urutan' => $urutan + 1,
-                'bagian' => $bagian ?? $acuan->bagian,
+                'bagian' => $bagianBaru,
+                // Lampiran baru selalu memakai editor; PD bisa menggantinya dengan PDF saat penyusunan.
+                'format' => $bagianBaru === 'lampiran' ? B::FORMAT_HTML : null,
                 'label' => filled($label) ? trim($label) : null,
                 // Sisipan PD menunggu diperiksa Peneliti seperti perbaikan PD lainnya.
                 'status' => match ($mode) {
@@ -1107,16 +1154,24 @@ class AlurNaskah
         });
     }
 
-    /** @param array<int, array{bagian: string, label: ?string, teks: ?string}> $baris */
+    /**
+     * Lampiran yang masih kosong memakai editor (html); lampiran hasil baca matriks Word yang sudah berisi teks
+     * tetap teks biasa.
+     *
+     * @param array<int, array{bagian: string, label: ?string, teks: ?string, format?: ?string}> $baris
+     */
     public function isiBaris(Naskah $naskah, array $baris): void
     {
         foreach (array_values($baris) as $i => $item) {
+            $format = $item['format'] ?? ($item['bagian'] === 'lampiran' && blank($item['teks'] ?? null) ? B::FORMAT_HTML : null);
+
             B::create([
                 'naskah_id' => $naskah->id,
                 'urutan' => $i + 1,
                 'bagian' => $item['bagian'],
+                'format' => $format,
                 'label' => $item['label'] ?? null,
-                'rumusan_awal' => $item['teks'] ?? null,
+                'rumusan_awal' => $format === B::FORMAT_HTML ? HtmlLampiran::bersihkan($item['teks'] ?? null) : ($item['teks'] ?? null),
             ]);
         }
     }
@@ -1127,7 +1182,7 @@ class AlurNaskah
             'versi' => (int) $naskah->versi()->max('versi') + 1,
             'tahap' => $naskah->tahap->value,
             'user_id' => $user->id,
-            'isi' => $naskah->baris()->get(['id', 'bagian', 'label', 'rumusan_awal', 'rumusan_penyempurnaan', 'keterangan', 'status'])->toArray(),
+            'isi' => $naskah->baris()->get(['id', 'bagian', 'format', 'label', 'rumusan_awal', 'rumusan_penyempurnaan', 'keterangan', 'status'])->toArray(),
         ]);
     }
 

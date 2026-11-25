@@ -200,6 +200,19 @@ class LayarKerja extends Component
         };
     }
 
+    /** @return list<string> PDF naskah lalu PDF tiap lampiran berkas; kosong bila tidak ada lampiran berkas. */
+    private function urlGabungPdf(): array
+    {
+        $berkas = $this->naskah->baris()->where('bagian', 'lampiran')->where('format', B::FORMAT_BERKAS)->get()
+            ->reject(fn (B $b) => $b->terhapus())
+            ->map(fn (B $b) => $b->berkasLampiran($b->teksAkhir()))
+            ->filter()
+            ->map(fn ($pdf) => route('naskah.berkas', [$this->naskah, $pdf, 'lihat' => 1]))
+            ->values();
+
+        return $berkas->isEmpty() ? [] : [route('naskah.cetak', [$this->naskah, 'naskah-pdf']), ...$berkas];
+    }
+
     public function bukaUbahJudul(): void
     {
         $this->judulBaru = $this->naskah->fresh()->tentang;
@@ -458,6 +471,8 @@ class LayarKerja extends Component
         return view('v2.layar-kerja', [
             'banding' => $banding,
             'bisaUnduh' => $bisaUnduh,
+            // Naskah PDF ditambah PDF lampiran berkas, digabung di browser (gabung-pdf.js), sesuai urutan lampiran.
+            'urlGabungPdf' => $bisaUnduh && $this->tab === 'naskah' ? $this->urlGabungPdf() : [],
             'mode' => $mode,
             'bolehBuang' => $alur->bolehBuang($this->naskah, $user),
             'filterAktif' => $filter,

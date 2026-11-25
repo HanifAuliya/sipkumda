@@ -447,7 +447,7 @@ class PembacaNaskahWord
 
         if (preg_match('/^LAMPIRAN\b/u', $teks) && $this->bagian !== 'judul') {
             $this->bagian = 'lampiran';
-            $this->peringatan[] = 'Bagian lampiran di dalam Word tidak dibaca. Unggah lampiran sebagai file terpisah.';
+            $this->peringatan[] = 'Bagian lampiran di dalam Word tidak dibaca. Salin lampirannya dari Word lalu tempel di editor Lampiran, atau unggah PDF-nya bila terlalu rumit.';
 
             return;
         }

@@ -4,11 +4,15 @@
     perubahan per kata tidak terbaca pada tabel.
 --}}
 @php
-    $potongan = App\Support\TataLetakNaskah::potongan($teks);
+    // Lampiran dari editor atau berkas PDF ($baris diberikan oleh kartu baris).
+    $lampiranKhusus = isset($baris) && ($baris->html() || $baris->berkas());
+    $potongan = $lampiranKhusus ? [] : App\Support\TataLetakNaskah::potongan($teks);
     $adaTabel = collect($potongan)->contains(fn (array $p) => isset($p['tabel']));
 @endphp
 
-@if ($adaTabel)
+@if ($lampiranKhusus)
+    @include('v2.partials.isi-lampiran', ['baris' => $baris, 'nilai' => $teks])
+@elseif ($adaTabel)
     @foreach ($potongan as $p)
         @isset($p['tabel'])
             <div class="my-2 overflow-x-auto">
