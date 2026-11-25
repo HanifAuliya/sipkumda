@@ -70,6 +70,17 @@
             if (! editor) return;
             (editor.matches('textarea') ? editor : editor.querySelector('textarea, [contenteditable=true]'))?.focus();
         },
+        {{-- Bentuk lampiran diganti: isi lama tidak berlaku lagi, termasuk simpan otomatis yang masih menunggu. --}}
+        gantiFormat(format, akibat) {
+            const ganti = () => {
+                clearTimeout(this.jedaSimpan);
+                this.jedaSimpan = null;
+                this.teks = this.semula = '';
+                this.$wire.aturFormat(format);
+            };
+            if (! this.teks) return ganti();
+            this.$confirm({ title: 'Ganti bentuk lampiran?', text: akibat, confirmText: 'Ya, ganti' }).then((ok) => ok && ganti());
+        },
         batal() { this.ubah = false; this.teks = this.semula; },
         bukaMinta() { this.ketSemula = this.ket; this.minta = true; setTimeout(() => this.$refs.arahan.focus(), 30); },
         batalMinta() { this.minta = false; this.ket = this.ketSemula; this.$wire.$refresh(); },
@@ -148,16 +159,14 @@
                         @endif
                         @include('v2.partials.unggah-lampiran', ['teksTombol' => $awal !== '' ? 'Ganti PDF' : 'Unggah PDF'])
                     </div>
-                    <button type="button" class="mt-2 text-sm font-semibold text-primary-600 hover:underline dark:text-primary-300" wire:click="aturFormat('{{ B::FORMAT_HTML }}')"
-                        @if ($awal !== '') wire:confirm="PDF lampiran ini dilepas dan lampiran diketik di editor. Lanjutkan?" @endif>
+                    <button type="button" class="mt-2 text-sm font-semibold text-primary-600 hover:underline dark:text-primary-300" x-on:click="gantiFormat('{{ B::FORMAT_HTML }}', 'PDF lampiran ini dilepas dan lampiran diketik di editor.')">
                         <i class="bi bi-pencil-square" aria-hidden="true"></i> Ketik lampiran di editor saja
                     </button>
                 @elseif ($baris->html())
                     <div x-ref="editor" class="mt-1.5" x-on:input="simpanNanti()" x-on:focusout="$el.contains($event.relatedTarget) || simpanSekarang()">
-                        @include('v2.partials.editor-lampiran')
+                        @include('v2.partials.editor-lampiran', ['label' => "Rumusan {$judul}"])
                     </div>
-                    <button type="button" class="mt-2 text-sm font-semibold text-primary-600 hover:underline dark:text-primary-300" wire:click="aturFormat('{{ B::FORMAT_BERKAS }}')"
-                        @if ($awal !== '') wire:confirm="Isi lampiran di editor akan dikosongkan dan diganti PDF. Lanjutkan?" @endif>
+                    <button type="button" class="mt-2 text-sm font-semibold text-primary-600 hover:underline dark:text-primary-300" x-on:click="gantiFormat('{{ B::FORMAT_BERKAS }}', 'Isi lampiran di editor dikosongkan dan diganti PDF.')">
                         <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i> Lampiran terlalu rumit? Unggah PDF saja
                     </button>
                 @elseif ($pakaiEditor)
@@ -242,7 +251,7 @@
                             @include('v2.partials.unggah-lampiran', ['teksTombol' => 'Unggah Versi Baru'])
                         @elseif ($baris->html())
                             <div x-ref="editor">
-                                @include('v2.partials.editor-lampiran')
+                                @include('v2.partials.editor-lampiran', ['label' => "Rumusan penyempurnaan {$judul}"])
                             </div>
                         @elseif ($pakaiEditor)
                             <div x-ref="editor">

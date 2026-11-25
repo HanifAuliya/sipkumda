@@ -61,7 +61,8 @@
         .kepala-lampiran p { margin: 0; }
         .paraf .judul-paraf { text-align: center; }
         /* Lampiran dari editor: tabel bergaris seperti di layar, gaya per sel dari editor tetap berlaku. */
-        .lampiran-html p { margin: 0 0 4pt; }
+        .lampiran-html p { margin: 0 0 4pt; white-space: pre-wrap; }
+        .lampiran-html td p, .lampiran-html th p, .lampiran-html li p { margin: 0; }
         .lampiran-html table { width: 100%; margin: 4pt 0 8pt; }
         .lampiran-html td, .lampiran-html th { border: 1px solid #000; padding: 2pt 4pt; text-align: left; vertical-align: top; }
         .lampiran-html th { font-weight: bold; text-align: center; }

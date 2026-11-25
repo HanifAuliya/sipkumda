@@ -534,29 +534,85 @@ class CetakNaskah
     }
 
     /**
-     * Lampiran dari editor. PhpWord membaca XHTML, jadi HTML bersihnya ditulis ulang dalam bentuk XML dulu.
-     * Bila tetap gagal dibaca, isinya ditulis sebagai teks biasa supaya Word-nya tetap jadi.
+     * Lampiran dari editor. Tabel disusun sendiri, karena pembaca HTML PhpWord tidak mengenal sel yang digabung ke
+     * bawah dan tidak memberi garis; paragraf dan daftar dibaca PhpWord.
      */
     private function wordHtmlLampiran(Section $halaman, array $blok): void
     {
-        $dom = new \DOMDocument();
-        $sebelumnya = libxml_use_internal_errors(true);
-        $dom->loadHTML('<?xml encoding="UTF-8"><div>' . $blok['html'] . '</div>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD | LIBXML_NONET);
-        libxml_clear_errors();
-        libxml_use_internal_errors($sebelumnya);
+        $akar = HtmlLampiran::dom($blok['html'])->getElementById('akar');
 
-        $xhtml = '';
-        foreach ($dom->documentElement?->childNodes ?? [] as $anak) {
-            $xhtml .= $dom->saveXML($anak);
+        foreach ($akar->childNodes as $node) {
+            $node instanceof \DOMElement && $node->tagName === 'table'
+                ? $this->wordTabelLampiran($halaman, $node)
+                : $this->wordIsiHtml($halaman, $node->ownerDocument->saveXML($node));
+        }
+    }
+
+    private function wordTabelLampiran(Section $halaman, \DOMElement $node): void
+    {
+        $kisi = HtmlLampiran::kisi($node);
+        $jumlahKolom = max(array_map(fn (array $baris) => array_sum(array_column($baris, 'rentang')), $kisi) ?: [1]);
+        $tabel = $halaman->addTable(['width' => $this->lebarIsi, 'unit' => 'dxa', 'layout' => 'fixed', 'cellMargin' => 70]);
+
+        foreach ($kisi as $baris) {
+            $tabel->addRow();
+
+            foreach ($baris as $sel) {
+                $gaya = $sel['el']->getAttribute('style');
+                $persen = preg_match('/(?:^|;)\s*width:\s*([\d.]+)%/', $gaya, $m) ? (float) $m[1] : 100 * $sel['rentang'] / $jumlahKolom;
+                $bentuk = ['gridSpan' => $sel['rentang']];
+
+                if ($sel['turun'] > 1) {
+                    $bentuk['vMerge'] = $sel['lanjutan'] ? 'continue' : 'restart';
+                }
+                if (preg_match('/vertical-align:\s*(middle|bottom)/', $gaya, $m)) {
+                    $bentuk['valign'] = $m[1] === 'middle' ? 'center' : 'bottom';
+                }
+                if (! preg_match('/border(-style)?:\s*none/', $gaya)) {
+                    $bentuk += ['borderSize' => 4, 'borderColor' => '000000'];
+                }
+
+                $cell = $tabel->addCell((int) round($this->lebarIsi * $persen / 100), $bentuk);
+
+                if ($sel['lanjutan']) {
+                    $cell->addText('');
+
+                    continue;
+                }
+
+                $isi = '';
+                foreach ($sel['el']->childNodes as $anak) {
+                    $isi .= $anak->ownerDocument->saveXML($anak);
+                }
+                // Isi sel tanpa paragraf, sel kosong, dan rata yang diatur pada selnya.
+                if (! str_contains($isi, '<p') && ! preg_match('/<(ol|ul|table|h[2-4])\b/', $isi)) {
+                    $isi = "<p>{$isi}</p>";
+                }
+                $rata = preg_match('/text-align:\s*(left|center|right|justify)/', $gaya, $m) ? $m[1] : ($sel['el']->tagName === 'th' ? 'center' : null);
+                if ($rata) {
+                    $isi = preg_replace('/<p>/', "<p style=\"text-align:{$rata}\">", $isi);
+                }
+                if ($sel['el']->tagName === 'th') {
+                    $isi = preg_replace('/<p([^>]*)>(.*?)<\/p>/s', '<p$1><strong>$2</strong></p>', $isi);
+                }
+
+                $this->wordIsiHtml($cell, $isi);
+            }
         }
 
+        $halaman->addTextBreak(1, ['size' => 6], ['spaceAfter' => 0]);
+    }
+
+    /** Paragraf dan daftar; bila tidak terbaca PhpWord, ditulis sebagai teks supaya Word-nya tetap jadi. */
+    private function wordIsiHtml(Section|Cell $wadah, string $xhtml): void
+    {
         try {
-            \PhpOffice\PhpWord\Shared\Html::addHtml($halaman, $xhtml, false, false);
+            \PhpOffice\PhpWord\Shared\Html::addHtml($wadah, $xhtml, false, false);
         } catch (\Throwable $e) {
             Log::warning('Lampiran HTML tidak terbaca PhpWord; ditulis sebagai teks.', ['galat' => $e->getMessage()]);
 
-            foreach (explode("\n", HtmlLampiran::teks($blok['html'])) as $baris) {
-                $halaman->addText($baris, null, ['spaceAfter' => 0]);
+            foreach (explode("\n", HtmlLampiran::teks($xhtml)) as $baris) {
+                $wadah->addText($baris, null, ['spaceAfter' => 0]);
             }
         }
     }

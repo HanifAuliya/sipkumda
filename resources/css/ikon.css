@@ -215,6 +215,14 @@
 .bi-text-center::before { content: "\e480"; }
 .bi-text-indent-left::before { content: "\ea1c"; }
 .bi-text-indent-right::before { content: "\ea1e"; }
+.bi-eraser::before { content: "\e21e"; }
+.bi-justify::before { content: "\e482"; }
+.bi-subscript::before { content: "\ec98"; }
+.bi-superscript::before { content: "\ec9a"; }
+.bi-type-bold::before { content: "\e5be"; }
+.bi-type-italic::before { content: "\e5c0"; }
+.bi-type-strikethrough::before { content: "\e5c2"; }
+.bi-type-underline::before { content: "\e5c4"; }
 .bi-text-left::before { content: "\e484"; }
 .bi-text-right::before { content: "\e486"; }
 .bi-textarea::before { content: "\eb0a"; }

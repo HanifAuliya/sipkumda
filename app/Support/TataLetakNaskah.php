@@ -54,7 +54,7 @@ class TataLetakNaskah
                     // Satu baris satu lampiran: LAMPIRAN, atau LAMPIRAN I, II bila lebih dari satu.
                     self::bukaLampiran($blok, $lampiran, $penanda[$item->id] ?? 'Lampiran');
                     $blok[] = $item->html()
-                        ? ['tipe' => 'html', 'html' => $teks]
+                        ? ['tipe' => 'html', 'html' => HtmlLampiran::untukTampil($teks)]
                         : ['tipe' => 'teks', 'baris' => self::barisTeks($teks, true)];
                 }
                 self::tandaiAsal($blok, $jumlahAwal, $item->id);

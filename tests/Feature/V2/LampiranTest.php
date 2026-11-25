@@ -59,7 +59,7 @@ it('membersihkan HTML dari editor: rata, tebal, dan tabel tetap; skrip, gambar, 
     expect($bersih)->toContain('<p style="text-align:center"><strong>SUSUNAN TIM</strong></p>', '<td style="text-align:right">Budi, S.H.</td>')
         ->not->toContain('script', 'img', 'javascript', 'figure', 'href')
         ->and(HtmlLampiran::bersihkan('<p>&nbsp;</p><p style="background:url(http://x)"> </p>'))->toBeNull()
-        ->and(HtmlLampiran::teks($bersih))->toContain("SUSUNAN TIM\n|1. |Budi, S.H. |");
+        ->and(HtmlLampiran::teks($bersih))->toContain("SUSUNAN TIM\n| 1. | Budi, S.H. |");
 });
 
 it('lampiran baru memakai editor; isinya tersimpan bersih dan tampil di pratinjau, PDF, Word, dan matriks', function () use ($tabelTim) {
@@ -162,4 +162,50 @@ it('lampiran PDF hanya boleh menunjuk berkas lampiran naskah yang sama', functio
 
     expect(fn () => $this->alur->susun($lampiran->fresh(), $this->pd, null, (string) $asing->id))
         ->toThrow(Illuminate\Validation\ValidationException::class, 'Berkas lampiran tidak ditemukan');
+});
+
+it('keluaran editor Tiptap: sel berparagraf, lebar kolom, dan tabel tanpa garis tetap benar di cetakan dan matriks', function () {
+    $html = '<p style="text-align: center;"><strong>TIM</strong></p>'
+        . '<table style="width: 600px;"><colgroup><col style="width: 60px;"><col style="width: 340px;"><col style="width: 200px;"></colgroup><tbody>'
+        . '<tr><td colwidth="60"><p>NO</p></td><td colwidth="340"><p>NAMA</p><p>JABATAN</p></td><td colwidth="200"><p>KET|X</p></td></tr>'
+        . '<tr><td rowspan="2" colwidth="60"><p>1.</p></td><td colspan="2" colwidth="340,200"><p>Gabungan</p></td></tr>'
+        . '<tr><td colwidth="340"><p>Budi</p></td><td colwidth="200" style="border-style: none;"><p><span>Ketua</span></p></td></tr>'
+        . '</tbody></table><ol style="list-style-type: lower-alpha;"><li><p>huruf a</p></li></ol><p></p><p>akhir</p><p></p>';
+    $bersih = HtmlLampiran::bersihkan($html);
+
+    expect($bersih)->toContain('colwidth="340,200"', 'border-style:none', 'list-style-type:lower-alpha')
+        ->not->toContain('<span>')
+        ->toEndWith('<p>akhir</p>')
+        // Dibersihkan lagi hasilnya sama, jadi menyimpan tanpa perubahan tidak dianggap Diubah.
+        ->and(HtmlLampiran::bersihkan($bersih))->toBe($bersih)
+        ->and(HtmlLampiran::bersihkan('<table><tbody><tr><td colwidth="1;x">a</td></tr></tbody></table>'))->not->toContain('colwidth');
+
+    // Matriks: satu baris tabel tetap satu baris "| a | b |".
+    $teks = explode("\n", HtmlLampiran::teks($bersih));
+    expect($teks)->toBe(['TIM', '| NO | NAMA JABATAN | KET/X |', '| 1. | Gabungan | |', '| | Budi | Ketua |', 'a. huruf a', 'akhir'])
+        ->and(HtmlLampiran::teks('<ol start="2"><li><p>dua</p><ul><li>poin</li></ul></li><li>tiga</li></ol><ol style="list-style-type:lower-roman"><li>x</li><li>y</li></ol>'))
+        ->toBe("2. dua\n- poin\n3. tiga\ni. x\nii. y")
+        ->and(HtmlLampiran::teks('<p>a <strong>b</strong> c<br>d</p>'))->toBe("a b c\nd");
+
+    // Tampilan: 60/600 = 10%, sel gabungan 90%, paragraf kosong tidak hilang, colgroup piksel dibuang.
+    $tampil = HtmlLampiran::untukTampil($bersih);
+    expect($tampil)->toContain('width:10%', 'width:56.67%', 'width:33.33%', 'width:90%', 'border-style:none;width:33.33%')
+        ->toContain('<table style="width:100%">')
+        ->not->toContain('<colgroup', '<p></p>')
+        // Tabel tanpa lebar kolom dibiarkan.
+        ->and(HtmlLampiran::untukTampil('<table><tbody><tr><td>a</td></tr></tbody></table>'))->toBe('<table><tbody><tr><td>a</td></tr></tbody></table>');
+
+    // Word: gabungan ke samping dan ke bawah, garis, dan lebar kolom.
+    $n = drafBerlampiran($this->pd);
+    $n->baris()->where('bagian', 'lampiran')->update(['rumusan_awal' => $bersih]);
+    $berkas = app(CetakNaskah::class)->wordNaskah($n);
+    $zip = new ZipArchive();
+    $zip->open($berkas);
+    $xml = $zip->getFromName('word/document.xml');
+    $zip->close();
+    @unlink($berkas);
+    $xml = substr($xml, strpos($xml, '>TIM<'));
+
+    expect($xml)->toContain('<w:gridSpan w:val="2"/>', '<w:vMerge w:val="restart"/>', '<w:vMerge w:val="continue"/>', 'Gabungan', 'JABATAN')
+        ->and(substr_count($xml, '<w:tcBorders>'))->toBe(7); // 8 sel termasuk lanjutan gabungan, satu tanpa garis
 });

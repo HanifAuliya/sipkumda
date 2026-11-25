@@ -272,7 +272,8 @@
  * Lampiran dari editor seperti Word (HtmlLampiran): di kartu baris, di kertas pratinjau, dan di editornya.
  * Tabel bergaris seperti di Word; gaya per sel dari editor (rata, lebar, garis) menimpa bawaan ini.
  */
-.lampiran-html p { margin: 0 0 .35em; }
+.lampiran-html p { margin: 0 0 .35em; white-space: pre-wrap; }
+.lampiran-html td p, .lampiran-html th p, .lampiran-html li p { margin: 0; }
 .lampiran-html table { width: 100%; border-collapse: collapse; margin: .35em 0 .7em; }
 .lampiran-html td, .lampiran-html th { border: 1px solid currentColor; padding: .15em .35em; vertical-align: top; }
 .lampiran-html th { font-weight: bold; text-align: center; }
@@ -284,9 +285,17 @@
 .lampiran-html u { text-decoration: underline; }
 .kertas-naskah .lampiran-html td, .kertas-naskah .lampiran-html th { border-color: #000; padding: 2pt 4pt; text-align: left; }
 
-/* Editor lampiran: huruf naskah dan tinggi minimal; warna tetap terang di mode gelap, seperti kertas. */
-.editor-lampiran .ck-editor__editable { min-height: 14rem; font-family: 'Bookman Old Style', Georgia, 'Times New Roman', serif; font-size: .9375rem; color: #000; background: #fff; }
-.editor-lampiran .ck.ck-editor__main > .ck-editor__editable:not(.ck-focused) { border-color: var(--color-slate-200); }
+/* Editor lampiran (Tiptap): huruf naskah; warna tetap terang di mode gelap, seperti kertas. */
+.editor-lampiran .tiptap { min-height: 14rem; max-height: 75vh; overflow: auto; padding: .75rem 1rem; outline: none; font-family: 'Bookman Old Style', Georgia, 'Times New Roman', serif; font-size: .9375rem; line-height: 1.5; color: #000; background: #fff; }
+.editor-lampiran .tableWrapper { overflow-x: auto; }
+.editor-lampiran .tiptap table { table-layout: fixed; }
+.editor-lampiran .tiptap td, .editor-lampiran .tiptap th { position: relative; }
+/* Sel tanpa garis tetap terlihat batasnya saat disunting; di cetakan tidak bergaris. */
+.editor-lampiran .tiptap td[style*='border-style: none'], .editor-lampiran .tiptap th[style*='border-style: none'] { outline: 1px dashed #cbd5e1; outline-offset: -1px; }
+.editor-lampiran .tiptap .selectedCell::after { content: ''; position: absolute; inset: 0; background: rgb(94 114 228 / .18); pointer-events: none; }
+.editor-lampiran .tiptap .column-resize-handle { position: absolute; top: 0; right: -2px; bottom: 0; width: 4px; background: rgb(94 114 228 / .6); pointer-events: none; }
+.editor-lampiran .tiptap.resize-cursor { cursor: col-resize; }
+.lampiran-html hr { margin: .6em 0; border: 0; border-top: 1px solid currentColor; }
 
 /* Lampiran mulai di halaman baru: garis putus-putus selebar kertas, lalu tepi atas halaman berikutnya. */
 .kertas-naskah .halaman-baru {

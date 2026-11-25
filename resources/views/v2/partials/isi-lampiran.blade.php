@@ -26,5 +26,5 @@
         <span class="font-sans text-sm text-slate-400">PDF lampiran belum diunggah.</span>
     @endif
 @else
-    <div class="lampiran-html">{!! $nilai !!}</div>
+    <div class="lampiran-html">{!! App\Support\HtmlLampiran::untukTampil($nilai) !!}</div>
 @endif

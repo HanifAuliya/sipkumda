@@ -10,4 +10,13 @@ export default defineConfig({
         }),
         tailwindcss(),
     ],
+    // Paket yang baru diimpor saat dipakai (editor lampiran, gabung PDF). Disiapkan sejak server dev menyala,
+    // supaya tidak dijawab 504 atau memuat ulang halaman ketika editornya pertama dibuka.
+    optimizeDeps: {
+        include: [
+            '@tiptap/core', '@tiptap/starter-kit', '@tiptap/extension-list', '@tiptap/extension-table',
+            '@tiptap/extension-text-align', '@tiptap/extension-text-style', '@tiptap/extension-subscript',
+            '@tiptap/extension-superscript', '@tiptap/pm/model', '@tiptap/pm/tables', 'pdf-lib',
+        ],
+    },
 });
