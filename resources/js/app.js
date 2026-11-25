@@ -6,7 +6,9 @@ import './navigasi';
 import chart from './alpine/chart';
 import editorRumusan from './alpine/editor-rumusan';
 import editorLampiran from './alpine/editor-lampiran';
+import halamanNaskah from './alpine/halaman-naskah';
 import gabungPdf from './gabung-pdf';
+import { bacaPdfLampiran } from './lampiran-dari-file';
 import turPengenalan from './alpine/tur';
 import pilihan from './alpine/pilihan';
 import padTtd from './alpine/pad-ttd';
@@ -15,6 +17,7 @@ import tabelDariClipboard from './tempel-tabel';
 Alpine.data('chart', chart);
 Alpine.data('editorRumusan', editorRumusan);
 Alpine.data('editorLampiran', editorLampiran);
+Alpine.data('halamanNaskah', halamanNaskah);
 Alpine.data('gabungPdf', gabungPdf);
 Alpine.data('turPengenalan', turPengenalan);
 Alpine.data('pilihan', pilihan);
@@ -136,6 +139,20 @@ window.confirmAction = ({
     }).then((result) => result.isConfirmed);
 
 Alpine.magic('confirm', () => window.confirmAction);
+
+/** Isi lampiran PDF yang sudah diunggah sebagai HTML editor: $bacaPdf(url, $wire) -> { html, catatan } atau { galat }. */
+Alpine.magic('bacaPdf', () => async (url, wire) => {
+    try {
+        const jawaban = await fetch(url, { credentials: 'same-origin' });
+        if (!jawaban.ok) throw new Error(`Gagal mengambil PDF (${jawaban.status})`);
+
+        return await bacaPdfLampiran(await jawaban.arrayBuffer(), wire);
+    } catch (e) {
+        console.error(e);
+
+        return { galat: 'PDF tidak bisa dibaca. Muat ulang halaman, lalu coba lagi.' };
+    }
+});
 
 /*
  * wire:confirm="..." memakai dialog yang sama, bukan confirm() bawaan peramban, supaya semua konfirmasi

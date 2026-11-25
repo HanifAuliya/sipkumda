@@ -4,11 +4,13 @@
     kertas asli, lalu diperkecil supaya muat di layar, jadi pemenggalan barisnya sama dengan PDF.
     Isinya dari TataLetakNaskah, atau dari BandingNaskah bila perubahannya ditandai ($tandaiUbahan).
 
-    $blok susunan blok, $jenis jenis naskah, $ringkas untuk panel pratinjau, $tombolBaris tombol menuju baris di Matriks.
+    $blok susunan blok, $jenis jenis naskah, $ringkas untuk panel pratinjau, $tombolBaris tombol menuju barisnya,
+    $berhalaman bila dipecah per lembar (ukuran dan perbesarannya diatur v2/partials/naskah-berhalaman).
     CSS-nya di resources/css/app.css (.kertas-naskah).
 --}}
 @php
     $ringkas ??= false;
+    $berhalaman ??= false;
     $tandaiUbahan ??= false;
     $tombolBaris ??= false;
     $bisaUbah ??= false;
@@ -31,16 +33,18 @@
     };
 @endphp
 
-<div x-data="{
+<div @unless ($berhalaman) x-data="{
         skala: 1,
         ukur() {
             const lebar = this.$el.clientWidth;
             if (lebar > 0) this.skala = Math.min(1, lebar / {{ $lebarPx }});
         },
     }"
-    x-init="ukur(); new ResizeObserver(() => ukur()).observe($el)">
-    <div x-bind:style="{ zoom: skala }" style="{{ $gaya }}" @class([
-        'kertas-naskah mx-auto shadow-card',
+    x-init="ukur(); new ResizeObserver(() => ukur()).observe($el)" @endunless>
+    <div @if ($berhalaman) x-ref="kertas" x-bind:style="siap ? { transform: 'scale(' + skala + ')' } : {}" @else x-bind:style="{ zoom: skala }" @endif style="{{ $gaya }}" @class([
+        'kertas-naskah',
+        'mx-auto shadow-card' => ! $berhalaman,
+        'kertas-berhalaman' => $berhalaman,
         'v2-diff v2-kertas' => $tandaiUbahan,
         'kertas-pratinjau rounded-lg' => $ringkas,
     ])>
@@ -141,7 +145,7 @@
                     @endforeach
                 </div>
             @elseif ($b['tipe'] === 'penutup')
-                <div class="group relative" data-baris="{{ $b['id'] ?? '' }}">
+                <div class="akhir group relative" data-baris="{{ $b['id'] ?? '' }}">
                     <div class="penutup">
                         <div class="ditetapkan">
                             @foreach ($b['ditetapkan'] as $baris)

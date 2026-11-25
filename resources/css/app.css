@@ -284,6 +284,7 @@
 .lampiran-html em, .lampiran-html i { font-style: italic; }
 .lampiran-html u { text-decoration: underline; }
 .kertas-naskah .lampiran-html td, .kertas-naskah .lampiran-html th { border-color: #000; padding: 2pt 4pt; text-align: left; }
+.kertas-naskah .lampiran-html th { text-align: center; }
 
 /*
  * Halaman lampiran: selembar kertas setinggi F4 yang memanjang mengikuti isinya. Garis tipis memperkirakan batas halaman;
@@ -299,14 +300,45 @@
 /* Editor lampiran (Tiptap): huruf naskah; warna tetap terang di mode gelap, seperti kertas. */
 .editor-lampiran .tiptap { min-height: 10cm; outline: 1px dashed #e2e8f0; outline-offset: 6px; }
 .editor-lampiran .tiptap:focus { outline-color: #a5b4fc; }
-.editor-lampiran .tableWrapper { overflow-x: auto; }
+.editor-lampiran .tableWrapper { position: relative; }
 .editor-lampiran .tiptap table { table-layout: fixed; }
 .editor-lampiran .tiptap td, .editor-lampiran .tiptap th { position: relative; }
-/* Sel tanpa garis tetap terlihat batasnya saat disunting; di cetakan tidak bergaris. */
-.editor-lampiran .tiptap td[style*='border-style: none'], .editor-lampiran .tiptap th[style*='border-style: none'] { outline: 1px dashed #cbd5e1; outline-offset: -1px; }
+/* Sisi tanpa garis tetap terlihat batasnya saat disunting (data-tg); di cetakan tidak bergaris. */
+.editor-lampiran .tiptap [data-tg] {
+    background-image:
+        repeating-linear-gradient(90deg, var(--tg-atas, transparent) 0 3px, transparent 3px 6px), repeating-linear-gradient(90deg, var(--tg-bawah, transparent) 0 3px, transparent 3px 6px),
+        repeating-linear-gradient(var(--tg-kiri, transparent) 0 3px, transparent 3px 6px), repeating-linear-gradient(var(--tg-kanan, transparent) 0 3px, transparent 3px 6px);
+    background-position: top, bottom, left, right;
+    background-repeat: no-repeat;
+    background-size: 100% 1px, 100% 1px, 1px 100%, 1px 100%;
+}
+.editor-lampiran .tiptap [data-tg~='atas'] { --tg-atas: #cbd5e1; }
+.editor-lampiran .tiptap [data-tg~='bawah'] { --tg-bawah: #cbd5e1; }
+.editor-lampiran .tiptap [data-tg~='kiri'] { --tg-kiri: #cbd5e1; }
+.editor-lampiran .tiptap [data-tg~='kanan'] { --tg-kanan: #cbd5e1; }
 .editor-lampiran .tiptap .selectedCell::after { content: ''; position: absolute; inset: 0; background: rgb(94 114 228 / .18); pointer-events: none; }
-.editor-lampiran .tiptap .column-resize-handle { position: absolute; top: 0; right: -2px; bottom: 0; width: 4px; background: rgb(94 114 228 / .6); pointer-events: none; }
-.editor-lampiran .tiptap.resize-cursor { cursor: col-resize; }
+.editor-lampiran .tiptap.geser-kolom, .editor-lampiran .tiptap.geser-kolom * { cursor: col-resize; }
+.editor-lampiran .tiptap.geser-baris, .editor-lampiran .tiptap.geser-baris * { cursor: row-resize; }
+/* Pegangan tabel (resources/js/tabel/tampilan.js): di tepi luar tabel, tampak saat tabelnya ditunjuk. */
+.tabel-alat { position: absolute; pointer-events: none; font-family: var(--font-sans); line-height: 1; user-select: none; }
+.tabel-alat > * { position: absolute; pointer-events: auto; }
+.tabel-strip-kolom { top: -11px; left: 0; right: 0; height: 11px; cursor: s-resize; }
+.tabel-strip-baris { top: 0; bottom: 0; left: -13px; width: 13px; cursor: e-resize; }
+.tabel-strip-kolom::after, .tabel-strip-baris::after { content: ''; position: absolute; inset: 2px 0; border-radius: 3px; background: #e2e8f0; opacity: 0; transition: opacity .15s; }
+.tabel-strip-baris::after { inset: 0 3px; }
+.tableWrapper:hover .tabel-strip-kolom::after, .tableWrapper:hover .tabel-strip-baris::after { opacity: 1; }
+.tabel-strip-kolom:hover::after, .tabel-strip-baris:hover::after { background: #a5b4fc; }
+.tabel-pegangan, .tabel-tambah { display: grid; place-items: center; width: 17px; height: 17px; border-radius: 4px; background: #fff; color: #475569; border: 1px solid #cbd5e1; font-size: 11px; cursor: pointer; }
+.tabel-pegangan { top: -19px; left: -21px; opacity: 0; }
+.tableWrapper:hover .tabel-pegangan { opacity: 1; }
+.tabel-tambah { border-radius: 99px; background: #5e72e4; border-color: #5e72e4; color: #fff; transform: translate(-50%, 0); }
+.tabel-tambah[data-arah='baris'] { transform: translate(0, -50%); }
+.tabel-tambah[hidden], .tabel-garis[hidden] { display: none; }
+.tabel-sudut { right: -5px; bottom: -5px; width: 9px; height: 9px; border: 1px solid #64748b; background: #fff; cursor: ew-resize; opacity: 0; }
+.tableWrapper:hover .tabel-sudut { opacity: 1; }
+.tabel-garis { pointer-events: none; }
+.tabel-garis-kolom { top: 0; bottom: 0; border-left: 2px dashed #5e72e4; margin-left: -1px; }
+.tabel-garis-baris { left: 0; right: 0; border-top: 2px dashed #5e72e4; margin-top: -1px; }
 .lampiran-html hr { margin: .6em 0; border: 0; border-top: 1px solid currentColor; }
 
 /* Lampiran mulai di halaman baru: garis putus-putus selebar kertas, lalu tepi atas halaman berikutnya. */
@@ -314,6 +346,13 @@
     margin: var(--k-bawah) calc(-1 * var(--k-kanan)) var(--k-atas) calc(-1 * var(--k-kiri));
     border-top: 2px dashed #cbd5e1;
 }
+
+/* Naskah per lembar seperti di Word (resources/js/alpine/halaman-naskah.js): lembarnya digambar di belakang isi. */
+.kertas-berhalaman { position: relative; isolation: isolate; transform-origin: top left; }
+.kertas-berhalaman:has(> .lembar) { background: none; }
+.kertas-berhalaman .lembar { position: absolute; left: 0; right: 0; z-index: -1; background: #fff; box-shadow: 0 1px 2px rgb(15 23 42 / .12), 0 4px 14px rgb(15 23 42 / .12); }
+.kertas-berhalaman .jeda-baris td { border: 0 !important; padding: 0 !important; }
+.kertas-berhalaman .paraf-awal { position: absolute; margin: 0; }
 
 @layer base {
     html {

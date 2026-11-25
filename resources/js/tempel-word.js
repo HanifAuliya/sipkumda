@@ -2,7 +2,7 @@
  * Merapikan HTML yang ditempel dari Word atau Excel sebelum masuk editor lampiran:
  * - daftar bernomor Word (paragraf ber-mso-list) menjadi daftar sungguhan; nomor berbentuk lain, misalnya "(1)"
  *   atau "a)", dibiarkan sebagai teks supaya bentuknya tidak berubah;
- * - lebar kolom, rata, dan tabel tanpa garis dipertahankan;
+ * - lebar kolom, tinggi baris, rata, garis, arsiran, dan baris judul tabel dipertahankan;
  * - ukuran 12pt dilepas, karena itu ukuran bawaan naskah.
  */
 
@@ -143,6 +143,15 @@ export function bersihkanTempelan(html) {
         }
         // Word menulis garis di tiap sel; sel tanpa gaya garis berarti memang tidak bergaris. Excel memakai kelas.
         if (!excel && !/solid|double|dashed|dotted/i.test(asli)) sel.setAttribute('style', `${asli};border-style:none`);
+    });
+
+    // Baris judul yang diulang di tiap halaman (thead); rata kiri ditulis, karena bawaan sel judul rata tengah.
+    dok.querySelectorAll('thead td').forEach((sel) => {
+        const judul = dok.createElement('th');
+        [...sel.attributes].forEach(({ name, value }) => judul.setAttribute(name, value));
+        judul.append(...sel.childNodes);
+        judul.querySelectorAll('p').forEach((p) => { p.style.textAlign ||= 'left'; });
+        sel.replaceWith(judul);
     });
 
     // Dari span hanya ukuran huruf yang dipakai; 12pt dan span tanpa gaya dilepas.

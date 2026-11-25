@@ -658,9 +658,15 @@ class AlurNaskah
     private function hambatanTeliti(Naskah $naskah): ?string
     {
         // Perbaikan dari PD juga harus dilihat Peneliti dulu (Terima Perbaikan), bukan lolos otomatis.
-        $belum = $naskah->baris()->whereIn('status', B::BELUM_DIPERIKSA)->count();
+        $belum = $naskah->baris()->whereIn('status', B::BELUM_DIPERIKSA)->pluck('bagian');
+        [$lampiran, $baris] = $belum->partition(fn (string $bagian) => $bagian === 'lampiran');
+        $nama = array_filter([
+            $baris->isNotEmpty() ? "{$baris->count()} baris" : null,
+            // Lampiran tidak ada di Matriks; disebut tempatnya supaya mudah ditemukan.
+            $lampiran->isNotEmpty() ? "{$lampiran->count()} lampiran (tab Naskah)" : null,
+        ]);
 
-        return $belum ? "{$belum} baris belum diperiksa." : null;
+        return $nama ? implode(' dan ', $nama) . ' belum diperiksa.' : null;
     }
 
     private function hambatanSesuaikan(Naskah $naskah): ?string

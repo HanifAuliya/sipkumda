@@ -30,7 +30,7 @@
     // Isi naskah memakai huruf yang sama dengan hasil cetak.
     $serif = "font-['Bookman_Old_Style',Georgia,'Times_New_Roman',serif] text-[0.9375rem] leading-relaxed";
     $bidang = 'w-full rounded-lg border-slate-200 bg-white text-sm shadow-xs focus:border-primary-400 focus:ring-3 focus:ring-primary-100 dark:border-navy-700 dark:bg-navy-950 dark:focus:border-primary-500 dark:focus:ring-primary-500/20';
-    $kotak = 'mt-1.5 min-h-24 rounded-lg px-3.5 py-3';
+    $kepalaSisi = 'flex min-h-9 flex-wrap items-center justify-between gap-x-3 px-4 py-1.5 text-sm font-semibold';
     $judulKolom = 'block text-sm font-semibold text-slate-500 dark:text-slate-400';
     $petunjukTabel = 'Enter membuat butir berikutnya, Tab dan Shift+Tab mengatur tingkat. Tabel dari Word atau Excel bisa langsung ditempel (Ctrl+V).';
 
@@ -50,22 +50,44 @@
     }
 @endphp
 
+{{--
+    Isi dari server ada di atribut data-*, bukan di x-data: Alpine memasang ulang x-data yang berubah, sehingga ketikan
+    yang masuk selama menyimpan akan tertimpa isi yang sudah tersimpan. Saat menyusun isinya tidak pernah disamakan lagi.
+--}}
 <article id="baris-{{ $baris->id }}" data-baris="{{ $baris->id }}"
+    data-label="{{ $baris->label }}" data-teks="{{ $sempurna !== '' ? $sempurna : $awal }}" data-ket="{{ $baris->keterangan }}"
+    @if ($mode === A::MODE_SUSUN) data-susun @endif @if ($baruDisisipkan) data-baru @endif
     x-data="{
         ubah: false,
         minta: false,
         ketSemula: '',
         sorotan: false,
         lihat: 'baru',
-        label: @js((string) $baris->label),
-        teks: @js($sempurna !== '' ? $sempurna : $awal),
+        label: '',
+        teks: '',
         semula: '',
-        ket: @js((string) $baris->keterangan),
+        ket: '',
+        kartu: null,
+        pengamat: null,
         tersimpan: true,
         jedaSimpan: null,
         init() {
-            this.semula = this.teks;
-            @if ($baruDisisipkan) this.buka(); @endif
+            this.kartu = this.$el;
+            this.label = this.kartu.dataset.label;
+            this.ket = this.kartu.dataset.ket;
+            this.teks = this.semula = this.kartu.dataset.teks;
+            this.pengamat = new MutationObserver(() => this.samakan());
+            this.pengamat.observe(this.kartu, { attributeFilter: ['data-label', 'data-teks', 'data-ket'] });
+            if ('baru' in this.kartu.dataset) this.buka();
+        },
+        destroy() { this.pengamat?.disconnect(); },
+        {{-- Yang sedang diubah tidak disentuh. --}}
+        samakan() {
+            const isi = this.kartu.dataset;
+            if (! this.catat && ! this.minta) this.ket = isi.ket;
+            if ('susun' in isi || this.ubah) return;
+            this.label = isi.label;
+            this.teks = this.semula = isi.teks;
         },
         {{-- x-show baru menampilkan editor setelah microtask, jadi $nextTick kadang masih terlalu awal. --}}
         buka() { this.ubah = true; setTimeout(() => this.fokusEditor(), 30); },
@@ -86,6 +108,16 @@
             if (! this.teks) return ganti();
             this.$confirm({ title: 'Ganti bentuk lampiran?', text: akibat, confirmText: 'Ya, ganti' }).then((ok) => ok && ganti());
         },
+        {{-- Lampiran PDF menjadi isi editor. PDF-nya baru dilepas sesudah isinya terbaca. --}}
+        membacaPdf: false,
+        async pdfKeEditor(url) {
+            if (this.membacaPdf || ! await this.$confirm({ title: 'Ubah PDF menjadi isi editor?', text: 'Tulisan dan tabelnya dibaca dari PDF, lalu bisa diubah. PDF-nya tidak dipakai lagi sebagai lampiran.', confirmText: 'Ya, ubah', danger: false })) return;
+            this.membacaPdf = true;
+            const hasil = await this.$bacaPdf(url, this.$wire);
+            if (hasil.html && await this.$wire.pdfMenjadiEditor(hasil.html)) this.teks = this.semula = hasil.html;
+            this.membacaPdf = false;
+            if (hasil.galat || hasil.catatan) window.notify.dialog({ type: hasil.galat ? 'error' : 'info', title: hasil.galat ? 'PDF tidak bisa diubah' : 'Periksa hasilnya', message: hasil.galat ?? hasil.catatan });
+        },
         batal() { this.ubah = false; this.teks = this.semula; },
         bukaMinta() { this.ketSemula = this.ket; this.minta = true; setTimeout(() => this.$refs.arahan.focus(), 30); },
         batalMinta() { this.minta = false; this.ket = this.ketSemula; this.$wire.$refresh(); },
@@ -95,7 +127,7 @@
         batalCatat() { this.catat = false; this.ket = this.ketSemula; },
         simpanCatat() { this.$wire.simpanKeterangan(this.ket).then((berhasil) => { if (berhasil) this.catat = false; }); },
         selesai() { this.ubah = false; this.semula = this.teks; },
-        kembalikan() { this.teks = this.semula = @js($awal); },
+        kembalikan() { this.teks = this.semula = this.kartu.dataset.teks; },
         {{-- Diberi event input supaya simpan otomatis saat menyusun ikut berjalan. --}}
         setel(nilai) { this.teks = nilai; this.$nextTick(() => this.$refs.editor.dispatchEvent(new Event('input'))); },
         {{--
@@ -119,6 +151,7 @@
     x-on:click="$dispatch('pratinjau-fokus', { id: {{ $baris->id }} })"
     x-on:focusin="$dispatch('pratinjau-fokus', { id: {{ $baris->id }} })"
     x-on:buka-editor="@if ($mode) buka(); @endif sorotan = true; setTimeout(() => sorotan = false, 1800)"
+    x-on:sorot-baris="sorotan = true; setTimeout(() => sorotan = false, 1800)"
     x-bind:class="sorotan && 'outline-2 outline-offset-2 outline-primary-400'"
     @class([
         '@container scroll-mt-4 rounded-xl bg-white px-5 py-5 sm:px-6 dark:bg-navy-900',
@@ -138,9 +171,14 @@
             </div>
             <div class="flex flex-wrap items-center gap-2">
                 @if ($baris->berkas())
-                    <x-ui.button size="rapat" variant="outline-primary" icon="pencil-square" x-on:click="gantiFormat('{{ B::FORMAT_HTML }}', 'PDF lampiran ini dilepas dan lampiran diketik di editor.')">Ketik lampiran di editor saja</x-ui.button>
+                    @php $pdfAwal = $baris->berkasLampiran($awal); @endphp
+                    @if ($pdfAwal)
+                        <x-ui.button size="rapat" icon="pencil-square" title="Isi PDF dibaca lalu masuk ke editor, jadi bisa diubah" :data-url="route('naskah.berkas', [$naskah, $pdfAwal, 'lihat' => 1])"
+                            x-on:click="pdfKeEditor($el.dataset.url)" x-bind:disabled="membacaPdf"><span x-text="membacaPdf ? 'Membaca PDF…' : 'Ubah jadi bisa diedit'">Ubah jadi bisa diedit</span></x-ui.button>
+                    @endif
+                    <x-ui.button size="rapat" variant="outline-primary" icon="type" x-on:click="gantiFormat('{{ B::FORMAT_HTML }}', 'PDF lampiran ini dilepas dan lampiran diketik di editor.')">Ketik di editor</x-ui.button>
                 @else
-                    <x-ui.button size="rapat" variant="outline" icon="file-earmark-pdf" title="Untuk lampiran yang sulit dibuat di editor" x-on:click="gantiFormat('{{ B::FORMAT_BERKAS }}', 'Isi lampiran di editor dikosongkan dan diganti PDF.')">Lampiran terlalu rumit? Unggah PDF saja</x-ui.button>
+                    <x-ui.button size="rapat" variant="outline" icon="file-earmark-pdf" title="Untuk lampiran hasil pindai atau yang sulit dibuat di editor: PDF-nya disisipkan utuh dan tidak bisa diubah" x-on:click="gantiFormat('{{ B::FORMAT_BERKAS }}', 'Isi lampiran di editor dikosongkan dan diganti PDF.')">Pakai PDF apa adanya</x-ui.button>
                 @endif
                 @if ($lampiranTambahan)
                     <x-ui.button size="rapat" square variant="outline" icon="arrow-up" title="Majukan urutan lampiran" aria-label="Majukan urutan lampiran" wire:click="geser(-1)" />
@@ -227,7 +265,12 @@
         {{-- Kepala kartu: setiap baris (pasal, butir) berkartu sendiri supaya batasnya jelas saat diperiksa. --}}
         <header class="-mx-5 -mt-5 mb-4 flex flex-wrap items-center justify-between gap-2 rounded-t-xl border-b border-slate-200 bg-slate-50 px-5 py-3 sm:-mx-6 sm:px-6 dark:border-navy-700 dark:bg-navy-800/60">
             <h3 class="text-base font-bold">{{ $judul }}</h3>
-            <x-ui.badge size="lg" :color="B::WARNA_STATUS[$status]" :icon="B::IKON_STATUS[$status]">{{ B::LABEL_STATUS[$status] }}</x-ui.badge>
+            <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+                @if ($jejak && $status !== B::BELUM)
+                    <p class="text-sm text-slate-500 dark:text-slate-400" title="Terakhir diperiksa atau diubah">{{ $jejak['nama'] }} · {{ $jejak['waktu'] }}</p>
+                @endif
+                <x-ui.badge size="lg" :color="B::WARNA_STATUS[$status]" :icon="B::IKON_STATUS[$status]">{{ B::LABEL_STATUS[$status] }}</x-ui.badge>
+            </div>
         </header>
 
         @if ($kertas)
@@ -235,40 +278,57 @@
                 @include('v2.partials.halaman-lampiran')
             </div>
         @else
-        {{-- Rumusan penyempurnaan di bawah rumusan awal, supaya keduanya selebar mungkin dan mudah dibandingkan. --}}
-        <div>
-            <div class="min-w-0 space-y-4">
-                <div>
-                    <p class="{{ $judulKolom }}">Rumusan Awal</p>
-                    <div class="{{ $serif }} {{ $kotak }} bg-slate-50 dark:bg-navy-800/60">
-                        @if ($awal !== '')
-                            @include('v2.partials.rumusan', ['teks' => $awal, 'lama' => null])
-                        @else
-                            —
-                        @endif
-                    </div>
+        {{--
+            Rumusan penyempurnaan di bawah rumusan awal, keduanya selebar kartu. Yang dihapus ditandai di rumusan awal,
+            yang ditambah di penyempurnaan, jadi tiap sisi tetap terbaca utuh.
+        --}}
+        @php
+            $adaPerubahan = $banding['hapus'] + $banding['tambah'] > 0;
+            $isiSempurna = match (true) {
+                $status === B::DIHAPUS => ['Dihapus', 'text-rose-600 dark:text-rose-300'],
+                $status === B::USUL_HAPUS => ['Diusulkan dihapus PD', 'text-rose-600 dark:text-rose-300'],
+                $status === B::TETAP => ['Tetap, sama dengan rumusan awal', 'text-emerald-600 dark:text-emerald-300'],
+                $sempurna !== '' => null,
+                $status === B::PERLU_PD => ['Menunggu perbaikan PD', 'text-orange-600 dark:text-orange-300'],
+                default => ['Belum ada penyempurnaan', 'text-slate-400'],
+            };
+        @endphp
+        <div class="v2-diff divide-y divide-slate-200 overflow-hidden rounded-lg border border-slate-200 dark:divide-navy-700 dark:border-navy-700">
+            <section aria-label="Rumusan awal">
+                <div class="{{ $kepalaSisi }} border-b border-slate-100 bg-slate-50 text-slate-500 dark:border-navy-800 dark:bg-navy-800/60 dark:text-slate-400">
+                    <p>Rumusan Awal</p>
+                    @if ($banding['hapus'] > 0)
+                        <p class="text-rose-600 dark:text-rose-300">{{ $banding['hapus'] }} kata dihapus</p>
+                    @endif
                 </div>
+                <div class="{{ $serif }} px-4 py-3 text-slate-700 dark:text-slate-200">
+                    @if ($awal !== '')
+                        @include('v2.partials.rumusan', ['potongan' => $banding['awal']])
+                    @else
+                        <span class="font-sans text-sm text-slate-400">Tidak ada. Baris ini ditambahkan sesudah pengajuan.</span>
+                    @endif
+                </div>
+            </section>
 
-                <div class="min-w-0">
-                    <p class="{{ $judulKolom }}">Rumusan Penyempurnaan</p>
-
-                    <div x-show="!ubah" class="{{ $serif }} {{ $kotak }} v2-diff ring-1 ring-slate-200 ring-inset dark:ring-navy-700">
-                        @if ($status === B::DIHAPUS)
-                            <span class="font-sans font-semibold text-rose-600 dark:text-rose-300">Dihapus</span>
-                        @elseif ($status === B::USUL_HAPUS)
-                            <span class="font-sans font-semibold text-rose-600 dark:text-rose-300">Diusulkan dihapus PD</span>
-                        @elseif ($status === B::TETAP)
-                            <span class="font-sans font-semibold text-emerald-600 dark:text-emerald-300">Tetap</span>
-                        @elseif ($sempurna !== '')
-                            @include('v2.partials.rumusan', ['teks' => $sempurna, 'lama' => $awal])
-                        @elseif ($status === B::PERLU_PD)
-                            <span class="font-sans text-sm font-semibold text-orange-600 dark:text-orange-300">Menunggu perbaikan PD</span>
+            <section aria-label="Rumusan penyempurnaan">
+                <div class="{{ $kepalaSisi }} border-b border-slate-100 bg-slate-50 text-slate-500 dark:border-navy-800 dark:bg-navy-800/60 dark:text-slate-400">
+                    <p>Rumusan Penyempurnaan</p>
+                    @if ($banding['tambah'] > 0)
+                        <p class="text-emerald-700 dark:text-emerald-300" x-show="!ubah">{{ $banding['tambah'] }} kata ditambah</p>
+                    @elseif ($isiSempurna === null && ! $adaPerubahan)
+                        <p class="font-normal" x-show="!ubah">Kata-katanya sama</p>
+                    @endif
+                </div>
+                <div class="px-4 py-3">
+                    <div x-show="!ubah" class="{{ $serif }} text-navy-900 dark:text-slate-100">
+                        @if ($isiSempurna)
+                            <span class="font-sans text-sm font-semibold {{ $isiSempurna[1] }}">{{ $isiSempurna[0] }}</span>
                         @else
-                            <span class="font-sans text-sm text-slate-400">Belum ada penyempurnaan</span>
+                            @include('v2.partials.rumusan', ['potongan' => $banding['sempurna']])
                         @endif
                     </div>
 
-                    <div x-show="ubah" x-cloak class="mt-1.5 space-y-2">
+                    <div x-show="ubah" x-cloak class="space-y-2">
                         @if ($bisaDiberiPenanda)
                             <div>
                                 <label class="{{ $judulKolom }}" for="penanda-{{ $baris->id }}">BAB / Pasal</label>
@@ -290,7 +350,7 @@
                         <p class="mt-1 text-sm font-medium text-rose-600 dark:text-rose-300">{{ $message }}</p>
                     @enderror
                 </div>
-            </div>
+            </section>
         </div>
         @endif
 

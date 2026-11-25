@@ -38,7 +38,11 @@ per satu. Tekan **Selanjutnya** untuk lanjut atau **Lewati tur**. Tur bisa diula
 4. Tanda pada panel kiri menunjukkan bagian yang sudah selesai diperiksa. Daftar **hal perlu diperiksa**
    di atas matriks mengingatkan isian "…" yang tertinggal, judul atau "Menetapkan" yang tidak sama dengan
    judul pengajuan, dan penomoran pasal yang melompat. Tekan butirnya untuk membuka barisnya.
-5. Setelah semua baris diperiksa:
+5. Yang dihapus ditandai merah di **Rumusan Awal**, yang ditambah hijau di **Rumusan Penyempurnaan**, lengkap dengan siapa
+   dan kapan mengubahnya. Tombol panah di bawah layar berpindah dari satu baris berubah ke baris berubah berikutnya.
+6. **Lampiran** tidak masuk matriks. Periksa di tab **Naskah** (atau **Lampiran** di bawah panel kiri); lampiran juga harus
+   ditandai sebelum naskah diteruskan. Saat **Ubah**, isinya bisa diganti dari file lewat **Ambil dari Word / PDF**.
+7. Setelah semua baris dan lampiran diperiksa:
    - Bila ada baris untuk PD: **Kirim ke PD**. Naskah kembali kepada Anda setelah PD mengirim tindak lanjut.
      Baris yang diperbaiki PD bertanda **Sudah disesuaikan** dan dihitung belum diperiksa: periksa lalu
      **Terima Perbaikan**, **Ubah** bila masih perlu disempurnakan, atau **Pakai Rumusan Awal** untuk

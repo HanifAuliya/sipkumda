@@ -27,6 +27,7 @@
         "@tiptap/starter-kit": "3.33.1",
         "chart.js": "^4.6.1",
         "pdf-lib": "1.17.1",
+        "pdfjs-dist": "4.10.38",
         "sweetalert2": "^11.26.25"
     }
 }

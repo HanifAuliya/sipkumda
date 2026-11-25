@@ -553,15 +553,22 @@ class CetakNaskah
         $kisi = HtmlLampiran::kisi($node);
         $jumlahKolom = max(array_map(fn (array $baris) => array_sum(array_column($baris, 'rentang')), $kisi) ?: [1]);
         $lebar = (int) round($this->lebarIsi * (preg_match('/width:\s*([\d.]+)%/', $node->getAttribute('style'), $m) ? (float) $m[1] : 100) / 100);
-        $tabel = $halaman->addTable(['width' => $lebar, 'unit' => 'dxa', 'layout' => 'fixed', 'cellMargin' => 70]);
+        $gayaTabel = ['width' => $lebar, 'unit' => 'dxa', 'layout' => 'fixed', 'cellMargin' => 70];
+        // Letak tengah atau kanan tampil sebagai jarak kiri (HtmlLampiran::letakTabel).
+        if (preg_match('/margin-left:\s*([\d.]+)%/', $node->getAttribute('style'), $m)) {
+            $gayaTabel['indent'] = new \PhpOffice\PhpWord\ComplexType\TblWidth((int) round($this->lebarIsi * (float) $m[1] / 100));
+        }
+        $tabel = $halaman->addTable($gayaTabel);
 
         foreach ($kisi as $baris) {
-            $tabel->addRow();
+            $tr = $baris ? $this->barisSel($baris) : null;
+            $tinggi = $tr ? HtmlLampiran::tinggiDari($tr) : null;
+            $tabel->addRow($tinggi ? (int) round($tinggi * 20) : null, $tr?->parentNode->nodeName === 'thead' ? ['tblHeader' => true] : []);
 
             foreach ($baris as $sel) {
                 $gaya = $sel['el']->getAttribute('style');
                 $persen = preg_match('/(?:^|;)\s*width:\s*([\d.]+)%/', $gaya, $m) ? (float) $m[1] : 100 * $sel['rentang'] / $jumlahKolom;
-                $bentuk = ['gridSpan' => $sel['rentang']];
+                $bentuk = ['gridSpan' => $sel['rentang'], 'noWrap' => false];
 
                 if ($sel['turun'] > 1) {
                     $bentuk['vMerge'] = $sel['lanjutan'] ? 'continue' : 'restart';
@@ -569,8 +576,15 @@ class CetakNaskah
                 if (preg_match('/vertical-align:\s*(middle|bottom)/', $gaya, $m)) {
                     $bentuk['valign'] = $m[1] === 'middle' ? 'center' : 'bottom';
                 }
-                if (! preg_match('/border(-style)?:\s*none/', $gaya)) {
-                    $bentuk += ['borderSize' => 4, 'borderColor' => '000000'];
+                if (preg_match('/background-color:\s*(#[0-9a-f]{6}|rgb\(\s*(\d+)[ ,]+(\d+)[ ,]+(\d+)\s*\))/i', $gaya, $m)) {
+                    $bentuk['bgColor'] = strtoupper(isset($m[2]) ? sprintf('%02x%02x%02x', $m[2], $m[3], $m[4]) : substr($m[1], 1));
+                }
+                $garis = HtmlLampiran::garisSel($gaya);
+                foreach ($garis as $sisi => [$jenis, $tebal]) {
+                    if ($jenis !== 'none') {
+                        $nama = 'border' . ucfirst($sisi);
+                        $bentuk += ["{$nama}Size" => max(2, (int) round($tebal * 8)), "{$nama}Color" => '000000', "{$nama}Style" => ['solid' => 'single'][$jenis] ?? $jenis];
+                    }
                 }
 
                 $cell = $tabel->addCell((int) round($lebar * $persen / 100), $bentuk);
@@ -602,6 +616,18 @@ class CetakNaskah
         }
 
         $halaman->addTextBreak(1, ['size' => 6], ['spaceAfter' => 0]);
+    }
+
+    /** Baris tabel (tr) dari satu baris kisi: milik sel pertama yang bukan lanjutan gabungan. */
+    private function barisSel(array $baris): ?\DOMElement
+    {
+        foreach ($baris as $sel) {
+            if (! $sel['lanjutan']) {
+                return $sel['el']->parentNode;
+            }
+        }
+
+        return null;
     }
 
     /** Paragraf dan daftar; bila tidak terbaca PhpWord, ditulis sebagai teks supaya Word-nya tetap jadi. */
@@ -869,7 +895,7 @@ class CetakNaskah
     }
 
     /** Tinggi satu baris kotak paraf hierarki (cm), untuk ruang yang disisihkan di halaman pertama PDF. */
-    private const BARIS_PARAF = 0.75;
+    public const BARIS_PARAF = 0.75;
 
     /** Lebar kolom jabatan kotak paraf (cm); kolom paraf 1,8 cm. */
     private const LEBAR_JABATAN_PARAF = 6.2;
@@ -974,9 +1000,8 @@ class CetakNaskah
      */
     public function pdfMatriks(Naskah $naskah): string
     {
-        // Naskah tanpa lampiran menyisakan satu baris lampiran kosong; tidak perlu dicetak di matriks.
-        $baris = $naskah->baris()->get()->reject(fn (NaskahBaris $b) => $b->bagian === 'lampiran'
-            && blank($b->rumusan_awal) && blank($b->rumusan_penyempurnaan))->values();
+        // Lampiran bukan bagian matriks; ia hanya ada di naskahnya.
+        $baris = $naskah->baris()->where('bagian', '!=', 'lampiran')->get();
         $penanda = TemplateNaskah::penanda($naskah, $baris);
         $nomorMateri = 0;
         $sebelumnya = null;
@@ -987,20 +1012,13 @@ class CetakNaskah
 
             $no = $bagianBaru ? ++$nomorMateri . '.' : '';
             $materi = $bagianBaru ? TemplateNaskah::BAGIAN[$item->bagian] : '';
-            // Lampiran editor dicetak sebagai teks dengan tabel "| a | b |"; lampiran PDF cukup disebut nama berkasnya.
-            $isiKolom = fn (?string $nilai) => match (true) {
-                blank($nilai) => '',
-                $item->html() => HtmlLampiran::teks($nilai),
-                $item->berkas() => ($pdf = $item->berkasLampiran($nilai)) ? "Terlampir: berkas PDF {$pdf->nama_asli}" : '',
-                default => (string) $nilai,
-            };
             $sempurna = match ($item->status) {
                 NaskahBaris::TETAP => 'Tetap;',
                 NaskahBaris::DIHAPUS, NaskahBaris::USUL_HAPUS => 'Dihapus;',
-                default => $isiKolom($item->rumusan_penyempurnaan),
+                default => (string) $item->rumusan_penyempurnaan,
             };
 
-            $rumusan = self::potong($isiKolom($item->rumusan_awal), 72);
+            $rumusan = self::potong((string) $item->rumusan_awal, 72);
             $penyempurnaan = self::potong($sempurna, 50);
             $keterangan = self::potong((string) $item->keterangan, 28);
 

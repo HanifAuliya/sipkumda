@@ -39,7 +39,8 @@ class HtmlLampiran
         'font-size' => '/^\d+(\.\d+)?(px|pt|em|rem|%)$/',
         'width' => '/^\d+(\.\d+)?(px|pt|cm|mm|em|%)$/',
         'height' => '/^\d+(\.\d+)?(px|pt|cm|mm|em)$/',
-        'margin-left' => '/^\d+(\.\d+)?(px|pt|cm|mm|em)$/',
+        'margin-left' => '/^(auto|\d+(\.\d+)?(px|pt|cm|mm|em))$/',
+        'margin-right' => '/^(auto|0(px)?)$/',
         'padding-left' => '/^\d+(\.\d+)?(px|pt|cm|mm|em)$/',
         'text-indent' => '/^-?\d+(\.\d+)?(px|pt|cm|mm|em)$/',
         'list-style-type' => '/^(decimal|lower-alpha|upper-alpha|lower-latin|upper-latin|lower-roman|upper-roman|disc|circle|square|none)$/',
@@ -72,12 +73,18 @@ class HtmlLampiran
 
         self::bersihkanAnak($akar);
 
+        // Editor menyisakan paragraf kosong di bawah tabel supaya kursor bisa keluar; tidak ikut disimpan.
+        // Diperiksa per elemen, bukan dengan regex: pada lampiran panjang regex-nya gagal dan isinya hilang.
+        while (($akhir = $akar->lastChild) && preg_replace('/[\s\x{00A0}]+/u', '', $akhir->textContent) === ''
+            && ($akhir->nodeType === XML_TEXT_NODE || $akhir->nodeName === 'p')) {
+            $akar->removeChild($akhir);
+        }
+
         $hasil = '';
         foreach ($akar->childNodes as $anak) {
             $hasil .= $dom->saveHTML($anak);
         }
-        // Editor menyisakan paragraf kosong di bawah tabel supaya kursor bisa keluar; tidak ikut disimpan.
-        $hasil = trim(preg_replace('/(?:<p[^>]*>(?:\s|\x{00A0}|&nbsp;|<br>)*<\/p>\s*)+$/u', '', $hasil));
+        $hasil = trim($hasil);
 
         return self::kosong($hasil) ? null : $hasil;
     }
@@ -281,7 +288,12 @@ class HtmlLampiran
         $akar = $dom->getElementById('akar');
 
         foreach (iterator_to_array($akar->getElementsByTagName('table')) as $tabel) {
+            $letak = preg_match('/margin-left:\s*auto/', $gaya = $tabel->getAttribute('style'))
+                ? (preg_match('/margin-right:\s*auto/', $gaya) ? 'center' : 'right') : null;
             self::lebarPersen($tabel, $lebarIsi);
+            self::letakTabel($tabel, $letak);
+            self::kepalaTabel($tabel);
+            self::tinggiBaris($tabel);
         }
         foreach (iterator_to_array($akar->getElementsByTagName('p')) as $p) {
             if (! $p->hasChildNodes()) {
@@ -344,6 +356,218 @@ class HtmlLampiran
             }
         }
         $tabel->setAttribute('style', 'width:' . min(100, round($total / $lebarIsi * 100, 2)) . '%');
+    }
+
+    /** Letak tabel (tengah, kanan) sebagai jarak kiri: dompdf tidak mengenal margin auto pada tabel. */
+    private static function letakTabel(DOMElement $tabel, ?string $letak): void
+    {
+        if ($letak === null) {
+            return;
+        }
+
+        $lebar = preg_match('/width:\s*([\d.]+)%/', $tabel->getAttribute('style'), $m) ? (float) $m[1] : 100.0;
+        $sisa = (100 - $lebar) / ($letak === 'center' ? 2 : 1);
+        $tabel->setAttribute('style', "width:{$lebar}%" . ($sisa > 0 ? ';margin-left:' . round($sisa, 2) . '%' : ''));
+    }
+
+    /** Baris judul (seluruh selnya th) di awal tabel menjadi thead, supaya diulang di tiap halaman. */
+    private static function kepalaTabel(DOMElement $tabel): void
+    {
+        $badan = null;
+        foreach ($tabel->childNodes as $anak) {
+            if ($anak instanceof DOMElement && $anak->tagName === 'thead') {
+                return;
+            }
+            $badan ??= $anak instanceof DOMElement && $anak->tagName === 'tbody' ? $anak : null;
+        }
+        if (! $badan) {
+            return;
+        }
+
+        $baris = array_values(array_filter(iterator_to_array($badan->childNodes), fn ($n) => $n instanceof DOMElement && $n->tagName === 'tr'));
+        $kisi = self::kisi($tabel);
+        $judul = 0;
+        while (isset($kisi[$judul]) && $kisi[$judul] !== [] && self::semua($kisi[$judul], fn (array $sel) => $sel['el']->tagName === 'th')) {
+            $judul++;
+        }
+        // Sel judul yang digabung sampai ke baris isi tidak bisa dipisah.
+        if ($judul === 0 || $judul >= count($baris) || in_array(true, array_column($kisi[$judul], 'lanjutan'), true)) {
+            return;
+        }
+
+        $kepala = $tabel->ownerDocument->createElement('thead');
+        $tabel->insertBefore($kepala, $badan);
+        foreach (array_slice($baris, 0, $judul) as $tr) {
+            $kepala->appendChild($tr);
+        }
+    }
+
+    private static function semua(array $isi, callable $uji): bool
+    {
+        return count(array_filter($isi, $uji)) === count($isi);
+    }
+
+    /** Tinggi baris ditulis juga di selnya, karena dompdf hanya membaca tinggi sel (di luar jarak tepinya, 4 pt). */
+    private static function tinggiBaris(DOMElement $tabel): void
+    {
+        foreach ($tabel->getElementsByTagName('tr') as $tr) {
+            if (! preg_match('/height:\s*([\d.]+)pt/', $tr->getAttribute('style'), $m)) {
+                continue;
+            }
+            foreach ($tr->childNodes as $sel) {
+                if ($sel instanceof DOMElement && (int) $sel->getAttribute('rowspan') < 2) {
+                    $sel->setAttribute('style', trim($sel->getAttribute('style') . ';height:' . max(1, (float) $m[1] - 4) . 'pt', ';'));
+                }
+            }
+        }
+    }
+
+    /** Tinggi baris dalam pt, atau null bila mengikuti isinya. */
+    public static function tinggiDari(DOMElement $tr): ?float
+    {
+        return preg_match('/height:\s*([\d.]+)pt/', $tr->getAttribute('style'), $m) ? (float) $m[1] : null;
+    }
+
+    /**
+     * Garis tiap sisi sel menurut gayanya: [jenis, tebal pt]. Tanpa gaya berarti garis tunggal ½ pt.
+     *
+     * @return array{top: array{0: string, 1: float}, right: array{0: string, 1: float}, bottom: array{0: string, 1: float}, left: array{0: string, 1: float}}
+     */
+    public static function garisSel(string $gaya): array
+    {
+        $sisi = ['top', 'right', 'bottom', 'left'];
+        $garis = array_fill_keys($sisi, ['solid', 0.5]);
+        $tebal = fn (string $n) => preg_match('/^([\d.]+)(px|pt)$/', $n, $m) ? round((float) $m[1] * ($m[2] === 'px' ? 0.75 : 1), 2) : null;
+        $jenis = fn (string $n) => in_array($n, ['none', 'solid', 'dashed', 'dotted', 'double'], true) ? $n : null;
+        // Nilai 1 sampai 4 bagian, urutannya atas, kanan, bawah, kiri.
+        $empat = fn (array $n) => [$n[0], $n[1] ?? $n[0], $n[2] ?? $n[0], $n[3] ?? $n[1] ?? $n[0]];
+
+        foreach (explode(';', strtolower($gaya)) as $deklarasi) {
+            [$properti, $nilai] = array_map('trim', array_pad(explode(':', $deklarasi, 2), 2, ''));
+            $bagian = preg_split('/\s+/', $nilai, -1, PREG_SPLIT_NO_EMPTY);
+
+            if (! $bagian) {
+                continue;
+            }
+            if ($properti === 'border-style' || $properti === 'border-width') {
+                foreach ($empat($bagian) as $i => $n) {
+                    $properti === 'border-style' ? $garis[$sisi[$i]][0] = $jenis($n) ?? $garis[$sisi[$i]][0] : $garis[$sisi[$i]][1] = $tebal($n) ?? $garis[$sisi[$i]][1];
+                }
+            } elseif ($properti === 'border' || preg_match('/^border-(top|right|bottom|left)$/', $properti, $m)) {
+                foreach ($properti === 'border' ? $sisi : [$m[1]] as $s) {
+                    $garis[$s] = [$nilai === '0' ? 'none' : 'solid', 0.5];
+                    foreach ($bagian as $n) {
+                        $garis[$s] = [$jenis($n) ?? $garis[$s][0], $tebal($n) ?? $garis[$s][1]];
+                    }
+                }
+            }
+        }
+
+        return $garis;
+    }
+
+    /**
+     * Membuang kepala lampiran ("LAMPIRAN I, PERATURAN BUPATI ..., TENTANG ...") dan tanda tangan Bupati dari isi yang
+     * dibaca dari file, karena keduanya dibuat otomatis. $tentang: judul naskah, batas akhir kepalanya.
+     */
+    public static function tanpaKepalaTtd(?string $html, string $tentang): string
+    {
+        if (blank($html)) {
+            return '';
+        }
+
+        $dom = self::dom($html);
+        $akar = $dom->getElementById('akar');
+        $padat = fn (string $t) => preg_replace('/[^A-Z0-9]+/', '', mb_strtoupper($t));
+        $blok = array_values(array_filter(iterator_to_array($akar->childNodes), fn ($n) => $n instanceof DOMElement));
+        $isi = array_map(fn (DOMElement $el) => $padat($el->textContent), $blok);
+
+        $buang = self::akhirKepala($blok, $isi, $padat($tentang));
+        while ($buang < count($blok) - 1 && $isi[$buang] === '' && $blok[$buang]->tagName === 'p') {
+            $buang++;
+        }
+        for ($i = 0; $i < $buang; $i++) {
+            $akar->removeChild($blok[$i]);
+        }
+        for ($i = self::awalTtd($isi, $buang); $i < count($blok); $i++) {
+            $akar->removeChild($blok[$i]);
+        }
+
+        $hasil = '';
+        foreach ($akar->childNodes as $anak) {
+            $hasil .= $dom->saveHTML($anak);
+        }
+
+        return $hasil;
+    }
+
+    /** Banyaknya blok di awal yang merupakan kepala lampiran; 0 bila tidak ada. */
+    private static function akhirKepala(array $blok, array $isi, string $tentang): int
+    {
+        $awal = 0;
+        while (($isi[$awal] ?? null) === '') {
+            $awal++;
+        }
+        if (! str_starts_with($isi[$awal] ?? '', 'LAMPIRAN') || mb_strlen($isi[$awal]) > 900) {
+            return 0;
+        }
+
+        $gabung = '';
+        $m = [];
+        for ($i = $awal; $i < min(count($isi), $awal + 14); $i++) {
+            $gabung .= $isi[$i];
+            if (preg_match('/(?:BUPATI|NOMOR|TANGGAL).*?TENTANG(.*)$/', $gabung, $m)) {
+                break;
+            }
+        }
+        if (! isset($m[1])) {
+            // Hanya tulisan "LAMPIRAN" atau "LAMPIRAN II" tanpa keterangan peraturannya.
+            return preg_match('/^LAMPIRAN([IVXLC]+|\d+)?$/', $isi[$awal]) ? $awal + 1 : 0;
+        }
+
+        // Judul naskah bisa terpecah beberapa baris; diikuti selama masih awalan dari judulnya.
+        $sisa = $m[1];
+        $cocok = $i + 1;
+        for ($j = $i; $j < count($isi); $j++) {
+            $sisa .= $j > $i ? $isi[$j] : '';
+            if ($sisa === $tentang) {
+                return $j + 1;
+            }
+            if (! str_starts_with($tentang, $sisa)) {
+                break;
+            }
+        }
+
+        // Judulnya berbeda dari judul naskah: baris kepala dikenali dari letaknya di sisi kanan kertas.
+        $jorok = fn (DOMElement $el, string $sifat) => preg_match("/{$sifat}:\s*(-?[\d.]+)pt/", $el->getAttribute('style'), $k) ? (float) $k[1] : 0.0;
+        while (isset($blok[$cocok]) && $isi[$cocok] !== '' && $jorok($blok[$cocok], 'margin-left') + $jorok($blok[$cocok], 'text-indent') >= 120) {
+            $cocok++;
+        }
+
+        return $cocok;
+    }
+
+    /** Letak blok pertama tanda tangan di akhir; sama dengan banyaknya blok bila tidak ada. */
+    private static function awalTtd(array $isi, int $mulai): int
+    {
+        $n = count($isi);
+        $akhir = $n;
+        while ($akhir > $mulai && $isi[$akhir - 1] === '') {
+            $akhir--;
+        }
+
+        for ($i = max($mulai, $akhir - 14); $i < $n; $i++) {
+            if (! preg_match('/^(PJ|PLT|PLH|PENJABAT|PELAKSANATUGAS|PELAKSANAHARIAN)?BUPATIHULUSUNGAITENGAH/', $isi[$i]) || mb_strlen(implode('', array_slice($isi, $i))) > 160) {
+                continue;
+            }
+            while ($i > $mulai && preg_match('/^(DITETAPKANDI|PADATANGGAL|$)/', $isi[$i - 1])) {
+                $i--;
+            }
+
+            return $i;
+        }
+
+        return $n;
     }
 
     public static function dom(string $html): DOMDocument

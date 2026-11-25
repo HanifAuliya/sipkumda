@@ -2,10 +2,14 @@
 
 namespace App\Services;
 
+use App\Models\NaskahBaris;
+use App\Support\FormatDokumen;
+use App\Support\HtmlLampiran;
+use App\Support\PenomoranWord;
 use App\Support\TataLetakNaskah;
-use DOMDocument;
 use DOMElement;
 use DOMXPath;
+use Generator;
 use RuntimeException;
 use ZipArchive;
 
@@ -18,24 +22,15 @@ use ZipArchive;
  */
 class PembacaNaskahWord
 {
-    private const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
-
-    /** Melindungi server dari file kecil yang mengembang sangat besar saat dibuka. */
-    private const BATAS_XML = 30 * 1024 * 1024;
+    private const W = PenomoranWord::W;
 
     private const DIKTUM = 'SATU|DUA|TIGA|EMPAT|LIMA|ENAM|TUJUH|DELAPAN|SEMBILAN|SEPULUH|SEBELAS|DUA BELAS|TIGA BELAS';
 
     private DOMXPath $xpath;
-    /** @var array<string, array{abstrak: string, level: array<int, array{fmt: string, teks: string, mulai: int}>, mulai: array<int, int>}> per numId */
-    private array $penomoran = [];
-    /** Hitungan nomor per abstractNum dan tingkat. */
-    private array $hitungan = [];
-    /** numId dan tingkat yang "mulai ulang"-nya sudah diterapkan. */
-    private array $dimulai = [];
-    /** @var array<string, array{numId: ?string, ilvl: ?int}> nomor otomatis yang melekat pada gaya paragraf */
-    private array $gayaNomor = [];
+    private PenomoranWord $penomoran;
+    private PembacaLampiranWord $pembacaLampiran;
 
-    /** @var array<int, array{bagian: string, label: ?string, teks: string}> */
+    /** @var array<int, array{bagian: string, label: ?string, teks: string, format?: string}> */
     private array $baris = [];
     private array $peringatan = [];
     private string $bagian = 'judul';
@@ -47,27 +42,87 @@ class PembacaNaskahWord
 
     /**
      * @param  string|null  $bentuk  BENTUK_NASKAH, BENTUK_MATRIKS, atau null untuk menebak dari isinya
-     * @return array{baris: array<int, array{bagian: string, label: ?string, teks: string}>, ringkasan: array<string, int>, peringatan: array<int, string>}
+     * @return array{baris: array<int, array{bagian: string, label: ?string, teks: string, format?: string}>, ringkasan: array<string, int>, peringatan: array<int, string>}
      */
     public function baca(string $path, string $jenis, ?string $bentuk = null): array
     {
         $this->jenis = $jenis;
 
-        foreach ($this->barisTeks($path, $bentuk) as [$teks, $petunjuk]) {
+        foreach ($this->barisTeks($path, $bentuk) as [$teks, $petunjuk, $node, $selLampiran]) {
+            if ($node && $this->bagian !== 'judul' && preg_match('/^LAMPIRAN\b/u', $teks)) {
+                $this->bacaLampiran($node);
+
+                break;
+            }
+
             $this->proses($teks, $petunjuk);
+
+            if ($selLampiran) {
+                $this->tambahLampiran(iterator_to_array($selLampiran->childNodes));
+            }
         }
 
         $this->lengkapi();
 
         return [
-            'baris' => array_values(array_map(fn ($b) => ['bagian' => $b['bagian'], 'label' => $b['label'], 'teks' => trim($b['teks'])], $this->baris)),
+            'baris' => array_values(array_map(fn ($b) => ['bagian' => $b['bagian'], 'label' => $b['label'], 'teks' => trim($b['teks'])] + array_intersect_key($b, ['format' => 1]), $this->baris)),
             'ringkasan' => $this->ringkasan(),
             'peringatan' => array_values(array_unique($this->peringatan)),
         ];
     }
 
-    /** @return array<int, array{0: string, 1: ?string}> pasangan teks paragraf dan petunjuk bagian (dari kolom Materi) */
-    private function barisTeks(string $path, ?string $bentuk): array
+    /**
+     * Lampiran di dalam Word: sejak tulisan "LAMPIRAN" sampai akhir dokumen. Setiap kepala lampiran memulai baris baru;
+     * kepala dan tanda tangannya dibuang karena dibuat otomatis.
+     */
+    private function bacaLampiran(DOMElement $awal): void
+    {
+        $bagian = [];
+        for ($node = $awal; $node; $node = $node->nextSibling) {
+            if (! $node instanceof DOMElement) {
+                continue;
+            }
+            if (! $bagian || preg_match('/^LAMPIRAN(\s+[IVXLC]+|\s+\d+)?\s*(:|$|PERATURAN|KEPUTUSAN)/u', $this->bersih($node->textContent))) {
+                $bagian[] = [];
+            }
+            $bagian[array_key_last($bagian)][] = $node;
+        }
+
+        $this->bagian = 'lampiran';
+        foreach ($bagian as $nodes) {
+            $this->baruBaris('lampiran', null, '');
+            $this->tambahLampiran($nodes);
+        }
+    }
+
+    /** Menambah isi ke baris lampiran terakhir. */
+    private function tambahLampiran(array $nodes): void
+    {
+        $terakhir = array_key_last($this->baris);
+        if ($terakhir === null || $this->baris[$terakhir]['bagian'] !== 'lampiran') {
+            $this->baruBaris('lampiran', null, '');
+            $terakhir = array_key_last($this->baris);
+        }
+
+        $judul = collect($this->baris)->where('bagian', 'judul')->pluck('teks')->implode(' ');
+        $tentang = preg_match('/\bTENTANG\b(.*)$/isu', $judul, $m) ? $m[1] : $judul;
+
+        $this->baris[$terakhir]['format'] = NaskahBaris::FORMAT_HTML;
+        $this->baris[$terakhir]['teks'] .= HtmlLampiran::tanpaKepalaTtd($this->pembacaLampiran->html($nodes), $tentang);
+
+        if ($this->pembacaLampiran->gambar > 0) {
+            $this->peringatan[] = 'Gambar di lampiran tidak ikut terbaca.';
+        }
+    }
+
+    /**
+     * Baris teks satu per satu, supaya nomor otomatis dihitung berurutan sampai lampiran.
+     *
+     * [teks paragraf, petunjuk bagian dari kolom Materi, elemennya di naskah biasa, sel Rumusan bila barisnya lampiran]
+     *
+     * @return Generator<array{0: string, 1: ?string, 2: ?DOMElement, 3: ?DOMElement}>
+     */
+    private function barisTeks(string $path, ?string $bentuk): Generator
     {
         $zip = new ZipArchive();
         if ($zip->open($path) !== true) {
@@ -75,10 +130,10 @@ class PembacaNaskahWord
         }
 
         try {
-            $utama = $this->ambilXml($zip, 'word/document.xml')
+            $utama = PembacaLampiranWord::ambilXml($zip, 'word/document.xml')
                 ?? throw new RuntimeException('Isi dokumen Word tidak ditemukan.');
-            $this->muatPenomoran($this->ambilXml($zip, 'word/numbering.xml'));
-            $this->muatGayaNomor($this->ambilXml($zip, 'word/styles.xml'));
+            $gaya = PembacaLampiranWord::ambilXml($zip, 'word/styles.xml');
+            $this->penomoran = new PenomoranWord(PembacaLampiranWord::ambilXml($zip, 'word/numbering.xml'), $gaya);
         } finally {
             $zip->close();
         }
@@ -86,19 +141,15 @@ class PembacaNaskahWord
         $this->xpath = new DOMXPath($utama);
         $this->xpath->registerNamespace('w', self::W);
 
-        $hasil = [];
-        foreach ($this->xpath->query('/w:document/w:body/*') as $node) {
-            if ($node->localName === 'p') {
-                $hasil[] = [$this->teksParagraf($node), null];
-            } elseif ($node->localName === 'tbl') {
-                $kepala = $bentuk === self::BENTUK_NASKAH ? null : $this->kepalaMatriks($node);
+        $this->pembacaLampiran = new PembacaLampiranWord();
+        $this->pembacaLampiran->siapkan($this->xpath, $gaya, $this->penomoran, FormatDokumen::lebarIsiPx($this->jenis));
 
-                // Pada file matriks, teks di luar tabel hanya kepala dan tanda tangan matriks itu sendiri.
-                if ($kepala !== null) {
-                    return $this->barisMatriks($node, $kepala);
-                }
+        // Pada file matriks, teks di luar tabel hanya kepala dan tanda tangan matriks itu sendiri.
+        foreach ($bentuk === self::BENTUK_NASKAH ? [] : $this->xpath->query('/w:document/w:body/w:tbl') as $tabel) {
+            if ($kepala = $this->kepalaMatriks($tabel)) {
+                yield from $this->barisMatriks($tabel, $kepala);
 
-                array_push($hasil, ...$this->barisTabel($node));
+                return;
             }
         }
 
@@ -106,7 +157,15 @@ class PembacaNaskahWord
             throw new RuntimeException('Tabel matriks dengan kolom "Rumusan" tidak ditemukan. Pilih "Naskah Rancangan" bila file berupa naskah biasa.');
         }
 
-        return $hasil;
+        foreach ($this->xpath->query('/w:document/w:body/*') as $node) {
+            if ($node->localName === 'p') {
+                yield [$this->teksParagraf($node), null, $node, null];
+            } elseif ($node->localName === 'tbl') {
+                foreach ($this->barisTabel($node) as [$teks]) {
+                    yield [$teks, null, $node, null];
+                }
+            }
+        }
     }
 
     /**
@@ -159,28 +218,10 @@ class PembacaNaskahWord
         return $hasil;
     }
 
-    private function ambilXml(ZipArchive $zip, string $nama): ?DOMDocument
-    {
-        $info = $zip->statName($nama);
-        if ($info === false) {
-            return null;
-        }
-        if ($info['size'] > self::BATAS_XML) {
-            throw new RuntimeException('Dokumen terlalu besar untuk dibaca.');
-        }
-
-        $dom = new DOMDocument();
-        if (! @$dom->loadXML((string) $zip->getFromName($nama), LIBXML_NONET | LIBXML_COMPACT)) {
-            throw new RuntimeException('Dokumen Word rusak dan tidak bisa dibaca.');
-        }
-
-        return $dom;
-    }
-
     /** Kolom Rumusan matriks dibaca per paragraf; kolom Materi menjadi petunjuk bagian. */
-    private function barisMatriks(DOMElement $tabel, array $kepala): array
+    private function barisMatriks(DOMElement $tabel, array $kepala): Generator
     {
-        $hasil = [];
+        $lampiran = false;
 
         foreach ($this->xpath->query('./w:tr', $tabel) as $r => $tr) {
             $sel = $this->selGrid($tr);
@@ -192,6 +233,16 @@ class PembacaNaskahWord
             }
 
             $petunjuk = $kepala['materi'] !== null && isset($sel[$kepala['materi']]) ? $this->bersih($sel[$kepala['materi']]->textContent) : null;
+
+            // Lampiran dibaca beserta formatnya, bukan per paragraf.
+            $bagian = $petunjuk ? $this->bagianDariPetunjuk($petunjuk) : null;
+            $lampiran = $bagian ? $bagian === 'lampiran' : $lampiran;
+            if ($lampiran) {
+                yield ['', $petunjuk ?: null, null, $sel[$kepala['rumusan']] ?? null];
+
+                continue;
+            }
+
             $paragraf = $this->paragrafSel($sel[$kepala['rumusan']] ?? null);
             $nomor = $kepala['nomor'] !== null && isset($sel[$kepala['nomor']]) ? $this->nomorKolom($sel[$kepala['nomor']]->textContent) : null;
 
@@ -200,14 +251,12 @@ class PembacaNaskahWord
             }
 
             foreach ($paragraf as $i => $teks) {
-                $hasil[] = [$teks, $i === 0 ? ($petunjuk ?: null) : null];
+                yield [$teks, $i === 0 ? ($petunjuk ?: null) : null, null, null];
             }
             if ($petunjuk && $paragraf === []) {
-                $hasil[] = ['', $petunjuk];
+                yield ['', $petunjuk, null, null];
             }
         }
-
-        return $hasil;
     }
 
     /** Isi kolom nomor butir: "9" menjadi "9.", "a" menjadi "a."; "(1)", "a.", "1)" dibiarkan. */
@@ -288,145 +337,11 @@ class PembacaNaskahWord
         return $teks === '' ? '' : $this->awalanNomor($p) . $teks;
     }
 
-    /**
-     * Nomor otomatis Word tidak tersimpan sebagai teks, jadi dihitung ulang dari numbering.xml.
-     * Seperti di Word, daftar yang memakai definisi nomor (abstractNum) yang sama saling melanjutkan;
-     * "Mulai ulang dari" (startOverride) memulai hitungan baru saat pertama dipakai.
-     */
     private function awalanNomor(DOMElement $p): string
     {
-        // Nomor bisa ditempel langsung pada paragraf, atau melekat pada gaya paragrafnya (misalnya gaya "Ayat").
-        $gaya = $this->gayaNomor[$this->xpath->query('./w:pPr/w:pStyle/@w:val', $p)->item(0)?->value ?? ''] ?? null;
-        $numId = $this->xpath->query('./w:pPr/w:numPr/w:numId/@w:val', $p)->item(0)?->value ?? $gaya['numId'] ?? null;
-        if ($numId === null || $numId === '0' || ! isset($this->penomoran[$numId])) {
-            return '';
-        }
+        $nomor = $this->penomoran->nomor($p, $this->xpath);
 
-        $num = $this->penomoran[$numId];
-        $level = (int) ($this->xpath->query('./w:pPr/w:numPr/w:ilvl/@w:val', $p)->item(0)?->value ?? $gaya['ilvl'] ?? 0);
-        $format = $num['level'][$level] ?? null;
-        if (! $format || $format['fmt'] === 'bullet' || $format['fmt'] === 'none') {
-            return '';
-        }
-
-        $daftar = $num['abstrak'];
-
-        if (isset($num['mulai'][$level]) && ! isset($this->dimulai[$numId][$level])) {
-            $this->dimulai[$numId][$level] = true;
-            $this->hitungan[$daftar][$level] = $num['mulai'][$level] - 1;
-        }
-
-        $this->hitungan[$daftar][$level] = ($this->hitungan[$daftar][$level] ?? $format['mulai'] - 1) + 1;
-        foreach (array_keys($this->hitungan[$daftar]) as $l) {
-            if ($l > $level) {
-                unset($this->hitungan[$daftar][$l]);
-            }
-        }
-
-        $teks = preg_replace_callback('/%(\d)/', function ($m) use ($num, $daftar) {
-            $l = (int) $m[1] - 1;
-            $lvl = $num['level'][$l] ?? ['fmt' => 'decimal', 'mulai' => 1];
-
-            return $this->formatNomor($this->hitungan[$daftar][$l] ?? $lvl['mulai'], $lvl['fmt']);
-        }, $format['teks']);
-
-        return trim($teks) . ' ';
-    }
-
-    private function formatNomor(int $n, string $fmt): string
-    {
-        return match ($fmt) {
-            'lowerLetter' => chr(96 + (($n - 1) % 26 + 1)),
-            'upperLetter' => chr(64 + (($n - 1) % 26 + 1)),
-            'lowerRoman' => mb_strtolower($this->romawi($n)),
-            'upperRoman' => $this->romawi($n),
-            default => (string) $n,
-        };
-    }
-
-    private function romawi(int $n): string
-    {
-        $hasil = '';
-        foreach (['M' => 1000, 'CM' => 900, 'D' => 500, 'CD' => 400, 'C' => 100, 'XC' => 90, 'L' => 50, 'XL' => 40, 'X' => 10, 'IX' => 9, 'V' => 5, 'IV' => 4, 'I' => 1] as $r => $nilai) {
-            while ($n >= $nilai) {
-                $hasil .= $r;
-                $n -= $nilai;
-            }
-        }
-
-        return $hasil;
-    }
-
-    /** Gaya paragraf yang bernomor, termasuk yang mewarisi nomornya dari gaya induk (basedOn). */
-    private function muatGayaNomor(?DOMDocument $dom): void
-    {
-        $this->gayaNomor = [];
-
-        if (! $dom) {
-            return;
-        }
-
-        $xp = new DOMXPath($dom);
-        $xp->registerNamespace('w', self::W);
-        $gaya = [];
-
-        foreach ($xp->query('/w:styles/w:style[@w:type="paragraph"]') as $node) {
-            $gaya[$node->getAttributeNS(self::W, 'styleId')] = [
-                'induk' => $xp->query('./w:basedOn/@w:val', $node)->item(0)?->value,
-                'numId' => $xp->query('./w:pPr/w:numPr/w:numId/@w:val', $node)->item(0)?->value,
-                'ilvl' => ($v = $xp->query('./w:pPr/w:numPr/w:ilvl/@w:val', $node)->item(0)?->value) === null ? null : (int) $v,
-            ];
-        }
-
-        foreach (array_keys($gaya) as $id) {
-            $numId = $ilvl = null;
-
-            // Naik ke gaya induk sampai nomornya ketemu; dibatasi supaya rantai yang berputar tidak macet.
-            for ($kini = $id, $langkah = 0; $kini !== null && isset($gaya[$kini]) && $langkah < 10; $kini = $gaya[$kini]['induk'], $langkah++) {
-                $numId ??= $gaya[$kini]['numId'];
-                $ilvl ??= $gaya[$kini]['ilvl'];
-            }
-
-            if ($numId !== null) {
-                $this->gayaNomor[$id] = ['numId' => $numId, 'ilvl' => $ilvl];
-            }
-        }
-    }
-
-    private function muatPenomoran(?DOMDocument $dom): void
-    {
-        $this->penomoran = [];
-        $this->hitungan = [];
-        $this->dimulai = [];
-
-        if (! $dom) {
-            return;
-        }
-
-        $xp = new DOMXPath($dom);
-        $xp->registerNamespace('w', self::W);
-
-        $abstrak = [];
-        foreach ($xp->query('/w:numbering/w:abstractNum') as $node) {
-            foreach ($xp->query('./w:lvl', $node) as $lvl) {
-                $abstrak[$node->getAttributeNS(self::W, 'abstractNumId')][(int) $lvl->getAttributeNS(self::W, 'ilvl')] = [
-                    'fmt' => $xp->query('./w:numFmt/@w:val', $lvl)->item(0)?->value ?? 'decimal',
-                    'teks' => $xp->query('./w:lvlText/@w:val', $lvl)->item(0)?->value ?? '',
-                    'mulai' => (int) ($xp->query('./w:start/@w:val', $lvl)->item(0)?->value ?? 1),
-                ];
-            }
-        }
-
-        foreach ($xp->query('/w:numbering/w:num') as $num) {
-            $acuan = (string) $xp->query('./w:abstractNumId/@w:val', $num)->item(0)?->value;
-            $mulai = [];
-
-            foreach ($xp->query('./w:lvlOverride[w:startOverride]', $num) as $timpa) {
-                $mulai[(int) $timpa->getAttributeNS(self::W, 'ilvl')] = (int) $xp->query('./w:startOverride/@w:val', $timpa)->item(0)->value;
-            }
-
-            $this->penomoran[$num->getAttributeNS(self::W, 'numId')] = ['abstrak' => $acuan, 'level' => $abstrak[$acuan] ?? [], 'mulai' => $mulai];
-        }
+        return $nomor && $nomor['fmt'] !== 'bullet' ? $nomor['teks'] . ' ' : '';
     }
 
     /** Mesin keadaan: setiap paragraf memulai baris baru atau menyambung baris yang sedang dibaca. */
@@ -447,7 +362,7 @@ class PembacaNaskahWord
 
         if (preg_match('/^LAMPIRAN\b/u', $teks) && $this->bagian !== 'judul') {
             $this->bagian = 'lampiran';
-            $this->peringatan[] = 'Bagian lampiran di dalam Word tidak dibaca. Salin lampirannya dari Word lalu tempel di editor Lampiran, atau unggah PDF-nya bila terlalu rumit.';
+            $this->peringatan[] = 'Lampiran di dalam matriks tidak dibaca. Ambil lampirannya dari file Word atau PDF di tab Naskah.';
 
             return;
         }

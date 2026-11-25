@@ -248,7 +248,7 @@ class BandingNaskah
     }
 
     /** Baris tabel yang berubah ditandai per sel; yang hilang atau baru ditandai seluruh barisnya. */
-    private static function gabungTabel(array $lama, array $baru): array
+    public static function gabungTabel(array $lama, array $baru): array
     {
         $hasil = [];
 

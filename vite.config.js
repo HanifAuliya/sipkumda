@@ -17,6 +17,7 @@ export default defineConfig({
             '@tiptap/core', '@tiptap/starter-kit', '@tiptap/extension-list', '@tiptap/extension-table',
             '@tiptap/extension-text-align', '@tiptap/extension-text-style', '@tiptap/extension-subscript',
             '@tiptap/extension-superscript', '@tiptap/pm/model', '@tiptap/pm/tables', 'pdf-lib',
+            'pdfjs-dist/legacy/build/pdf.min.mjs', 'pdfjs-dist/legacy/build/pdf.worker.min.mjs',
         ],
     },
 });

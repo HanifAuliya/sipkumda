@@ -57,10 +57,13 @@ class LayarKerja extends Component
     #[Url(as: 'bagian', except: '')]
     public string $blok = '';
 
-    /** Lampiran yang sedang dibuka di halaman Lampiran; kosong berarti yang pertama. */
+    /** Lampiran yang sedang dibuka di tab Naskah; kosong berarti yang pertama. */
     public ?int $lampiran = null;
 
-    /** Isi tab Naskah: bentuk cetak atau perbandingan dengan rumusan awal. */
+    /** Baris terakhir yang dituju lewat tombol perubahan sebelumnya/berikutnya. */
+    public ?int $perubahan = null;
+
+    /** Isi tab Naskah: bentuk cetak, perbandingan dengan rumusan awal, atau satu lampiran (lampiran tidak ada di Matriks). */
     #[Url(as: 'lihat', except: 'cetak')]
     public string $tampilNaskah = 'cetak';
 
@@ -137,6 +140,12 @@ class LayarKerja extends Component
         $this->blok = '';
     }
 
+    /** Tab lain dibaca dari atas. */
+    public function updatedTab(): void
+    {
+        $this->dispatch('blok-berubah');
+    }
+
     /** Memperhatikan bersifat opsional pada Keputusan Bupati: barisnya disisipkan sesudah Mengingat. */
     public function tambahMemperhatikan(AlurNaskah $alur): void
     {
@@ -159,6 +168,43 @@ class LayarKerja extends Component
     {
         $this->blok = $kunci;
         $this->tab = 'kerja';
+        $this->perubahan = null;
+        $this->dispatch('blok-berubah');
+    }
+
+    /** Pindah ke baris Matriks yang berubah, sebelum (-1) atau sesudah (1) yang terakhir dituju. */
+    public function keperubahan(int $arah): void
+    {
+        $urut = $this->barisRingkas()->where('bagian', '!=', 'lampiran')->values();
+        $berubah = $urut->whereIn('status', B::BERUBAH)->pluck('id')->values();
+
+        if ($berubah->isEmpty()) {
+            return;
+        }
+
+        $posisi = $this->perubahan === null ? false : $berubah->search($this->perubahan);
+
+        if ($posisi === false) {
+            // Belum menuju perubahan mana pun: mulai dari bagian yang sedang dibuka.
+            $ids = collect(BlokNaskah::susun($this->naskah, $urut))->firstWhere('kunci', $this->blok)['ids'] ?? [];
+            $letak = $urut->pluck('id')->flip();
+            $awal = $ids ? $letak[$ids[0]] : 0;
+            $tujuan = $arah > 0
+                ? $berubah->first(fn (int $id) => $letak[$id] >= $awal) ?? $berubah->first()
+                : $berubah->last(fn (int $id) => $letak[$id] < $awal) ?? $berubah->last();
+        } else {
+            $tujuan = $berubah[($posisi + ($arah > 0 ? 1 : -1) + $berubah->count()) % $berubah->count()];
+        }
+
+        $this->lompatKe($tujuan);
+        $this->perubahan = $tujuan;
+        $this->dispatch('fokus-baris', id: $tujuan, ubah: false);
+    }
+
+    public function bukaNaskah(string $tampil = 'cetak'): void
+    {
+        $this->tab = 'naskah';
+        $this->tampilNaskah = $tampil;
         $this->dispatch('blok-berubah');
     }
 
@@ -169,19 +215,24 @@ class LayarKerja extends Component
             ->first(fn (array $b) => in_array($id, $b['ids'], true));
         abort_if($blok === null, 404);
 
+        if ($blok['bagian'] === 'lampiran') {
+            $this->pilihLampiran($id);
+
+            return;
+        }
+
+        $this->tab = 'kerja';
         $this->filter = 'semua';
         $this->blok = $blok['kunci'];
-
-        if ($blok['bagian'] === 'lampiran') {
-            $this->lampiran = $id;
-        }
+        $this->perubahan = null;
     }
 
+    /** Membuka satu lampiran di tab Naskah; tanpa id berarti yang terakhir dibuka atau yang pertama. */
     #[On('lampiran-dipilih')]
-    public function pilihLampiran(int $id): void
+    public function pilihLampiran(?int $id = null): void
     {
-        $this->lampiran = $id;
-        $this->dispatch('blok-berubah');
+        $this->lampiran = $id ?? $this->lampiran;
+        $this->bukaNaskah('lampiran');
     }
 
     /** Lampiran baru ditambahkan di urutan terakhir dan langsung dibuka. */
@@ -195,11 +246,10 @@ class LayarKerja extends Component
         $this->dispatch('struktur-berubah');
     }
 
-    /** Tombol Edit pada perbandingan: kembali ke matriks, tepat di baris itu. */
+    /** Tombol Edit pada perbandingan: kembali ke matriks (atau ke lampirannya), tepat di baris itu. */
     public function bukaBaris(int $id): void
     {
         $this->lompatKe($id);
-        $this->tab = 'kerja';
         $this->dispatch('fokus-baris', id: $id);
     }
 
@@ -427,12 +477,21 @@ class LayarKerja extends Component
         $mode = $alur->modeBaris($this->naskah, $user);
         $bisaUnduh = Gate::allows('unduh', $this->naskah);
 
+        // Tautan lama ke bagian Lampiran: tempatnya sekarang di tab Naskah.
+        if (str_starts_with($this->blok, 'lampiran')) {
+            $this->blok = '';
+            $this->tab = 'naskah';
+            $this->tampilNaskah = 'lampiran';
+        }
+
         // Tab Berkas hanya berisi unduhan, jadi tidak ada artinya bagi yang tidak boleh mengunduh.
         if ($this->tab === 'berkas' && ! $bisaUnduh) {
             $this->tab = 'kerja';
         }
 
         $semuaBaris = $this->barisRingkas();
+        // Lampiran bukan baris Matriks: dikerjakan di tab Naskah, tetapi tetap dihitung sebagai yang diperiksa.
+        [$ringkasLampiran, $barisMatriks] = $semuaBaris->partition(fn (B $b) => $b->bagian === 'lampiran');
         $bertugas = $mode !== null || ($this->naskah->tahap === TahapNaskah::ValidasiRancangan && $this->naskah->giliranMilik($user));
         $hitung = $semuaBaris->countBy('status');
         $total = $semuaBaris->count();
@@ -445,7 +504,7 @@ class LayarKerja extends Component
             : collect();
         $dipilih = in_array($this->filter, self::FILTER, true);
         $filter = $dipilih ? $this->filter : $this->filterAwal($mode, $hitung);
-        $cocok = fn (string $filter) => $semuaBaris->filter(fn (B $b) => match ($filter) {
+        $cocok = fn (string $filter) => $barisMatriks->filter(fn (B $b) => match ($filter) {
             'belum' => in_array($b->status, $statusBelum, true),
             'perlu' => $b->status === B::PERLU_PD,
             'diubah' => in_array($b->status, B::BERUBAH, true),
@@ -462,8 +521,12 @@ class LayarKerja extends Component
 
         // Filter yang menyisakan sebagian baris juga menyembunyikan bagian yang tidak punya baris cocok.
         $perId = $semuaBaris->keyBy('id');
-        $daftarBlok = collect(BlokNaskah::susun($this->naskah, $semuaBaris))
-            ->map(fn (array $b) => [...$b, 'keadaan' => $this->keadaanBlok($b['ids'], $perId, $statusBelum, $berisian)])
+        $daftarBlok = collect(BlokNaskah::susun($this->naskah, $barisMatriks->values()))
+            ->map(fn (array $b) => [
+                ...$b,
+                'keadaan' => $this->keadaanBlok($b['ids'], $perId, $statusBelum, $berisian),
+                'ubahan' => collect($b['ids'])->filter(fn (int $id) => in_array($perId[$id]->status, B::BERUBAH, true))->count(),
+            ])
             ->filter(fn (array $b) => $terlihat->intersect($b['ids'])->isNotEmpty())
             ->values();
 
@@ -479,17 +542,34 @@ class LayarKerja extends Component
             ? ($daftarBlok->filter(fn (array $b) => in_array($b['bagian'], ['judul', 'menimbang', 'mengingat'], true))->last()['kunci'] ?? '')
             : null;
 
-        // Halaman Lampiran: satu lampiran per halaman. Penandanya butuh isi lampiran, yang tidak ada di baris ringkas.
-        $halamanLampiran = ($blokAktif['bagian'] ?? null) === 'lampiran';
-        $daftarLampiran = $halamanLampiran ? $this->naskah->baris()->where('bagian', 'lampiran')->get() : collect();
-        $penandaLampiran = $halamanLampiran ? TemplateNaskah::penanda($this->naskah, $daftarLampiran) : [];
-        $idTerlihat = $blokAktif ? $terlihat->intersect($blokAktif['ids']) : collect();
-        $daftarLampiran = $daftarLampiran->whereIn('id', $idTerlihat)->values();
+        // Lampiran di tab Naskah, satu per halaman. Penandanya butuh isi lampiran, yang tidak ada di baris ringkas.
+        $daftarLampiran = $this->tab === 'naskah' ? $this->naskah->baris()->where('bagian', 'lampiran')->get() : collect();
+        $penandaLampiran = $daftarLampiran->isNotEmpty() ? TemplateNaskah::penanda($this->naskah, $daftarLampiran) : [];
+        $bukaLampiran = $this->tampilNaskah === 'lampiran' && $daftarLampiran->isNotEmpty();
 
-        if ($halamanLampiran) {
-            $this->lampiran = $daftarLampiran->contains('id', $this->lampiran) ? $this->lampiran : $daftarLampiran->first()?->id;
-            $idTerlihat = collect([$this->lampiran]);
+        if ($bukaLampiran) {
+            $this->lampiran = $daftarLampiran->contains('id', $this->lampiran) ? $this->lampiran : $daftarLampiran->first()->id;
         }
+
+        $idTerlihat = match (true) {
+            $bukaLampiran => collect([$this->lampiran]),
+            $this->tab === 'kerja' && $blokAktif !== null => $terlihat->intersect($blokAktif['ids']),
+            default => collect(),
+        };
+
+        // Lampiran yang menunggu dikerjakan pemegang giliran; ditunjukkan di Matriks karena tempatnya di tab Naskah.
+        $lampiranMenunggu = match ($mode) {
+            AlurNaskah::MODE_TELITI => $ringkasLampiran->whereIn('status', $statusBelum),
+            AlurNaskah::MODE_SESUAIKAN => $ringkasLampiran->where('status', B::PERLU_PD),
+            default => collect(),
+        };
+        $idBerubah = $barisMatriks->whereIn('status', B::BERUBAH)->pluck('id')->values();
+        $posisiPerubahan = $this->perubahan === null ? false : $idBerubah->search($this->perubahan);
+        $jejak = $idTerlihat->isEmpty() || $this->naskah->tahap === TahapNaskah::Draf ? collect() : $this->naskah->riwayat()
+            ->whereIn('aksi', ['ubah_baris', 'tambah_baris'])->whereIn('baris_id', $idTerlihat)
+            ->with('user:id,nama_user')->get(['id', 'baris_id', 'user_id', 'updated_at'])
+            ->unique('baris_id')
+            ->mapWithKeys(fn ($r) => [$r->baris_id => ['nama' => $r->user->nama_user ?? 'Sistem', 'waktu' => $r->updated_at->translatedFormat('d M Y H:i')]]);
 
         // Disimpan supaya pilihan tidak melompat saat baris terakhir bagian ini selesai diperiksa.
         $this->blok = $blokAktif['kunci'] ?? '';
@@ -520,10 +600,20 @@ class LayarKerja extends Component
             'posisiBlok' => $posisi,
             'blokSebelumnya' => $posisi > 0 ? $daftarBlok->get($posisi - 1) : null,
             'blokBerikutnya' => $daftarBlok->get($posisi + 1),
-            'daftarBaris' => $blokAktif ? $this->naskah->baris()->whereIn('id', $idTerlihat)->get() : collect(),
+            'daftarBaris' => $idTerlihat->isNotEmpty() ? $this->naskah->baris()->whereIn('id', $idTerlihat)->get() : collect(),
+            'jejak' => $jejak,
+            'jumlahPerubahan' => $idBerubah->count(),
+            'posisiPerubahan' => $posisiPerubahan === false ? null : $posisiPerubahan + 1,
             'penanda' => array_replace(TemplateNaskah::penanda($this->naskah, $semuaBaris), $penandaLampiran),
             'daftarLampiran' => $daftarLampiran,
-            'bisaTambahLampiran' => $halamanLampiran && in_array($mode, [AlurNaskah::MODE_SUSUN, AlurNaskah::MODE_TELITI, AlurNaskah::MODE_SESUAIKAN], true),
+            'bukaLampiran' => $bukaLampiran,
+            'jumlahLampiran' => $ringkasLampiran->count(),
+            'keadaanLampiran' => $this->keadaanBlok($ringkasLampiran->pluck('id')->all(), $perId, $statusBelum, $berisian),
+            'lampiranMenunggu' => $lampiranMenunggu,
+            'matriksSelesai' => $barisMatriks->whereIn('status', $statusBelum)->isEmpty(),
+            'hitungMatriks' => $barisMatriks->countBy('status'),
+            'totalMatriks' => $barisMatriks->count(),
+            'bisaTambahLampiran' => in_array($mode, [AlurNaskah::MODE_SUSUN, AlurNaskah::MODE_TELITI, AlurNaskah::MODE_SESUAIKAN], true),
             'hitung' => $hitung,
             'total' => $total,
             'diperiksa' => $total - $jumlahBelum,
@@ -559,6 +649,7 @@ class LayarKerja extends Component
             'isiVersi' => $this->versiTerpilih ? $this->naskah->versi()->find($this->versiTerpilih) : null,
             'bolehUnggah' => $this->bolehUnggah($alur),
             'blokNaskah' => match (true) {
+                $bukaLampiran => [],
                 $banding => BandingNaskah::susun($this->naskah, $this->naskah->baris()->get()),
                 $this->tab === 'naskah' => TataLetakNaskah::susun($this->naskah, $this->naskah->baris()->get()),
                 default => [],

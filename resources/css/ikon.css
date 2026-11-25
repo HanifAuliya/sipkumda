@@ -31,6 +31,8 @@
 }
 
 .bi-activity::before { content: "\e000"; }
+.bi-align-bottom::before { content: "\e506"; }
+.bi-align-middle::before { content: "\e50c"; }
 .bi-align-top::before { content: "\e512"; }
 .bi-archive::before { content: "\e00c"; }
 .bi-arrow-clockwise::before { content: "\e036"; }
@@ -44,6 +46,15 @@
 .bi-arrow-right::before { content: "\e06c"; }
 .bi-arrow-up::before { content: "\e08e"; }
 .bi-arrow-up-right::before { content: "\e092"; }
+.bi-arrows-horizontal::before { content: "\eb06"; }
+.bi-arrows-in-line::before { content: "\e530"; }
+.bi-arrows-move::before { content: "\e0a4"; }
+.bi-columns::before { content: "\e546"; }
+.bi-columns-plus-left::before { content: "\e544"; }
+.bi-columns-plus-right::before { content: "\e542"; }
+.bi-rows::before { content: "\e5a2"; }
+.bi-rows-plus-bottom::before { content: "\e59e"; }
+.bi-rows-plus-top::before { content: "\e5a0"; }
 .bi-arrows-fullscreen::before { content: "\e0a2"; }
 .bi-bank::before { content: "\e0b4"; }
 .bi-bar-chart::before { content: "\e150"; }

@@ -62,12 +62,22 @@ Pengajuan** berisi apa saja yang perlu disiapkan.
 
 ## 2. Menyusun di layar kerja
 
-- Panel kiri berisi bagian naskah (Judul, Menimbang, Mengingat, Batang Tubuh per BAB, Penutup, Lampiran).
+- Panel kiri berisi bagian naskah (Judul, Menimbang, Mengingat, Batang Tubuh per BAB, Penutup). **Lampiran** ada di
+  bagian bawahnya dan dikerjakan di tab **Naskah**.
   Tanda centang hijau berarti bagian itu sudah terisi. Bagian yang masih berisi isian **"…"** dari template
   belum dianggap terisi.
 - Ketik rumusan di kotak **Rumusan**. Penomoran (a., 1., (1)) dan tabel ditampilkan seperti hasil cetak.
 - **Pratinjau Naskah** di kanan menunjukkan hasil cetaknya.
-- Tab **Naskah** untuk membaca seluruh naskah dan mengunduh Word/PDF; tab **Berkas** untuk lampiran.
+- Tab **Naskah** menampilkan seluruh naskah per halaman seperti di Word, tempat mengisi **Lampiran I**, **Lampiran II**,
+  dan seterusnya (atau **Tambah Lampiran**), serta mengunduh Word/PDF lewat **Unduh**. Lampiran tidak masuk matriks.
+  Tab **Berkas** untuk berkas pendukung.
+- Lampiran bisa diketik, ditempel dari Word atau Excel, atau diambil dari filenya lewat **Ambil dari Word / PDF**; isinya masuk
+  ke editor dan bisa diubah. Kepala "LAMPIRAN …" dan tanda tangan tidak perlu diketik, karena dibuat otomatis. Lampiran di dalam
+  Word yang diunggah saat mengajukan juga langsung masuk ke sini. Hasil baca PDF perlu dicocokkan lagi; PDF hasil pindai
+  disisipkan utuh lewat **Pakai PDF apa adanya**.
+- Tabel lampiran diatur seperti di Word: seret garisnya untuk mengubah lebar kolom dan tinggi baris, klik tepi atas atau kirinya
+  untuk memilih kolom atau baris, dan klik kanan atau bilah alatnya untuk menyisip, menghapus, menggabung, membagi sel, garis,
+  dan arsiran. **Tabel › Baris judul** mengulang baris judul di tiap halaman.
 - Judul diubah lewat **Lainnya › Ubah Judul** (atau tombol **Ubah Judul** di bagian Judul). Judul
   pengajuan, judul naskah, dan bunyi "Menetapkan" ikut berubah bersama.
 - Selama belum diajukan, draf bisa dibuang lewat **Lainnya › Buang Draf**.

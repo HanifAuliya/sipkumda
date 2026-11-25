@@ -7,7 +7,10 @@ use App\Models\NaskahBaris;
 use App\Models\NaskahBerkas;
 use App\Services\AlurNaskah;
 use App\Services\CetakNaskah;
+use App\Services\PembacaLampiranWord;
+use App\Support\BandingRumusan;
 use App\Support\FormatDokumen;
+use App\Support\HtmlLampiran;
 use App\Support\TataLetakNaskah;
 use App\Support\TemplateNaskah;
 use Illuminate\Support\Facades\Gate;
@@ -16,6 +19,7 @@ use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use RuntimeException;
 
 /**
  * Satu baris matriks sebagai komponen sendiri: menyimpan satu baris tidak merender ulang
@@ -35,8 +39,15 @@ class BarisKerja extends Component
     #[Locked]
     public ?string $penanda = null;
 
+    /** Yang terakhir memeriksa atau mengubah baris ini: ['nama' => ..., 'waktu' => ...]; kosong bila belum ada. */
+    #[Locked]
+    public array $jejak = [];
+
     /** PDF lampiran yang sedang diunggah (baris lampiran berbentuk berkas). */
     public $pdfLampiran;
+
+    /** File Word yang isinya diambil ke editor lampiran. */
+    public $wordLampiran;
 
     /**
      * Mengunggah PDF lampiran. Setiap unggahan menjadi berkas tersendiri (versi), lalu disimpan sebagai isi
@@ -72,6 +83,74 @@ class BarisKerja extends Component
         }
 
         $this->reset('pdfLampiran');
+    }
+
+    /**
+     * Isi file Word untuk editor lampiran. Tidak menyimpan apa pun: hasilnya masuk ke editor dan disimpan seperti
+     * ketikan biasa.
+     *
+     * @return array{html?: string, catatan?: string, galat?: string}
+     */
+    public function bacaWordLampiran(PembacaLampiranWord $pembaca, AlurNaskah $alur): array
+    {
+        $this->pastikanBisaMengisiLampiran($alur);
+
+        try {
+            $this->validate(['wordLampiran' => 'required|file|mimes:docx|max:20480'], [], ['wordLampiran' => 'File Word']);
+            $html = $pembaca->baca($this->wordLampiran->getRealPath(), FormatDokumen::lebarIsiPx($this->naskah->jenis));
+        } catch (ValidationException $e) {
+            $this->resetErrorBag();
+
+            return ['galat' => $e->validator->errors()->first()];
+        } catch (RuntimeException $e) {
+            return ['galat' => $e->getMessage()];
+        } finally {
+            $this->reset('wordLampiran');
+        }
+
+        return $this->hasilBaca($html, $pembaca->gambar);
+    }
+
+    /** Hasil baca PDF dari browser: dibersihkan, dan kepala serta tanda tangannya dibuang karena dibuat otomatis. */
+    public function rapikanLampiran(string $html, AlurNaskah $alur): array
+    {
+        $this->pastikanBisaMengisiLampiran($alur);
+
+        if (strlen($html) > 5 * 1024 * 1024) {
+            return ['galat' => 'Isi PDF terlalu panjang. Pecah menjadi beberapa lampiran.'];
+        }
+
+        return $this->hasilBaca(HtmlLampiran::bersihkan($html), 0, 'Hasil baca PDF bisa meleset, terutama tabel dan pergantian barisnya. Cocokkan dulu dengan PDF-nya.');
+    }
+
+    private function hasilBaca(?string $html, int $gambar, string $catatan = ''): array
+    {
+        $html = HtmlLampiran::bersihkan(HtmlLampiran::tanpaKepalaTtd($html, $this->naskah->tentang));
+
+        if (! $html) {
+            return ['galat' => 'File tidak memuat isi yang bisa dibaca.'];
+        }
+
+        return [
+            'html' => $html,
+            'catatan' => trim($catatan . ($gambar ? " {$gambar} gambar tidak ikut terbaca." : '')),
+        ];
+    }
+
+    private function pastikanBisaMengisiLampiran(AlurNaskah $alur): void
+    {
+        Gate::authorize('view', $this->naskah);
+        abort_unless($this->baris->bagian === 'lampiran' && $alur->modeBaris($this->naskah, auth()->user()), 403);
+    }
+
+    /** Lampiran PDF diubah menjadi isi editor (saat penyusunan); PDF-nya dilepas. */
+    public function pdfMenjadiEditor(string $html, AlurNaskah $alur): bool
+    {
+        return $this->jalankan(function () use ($html, $alur) {
+            $baris = $alur->aturFormatLampiran($this->baris, auth()->user(), NaskahBaris::FORMAT_HTML);
+
+            return $alur->susun($baris, auth()->user(), $baris->label, $html);
+        });
     }
 
     /** Saat penyusunan: lampiran diketik di editor, atau berupa berkas PDF. */
@@ -184,6 +263,7 @@ class BarisKerja extends Component
             return false;
         }
 
+        $this->jejak = ['nama' => auth()->user()->nama_user, 'waktu' => now()->translatedFormat('d M Y H:i')];
         $this->resetErrorBag();
         $this->dispatch('baris-berubah');
 
@@ -192,6 +272,8 @@ class BarisKerja extends Component
 
     public function render(AlurNaskah $alur)
     {
+        $kertas = $this->kertasLampiran();
+
         // Saat halaman dibuka semua baris memakai model yang sama dari induk, jadi tidak ada query per baris.
         // Setiap aksi tetap memeriksa giliran terbaru di AlurNaskah.
         return view('v2.baris-kerja', [
@@ -199,7 +281,9 @@ class BarisKerja extends Component
             // Lampiran wajib ada: tombol hapus hanya untuk lampiran tambahan.
             'lampiranTambahan' => $this->baris->bagian === 'lampiran' && $alur->lampiranTambahan($this->baris),
             'sisipanSaya' => $alur->sisipanPdTerbuka($this->baris, auth()->user()),
-            'kertas' => $this->kertasLampiran(),
+            'kertas' => $kertas,
+            // Halaman kertas lampiran punya pilihan versinya sendiri.
+            'banding' => $kertas ? null : BandingRumusan::susun($this->baris),
         ]);
     }
 

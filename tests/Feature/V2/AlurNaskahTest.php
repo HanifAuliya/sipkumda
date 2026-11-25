@@ -11,6 +11,7 @@ use App\Models\NaskahBaris as B;
 use App\Models\User;
 use App\Services\AlurNaskah;
 use App\Services\PembacaNaskahWord;
+use App\Support\BandingRumusan;
 use App\Support\BandingNaskah;
 use App\Support\BlokNaskah;
 use App\Support\DiffKata;
@@ -418,6 +419,52 @@ describe('pratinjau dan perbandingan', function () {
             ->assertDispatched('fokus-baris', id: $pasal->id);
     });
 
+    it('kartu baris menandai yang dihapus di rumusan awal dan yang ditambah di penyempurnaan', function () {
+        $n = naskahPenelitian($this);
+        $pasal = $n->baris()->where('label', 'Pasal 1')->first();
+        $pasal->update(['rumusan_awal' => "Tarif <b> paling lambat 7 hari.\n| NO | TARIF |\n| --- | --- |\n| 1 | Rp1.000 |"]);
+        $this->alur->perbaiki($pasal, $this->peneliti, "Tarif <b> paling lambat 14 hari kerja.\n| NO | TARIF |\n| --- | --- |\n| 1 | Rp2.000 |\n| 2 | Rp3.000 |");
+
+        $banding = BandingRumusan::susun($pasal->fresh());
+        expect((string) $banding['awal'][0]['html'])->toBe('Tarif &lt;b&gt; paling lambat <del>7</del> hari.')
+            ->and((string) $banding['sempurna'][0]['html'])->toBe('Tarif &lt;b&gt; paling lambat <ins>14</ins> hari<ins> kerja</ins>.')
+            ->and(array_map(fn ($b) => implode('|', $b), $banding['awal'][1]['tabel']))->toBe(['NO|TARIF', '1|<del>Rp1.000</del>'])
+            ->and(array_map(fn ($b) => implode('|', $b), $banding['sempurna'][1]['tabel']))->toBe(['NO|TARIF', '1|<ins>Rp2.000</ins>', '<ins>2</ins>|<ins>Rp3.000</ins>'])
+            ->and([$banding['hapus'], $banding['tambah']])->toBe([2, 5]);
+
+        Livewire::actingAs($this->peneliti)
+            ->test(BarisKerja::class, ['baris' => $pasal->fresh(), 'naskah' => $n, 'jejak' => ['nama' => 'Peneliti Uji', 'waktu' => '25 Nov 2026 10:00']])
+            ->assertSeeInOrder(['Peneliti Uji', 'Rumusan Awal', '2 kata dihapus', 'Rumusan Penyempurnaan', '5 kata ditambah'])
+            // Sesudah disimpan, jejaknya menjadi pengguna ini.
+            ->call('tetap', null)
+            ->assertSee([$this->peneliti->nama_user, 'Tetap, sama dengan rumusan awal'])
+            ->assertDontSeeHtml('<del>');
+
+        // Baris dihapus: seluruh rumusan awalnya ditandai.
+        $this->alur->hapus($pasal->fresh(), $this->peneliti);
+        expect((string) BandingRumusan::susun($pasal->fresh())['awal'][0]['html'])->toStartWith('<del>Tarif');
+    });
+
+    it('tombol perubahan berpindah antarbaris yang berubah dan kembali ke awal', function () {
+        $n = naskahPenelitian($this);
+        $menimbang = $n->baris()->where('bagian', 'menimbang')->first();
+        $pasal = $n->baris()->where('label', 'Pasal 1')->first();
+
+        $layar = Livewire::actingAs($this->peneliti)->test(LayarKerja::class, ['naskah' => $n])
+            ->call('keperubahan', 1)->assertSet('perubahan', null);
+
+        $this->alur->perbaiki($menimbang, $this->peneliti, 'bahwa sudah diubah');
+        $this->alur->perbaiki($pasal, $this->peneliti, 'Pembayaran paling lambat 14 hari.');
+
+        $layar->set('filter', 'semua')
+            ->call('keperubahan', 1)->assertSet('perubahan', $menimbang->id)->assertSet('blok', 'menimbang')
+            ->assertDispatched('fokus-baris', id: $menimbang->id, ubah: false)->assertSee('Perubahan 1 dari 2')
+            ->call('keperubahan', 1)->assertSet('perubahan', $pasal->id)->assertSee('Perubahan 2 dari 2')
+            ->call('keperubahan', 1)->assertSet('perubahan', $menimbang->id)
+            ->call('keperubahan', -1)->assertSet('perubahan', $pasal->id)
+            ->call('pilihBlok', 'menimbang')->assertSet('perubahan', null)->assertSee('2 baris berubah');
+    });
+
     it('perbandingan menandai baris dihapus dan baris sisipan, dan tidak mengubah hasil cetak', function () {
         $n = naskahPenelitian($this);
         $menimbang = $n->baris()->where('bagian', 'menimbang')->get();
@@ -456,7 +503,7 @@ describe('pratinjau dan perbandingan', function () {
         expect($tampil[0])->toBe([0, '(1)', 'Ayat satu:'])
             ->and($tampil[1])->toBe([1, 'a.', 'huruf a;'])
             ->and($tampil)->toContain([1, '<ins>c.</ins>', '<ins>huruf c.</ins>'])
-            ->and($tampil[array_key_last($tampil)])->toBe([0, '(2)', 'Ayat dua yang panjang sekali <del>isinya.</del><ins>rumusannya.</ins>']);
+            ->and($tampil[array_key_last($tampil)])->toBe([0, '(2)', 'Ayat dua yang panjang sekali <del>isinya</del><ins>rumusannya</ins>.']);
     });
 
     it('perbandingan menandai baris tabel yang berubah dan menjaga keamanan teks', function () {
@@ -763,14 +810,16 @@ describe('pembaca Word', function () {
             'KEPUTUSAN BUPATI HULU SUNGAI TENGAH', 'NOMOR 400/ /911/TAHUN 2025', 'TENTANG', 'PENETAPAN HIBAH',
             'BUPATI HULU SUNGAI TENGAH,', 'Menimbang : a. bahwa satu;', 'b. bahwa dua;', 'Mengingat : 1. Undang-Undang satu;',
             'M E M U T U S K A N:', 'Menetapkan:', 'KESATU : Menetapkan penerima.', 'KE DUA : Besaran hibah.', 'Lanjutan kedua.',
-            'Ditetapkan di Barabai', 'LAMPIRAN', 'Daftar penerima',
+            'Ditetapkan di Barabai', 'LAMPIRAN', 'KEPUTUSAN BUPATI HULU SUNGAI TENGAH', 'NOMOR ... TAHUN 2025', 'TENTANG', 'PENETAPAN HIBAH',
+            'Daftar penerima', 'BUPATI HULU SUNGAI TENGAH,', 'SAMSUL RIZAL',
         ]), 'Keputusan Bupati');
         $baris = collect($hasil['baris']);
 
         expect($baris->where('bagian', 'diktum')->pluck('teks')->all())->toBe(['Menetapkan penerima.', "Besaran hibah.\nLanjutan kedua."])
             ->and($baris->where('bagian', 'menimbang')->pluck('teks')->all())->toBe(['bahwa satu;', 'bahwa dua;'])
-            ->and($baris->pluck('teks')->implode(' '))->not->toContain('Daftar penerima')
-            ->and($hasil['peringatan'])->not->toBeEmpty();
+            // Lampirannya masuk ke editor, tanpa kepala dan tanda tangan yang dibuat otomatis.
+            ->and($baris->where('bagian', 'lampiran')->values()->all())->toBe([['bagian' => 'lampiran', 'label' => null, 'teks' => '<p>Daftar penerima</p>', 'format' => 'html']])
+            ->and($hasil['peringatan'])->toBeEmpty();
     });
 
     it('menolak file yang bukan docx', function () {

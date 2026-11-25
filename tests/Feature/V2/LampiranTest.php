@@ -62,14 +62,14 @@ it('membersihkan HTML dari editor: rata, tebal, dan tabel tetap; skrip, gambar, 
         ->and(HtmlLampiran::teks($bersih))->toContain("SUSUNAN TIM\n| 1. | Budi, S.H. |");
 });
 
-it('lampiran baru memakai editor; isinya tersimpan bersih dan tampil di pratinjau, PDF, Word, dan matriks', function () use ($tabelTim) {
+it('lampiran baru memakai editor; isinya tersimpan bersih dan tampil di pratinjau, PDF, dan Word', function () use ($tabelTim) {
     $n = drafBerlampiran($this->pd);
     $lampiran = $n->baris()->where('bagian', 'lampiran')->first();
 
     expect($lampiran->format)->toBe(B::FORMAT_HTML);
 
     Livewire::actingAs($this->pd)->test(BarisKerja::class, ['baris' => $lampiran, 'naskah' => $n])
-        ->assertSee('Lampiran terlalu rumit? Unggah PDF saja')
+        ->assertSee(['Ambil dari Word / PDF', 'Pakai PDF apa adanya'])
         ->call('simpanSusun', null, $tabelTim)
         ->assertHasNoErrors();
 
@@ -132,7 +132,7 @@ it('lampiran berupa PDF: diunggah per versi, wajib ada sebelum diajukan, dan Pen
         ->and($lampiran->berkasLampiran($lampiran->rumusan_awal)->nama_asli)->toBe('Susunan Tim.pdf')
         ->and($lampiran->berkasLampiran($lampiran->rumusan_penyempurnaan)->nama_asli)->toBe('Susunan Tim revisi.pdf');
 
-    // Naskah: blok berkas; matriks: nama berkasnya; tab Naskah: tombol gabung PDF.
+    // Naskah: blok berkas; tab Naskah: tombol gabung PDF.
     expect(collect(TataLetakNaskah::susun($n, $n->baris()->get()))->firstWhere('tipe', 'berkas')['berkas']->nama_asli)->toBe('Susunan Tim revisi.pdf')
         ->and(substr(app(CetakNaskah::class)->pdfMatriks($n), 0, 4))->toBe('%PDF');
 
@@ -164,7 +164,7 @@ it('lampiran PDF hanya boleh menunjuk berkas lampiran naskah yang sama', functio
         ->toThrow(Illuminate\Validation\ValidationException::class, 'Berkas lampiran tidak ditemukan');
 });
 
-it('keluaran editor Tiptap: sel berparagraf, lebar kolom, dan tabel tanpa garis tetap benar di cetakan dan matriks', function () {
+it('keluaran editor Tiptap: sel berparagraf, lebar kolom, dan tabel tanpa garis tetap benar di cetakan', function () {
     $html = '<p style="text-align: center;"><strong>TIM</strong></p>'
         . '<table style="width: 600px;"><colgroup><col style="width: 60px;"><col style="width: 340px;"><col style="width: 200px;"></colgroup><tbody>'
         . '<tr><td colwidth="60"><p>NO</p></td><td colwidth="340"><p>NAMA</p><p>JABATAN</p></td><td colwidth="200"><p>KET|X</p></td></tr>'
@@ -180,7 +180,7 @@ it('keluaran editor Tiptap: sel berparagraf, lebar kolom, dan tabel tanpa garis 
         ->and(HtmlLampiran::bersihkan($bersih))->toBe($bersih)
         ->and(HtmlLampiran::bersihkan('<table><tbody><tr><td colwidth="1;x">a</td></tr></tbody></table>'))->not->toContain('colwidth');
 
-    // Matriks: satu baris tabel tetap satu baris "| a | b |".
+    // Bentuk teksnya (perbandingan, riwayat): satu baris tabel tetap satu baris "| a | b |".
     $teks = explode("\n", HtmlLampiran::teks($bersih));
     expect($teks)->toBe(['TIM', '| NO | NAMA JABATAN | KET/X |', '| 1. | Gabungan | |', '| | Budi | Ketua |', 'a. huruf a', 'akhir'])
         ->and(HtmlLampiran::teks('<ol start="2"><li><p>dua</p><ul><li>poin</li></ul></li><li>tiga</li></ol><ol style="list-style-type:lower-roman"><li>x</li><li>y</li></ol>'))
@@ -235,13 +235,47 @@ it('halaman lampiran: satu lampiran per halaman di kertas, dengan tab dan Tambah
     $layar->call('pilihLampiran', $pertama->id)->assertSee(['Lampiran I', 'Lampiran II'])->assertSeeHtml('id="baris-' . $pertama->id . '"');
 
     // Menuju baris dari perbandingan atau daftar galat membuka lampirannya; id yang tidak dikenal kembali ke yang pertama.
-    $layar->call('pilihBlok', 'judul')->call('bukaBaris', $kedua->id)->assertSet('blok', 'lampiran')->assertSet('lampiran', $kedua->id)
+    $layar->call('pilihBlok', 'judul')->assertSet('tab', 'kerja')
+        ->call('bukaBaris', $kedua->id)->assertSet('tab', 'naskah')->assertSet('tampilNaskah', 'lampiran')->assertSet('lampiran', $kedua->id)
         ->call('pilihLampiran', 999999)->assertSet('lampiran', $pertama->id);
 
     // Kertasnya memuat kepala dan tanda tangan otomatis, sama dengan cetakan.
     Livewire::actingAs($this->pd)->test(BarisKerja::class, ['baris' => $kedua->fresh(), 'naskah' => $n])
         ->assertSee(['LAMPIRAN II', 'TIM PENYUSUN', 'BUPATI HULU SUNGAI TENGAH,'])
         ->assertSeeHtml(['class="kertas-naskah kertas-lampiran', '--k-tinggi: 33cm', 'data-wadah', 'aria-label="Hapus lampiran ini"']);
+});
+
+it('lampiran hanya ada di tab Naskah: tidak di Matriks dan tidak di Matriks PDF, tetapi tetap wajib diperiksa', function () {
+    $n = drafBerlampiran($this->pd);
+    $lampiran = $n->baris()->where('bagian', 'lampiran')->first();
+    $this->alur->susun($lampiran, $this->pd, null, '<p>PENANDALAMPIRAN</p>');
+    $this->alur->jalankan($n, $this->pd, 'ajukan');
+    $this->alur->jalankan($n, $this->admin, 'setujui_berkas');
+    $n = $this->alur->jalankan($n, $this->verifikator, 'tugaskan_peneliti', null, $this->peneliti->id);
+
+    $pdf = tempnam(sys_get_temp_dir(), 'pdf');
+    file_put_contents($pdf, app(CetakNaskah::class)->pdfMatriks($n));
+    expect((new Smalot\PdfParser\Parser())->parseFile($pdf)->getText())->not->toContain('PENANDALAMPIRAN');
+    unlink($pdf);
+
+    $layar = Livewire::actingAs($this->peneliti)->test(LayarKerja::class, ['naskah' => $n])
+        ->assertViewHas('daftarBlok', fn ($blok) => ! $blok->contains('bagian', 'lampiran'))
+        ->assertSee('Di tab Naskah')
+        ->assertDontSee('PENANDALAMPIRAN');
+
+    // Tautan lama ke bagian Lampiran tetap sampai.
+    Livewire::actingAs($this->peneliti)->test(LayarKerja::class, ['naskah' => $n, 'blok' => 'lampiran'])
+        ->assertSet('tab', 'naskah')->assertSee('PENANDALAMPIRAN');
+
+    // Baris matriks selesai: yang tersisa lampirannya, dan disebut tempatnya.
+    $n->baris()->where('bagian', '!=', 'lampiran')->get()->each(fn (B $b) => $this->alur->tetapkan($b, $this->peneliti));
+    $hambatan = fn () => collect($this->alur->aksiTersedia($n->fresh(), $this->peneliti))->pluck('hambatan')->filter()->first();
+    expect($hambatan())->toBe('1 lampiran (tab Naskah) belum diperiksa.');
+    $layar->call('$refresh')->assertSee('Buka Lampiran');
+
+    $this->alur->tetapkan($lampiran->fresh(), $this->peneliti);
+    expect($hambatan())->toBeNull();
+    $layar->call('$refresh')->assertDontSee('Buka Lampiran');
 });
 
 it('Peneliti memeriksa lampiran di kertas: versi terbaru, rumusan awal, dan perubahannya', function () {
@@ -261,4 +295,137 @@ it('Peneliti memeriksa lampiran di kertas: versi terbaru, rumusan awal, dan peru
 
     // Yang hanya membaca tidak dimuati editornya.
     $uji($this->pd)->assertSee('Ketua Ani')->assertDontSeeHtml('data-wadah');
+});
+
+it('tabel seperti di Word: garis per sisi, arsiran, tinggi baris, letak, dan baris judul tetap di cetakan', function () {
+    $html = '<table style="margin-left: auto; margin-right: auto;"><colgroup><col style="width: 100px;"><col style="width: 200px;"></colgroup><tbody>'
+        . '<tr style="height: 42.5pt;"><th colwidth="100" style="background-color: rgb(217, 217, 217); vertical-align: middle;" data-tg="kiri"><p>NO</p></th><th colwidth="200"><p>NAMA</p></th></tr>'
+        . '<tr><td colwidth="100" style="border-bottom: 2.25pt solid; border-left: none;"><p>1.</p></td><td colwidth="200" style="border-top: 3pt double;"><p>Budi</p></td></tr></tbody></table>';
+    $bersih = HtmlLampiran::bersihkan($html);
+
+    expect($bersih)->toContain('margin-left:auto;margin-right:auto', 'height:42.5pt', 'background-color:rgb(217, 217, 217)', 'border-bottom:2.25pt solid;border-left:none', 'border-top:3pt double')
+        ->not->toContain('data-tg')
+        ->and(HtmlLampiran::bersihkan($bersih))->toBe($bersih)
+        ->and(HtmlLampiran::garisSel('border-bottom:2.25pt solid;border-left:none'))->toBe(['top' => ['solid', 0.5], 'right' => ['solid', 0.5], 'bottom' => ['solid', 2.25], 'left' => ['none', 0.5]])
+        ->and(HtmlLampiran::garisSel('border-style:none')['top'][0])->toBe('none')
+        ->and(HtmlLampiran::garisSel('border-style:none solid;border-width:2px')['right'])->toBe(['solid', 1.5]);
+
+    // Letak menjadi jarak kiri, baris judul menjadi thead, tinggi baris ditulis juga di selnya.
+    $tampil = HtmlLampiran::untukTampil($bersih, 600);
+    expect($tampil)->toContain('<table style="width:50%;margin-left:25%">', '<thead><tr style="height:42.5pt"><th', 'height:38.5pt', '</thead><tbody><tr><td');
+
+    $n = drafBerlampiran($this->pd);
+    $n->baris()->where('bagian', 'lampiran')->update(['rumusan_awal' => $bersih]);
+    expect(substr(app(CetakNaskah::class)->pdfNaskah($n), 0, 4))->toBe('%PDF');
+
+    $berkas = app(CetakNaskah::class)->wordNaskah($n);
+    $zip = new ZipArchive();
+    $zip->open($berkas);
+    $xml = $zip->getFromName('word/document.xml');
+    $zip->close();
+    @unlink($berkas);
+    expect($xml)->toContain('<w:trHeight w:val="850"', '<w:tblHeader', 'w:fill="D9D9D9"', '<w:bottom w:val="single" w:sz="18"', '<w:top w:val="double" w:sz="24"', '<w:tblInd ');
+});
+
+it('lampiran sangat panjang tidak hilang saat disimpan', function () {
+    $html = str_repeat('<p style="margin-left:36pt">Isi yang panjang sekali.</p><p></p><table><tbody><tr><td><p></p></td></tr></tbody></table>', 2000) . '<p>akhir</p><p>&nbsp;</p><p><br></p>';
+
+    expect(HtmlLampiran::bersihkan($html))->toEndWith('<p>akhir</p>')
+        ->and(strlen(HtmlLampiran::bersihkan($html)))->toBeGreaterThan(200000);
+});
+
+/** File Word lampiran: kepala, judul, daftar, tabel bergabung dengan garis dan arsiran, lalu tanda tangan. */
+function wordLampiran(array $awal = []): UploadedFile
+{
+    $word = new PhpOffice\PhpWord\PhpWord();
+    PhpOffice\PhpWord\Settings::setOutputEscapingEnabled(true);
+    $word->setDefaultFontSize(12);
+    $word->addNumberingStyle('angka', ['type' => 'multilevel', 'levels' => [['format' => 'decimal', 'text' => '%1.', 'start' => 1]]]);
+    $s = $word->addSection();
+    foreach ([...$awal, 'LAMPIRAN', 'KEPUTUSAN BUPATI HULU SUNGAI TENGAH', 'NOMOR ... TAHUN 2026', 'TENTANG', 'TIM', 'PENYUSUN'] as $teks) {
+        $s->addText($teks);
+    }
+    $s->addText('SUSUNAN <TIM>', ['bold' => true, 'size' => 14], ['alignment' => 'center']);
+    $s->addListItem('angka satu', 0, null, 'angka');
+    $s->addListItem('angka dua', 0, null, 'angka');
+    $t = $s->addTable(['borderSize' => 4, 'borderColor' => '000000']);
+    $t->addRow(850, ['tblHeader' => true]);
+    $t->addCell(750, ['bgColor' => 'D9D9D9', 'valign' => 'center'])->addText('NO');
+    $t->addCell(3000)->addText('NAMA');
+    $t->addCell(1500)->addText('KET');
+    $t->addRow();
+    $t->addCell(750, ['vMerge' => 'restart'])->addText('1.');
+    $t->addCell(4500, ['gridSpan' => 2])->addText('Gabungan');
+    $t->addRow();
+    $t->addCell(750, ['vMerge' => 'continue']);
+    $t->addCell(3000)->addText('Budi', ['italic' => true]);
+    $t->addCell(1500, ['borderBottomSize' => 24, 'borderBottomColor' => '000000', 'borderBottomStyle' => 'single'])->addText('Ketua');
+    $s->addText('BUPATI HULU SUNGAI TENGAH,');
+    $s->addTextBreak(2);
+    $s->addText('SAMSUL RIZAL');
+
+    $berkas = tempnam(sys_get_temp_dir(), 'lamp') . '.docx';
+    PhpOffice\PhpWord\IOFactory::createWriter($word, 'Word2007')->save($berkas);
+
+    return UploadedFile::fake()->createWithContent('lampiran.docx', file_get_contents($berkas));
+}
+
+it('isi file Word masuk ke editor lampiran tanpa kepala dan tanda tangan, lengkap dengan tabelnya', function () {
+    $n = drafBerlampiran($this->pd);
+    $lampiran = $n->baris()->where('bagian', 'lampiran')->first();
+
+    $komponen = Livewire::actingAs($this->pd)->test(BarisKerja::class, ['baris' => $lampiran, 'naskah' => $n])
+        ->set('wordLampiran', wordLampiran())
+        ->call('bacaWordLampiran')
+        ->assertHasNoErrors();
+    $html = $komponen->effects['returns'][0]['html'];
+
+    expect($html)->toStartWith('<p style="text-align:center"><span style="font-size:14pt"><strong>SUSUNAN &lt;TIM&gt;</strong></span></p><ol><li><p>angka satu</p></li><li><p>angka dua</p></li></ol><table')
+        ->toContain('<tr style="height:42.5pt"><th colwidth="50" style="background-color:#d9d9d9;vertical-align:middle">', 'rowspan="2"', 'colspan="2" colwidth="200,100"', '<em>Budi</em>', 'border-bottom:3pt solid')
+        ->not->toContain('LAMPIRAN', 'PENYUSUN', 'BUPATI', 'SAMSUL')
+        // Belum tersimpan sampai pengguna menyimpannya dari editor.
+        ->and($lampiran->fresh()->rumusan_awal)->toBeNull();
+
+    $this->alur->susun($lampiran->fresh(), $this->pd, null, $html);
+    expect($lampiran->fresh()->rumusan_awal)->toBe($html);
+
+    // Bukan Word, dan yang tidak sedang bertugas.
+    expect(Livewire::actingAs($this->pd)->test(BarisKerja::class, ['baris' => $lampiran, 'naskah' => $n])
+        ->set('wordLampiran', UploadedFile::fake()->createWithContent('rusak.docx', 'bukan word'))->call('bacaWordLampiran')->effects['returns'][0])->toHaveKey('galat');
+    Livewire::actingAs($this->peneliti)->test(BarisKerja::class, ['baris' => $lampiran, 'naskah' => $n])->call('rapikanLampiran', '<p>x</p>')->assertForbidden();
+});
+
+it('hasil baca PDF dibersihkan, dan lampiran PDF bisa diubah menjadi isi editor', function () {
+    $n = drafBerlampiran($this->pd);
+    $lampiran = $n->baris()->where('bagian', 'lampiran')->first();
+    $uji = fn () => Livewire::actingAs($this->pd)->test(BarisKerja::class, ['baris' => $lampiran->fresh(), 'naskah' => $n]);
+
+    $hasil = $uji()->call('rapikanLampiran', '<p style="margin-left:227pt">LAMPIRAN I</p><p style="margin-left:227pt">KEPUTUSAN BUPATI HULU SUNGAI TENGAH NOMOR 1 TAHUN 2026 TENTANG TIM PENYUSUN</p><p>isi<script>x</script></p>')->effects['returns'][0];
+    expect($hasil['html'])->toBe('<p>isi</p>')->and($hasil['catatan'])->toContain('Cocokkan');
+
+    $this->alur->aturFormatLampiran($lampiran, $this->pd, B::FORMAT_BERKAS);
+    $uji()->set('pdfLampiran', pdfPalsu())->call('unggahLampiran')->assertSee('Ubah jadi bisa diedit');
+    $uji()->call('pdfMenjadiEditor', '<p>dari PDF</p>')->assertHasNoErrors()->assertSee('Ambil dari Word / PDF');
+    expect($lampiran->fresh()->format)->toBe(B::FORMAT_HTML)->and($lampiran->fresh()->rumusan_awal)->toBe('<p>dari PDF</p>');
+});
+
+it('kepala lampiran yang judulnya berbeda dari judul naskah tetap dikenali dari letaknya', function () {
+    $kepala = fn (string $judul) => '<p style="text-indent:200pt">LAMPIRAN</p><p style="text-indent:200pt">KEPUTUSAN BUPATI HULU SUNGAI TENGAH</p><p>NOMOR 1 TAHUN 2026</p><p>TENTANG</p><p style="text-indent:200pt">' . $judul . '</p><p></p><p>isi</p>';
+
+    expect(HtmlLampiran::tanpaKepalaTtd($kepala('TIM LAIN'), 'Tim Penyusun'))->toBe('<p>isi</p>')
+        ->and(HtmlLampiran::tanpaKepalaTtd($kepala('TIM PENYUSUN'), 'Tim Penyusun'))->toBe('<p>isi</p>')
+        ->and(HtmlLampiran::tanpaKepalaTtd('<p>LAMPIRAN II</p><p>isi</p>', 'x'))->toBe('<p>isi</p>')
+        // Bukan kepala dan bukan tanda tangan: dibiarkan.
+        ->and(HtmlLampiran::tanpaKepalaTtd('<p>Daftar lampiran permohonan</p><p>isi</p>', 'x'))->toBe('<p>Daftar lampiran permohonan</p><p>isi</p>');
+});
+
+it('ketikan selama menyimpan tidak tertimpa: isi dari server tidak ada di x-data', function () {
+    $n = drafBerlampiran($this->pd);
+    $baris = $n->baris()->where('bagian', 'menimbang')->first();
+    $komponen = Livewire::actingAs($this->pd)->test(BarisKerja::class, ['baris' => $baris, 'naskah' => $n]);
+    $xData = fn () => preg_match('/<article[^>]*?x-data="([^"]*)"/s', $komponen->html(), $m) ? $m[1] : null;
+
+    $awal = $xData();
+    $komponen->call('simpanSusun', null, 'bahwa teks baru;')->assertSeeHtml('data-teks="bahwa teks baru;"');
+    expect($xData())->toBe($awal)->not->toBeNull();
 });

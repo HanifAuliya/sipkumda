@@ -8,6 +8,27 @@ class DiffKata
     /** Di atas batas ini perbandingan per kata terlalu berat; seluruh teks dianggap berubah. */
     private const BATAS_KATA = 1500;
 
+    /** Hanya satu sisi dari hasil html(): teks lama (yang dihapus ditandai) atau teks baru (yang ditambah ditandai). */
+    public static function sisi(string $html, bool $lama): string
+    {
+        // Isi del dan ins selalu teks yang sudah di-escape, jadi tidak mungkin memuat tag lain.
+        return preg_replace($lama ? '#<ins>.*?</ins>#su' : '#<del>.*?</del>#su', '', $html);
+    }
+
+    /** @return array{hapus: int, tambah: int} jumlah kata yang dihapus dan ditambah */
+    public static function jumlah(?string $lama, ?string $baru): array
+    {
+        $html = self::html($lama, $baru);
+        $hitung = function (string $tag) use ($html): int {
+            preg_match_all("#<{$tag}>(.*?)</{$tag}>#su", $html, $cocok);
+
+            // Tanda baca dan garis tabel yang berdiri sendiri bukan kata.
+            return preg_match_all('/\S*[\p{L}\p{N}]\S*/u', implode(' ', $cocok[1]));
+        };
+
+        return ['hapus' => $hitung('del'), 'tambah' => $hitung('ins')];
+    }
+
     public static function html(?string $lama, ?string $baru): string
     {
         $a = self::pecah((string) $lama);
@@ -35,10 +56,10 @@ class DiffKata
             . ($akhir ? e(implode('', array_slice($a, count($a) - $akhir))) : '');
     }
 
-    /** @return array<int, string> kata dan spasi sebagai potongan terpisah */
+    /** @return array<int, string> kata, spasi, dan tanda baca di ujung kata sebagai potongan terpisah */
     private static function pecah(string $teks): array
     {
-        return preg_split('/(\s+)/u', $teks, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY) ?: [];
+        return preg_split('/(\s+|[.,;:]+(?=\s|$))/u', $teks, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY) ?: [];
     }
 
     private static function banding(array $a, array $b): string

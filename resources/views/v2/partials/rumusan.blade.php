@@ -1,27 +1,15 @@
 {{--
-    Teks rumusan di layar. Baris "| a | b |" tampil sebagai tabel; teks biasa memakai penanda
-    perubahan bila $lama diberikan. Rumusan bertabel ditampilkan apa adanya, karena tanda
-    perubahan per kata tidak terbaca pada tabel.
+    Satu sisi rumusan di kartu baris: $potongan dari BandingRumusan::susun() ('awal' atau 'sempurna').
+    Perubahannya sudah ditandai <del> atau <ins>, juga di dalam sel tabel.
 --}}
-@php
-    // Lampiran dari editor atau berkas PDF ($baris diberikan oleh kartu baris).
-    $lampiranKhusus = isset($baris) && ($baris->html() || $baris->berkas());
-    $potongan = $lampiranKhusus ? [] : App\Support\TataLetakNaskah::potongan($teks);
-    $adaTabel = collect($potongan)->contains(fn (array $p) => isset($p['tabel']));
-@endphp
-
-@if ($lampiranKhusus)
-    @include('v2.partials.isi-lampiran', ['baris' => $baris, 'nilai' => $teks])
-@elseif ($adaTabel)
-    @foreach ($potongan as $p)
-        @isset($p['tabel'])
-            <div class="my-2 overflow-x-auto">
-                <div class="font-sans">@include('v2.partials.tabel-isi', ['tabel' => $p, 'garis' => 'border-slate-300 dark:border-navy-600'])</div>
+@foreach ($potongan as $p)
+    @isset($p['tabel'])
+        @if ($p['tabel'])
+            <div class="my-2 overflow-x-auto font-sans">
+                @include('v2.partials.tabel-isi', ['tabel' => $p, 'garis' => 'border-slate-300 dark:border-navy-600'])
             </div>
-        @else
-            <span class="block whitespace-pre-line">{{ $p['teks'] }}</span>
-        @endisset
-    @endforeach
-@else
-    <span class="whitespace-pre-line">{!! $lama !== null ? App\Support\DiffKata::html($lama, $teks) : e($teks) !!}</span>
-@endif
+        @endif
+    @else
+        <span class="block whitespace-pre-line">{{ $p['html'] }}</span>
+    @endisset
+@endforeach
