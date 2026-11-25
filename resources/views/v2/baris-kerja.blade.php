@@ -5,7 +5,11 @@
     $awal = (string) $baris->rumusan_awal;
     $sempurna = (string) $baris->rumusan_penyempurnaan;
     $status = $baris->status;
-    $judul = $penanda ?: App\Support\TemplateNaskah::BAGIAN[$baris->bagian];
+    // Lampiran (editor atau PDF) memakai halaman kertas; namanya dihitung sendiri karena bisa berubah saat diisi.
+    $judul = $kertas['nama'] ?? ($penanda ?: App\Support\TemplateNaskah::BAGIAN[$baris->bagian]);
+    $areaKertas = '-mx-5 bg-slate-100 px-3 py-5 sm:-mx-6 sm:px-5 dark:bg-navy-950';
+    // Lampiran bisa sangat panjang: tombolnya menempel di bawah layar.
+    $bilahBawah = 'sticky bottom-0 z-20 -mx-5 -mb-5 rounded-b-xl border-t border-slate-200 bg-white px-5 py-3 sm:-mx-6 sm:px-6 dark:border-navy-700 dark:bg-navy-900';
     $bisaDiatur = in_array($baris->bagian, B::BAGIAN_BERULANG, true);
     // Lampiran bisa ditambah (Lampiran I, II), tetapi lampiran terakhir tidak bisa dihapus.
     $bisaDitambah = in_array($baris->bagian, B::BAGIAN_BISA_DITAMBAH, true);
@@ -52,6 +56,7 @@
         minta: false,
         ketSemula: '',
         sorotan: false,
+        lihat: 'baru',
         label: @js((string) $baris->label),
         teks: @js($sempurna !== '' ? $sempurna : $awal),
         semula: '',
@@ -121,7 +126,45 @@
         'ring-2 ring-rose-300 dark:ring-rose-500/50' => $kurangSusun,
     ])>
 
-    @if ($mode === A::MODE_SUSUN)
+    @if ($mode === A::MODE_SUSUN && $kertas)
+        {{-- PD menyusun lampiran di selembar kertas; tersimpan otomatis saat berhenti mengetik atau begitu PDF diunggah. --}}
+        <header class="-mx-5 -mt-5 flex flex-wrap items-center justify-between gap-2 rounded-t-xl border-b border-slate-200 px-5 py-3 sm:-mx-6 sm:px-6 dark:border-navy-700">
+            <div class="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
+                <h3 class="text-base font-bold">{{ $judul }}</h3>
+                <p x-show="!tersimpan" x-cloak class="text-sm text-slate-500"><i class="bi bi-cloud-arrow-up" aria-hidden="true"></i> Menyimpan…</p>
+                @if ($kurangSusun)
+                    <p class="text-sm font-medium text-rose-600 dark:text-rose-300"><i class="bi bi-exclamation-circle" aria-hidden="true"></i> {{ $kurangSusun }}</p>
+                @endif
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+                @if ($baris->berkas())
+                    <x-ui.button size="rapat" variant="outline-primary" icon="pencil-square" x-on:click="gantiFormat('{{ B::FORMAT_HTML }}', 'PDF lampiran ini dilepas dan lampiran diketik di editor.')">Ketik lampiran di editor saja</x-ui.button>
+                @else
+                    <x-ui.button size="rapat" variant="outline" icon="file-earmark-pdf" title="Untuk lampiran yang sulit dibuat di editor" x-on:click="gantiFormat('{{ B::FORMAT_BERKAS }}', 'Isi lampiran di editor dikosongkan dan diganti PDF.')">Lampiran terlalu rumit? Unggah PDF saja</x-ui.button>
+                @endif
+                @if ($lampiranTambahan)
+                    <x-ui.button size="rapat" square variant="outline" icon="arrow-up" title="Majukan urutan lampiran" aria-label="Majukan urutan lampiran" wire:click="geser(-1)" />
+                    <x-ui.button size="rapat" square variant="outline" icon="arrow-down" title="Mundurkan urutan lampiran" aria-label="Mundurkan urutan lampiran" wire:click="geser(1)" />
+                    <x-ui.button size="rapat" square variant="soft-danger" icon="trash" title="Hapus lampiran ini" aria-label="Hapus lampiran ini" wire:click="buang" wire:confirm="Hapus lampiran ini?" />
+                @endif
+            </div>
+        </header>
+
+        <div class="{{ $areaKertas }} -mb-5 rounded-b-xl">
+            @if ($baris->berkas())
+                <div class="space-y-4">
+                    @if ($awal !== '')
+                        @include('v2.partials.isi-lampiran', ['nilai' => $awal])
+                    @endif
+                    @include('v2.partials.unggah-lampiran', ['teksTombol' => $awal !== '' ? 'Ganti PDF' : 'Unggah PDF'])
+                </div>
+            @else
+                <div x-ref="editor" x-on:input="simpanNanti()" x-on:focusout="$el.contains($event.relatedTarget) || simpanSekarang()">
+                    @include('v2.partials.editor-lampiran', ['label' => "Rumusan {$judul}"])
+                </div>
+            @endif
+        </div>
+    @elseif ($mode === A::MODE_SUSUN)
         {{-- PD menyusun rumusan: penanda di kiri, isian di kanan. Tersimpan otomatis saat berhenti mengetik. --}}
         <div class="grid gap-3 @xl:grid-cols-[11rem_minmax(0,1fr)] @xl:gap-6">
             <div class="min-w-0">
@@ -151,24 +194,6 @@
                     <div class="mt-3 flex justify-end">
                         <x-ui.button size="rapat" variant="outline-primary" icon="type" x-on:click="$wire.$parent.bukaUbahJudul()">Ubah Judul</x-ui.button>
                     </div>
-                @elseif ($baris->berkas())
-                    {{-- Lampiran berupa PDF: tersimpan begitu diunggah. --}}
-                    <div class="mt-1.5 space-y-3">
-                        @if ($awal !== '')
-                            @include('v2.partials.isi-lampiran', ['nilai' => $awal])
-                        @endif
-                        @include('v2.partials.unggah-lampiran', ['teksTombol' => $awal !== '' ? 'Ganti PDF' : 'Unggah PDF'])
-                    </div>
-                    <button type="button" class="mt-2 text-sm font-semibold text-primary-600 hover:underline dark:text-primary-300" x-on:click="gantiFormat('{{ B::FORMAT_HTML }}', 'PDF lampiran ini dilepas dan lampiran diketik di editor.')">
-                        <i class="bi bi-pencil-square" aria-hidden="true"></i> Ketik lampiran di editor saja
-                    </button>
-                @elseif ($baris->html())
-                    <div x-ref="editor" class="mt-1.5" x-on:input="simpanNanti()" x-on:focusout="$el.contains($event.relatedTarget) || simpanSekarang()">
-                        @include('v2.partials.editor-lampiran', ['label' => "Rumusan {$judul}"])
-                    </div>
-                    <button type="button" class="mt-2 text-sm font-semibold text-primary-600 hover:underline dark:text-primary-300" x-on:click="gantiFormat('{{ B::FORMAT_BERKAS }}', 'Isi lampiran di editor dikosongkan dan diganti PDF.')">
-                        <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i> Lampiran terlalu rumit? Unggah PDF saja
-                    </button>
                 @elseif ($pakaiEditor)
                     <div x-ref="editor" class="mt-1.5" x-on:input="simpanNanti()" x-on:focusout="$el.contains($event.relatedTarget) || simpanSekarang()">
                         @include('v2.partials.editor-rumusan', ['barisMinimal' => $barisAwal, 'label' => "Rumusan {$judul}"])
@@ -205,6 +230,11 @@
             <x-ui.badge size="lg" :color="B::WARNA_STATUS[$status]" :icon="B::IKON_STATUS[$status]">{{ B::LABEL_STATUS[$status] }}</x-ui.badge>
         </header>
 
+        @if ($kertas)
+            <div class="{{ $areaKertas }} -mt-4">
+                @include('v2.partials.halaman-lampiran')
+            </div>
+        @else
         {{-- Rumusan penyempurnaan di bawah rumusan awal, supaya keduanya selebar mungkin dan mudah dibandingkan. --}}
         <div>
             <div class="min-w-0 space-y-4">
@@ -246,14 +276,7 @@
                             </div>
                         @endif
                         @php $barisAwal = min(16, max(5, substr_count($awal, "\n") + 3 + (int) (mb_strlen($awal) / 50))); @endphp
-                        @if ($baris->berkas())
-                            {{-- Perbaikan lampiran PDF: unggah versi baru; versi sebelumnya tetap di Rumusan Awal. --}}
-                            @include('v2.partials.unggah-lampiran', ['teksTombol' => 'Unggah Versi Baru'])
-                        @elseif ($baris->html())
-                            <div x-ref="editor">
-                                @include('v2.partials.editor-lampiran', ['label' => "Rumusan penyempurnaan {$judul}"])
-                            </div>
-                        @elseif ($pakaiEditor)
+                        @if ($pakaiEditor)
                             <div x-ref="editor">
                                 @include('v2.partials.editor-rumusan', ['barisMinimal' => $barisAwal, 'label' => "Rumusan penyempurnaan {$judul}"])
                             </div>
@@ -269,6 +292,7 @@
                 </div>
             </div>
         </div>
+        @endif
 
         {{-- Keterangan tersimpan; hanya tampil bila ada isinya. --}}
         @if (filled($baris->keterangan))
@@ -331,12 +355,12 @@
                     Perangkat Daerah mengusulkan baris ini dihapus. Terima Hapus, atau Pakai Rumusan Awal bila baris ini tetap diperlukan.
                 </p>
             @endif
-            <div class="mt-4 flex flex-wrap items-center justify-between gap-2" x-show="!ubah && !minta && !catat">
+            <div @class(['mt-4 flex flex-wrap items-center justify-between gap-2', $bilahBawah => $kertas]) x-show="!ubah && !minta && !catat">
                 <div class="flex flex-wrap gap-2">
                     @if ($bisaKeterangan)
                         <x-ui.button size="rapat" variant="ghost" icon="chat-left-text" title="Catatan di kolom Keterangan matriks" x-on:click="bukaCatat()">{{ filled($baris->keterangan) ? 'Ubah Keterangan' : 'Tambah Keterangan' }}</x-ui.button>
                     @endif
-                    @if ($mode === A::MODE_TELITI && $bisaDitambah)
+                    @if ($mode === A::MODE_TELITI && $bisaDitambah && ! $kertas)
                         <x-ui.button size="rapat" variant="ghost" icon="plus-lg" wire:click="tambah">{{ $baris->bagian === 'lampiran' ? 'Sisipkan Lampiran' : 'Sisipkan Baris' }}</x-ui.button>
                     @endif
                     @if ($bisaDibuang)
@@ -374,9 +398,9 @@
             </div>
         @elseif ($mode === A::MODE_SESUAIKAN)
             {{-- PD menyempurnakan sendiri: memperbaiki, menyisipkan, atau mengusulkan hapus. Semuanya diperiksa Peneliti. --}}
-            <div class="mt-4 flex flex-wrap items-center justify-between gap-2" x-show="!ubah">
+            <div @class(['mt-4 flex flex-wrap items-center justify-between gap-2', $bilahBawah => $kertas]) x-show="!ubah">
                 <div class="flex flex-wrap gap-2">
-                    @if ($bisaDitambah)
+                    @if ($bisaDitambah && ! $kertas)
                         <x-ui.button size="rapat" variant="ghost" icon="plus-lg" wire:click="tambah">{{ $baris->bagian === 'lampiran' ? 'Sisipkan Lampiran' : 'Sisipkan Baris' }}</x-ui.button>
                     @endif
                     @if ($bisaDibuang)
@@ -397,7 +421,7 @@
 
         {{-- Saat mengubah, hanya tombol penyimpanan yang tampil. --}}
         @if (in_array($mode, [A::MODE_TELITI, A::MODE_KOREKSI, A::MODE_SESUAIKAN], true))
-            <div class="mt-4 flex flex-wrap items-center justify-between gap-2" x-show="ubah" x-cloak>
+            <div @class(['mt-4 flex flex-wrap items-center justify-between gap-2', $bilahBawah => $kertas]) x-show="ubah" x-cloak>
                 <div class="flex flex-wrap gap-2">
                     @if ($bisaDibuang)
                         <x-ui.button size="rapat" variant="ghost" icon="trash" wire:click="buangSisipan" wire:confirm="Hapus baris sisipan ini?">Hapus Baris</x-ui.button>

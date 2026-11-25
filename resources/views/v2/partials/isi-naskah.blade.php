@@ -15,35 +15,9 @@
 
     ['f' => $f, 'blok' => $blok, 'paraf' => $paraf, 'spasi' => $spasi] = App\Services\CetakNaskah::tampilanLayar($jenis, $blok);
 
-    $m = $f['margin'];
-    $lebarKertas = (float) $f['kertas']['lebar'];
-    $lebarIsi = $lebarKertas - (float) $m['kiri'] - (float) $m['kanan'];
-    $ruangKop = max(0, (float) $m['atas_pertama'] - (float) $m['atas']);
-    $kiriTtd = min((float) $f['penutup']['kiri'], max(0, $lebarIsi - 4));
-    $huruf = $f['huruf']['nama'] === 'Arial' ? "'Arial', Helvetica, sans-serif" : "'{$f['huruf']['nama']}', 'Times New Roman', Times, serif";
+    ['gaya' => $gaya, 'lebarPx' => $lebarPx, 'ruangKop' => $ruangKop] = App\Support\FormatDokumen::gayaKertas($f, $spasi);
     $teksKop = $f['kop']['tampil'] ? trim((string) $f['kop']['teks']) : '';
     $tampilLambang = $f['kop']['tampil'] && $f['kop']['lebar_lambang'] > 0;
-
-    $gaya = collect([
-        '--k-huruf' => $huruf,
-        '--k-ukuran' => $f['huruf']['ukuran'].'pt',
-        '--k-spasi' => $spasi,
-        '--k-atas' => $m['atas'].'cm',
-        '--k-bawah' => $m['bawah'].'cm',
-        '--k-kiri' => $m['kiri'].'cm',
-        '--k-kanan' => $m['kanan'].'cm',
-        '--k-ukuran-kop' => $f['kop']['ukuran'].'pt',
-        '--k-ruang-kop' => $ruangKop.'cm',
-        '--k-lambang' => $f['kop']['lebar_lambang'].'cm',
-        '--k-label' => $f['konsiderans']['lebar_label'].'cm',
-        '--k-kiri-ttd' => $kiriTtd.'cm',
-        '--k-lebar-ttd' => min(7, $lebarIsi - $kiriTtd).'cm',
-        '--k-ukuran-paraf' => min(11, (float) $f['huruf']['ukuran']).'pt',
-        'width' => $lebarKertas.'cm',
-    ])->map(fn ($nilai, $kunci) => "{$kunci}: {$nilai}")->implode('; ');
-
-    // 1 cm CSS = 96 / 2,54 px.
-    $lebarPx = round($lebarKertas * 96 / 2.54, 2);
 
     // Satu baris naskah bisa menjadi beberapa blok (label dan isi), tetapi tombolnya cukup satu.
     $sudahBertombol = [];

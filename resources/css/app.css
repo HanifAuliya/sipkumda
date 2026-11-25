@@ -285,8 +285,20 @@
 .lampiran-html u { text-decoration: underline; }
 .kertas-naskah .lampiran-html td, .kertas-naskah .lampiran-html th { border-color: #000; padding: 2pt 4pt; text-align: left; }
 
+/*
+ * Halaman lampiran: selembar kertas setinggi F4 yang memanjang mengikuti isinya. Garis tipis memperkirakan batas halaman;
+ * pemenggalan pastinya baru ada di PDF. Kepala dan tanda tangan dipudarkan karena dibuat otomatis.
+ */
+.kertas-lampiran { --k-halaman: calc(var(--k-tinggi) - var(--k-atas) - var(--k-bawah)); }
+.kertas-lampiran .isi-kertas {
+    min-height: calc(var(--k-halaman) - 2px);
+    background: repeating-linear-gradient(to bottom, transparent 0 calc(var(--k-halaman) - 1px), #cbd5e1 calc(var(--k-halaman) - 1px) var(--k-halaman));
+}
+.kertas-lampiran .otomatis { opacity: .5; cursor: default; }
+
 /* Editor lampiran (Tiptap): huruf naskah; warna tetap terang di mode gelap, seperti kertas. */
-.editor-lampiran .tiptap { min-height: 14rem; max-height: 75vh; overflow: auto; padding: .75rem 1rem; outline: none; font-family: 'Bookman Old Style', Georgia, 'Times New Roman', serif; font-size: .9375rem; line-height: 1.5; color: #000; background: #fff; }
+.editor-lampiran .tiptap { min-height: 10cm; outline: 1px dashed #e2e8f0; outline-offset: 6px; }
+.editor-lampiran .tiptap:focus { outline-color: #a5b4fc; }
 .editor-lampiran .tableWrapper { overflow-x: auto; }
 .editor-lampiran .tiptap table { table-layout: fixed; }
 .editor-lampiran .tiptap td, .editor-lampiran .tiptap th { position: relative; }

@@ -852,7 +852,7 @@ describe('bagian wajib dan lembar kerja', function () {
         expect($kepala)->toBe(['LAMPIRAN I', 'LAMPIRAN II']);
         Livewire::actingAs($this->pd)
             ->test(BarisKerja::class, ['baris' => $kedua, 'naskah' => $n])
-            ->assertSeeHtml('aria-label="Hapus baris ini"');
+            ->assertSeeHtml('aria-label="Hapus lampiran ini"');
 
         $this->alur->buangSaatMenyusun($kedua, $this->pd);
         expect(B::find($kedua->id))->toBeNull()

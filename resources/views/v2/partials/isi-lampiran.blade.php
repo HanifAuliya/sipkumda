@@ -20,11 +20,11 @@
                 </span>
             </div>
             <iframe src="{{ $url }}#view=FitH" title="Lampiran {{ $pdf->nama_asli }}" loading="lazy"
-                class="h-[32rem] w-full rounded-lg bg-white ring-1 ring-slate-200 dark:ring-navy-700"></iframe>
+                class="h-[calc(100dvh-16rem)] min-h-[32rem] w-full rounded-lg bg-white ring-1 ring-slate-200 dark:ring-navy-700"></iframe>
         </div>
     @else
         <span class="font-sans text-sm text-slate-400">PDF lampiran belum diunggah.</span>
     @endif
 @else
-    <div class="lampiran-html">{!! App\Support\HtmlLampiran::untukTampil($nilai) !!}</div>
+    <div class="lampiran-html">{!! App\Support\HtmlLampiran::untukTampil($nilai, $kertas['lebarIsi'] ?? 627) !!}</div>
 @endif

@@ -190,7 +190,7 @@ it('keluaran editor Tiptap: sel berparagraf, lebar kolom, dan tabel tanpa garis 
     // Tampilan: 60/600 = 10%, sel gabungan 90%, paragraf kosong tidak hilang, colgroup piksel dibuang.
     $tampil = HtmlLampiran::untukTampil($bersih);
     expect($tampil)->toContain('width:10%', 'width:56.67%', 'width:33.33%', 'width:90%', 'border-style:none;width:33.33%')
-        ->toContain('<table style="width:100%">')
+        ->toContain('<table style="width:95.69%">') // 600 dari 627 px lebar isi kertas
         ->not->toContain('<colgroup', '<p></p>')
         // Tabel tanpa lebar kolom dibiarkan.
         ->and(HtmlLampiran::untukTampil('<table><tbody><tr><td>a</td></tr></tbody></table>'))->toBe('<table><tbody><tr><td>a</td></tr></tbody></table>');
@@ -208,4 +208,57 @@ it('keluaran editor Tiptap: sel berparagraf, lebar kolom, dan tabel tanpa garis 
 
     expect($xml)->toContain('<w:gridSpan w:val="2"/>', '<w:vMerge w:val="restart"/>', '<w:vMerge w:val="continue"/>', 'Gabungan', 'JABATAN')
         ->and(substr_count($xml, '<w:tcBorders>'))->toBe(7); // 8 sel termasuk lanjutan gabungan, satu tanpa garis
+});
+
+it('halaman lampiran: satu lampiran per halaman di kertas, dengan tab dan Tambah Lampiran', function () {
+    $n = drafBerlampiran($this->pd);
+    $pertama = $n->baris()->where('bagian', 'lampiran')->first();
+    $this->alur->susun($pertama, $this->pd, null, '<p>DAFTAR PERTAMA</p>');
+
+    $layar = Livewire::actingAs($this->pd)->test(LayarKerja::class, ['naskah' => $n, 'blok' => 'lampiran'])
+        ->assertSet('lampiran', $pertama->id)
+        ->assertSee('Tambah Lampiran')
+        ->assertSeeHtml('id="baris-' . $pertama->id . '"')
+        ->call('tambahLampiran')
+        ->assertHasNoErrors();
+
+    $kedua = $n->baris()->where('bagian', 'lampiran')->get()->last();
+    expect($kedua->id)->not->toBe($pertama->id)->and($kedua->format)->toBe(B::FORMAT_HTML);
+
+    // Lampiran baru langsung dibuka; yang lain tidak ikut dimuat.
+    $layar->assertSet('lampiran', $kedua->id)
+        ->assertSeeHtml('id="baris-' . $kedua->id . '"')
+        ->assertDontSeeHtml('id="baris-' . $pertama->id . '"')
+        ->assertSee('kosong');
+
+    $this->alur->susun($kedua, $this->pd, null, '<p>DAFTAR KEDUA</p>');
+    $layar->call('pilihLampiran', $pertama->id)->assertSee(['Lampiran I', 'Lampiran II'])->assertSeeHtml('id="baris-' . $pertama->id . '"');
+
+    // Menuju baris dari perbandingan atau daftar galat membuka lampirannya; id yang tidak dikenal kembali ke yang pertama.
+    $layar->call('pilihBlok', 'judul')->call('bukaBaris', $kedua->id)->assertSet('blok', 'lampiran')->assertSet('lampiran', $kedua->id)
+        ->call('pilihLampiran', 999999)->assertSet('lampiran', $pertama->id);
+
+    // Kertasnya memuat kepala dan tanda tangan otomatis, sama dengan cetakan.
+    Livewire::actingAs($this->pd)->test(BarisKerja::class, ['baris' => $kedua->fresh(), 'naskah' => $n])
+        ->assertSee(['LAMPIRAN II', 'TIM PENYUSUN', 'BUPATI HULU SUNGAI TENGAH,'])
+        ->assertSeeHtml(['class="kertas-naskah kertas-lampiran', '--k-tinggi: 33cm', 'data-wadah', 'aria-label="Hapus lampiran ini"']);
+});
+
+it('Peneliti memeriksa lampiran di kertas: versi terbaru, rumusan awal, dan perubahannya', function () {
+    $n = drafBerlampiran($this->pd);
+    $lampiran = $n->baris()->where('bagian', 'lampiran')->first();
+    $this->alur->susun($lampiran, $this->pd, null, '<p>Ketua Budi</p>');
+    $this->alur->jalankan($n, $this->pd, 'ajukan');
+    $this->alur->jalankan($n, $this->admin, 'setujui_berkas');
+    $n = $this->alur->jalankan($n, $this->verifikator, 'tugaskan_peneliti', null, $this->peneliti->id);
+
+    $uji = fn (User $u) => Livewire::actingAs($u)->test(BarisKerja::class, ['baris' => $lampiran->fresh(), 'naskah' => $n]);
+
+    $uji($this->peneliti)->assertSee(['Ketua Budi', 'Tetap', 'Minta PD Perbaiki'])->assertDontSee('Rumusan Awal')
+        ->call('simpanPerbaikan', '<p>Ketua Ani</p>', null)->assertHasNoErrors();
+
+    $uji($this->peneliti)->assertSee(['Versi Terbaru', 'Rumusan Awal', 'Perubahan'])->assertSeeHtml(['<del>Budi</del>', '<ins>Ani</ins>']);
+
+    // Yang hanya membaca tidak dimuati editornya.
+    $uji($this->pd)->assertSee('Ketua Ani')->assertDontSeeHtml('data-wadah');
 });

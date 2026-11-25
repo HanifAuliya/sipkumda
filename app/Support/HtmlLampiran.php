@@ -267,10 +267,11 @@ class HtmlLampiran
     }
 
     /**
-     * HTML untuk ditampilkan dan dicetak. Lebar kolom dari editor (colwidth, piksel) dijadikan persen selebar kertas,
-     * supaya sama di layar, PDF, dan Word; paragraf kosong diberi spasi supaya jaraknya tidak hilang.
+     * HTML untuk ditampilkan dan dicetak. Lebar kolom dari editor (colwidth, piksel) dijadikan persen dari lebar isi
+     * kertas ($lebarIsi, lihat FormatDokumen::lebarIsiPx), supaya sama di layar, PDF, dan Word; paragraf kosong diberi
+     * spasi supaya jaraknya tidak hilang.
      */
-    public static function untukTampil(?string $html): string
+    public static function untukTampil(?string $html, float $lebarIsi = 627): string
     {
         if (blank($html)) {
             return '';
@@ -280,7 +281,7 @@ class HtmlLampiran
         $akar = $dom->getElementById('akar');
 
         foreach (iterator_to_array($akar->getElementsByTagName('table')) as $tabel) {
-            self::lebarPersen($tabel);
+            self::lebarPersen($tabel, $lebarIsi);
         }
         foreach (iterator_to_array($akar->getElementsByTagName('p')) as $p) {
             if (! $p->hasChildNodes()) {
@@ -296,7 +297,7 @@ class HtmlLampiran
         return $hasil;
     }
 
-    private static function lebarPersen(DOMElement $tabel): void
+    private static function lebarPersen(DOMElement $tabel, float $lebarIsi): void
     {
         $kisi = self::kisi($tabel);
         $lebar = [];
@@ -318,9 +319,10 @@ class HtmlLampiran
             return;
         }
 
-        // Kolom yang belum diatur berbagi sisa lebar kertas (650 px), paling sempit 60 px.
+        // Kolom yang belum diatur berbagi sisa lebar kertas, paling sempit 60 px. Tabel yang semua kolomnya diatur
+        // selebar jumlahnya, paling lebar selebar isi kertas.
         $belum = $kolomMaks - count($lebar);
-        $sisa = $belum > 0 ? max(60, (650 - array_sum($lebar)) / $belum) : 0;
+        $sisa = $belum > 0 ? max(60, ($lebarIsi - array_sum($lebar)) / $belum) : 0;
         $total = array_sum($lebar) + $belum * $sisa;
 
         foreach (array_merge(...$kisi) as $sel) {
@@ -341,7 +343,7 @@ class HtmlLampiran
                 $tabel->removeChild($anak);
             }
         }
-        $tabel->setAttribute('style', 'width:100%');
+        $tabel->setAttribute('style', 'width:' . min(100, round($total / $lebarIsi * 100, 2)) . '%');
     }
 
     public static function dom(string $html): DOMDocument

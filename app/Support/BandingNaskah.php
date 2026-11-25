@@ -45,7 +45,7 @@ class BandingNaskah
                     $blok[] = TataLetakNaskah::blokBerkas($item, $baru !== '' ? $baru : $lama, $penanda[$item->id] ?? 'Lampiran');
                 } elseif ($item->html()) {
                     TataLetakNaskah::bukaLampiran($blok, $lampiran, $item->terhapus() ? null : ($penanda[$item->id] ?? 'Lampiran'));
-                    $blok[] = ['tipe' => 'html', 'html' => HtmlLampiran::untukTampil($baru !== '' ? $baru : $lama)];
+                    $blok[] = ['tipe' => 'html', 'html' => HtmlLampiran::untukTampil($baru !== '' ? $baru : $lama, FormatDokumen::lebarIsiPx($naskah->jenis))];
                 } else {
                     TataLetakNaskah::bukaLampiran($blok, $lampiran, $item->terhapus() ? null : ($penanda[$item->id] ?? 'Lampiran'));
                     $blok[] = ['tipe' => 'teks', 'baris' => self::teks($lama, $baru, true)];

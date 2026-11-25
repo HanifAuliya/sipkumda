@@ -58,6 +58,8 @@
             });
             requestAnimationFrame(() => requestAnimationFrame(() => this.siap = true));
         },
+        {{-- Halaman Lampiran sudah berupa kertas seukuran cetak, jadi pratinjaunya ditutup dan ruangnya dipakai kertas. --}}
+        get halamanLampiran() { return this.$wire.blok.startsWith('lampiran'); },
         get gaya() {
             const pilih = (ids) => ids.map((id) => `.kertas-pratinjau [data-baris='${id}']`).join(',');
             return (this.sorot.length ? `${pilih(this.sorot)}{background:rgb(94 114 228 / .1)}` : '')
@@ -323,7 +325,7 @@
             </x-ui.tabs>
 
             <div class="ml-auto flex flex-wrap items-center justify-end gap-2">
-                <x-ui.button variant="outline" icon="layout-sidebar-reverse" x-cloak x-show="! pratinjau && $wire.tab === 'kerja'" x-on:click="pratinjau = true">Pratinjau Naskah</x-ui.button>
+                <x-ui.button variant="outline" icon="layout-sidebar-reverse" x-cloak x-show="! pratinjau && $wire.tab === 'kerja' && ! halamanLampiran" x-on:click="pratinjau = true">Pratinjau Naskah</x-ui.button>
                 @php
                     // Satu tombol utama untuk maju; mundur dan tindakan sampingan dikumpulkan supaya kepala halaman tidak penuh.
                     // Buka kunci tidak ditampilkan di sini: tempatnya di halaman Nota Dinas & Tanda Tangan.
@@ -488,6 +490,36 @@
             @if ($blokAktif)
                 @php $selesaiBlok = collect($blokAktif['ids'])->filter(fn ($id) => ! in_array($perId[$id]->status, $statusBelum, true))->count(); @endphp
 
+                @if ($blokAktif['bagian'] === 'lampiran')
+                    {{-- Satu lampiran per halaman; tabnya juga tampil bila hanya satu, supaya Tambah Lampiran mudah ditemukan. --}}
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <x-ui.tabs class="max-w-full" aria-label="Lampiran">
+                            @foreach ($daftarLampiran as $l)
+                                <x-ui.tab class="whitespace-nowrap" :active="$l->id === $lampiran" wire:click="pilihLampiran({{ $l->id }})" wire:key="tab-lampiran-{{ $l->id }}">
+                                    <span class="size-2.5 shrink-0 rounded-full ring-2 ring-white dark:ring-navy-800 {{ $titik[$l->status] }}" title="{{ B::LABEL_STATUS[$l->status] }}" aria-hidden="true"></span>
+                                    {{ $penanda[$l->id] ?: ($daftarLampiran->count() > 1 ? 'Lampiran ' . $loop->iteration : 'Lampiran') }}
+                                    @if (blank($l->teksAkhir()) && ! $l->terhapus())
+                                        <span class="font-normal opacity-70">· kosong</span>
+                                    @endif
+                                </x-ui.tab>
+                            @endforeach
+                        </x-ui.tabs>
+                        <div class="flex flex-wrap items-center gap-2">
+                            @if ($tahap !== TahapNaskah::Draf && $mode !== A::MODE_SESUAIKAN)
+                                @php $blokSelesai = $selesaiBlok === count($blokAktif['ids']); @endphp
+                                <x-ui.badge :color="$blokSelesai ? 'success' : 'danger'" :icon="$blokSelesai ? 'check2-circle' : 'exclamation-circle'" size="lg">{{ $selesaiBlok }} dari {{ count($blokAktif['ids']) }} lampiran diperiksa</x-ui.badge>
+                            @endif
+                            @if ($bisaTambahLampiran)
+                                <x-ui.button size="rapat" variant="outline-primary" icon="plus-lg" wire:click="tambahLampiran" loading="tambahLampiran">Tambah Lampiran</x-ui.button>
+                            @endif
+                        </div>
+                    </div>
+
+                    @foreach ($daftarBaris as $b)
+                        {{-- Penanda tidak ikut kunci: ia berubah saat lampiran mulai diisi, dan editornya jangan sampai dibuat ulang. --}}
+                        <livewire:v2.baris-kerja :baris="$b" :naskah="$naskah" :penanda="$penanda[$b->id] ?? null" :wire:key="'lampiran-'.$b->id.'-'.$naskah->giliran" />
+                    @endforeach
+                @else
                 <x-ui.card :padding="false"
                     :title="$blokAktif['nama'].($blokAktif['sub'] ? ': '.$blokAktif['sub'] : '')"
                     :description="match ($mode) {
@@ -510,6 +542,7 @@
                         @endforeach
                     </div>
                 </x-ui.card>
+                @endif
             @else
                 <x-ui.card>
                     <x-ui.empty-state icon="check2-circle" title="Tidak ada baris pada tampilan ini." class="py-12">
@@ -703,7 +736,7 @@
     </div>
 
     {{-- Pratinjau naskah: bisa digulir sendiri dan menyorot bagian yang sedang dikerjakan. --}}
-    <aside x-show="pratinjau && $wire.tab === 'kerja'" x-cloak aria-label="Pratinjau naskah"
+    <aside x-show="pratinjau && $wire.tab === 'kerja' && ! halamanLampiran" x-cloak aria-label="Pratinjau naskah"
         class="fixed inset-0 z-40 flex flex-col bg-surface xl:static xl:z-auto xl:w-[34rem] xl:shrink-0 2xl:w-[42rem] dark:bg-navy-950 dark:ring-1 dark:ring-white/5">
         <style wire:ignore x-text="gaya"></style>
         <div class="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-slate-100 bg-white px-4 dark:border-navy-800 dark:bg-navy-900">

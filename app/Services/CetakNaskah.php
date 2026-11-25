@@ -552,7 +552,8 @@ class CetakNaskah
     {
         $kisi = HtmlLampiran::kisi($node);
         $jumlahKolom = max(array_map(fn (array $baris) => array_sum(array_column($baris, 'rentang')), $kisi) ?: [1]);
-        $tabel = $halaman->addTable(['width' => $this->lebarIsi, 'unit' => 'dxa', 'layout' => 'fixed', 'cellMargin' => 70]);
+        $lebar = (int) round($this->lebarIsi * (preg_match('/width:\s*([\d.]+)%/', $node->getAttribute('style'), $m) ? (float) $m[1] : 100) / 100);
+        $tabel = $halaman->addTable(['width' => $lebar, 'unit' => 'dxa', 'layout' => 'fixed', 'cellMargin' => 70]);
 
         foreach ($kisi as $baris) {
             $tabel->addRow();
@@ -572,7 +573,7 @@ class CetakNaskah
                     $bentuk += ['borderSize' => 4, 'borderColor' => '000000'];
                 }
 
-                $cell = $tabel->addCell((int) round($this->lebarIsi * $persen / 100), $bentuk);
+                $cell = $tabel->addCell((int) round($lebar * $persen / 100), $bentuk);
 
                 if ($sel['lanjutan']) {
                     $cell->addText('');

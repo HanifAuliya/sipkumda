@@ -9,7 +9,8 @@ import StarterKit from '@tiptap/starter-kit';
 import { OrderedList } from '@tiptap/extension-list';
 import { Table, TableCell, TableHeader, TableRow } from '@tiptap/extension-table';
 import { Slice } from '@tiptap/pm/model';
-import { CellSelection } from '@tiptap/pm/tables';
+import { Plugin } from '@tiptap/pm/state';
+import { CellSelection, TableMap } from '@tiptap/pm/tables';
 import TextAlign from '@tiptap/extension-text-align';
 import { FontSize, TextStyle } from '@tiptap/extension-text-style';
 import Subscript from '@tiptap/extension-subscript';
@@ -104,6 +105,54 @@ const atributSel = (bawaan) => ({
 const Sel = TableCell.extend({ addAttributes() { return atributSel(this.parent?.()); } });
 const SelJudul = TableHeader.extend({ addAttributes() { return atributSel(this.parent?.()); } });
 
+/**
+ * Tabel tidak pernah melebihi lebar isi kertas: bila kolomnya digeser atau ditempel terlalu lebar, semua kolom yang
+ * lebarnya sudah diatur diciutkan sebanding. Sama dengan yang dilakukan cetakan (HtmlLampiran::untukTampil).
+ */
+const MuatDiKertas = Extension.create({
+    name: 'muatDiKertas',
+    addOptions: () => ({ lebar: 627, kolomMin: 25, kolomBebas: 60 }),
+    addProseMirrorPlugins() {
+        const { lebar, kolomMin, kolomBebas } = this.options;
+
+        return [new Plugin({
+            appendTransaction: (transaksi, _, state) => {
+                if (!transaksi.some((t) => t.docChanged)) return null;
+                const tr = state.tr;
+
+                state.doc.descendants((tabel, posTabel) => {
+                    if (tabel.type.name !== 'table') return true;
+
+                    const peta = TableMap.get(tabel);
+                    const kolom = Array(peta.width).fill(0);
+                    const sel = new Map();
+                    peta.map.forEach((pos, i) => {
+                        const k = i % peta.width;
+                        if (!sel.has(pos)) sel.set(pos, k);
+                        const px = tabel.nodeAt(pos).attrs.colwidth?.[k - sel.get(pos)];
+                        if (px && !kolom[k]) kolom[k] = px;
+                    });
+
+                    const total = kolom.reduce((a, b) => a + b, 0);
+                    const batas = lebar - kolom.filter((px) => !px).length * kolomBebas;
+                    if (total <= batas + 1) return false;
+
+                    const baru = kolom.map((px) => px && Math.max(kolomMin, Math.floor(px * batas / total)));
+                    sel.forEach((k, pos) => {
+                        const { attrs } = tabel.nodeAt(pos);
+                        if (!attrs.colwidth) return;
+                        tr.setNodeAttribute(posTabel + 1 + pos, 'colwidth', attrs.colwidth.map((px, i) => (px ? baru[k + i] : 0)));
+                    });
+
+                    return false;
+                });
+
+                return tr.docChanged ? tr : null;
+            },
+        })];
+    },
+});
+
 /** Menghidup-matikan garis: sel yang dipilih, atau seluruh tabel bila hanya ada kursor. */
 export function ubahGaris(editor) {
     const { state, view } = editor;
@@ -160,7 +209,7 @@ export function keadaan(editor) {
     };
 }
 
-export function buatEditorLampiran(elemen, isi, { saatUbah, saatStatus, label }) {
+export function buatEditorLampiran(elemen, isi, { saatUbah, saatStatus, label, lebar }) {
     return new Editor({
         element: elemen,
         content: isi ?? '',
@@ -173,6 +222,7 @@ export function buatEditorLampiran(elemen, isi, { saatUbah, saatStatus, label })
             TextStyle, FontSize, Subscript, Superscript, Jorok,
             Table.configure({ resizable: true, lastColumnResizable: true, cellMinWidth: 25 }),
             TableRow, Sel, SelJudul,
+            MuatDiKertas.configure(lebar ? { lebar } : {}),
         ],
         editorProps: {
             attributes: { class: 'lampiran-html', role: 'textbox', 'aria-multiline': 'true', 'aria-label': label ?? 'Lampiran' },

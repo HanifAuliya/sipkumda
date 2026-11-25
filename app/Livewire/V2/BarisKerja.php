@@ -6,6 +6,10 @@ use App\Models\Naskah;
 use App\Models\NaskahBaris;
 use App\Models\NaskahBerkas;
 use App\Services\AlurNaskah;
+use App\Services\CetakNaskah;
+use App\Support\FormatDokumen;
+use App\Support\TataLetakNaskah;
+use App\Support\TemplateNaskah;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
@@ -131,8 +135,12 @@ class BarisKerja extends Component
     public function tambah(AlurNaskah $alur): void
     {
         Gate::authorize('view', $this->naskah);
-        $alur->tambahSetelah($this->baris, auth()->user());
+        $baru = $alur->tambahSetelah($this->baris, auth()->user());
         $this->dispatch('struktur-berubah');
+
+        if ($baru->bagian === 'lampiran') {
+            $this->dispatch('lampiran-dipilih', id: $baru->id);
+        }
     }
 
     public function buang(AlurNaskah $alur): void
@@ -191,6 +199,35 @@ class BarisKerja extends Component
             // Lampiran wajib ada: tombol hapus hanya untuk lampiran tambahan.
             'lampiranTambahan' => $this->baris->bagian === 'lampiran' && $alur->lampiranTambahan($this->baris),
             'sisipanSaya' => $alur->sisipanPdTerbuka($this->baris, auth()->user()),
+            'kertas' => $this->kertasLampiran(),
         ]);
+    }
+
+    /**
+     * Bekal halaman lampiran (editor atau PDF): kertas dengan ukuran Format Dokumen, kepala "LAMPIRAN ..." dan
+     * tanda tangan yang dibuat otomatis. Null untuk baris lain dan lampiran teks lama, yang tetap memakai kartu biasa.
+     *
+     * @return array{nama: string, gaya: string, lebarPx: float, lebarIsi: float, kepala: list<string>, jabatan: list<string>}|null
+     */
+    private function kertasLampiran(): ?array
+    {
+        if ($this->baris->bagian !== 'lampiran' || ! ($this->baris->html() || $this->baris->berkas())) {
+            return null;
+        }
+
+        $baris = $this->naskah->baris()->whereIn('bagian', ['judul', 'penutup', 'lampiran'])->get();
+        $bekal = TataLetakNaskah::lampiranBaru($baris);
+        $penanda = TemplateNaskah::penanda($this->naskah, $baris->where('bagian', 'lampiran')->values())[$this->baris->id] ?? null;
+        ['f' => $f, 'spasi' => $spasi] = CetakNaskah::tampilanLayar($this->naskah->jenis, []);
+        ['gaya' => $gaya, 'lebarPx' => $lebarPx] = FormatDokumen::gayaKertas($f, $spasi);
+
+        return [
+            'nama' => $penanda ?: TemplateNaskah::BAGIAN['lampiran'],
+            'gaya' => $gaya,
+            'lebarPx' => $lebarPx,
+            'lebarIsi' => FormatDokumen::lebarIsiPx($this->naskah->jenis),
+            'kepala' => [mb_strtoupper(trim($penanda ?: 'Lampiran')), ...$bekal['judul']],
+            'jabatan' => $bekal['jabatan'],
+        ];
     }
 }

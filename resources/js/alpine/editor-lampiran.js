@@ -33,10 +33,13 @@ export default (label) => {
         async mulai() {
             try {
                 alat = await import('../editor-lampiran.js');
-                if (!this.$refs.wadah?.isConnected) return;
+                // Wadahnya di dalam kertas yang punya x-data sendiri, jadi tidak terjangkau $refs.
+                const wadah = this.$root.querySelector('[data-wadah]');
+                if (!wadah?.isConnected) return;
 
-                editor = alat.buatEditorLampiran(this.$refs.wadah, this.teks, {
+                editor = alat.buatEditorLampiran(wadah, this.teks, {
                     label,
+                    lebar: Number(wadah.dataset.wadah),
                     saatUbah: (html) => {
                         this.teks = html;
                         this.$root.dispatchEvent(new Event('input', { bubbles: true }));

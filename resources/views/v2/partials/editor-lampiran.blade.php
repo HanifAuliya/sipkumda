@@ -1,20 +1,21 @@
 {{--
     Editor lampiran seperti Word (resources/js/alpine/editor-lampiran.js, Tiptap). Isinya terikat ke `teks` milik
     baris-kerja. Dibungkus elemen ber-x-ref supaya baris-kerja bisa memfokuskannya; wire:ignore karena isinya dibangun
-    Tiptap. mousedown.prevent pada tombol menjaga pilihan teks di editor. $label: nama untuk pembaca layar.
+    Tiptap. mousedown.prevent pada tombol menjaga pilihan teks di editor. Bilah alat menempel di atas saat digulir.
+    $label: nama untuk pembaca layar, $kertas: bekal kertas dari BarisKerja::kertasLampiran().
 --}}
 @php
     $tombol = 'inline-flex h-8 min-w-8 items-center justify-center gap-1.5 rounded-md px-2 text-sm font-medium text-slate-600 transition hover:bg-white hover:text-navy-900 hover:shadow-xs disabled:pointer-events-none disabled:opacity-40 aria-pressed:bg-white aria-pressed:text-primary-700 aria-pressed:shadow-xs aria-pressed:ring-1 aria-pressed:ring-primary-200 dark:text-slate-300 dark:hover:bg-navy-700 dark:hover:text-white dark:aria-pressed:bg-navy-700 dark:aria-pressed:text-primary-300 dark:aria-pressed:ring-primary-500/40';
-    $pilihan = 'h-8 leading-none rounded-md border-slate-200 bg-white py-0 pr-8 pl-2 text-sm text-slate-600 dark:border-navy-700 dark:bg-navy-900 dark:text-slate-300';
+    $pilihan = 'h-8 leading-[1.875rem] rounded-md border-slate-200 bg-white py-0 pr-8 pl-2 text-sm text-slate-600 dark:border-navy-700 dark:bg-navy-900 dark:text-slate-300';
     $pemisah = 'mx-0.5 h-5 w-px bg-slate-200 dark:bg-navy-700';
 @endphp
 
-<div x-data="editorLampiran(@js($label ?? 'Lampiran'))" wire:ignore role="group" aria-label="{{ $label ?? 'Lampiran' }}"
-    class="editor-lampiran overflow-hidden rounded-lg border border-slate-200 bg-white shadow-xs transition focus-within:border-primary-400 focus-within:ring-3 focus-within:ring-primary-100 dark:border-navy-700 dark:focus-within:border-primary-500 dark:focus-within:ring-primary-500/20">
-    <p x-show="! siap && ! gagal" class="px-3.5 py-6 text-center text-sm text-slate-500"><i class="bi bi-hourglass-split" aria-hidden="true"></i> Memuat editor…</p>
-    <p x-show="gagal" x-cloak class="bg-rose-50 px-3.5 py-3 text-sm text-rose-700">Editor gagal dimuat. Muat ulang halaman.</p>
+<div x-data="editorLampiran(@js($label ?? 'Lampiran'))" role="group" aria-label="{{ $label ?? 'Lampiran' }}" class="editor-lampiran">
+    <p x-show="! siap && ! gagal" class="py-6 text-center text-sm text-slate-500 dark:text-slate-400"><i class="bi bi-hourglass-split" aria-hidden="true"></i> Memuat editor…</p>
+    <p x-show="gagal" x-cloak class="rounded-lg bg-rose-50 px-3.5 py-3 text-sm text-rose-700">Editor gagal dimuat. Muat ulang halaman.</p>
 
-    <div x-show="siap" x-cloak role="toolbar" aria-label="Format lampiran" class="flex flex-wrap items-center gap-0.5 border-b border-slate-200 bg-slate-50 px-2 py-1 dark:border-navy-700 dark:bg-navy-800">
+    <div x-show="siap" x-cloak wire:ignore class="sticky top-0 z-20 mx-auto mb-4 max-w-5xl overflow-hidden rounded-lg border border-slate-200 bg-slate-50 shadow-card dark:border-navy-700 dark:bg-navy-800">
+    <div role="toolbar" aria-label="Format lampiran" class="flex flex-wrap items-center justify-center gap-0.5 px-2 py-1">
         <button type="button" class="{{ $tombol }}" x-on:mousedown.prevent x-on:click="jalankan('undo')" x-bind:disabled="! st.bisaUrung" title="Urungkan (Ctrl+Z)" aria-label="Urungkan"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i></button>
         <button type="button" class="{{ $tombol }}" x-on:mousedown.prevent x-on:click="jalankan('redo')" x-bind:disabled="! st.bisaUlang" title="Ulangi (Ctrl+Y)" aria-label="Ulangi"><i class="bi bi-arrow-clockwise" aria-hidden="true"></i></button>
         <span class="{{ $pemisah }}" aria-hidden="true"></span>
@@ -58,7 +59,7 @@
     </div>
 
     {{-- Alat tabel hanya tampil saat kursor di dalam tabel. --}}
-    <div x-show="siap && st.tabel" x-cloak role="toolbar" aria-label="Alat tabel" class="flex flex-wrap items-center gap-0.5 border-b border-slate-200 bg-slate-50 px-2 py-1 dark:border-navy-700 dark:bg-navy-800">
+    <div x-show="st.tabel" x-cloak role="toolbar" aria-label="Alat tabel" class="flex flex-wrap items-center justify-center gap-0.5 border-t border-slate-200 px-2 py-1 dark:border-navy-700">
         @foreach ([
             ['addRowBefore', 'Baris di atas'], ['addRowAfter', 'Baris di bawah'], ['deleteRow', 'Hapus baris'],
             ['addColumnBefore', 'Kolom di kiri'], ['addColumnAfter', 'Kolom di kanan'], ['deleteColumn', 'Hapus kolom'],
@@ -73,8 +74,13 @@
         <button type="button" class="{{ $tombol }}" x-on:mousedown.prevent x-on:click="jalankan('deleteTable')">Hapus tabel</button>
     </div>
 
-    <div x-ref="wadah"></div>
+    </div>
+
+    <x-naskah.kertas-lampiran :kertas="$kertas">
+        <div data-wadah="{{ round($kertas['lebarIsi']) }}" wire:ignore></div>
+    </x-naskah.kertas-lampiran>
+
+    <p class="mx-auto mt-3 max-w-3xl text-center text-sm text-slate-500 dark:text-slate-400">
+        Salin dari Word atau Excel lalu tempel (Ctrl+V); tabel dan formatnya ikut. Seret garis kolom untuk mengatur lebarnya, seret beberapa sel untuk menggabungkannya. Garis abu-abu di kertas memperkirakan batas halaman.
+    </p>
 </div>
-<p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
-    Salin dari Word atau Excel lalu tempel (Ctrl+V); tabel dan formatnya ikut. Seret garis kolom untuk mengatur lebarnya, seret beberapa sel untuk menggabungkannya.
-</p>

@@ -119,6 +119,58 @@ class FormatDokumen
         return self::amankan(self::rapikan(self::gabung($bawaan, self::baca(self::KUNCI[$jenis])), $bawaan), $bawaan);
     }
 
+    /** 1 cm di CSS = 96 / 2,54 px. */
+    private const PX_PER_CM = 96 / 2.54;
+
+    /** Lebar isi kertas (tanpa tepi kiri dan kanan) dalam px CSS; dasar lebar tabel lampiran di editor. */
+    public static function lebarIsiPx(string $jenis): float
+    {
+        $f = self::naskah($jenis);
+
+        return ((float) $f['kertas']['lebar'] - (float) $f['margin']['kiri'] - (float) $f['margin']['kanan']) * self::PX_PER_CM;
+    }
+
+    /**
+     * Gaya kertas di layar (.kertas-naskah di resources/css/app.css) dengan ukuran yang sama dengan PDF.
+     * $spasi: line-height dari CetakNaskah::tampilanLayar.
+     *
+     * @return array{gaya: string, lebarPx: float, ruangKop: float}
+     */
+    public static function gayaKertas(array $f, float $spasi): array
+    {
+        $m = $f['margin'];
+        $lebar = (float) $f['kertas']['lebar'];
+        $tinggi = (float) $f['kertas']['tinggi'];
+        $lebarIsi = $lebar - (float) $m['kiri'] - (float) $m['kanan'];
+        $ruangKop = max(0, (float) $m['atas_pertama'] - (float) $m['atas']);
+        $kiriTtd = min((float) $f['penutup']['kiri'], max(0, $lebarIsi - 4));
+
+        $gaya = [
+            '--k-huruf' => $f['huruf']['nama'] === 'Arial' ? "'Arial', Helvetica, sans-serif" : "'{$f['huruf']['nama']}', 'Times New Roman', Times, serif",
+            '--k-ukuran' => $f['huruf']['ukuran'].'pt',
+            '--k-spasi' => $spasi,
+            '--k-atas' => $m['atas'].'cm',
+            '--k-bawah' => $m['bawah'].'cm',
+            '--k-kiri' => $m['kiri'].'cm',
+            '--k-kanan' => $m['kanan'].'cm',
+            '--k-tinggi' => $tinggi.'cm',
+            '--k-ukuran-kop' => $f['kop']['ukuran'].'pt',
+            '--k-ruang-kop' => $ruangKop.'cm',
+            '--k-lambang' => $f['kop']['lebar_lambang'].'cm',
+            '--k-label' => $f['konsiderans']['lebar_label'].'cm',
+            '--k-kiri-ttd' => $kiriTtd.'cm',
+            '--k-lebar-ttd' => min(7, $lebarIsi - $kiriTtd).'cm',
+            '--k-ukuran-paraf' => min(11, (float) $f['huruf']['ukuran']).'pt',
+            'width' => $lebar.'cm',
+        ];
+
+        return [
+            'gaya' => collect($gaya)->map(fn ($nilai, $kunci) => "{$kunci}: {$nilai}")->implode('; '),
+            'lebarPx' => round($lebar * self::PX_PER_CM, 2),
+            'ruangKop' => $ruangKop,
+        ];
+    }
+
     public static function nota(): array
     {
         $bawaan = self::bawaanNota();
