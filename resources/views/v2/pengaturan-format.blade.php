@@ -66,7 +66,7 @@
                     @if ($versiPratinjau > 0)
                         {{-- Alamatnya berganti tiap pembaruan, supaya browser memuat PDF yang baru. --}}
                         <iframe wire:key="pratinjau-{{ $tab }}-{{ $versiPratinjau }}" title="Pratinjau {{ $judulTab }}"
-                            src="{{ route('format.pratinjau', ['bagian' => $tab, 'v' => $versiPratinjau]) }}#toolbar=0&navpanes=0&view=FitH"
+                            src="{{ route('format.pratinjau', ['bagian' => $tab, 'v' => $versiPratinjau]) }}#navpanes=0&view=FitH"
                             class="absolute inset-0 size-full border-0 transition-opacity duration-150" wire:loading.class="opacity-40" wire:target="pratinjau"></iframe>
                     @else
                         <div class="absolute inset-0 grid place-items-center text-sm text-slate-500 dark:text-slate-400">
